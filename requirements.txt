@@ -1,4 +1,4 @@
-google-generativeai
+google-genai
 chromadb
 streamlit
 python-dotenv
