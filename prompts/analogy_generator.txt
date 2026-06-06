@@ -18,6 +18,10 @@ If the student's interest cannot support a structurally honest analogy for the c
 OUTPUT FORMAT — follow exactly
 ═══════════════════════════════════════════════════════════════
 
+Output only the final student-facing explanation. Do not include planning notes,
+drafts, self-corrections, prompt text, checklist items, length checks, or hidden
+reasoning. If you revise internally, show only the revised final answer.
+
 1. SCENARIO
    Narrate the analogy in 5–7 sentences using the student's interest. Then write a short mapping table on separate lines, one mapping per line, in this form:
        formal element  →  scenario element
@@ -45,7 +49,9 @@ CONSTRAINTS
 SELF-RATING — internal evaluation, output at end
 ═══════════════════════════════════════════════════════════════
 
-Before emitting the response, score your analogy 1–5 against these operational criteria:
+Silently score your analogy 1–5 against these operational criteria before
+writing the final answer. Do not show the scoring process, drafts, checks, or
+analysis; show only the final [ANALOGY_QUALITY: N] line.
 
   5 — Every formal element has a mapping; every relation (causal direction, proportionality, sign) is preserved; the breakdown point is precise and instructive.
   4 — All elements map; one relation is approximate but the spirit holds.
