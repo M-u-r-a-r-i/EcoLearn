@@ -59,7 +59,13 @@ def _build_user_message(
         lines.append("address this feedback specifically:")
         lines.append(prior_feedback.strip())
     lines.append("")
-    lines.append("Generate the explanation now, following the output format exactly.")
+    lines.append("Generate the final student-facing explanation now.")
+    lines.append("The first line of your response must be exactly: 1. SCENARIO")
+    lines.append(
+        "Do not include planning notes, checklists, drafts, self-corrections, "
+        "word-count checks, prompt summaries, or labels such as Concept, "
+        "Student Interest, Target, Constraints, Revised, or Expansion Strategy."
+    )
     return "\n".join(lines)
 
 
@@ -113,6 +119,41 @@ def _build_generation_config(model: str) -> types.GenerateContentConfig:
     return types.GenerateContentConfig(**config_kwargs)
 
 
+def _response_debug_summary(response: object) -> str:
+    """Return compact model metadata for diagnosing empty responses."""
+    candidates = getattr(response, "candidates", None) or []
+    summaries: list[str] = []
+    for candidate in candidates:
+        finish_reason = getattr(candidate, "finish_reason", None)
+        safety_ratings = getattr(candidate, "safety_ratings", None)
+        summaries.append(
+            f"finish_reason={finish_reason!r}, safety_ratings={safety_ratings!r}"
+        )
+    return "; ".join(summaries) or "no candidate metadata available"
+
+
+def _extract_response_text(response: object) -> str:
+    """Extract text from a Gemini/Gemma response, raising clearly if absent."""
+    text = getattr(response, "text", None)
+    if text and text.strip():
+        return text
+
+    parts_text: list[str] = []
+    for candidate in getattr(response, "candidates", None) or []:
+        content = getattr(candidate, "content", None)
+        for part in getattr(content, "parts", None) or []:
+            part_text = getattr(part, "text", None)
+            if part_text:
+                parts_text.append(part_text)
+    if parts_text:
+        return "\n".join(parts_text)
+
+    raise RuntimeError(
+        "Generator model returned no text. "
+        f"Response metadata: {_response_debug_summary(response)}"
+    )
+
+
 def generate_explanation(
     concept: str,
     interest: str,
@@ -156,4 +197,4 @@ def generate_explanation(
         contents=contents,
         config=_build_generation_config(model),
     )
-    return response.text
+    return _extract_response_text(response)
