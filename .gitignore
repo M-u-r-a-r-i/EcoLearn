@@ -2,3 +2,6 @@ venv/
 .env
 __pycache__/
 *.pyc
+
+# Local vector store — regenerable from src/data via src/rag/build_index.py
+chroma_db/
