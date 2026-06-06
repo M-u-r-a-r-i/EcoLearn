@@ -39,6 +39,7 @@ def _build_user_message(
     interest: str,
     level: str,
     sub_interest_facts: Iterable[str] | None,
+    prior_feedback: str | None,
 ) -> str:
     """Render the per-request inputs into a single user message."""
     lines = [
@@ -51,6 +52,12 @@ def _build_user_message(
         if facts:
             lines.append("Additional facts about the student's interest:")
             lines.extend(f"  - {fact}" for fact in facts)
+    if prior_feedback and prior_feedback.strip():
+        lines.append("")
+        lines.append("REVISION NOTE — your previous answer was rejected by the")
+        lines.append("Pedagogical Critic. Rewrite the explanation in full and")
+        lines.append("address this feedback specifically:")
+        lines.append(prior_feedback.strip())
     lines.append("")
     lines.append("Generate the explanation now, following the output format exactly.")
     return "\n".join(lines)
@@ -111,6 +118,7 @@ def generate_explanation(
     interest: str,
     level: str,
     sub_interest_facts: Iterable[str] | None = None,
+    prior_feedback: str | None = None,
 ) -> str:
     """Generate an interest-grounded explanation of `concept` for the student.
 
@@ -120,6 +128,8 @@ def generate_explanation(
         level: The student's academic level (e.g., "Class 11").
         sub_interest_facts: Optional list of specific facts about the student's
             interest, used to make the analogy more personal.
+        prior_feedback: Optional critic feedback from a previous attempt. When
+            present, the model is told to rewrite in full while addressing it.
 
     Returns:
         The model's response text, formatted per the system prompt.
@@ -132,7 +142,9 @@ def generate_explanation(
     client = genai.Client(api_key=api_key)
     model = os.getenv("GEMINI_MODEL", _DEFAULT_MODEL).strip()
     system_prompt = _load_system_prompt()
-    user_message = _build_user_message(concept, interest, level, sub_interest_facts)
+    user_message = _build_user_message(
+        concept, interest, level, sub_interest_facts, prior_feedback,
+    )
 
     # Gemma models do not support a separate `system_instruction` field, so we
     # prepend the system prompt to the user message. This works for both
