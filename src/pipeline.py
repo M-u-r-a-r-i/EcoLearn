@@ -9,11 +9,17 @@ multi-agent collaboration the rest of the system is built on.
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, Callable, Optional
 
 from src.agents.analogy_generator import generate_explanation
 from src.agents.critic import critique
 from src.rag.retrieve import retrieve_concept, retrieve_interest
+
+
+# Optional status reporter. The pipeline calls this (when supplied) before
+# every long-running step, so a UI can show "EcoLearn is X" indicators.
+# The string is the verb phrase, e.g. "retrieving context", "generating draft".
+StatusCallback = Optional[Callable[[str], None]]
 
 
 # Brief pause between API calls inside one pipeline run. The Gemini free tier
@@ -55,11 +61,22 @@ def _format_verdict_for_log(verdict: dict[str, Any]) -> str:
     return f"{label} ({flags})"
 
 
+def _emit(on_status: StatusCallback, message: str) -> None:
+    """Fire the status callback if one was supplied; swallow callback errors."""
+    if on_status is None:
+        return
+    try:
+        on_status(message)
+    except Exception:  # noqa: BLE001 — never let a UI callback break the run.
+        pass
+
+
 def explain_with_review(
     concept: str,
     interest: str,
     level: str,
     max_retries: int = 2,
+    on_status: StatusCallback = None,
 ) -> dict[str, Any]:
     """Generate an explanation, have it reviewed, retry on FAIL.
 
@@ -83,6 +100,7 @@ def explain_with_review(
     # Retrieve grounding context once up front; the same passages are reused
     # across regenerations because the concept and interest do not change.
     print(f"[RAG] retrieving for concept={concept!r}, interest={interest!r} ...")
+    _emit(on_status, "retrieving context")
     curriculum_passages, interest_passages = _retrieve_context(concept, interest)
     print(
         f"[RAG] got {len(curriculum_passages)} curriculum + "
@@ -99,8 +117,10 @@ def explain_with_review(
         is_first = attempt == 1
         if is_first:
             print(f"[Attempt {attempt}] generating draft...")
+            _emit(on_status, "generating the explanation")
         else:
             print(f"[Attempt {attempt}] regenerating with critic feedback...")
+            _emit(on_status, f"revising with critic feedback (attempt {attempt})")
 
         final_explanation = generate_explanation(
             concept=concept,
@@ -113,6 +133,7 @@ def explain_with_review(
         time.sleep(_INTER_STEP_DELAY_SECONDS)
 
         print(f"[Attempt {attempt}] critiquing...")
+        _emit(on_status, "asking the critic to review")
         final_verdict = critique(final_explanation, concept=concept)
         history.append(final_verdict)
         print(f"[Attempt {attempt}] verdict: {_format_verdict_for_log(final_verdict)}")
