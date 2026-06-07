@@ -102,33 +102,53 @@ def _sanitize_explanation(raw: str) -> str:
 
 _POLISHER_MODEL_DEFAULT = "gemini-2.5-flash-lite"
 _POLISHER_SYSTEM = (
-    "You are a strict text extractor. You are given a draft explanation from "
-    "a tutoring AI that sometimes leaks planning notes, multiple drafts, and "
-    "length checks. Your only job is to emit the FINAL student-facing answer "
-    "in this exact format:\n\n"
+    "You are a strict text extractor and math formatter. You are given a "
+    "draft explanation from a tutoring AI that sometimes leaks planning "
+    "notes, multiple drafts, and length checks, and that writes math "
+    "inconsistently (sometimes Unicode, sometimes LaTeX, sometimes plain "
+    "text). Your only job is to emit the FINAL student-facing answer in "
+    "this exact format:\n\n"
     "1. SCENARIO\n"
     "[the final scenario prose. Then a short mapping table — one mapping per "
     "line in the form `formal element  →  scenario element`. Then one sentence "
     "naming where the analogy breaks down.]\n\n"
     "2. FORMAL RESTATEMENT\n"
-    "[the final formal definition prose, with equations and bolded key terms "
-    "preserved.]\n\n"
+    "[the final formal definition prose, with equations and bolded key terms.]\n\n"
     "3. SELF-CHECK QUESTION\n"
     "[the final question. Then a line starting with `Hint:` and the hint.]\n\n"
     "[ANALOGY_QUALITY: N]\n\n"
-    "RULES:\n"
+    "EXTRACTION RULES:\n"
     "- Output ONLY the three numbered sections and the quality tag. No "
     "preamble. No commentary.\n"
     "- If the draft has multiple versions ('Revised', 'Drafting', 'Final "
     "Polish'), use the LAST version of each section.\n"
-    "- Preserve equations, units, bolded **key terms**, and the mapping table "
-    "arrows exactly as written in the draft.\n"
-    "- Drop every meta line ('Length Check', 'Word count', 'Wait,', 'No "
-    "emojis? Yes.', bullet-list field/value pairs, etc.).\n"
+    "- Drop every meta line ('Length Check', 'Word count', 'Wait,', "
+    "'No emojis? Yes.', bullet-list field/value pairs, etc.).\n"
     "- Do NOT invent content. If a section is genuinely missing, write the "
     "header and then `(not provided)` and move on.\n"
     "- If the draft contains '[ANALOGY_QUALITY: N]' anywhere, use that N. "
-    "Otherwise use 3."
+    "Otherwise use 3.\n\n"
+    "MATH FORMATTING (CRITICAL — the page renders LaTeX via KaTeX):\n"
+    "- Wrap every variable, symbol, expression, and equation in proper "
+    "LaTeX. Inline math uses $...$. A standalone equation on its own line "
+    "uses $$...$$.\n"
+    "- Convert ALL Unicode math to LaTeX commands. Examples:\n"
+    "    θ -> \\theta,  Θ -> \\Theta,  Δ -> \\Delta,  μ -> \\mu,  π -> \\pi\n"
+    "    ≈ -> \\approx,  ≤ -> \\leq,  ≥ -> \\geq,  ≠ -> \\neq,  ± -> \\pm\n"
+    "    × -> \\times,  · -> \\cdot,  √ -> \\sqrt{},  ∞ -> \\infty\n"
+    "    x² -> x^2,  x³ -> x^3,  x_n -> x_{n}\n"
+    "    sin, cos, tan -> \\sin, \\cos, \\tan\n"
+    "    vectors: bold v -> \\vec{v} or \\mathbf{v}\n"
+    "- Units inside math go in \\text{}: write $g \\approx 9.8 \\text{ m/s}^2$ "
+    "not $g \\approx 9.8 m/s^2$.\n"
+    "- A standalone defining equation should be on its OWN line and use "
+    "$$...$$, e.g. $$v_{AB} = v_A - v_B$$.\n"
+    "- Variables inside prose use inline $...$. Example: 'the velocity "
+    "$v$ at angle $\\theta$ from the horizontal'.\n"
+    "- EXCEPTION: in the mapping table, KEEP the Unicode arrow → exactly "
+    "as is — it is a layout marker, not math.\n"
+    "- Bold **key terms** on first mention using markdown bold; do NOT "
+    "bold math symbols (let LaTeX render them)."
 )
 
 
@@ -246,12 +266,24 @@ def _render_onboarding() -> None:
 # ---------------------------------------------------------------------------
 
 def _render_sidebar(profile: dict) -> None:
-    """Right-rail with profile summary and a reset button."""
+    """Right-rail with profile summary, session progress, and a reset button."""
+    # User messages submitted this session. A simple, defensible proxy for
+    # "concepts the student has explored" — every chat turn the student starts
+    # is one question/concept.
+    concepts_explored = sum(
+        1 for m in st.session_state.messages if m["role"] == "user"
+    )
+
     with st.sidebar:
         st.markdown(f"### {profile['name']}")
         st.write(f"**Interest:** {profile['interest']}")
-        st.write(f"**Level:** {profile['class']}")
         st.write(f"**Subject:** {profile['subject']}")
+        st.write(f"**Level:** {profile['class']}")
+
+        st.divider()
+        st.markdown("### Session progress")
+        st.metric("Concepts explored", concepts_explored)
+
         st.divider()
         if st.button("Reset Profile", use_container_width=True):
             st.session_state.profile = None
@@ -272,7 +304,11 @@ div[data-testid="stChatMessage"]:has(span[data-testid="stChatMessageAvatarUser"]
 """
 
 
-def _generate_reply(user_text: str, profile: dict) -> str:
+def _generate_reply(
+    user_text: str,
+    profile: dict,
+    on_status=None,
+) -> str:
     """Run the multi-agent pipeline and return the cleaned student-facing answer.
 
     Returns a clean three-section explanation on success. On any pipeline error,
@@ -290,6 +326,7 @@ def _generate_reply(user_text: str, profile: dict) -> str:
             # max_retries=1 keeps interactive latency manageable; the benchmark
             # script uses 2 because it can afford to wait.
             max_retries=1,
+            on_status=on_status,
         )
     except Exception as exc:  # noqa: BLE001 — any failure is shown to user.
         return (
@@ -304,6 +341,13 @@ def _generate_reply(user_text: str, profile: dict) -> str:
     # chew on, then the polisher LLM to extract the final three-section
     # answer regardless of how the generator dumped its scratchpad.
     pre_cleaned = _sanitize_explanation(raw)
+
+    if on_status is not None:
+        try:
+            on_status("polishing the answer")
+        except Exception:  # noqa: BLE001
+            pass
+
     polished = _polish_explanation(pre_cleaned or raw)
 
     if not polished or not polished.strip():
@@ -344,10 +388,19 @@ def _render_chat() -> None:
     with st.chat_message("user"):
         st.markdown(user_text)
 
-    # 2) Call the pipeline behind a spinner inside the assistant bubble.
+    # 2) Run the pipeline. A live status line inside the assistant bubble
+    #    shows which agent is currently working (retrieving, generating,
+    #    critiquing, polishing). The status placeholder is cleared once the
+    #    final reply is ready.
     with st.chat_message("assistant"):
-        with st.spinner("EcoLearn is thinking..."):
-            reply = _generate_reply(user_text, profile)
+        status_slot = st.empty()
+        status_slot.markdown("_EcoLearn is starting up..._")
+
+        def _on_status(message: str) -> None:
+            status_slot.markdown(f"_EcoLearn is {message}..._")
+
+        reply = _generate_reply(user_text, profile, on_status=_on_status)
+        status_slot.empty()
         st.markdown(reply)
 
     # 3) Persist the assistant reply to history so the next rerun keeps it.
