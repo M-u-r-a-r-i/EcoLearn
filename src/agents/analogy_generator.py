@@ -34,12 +34,23 @@ def _load_system_prompt() -> str:
     return _SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
 
 
+def _format_context_block(label: str, intro: str, passages: list[str]) -> list[str]:
+    """Render a list of retrieved passages as a labelled block."""
+    out = ["", f"{label} ({intro}):"]
+    for i, p in enumerate(passages, start=1):
+        out.append(f"--- passage {i} ---")
+        out.append(p.strip())
+    out.append(f"--- end {label.lower()} ---")
+    return out
+
+
 def _build_user_message(
     concept: str,
     interest: str,
     level: str,
     sub_interest_facts: Iterable[str] | None,
     prior_feedback: str | None,
+    curriculum_context: Iterable[str] | None = None,
 ) -> str:
     """Render the per-request inputs into a single user message."""
     lines = [
@@ -47,11 +58,22 @@ def _build_user_message(
         f"Student interest: {interest}",
         f"Level: {level}",
     ]
+    if curriculum_context:
+        passages = [p for p in curriculum_context if p and p.strip()]
+        if passages:
+            lines.extend(_format_context_block(
+                "CURRICULUM CONTEXT",
+                "authoritative for formal definitions, equations, and notation",
+                passages,
+            ))
     if sub_interest_facts:
-        facts = list(sub_interest_facts)
-        if facts:
-            lines.append("Additional facts about the student's interest:")
-            lines.extend(f"  - {fact}" for fact in facts)
+        passages = [p for p in sub_interest_facts if p and p.strip()]
+        if passages:
+            lines.extend(_format_context_block(
+                "INTEREST CONTEXT",
+                "authoritative for concrete numbers, real examples, and names from the student's interest",
+                passages,
+            ))
     if prior_feedback and prior_feedback.strip():
         lines.append("")
         lines.append("REVISION NOTE — your previous answer was rejected by the")
@@ -59,12 +81,27 @@ def _build_user_message(
         lines.append("address this feedback specifically:")
         lines.append(prior_feedback.strip())
     lines.append("")
-    lines.append("Generate the final student-facing explanation now.")
-    lines.append("The first line of your response must be exactly: 1. SCENARIO")
+    lines.append("=== FORMAT GUARDRAILS — read last, enforce strictly ===")
+    lines.append("")
     lines.append(
-        "Do not include planning notes, checklists, drafts, self-corrections, "
-        "word-count checks, prompt summaries, or labels such as Concept, "
-        "Student Interest, Target, Constraints, Revised, or Expansion Strategy."
+        "Your response MUST begin with the literal text \"1. SCENARIO\" on its "
+        "own line. Nothing before it. No preamble, no bullet point, no header, "
+        "no label, no acknowledgement."
+    )
+    lines.append("")
+    lines.append("You MUST NOT output ANY of the following anywhere in your reply:")
+    lines.append("  - Planning notes, drafts, or revisions (no \"Revised Scenario\","
+                 " \"Expanding...\", \"Refining...\").")
+    lines.append("  - Length checks (no \"Word count: ~330. I need to expand.\").")
+    lines.append("  - Labels echoing the input (no \"Concept:\", \"Student Interest:\","
+                 " \"Constraints:\", \"Curriculum Context:\", \"Interest Context:\").")
+    lines.append("  - Self-correction commentary (no \"Wait, I need to...\","
+                 " \"Self-Correction during drafting...\").")
+    lines.append("  - Bullet-point scratchpad with asterisks and italic asides.")
+    lines.append("")
+    lines.append(
+        "If you would normally think out loud, think silently and emit only the "
+        "final three-section answer plus the [ANALOGY_QUALITY: N] line."
     )
     return "\n".join(lines)
 
@@ -160,6 +197,7 @@ def generate_explanation(
     level: str,
     sub_interest_facts: Iterable[str] | None = None,
     prior_feedback: str | None = None,
+    curriculum_context: Iterable[str] | None = None,
 ) -> str:
     """Generate an interest-grounded explanation of `concept` for the student.
 
@@ -167,10 +205,14 @@ def generate_explanation(
         concept: The academic concept to explain (e.g., "relative velocity").
         interest: The student's primary interest (e.g., "football").
         level: The student's academic level (e.g., "Class 11").
-        sub_interest_facts: Optional list of specific facts about the student's
-            interest, used to make the analogy more personal.
+        sub_interest_facts: Optional list of interest-domain passages (real
+            facts, numbers, named examples) the model should prefer over its
+            own knowledge. Typically supplied by the RAG retriever.
         prior_feedback: Optional critic feedback from a previous attempt. When
             present, the model is told to rewrite in full while addressing it.
+        curriculum_context: Optional list of curriculum passages (formal
+            definitions, equations, notation) the model must treat as the
+            source of truth. Typically supplied by the RAG retriever.
 
     Returns:
         The model's response text, formatted per the system prompt.
@@ -185,6 +227,7 @@ def generate_explanation(
     system_prompt = _load_system_prompt()
     user_message = _build_user_message(
         concept, interest, level, sub_interest_facts, prior_feedback,
+        curriculum_context=curriculum_context,
     )
 
     # Gemma models do not support a separate `system_instruction` field, so we

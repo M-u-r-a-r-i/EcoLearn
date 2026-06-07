@@ -13,11 +13,36 @@ from typing import Any
 
 from src.agents.analogy_generator import generate_explanation
 from src.agents.critic import critique
+from src.rag.retrieve import retrieve_concept, retrieve_interest
 
 
 # Brief pause between API calls inside one pipeline run. The Gemini free tier
 # caps gemini-2.5-flash at 5 req/min, so we space generator calls at >12 s.
 _INTER_STEP_DELAY_SECONDS = 13
+
+# How many passages to pull from each RAG collection per pipeline run.
+_RETRIEVE_TOP_K = 3
+
+
+def _retrieve_context(concept: str, interest: str) -> tuple[list[str], list[str]]:
+    """Pull the top curriculum and interest passages for this request.
+
+    Returns (curriculum_passages, interest_passages) as plain text lists.
+    """
+    curriculum_hits = retrieve_concept(concept, n_results=_RETRIEVE_TOP_K)
+    curriculum_passages = [h["text"] for h in curriculum_hits if h.get("text")]
+
+    # Concatenating concept + interest as the interest-collection query gives
+    # the embedding model both hooks — "kinetic energy" alone matches gaming
+    # passages weakly, but "kinetic energy gaming" steers toward physics-heavy
+    # gaming passages.
+    interest_query = f"{concept} {interest}".strip()
+    interest_hits = retrieve_interest(
+        interest_query, interest, n_results=_RETRIEVE_TOP_K,
+    )
+    interest_passages = [h["text"] for h in interest_hits if h.get("text")]
+
+    return curriculum_passages, interest_passages
 
 
 def _format_verdict_for_log(verdict: dict[str, Any]) -> str:
@@ -52,7 +77,18 @@ def explain_with_review(
             attempts: How many generator calls were made.
             critique: The final verdict dict from the critic.
             history: A list of per-attempt verdict snapshots for inspection.
+            curriculum_context: Curriculum passages fed to the generator.
+            interest_context: Interest passages fed to the generator.
     """
+    # Retrieve grounding context once up front; the same passages are reused
+    # across regenerations because the concept and interest do not change.
+    print(f"[RAG] retrieving for concept={concept!r}, interest={interest!r} ...")
+    curriculum_passages, interest_passages = _retrieve_context(concept, interest)
+    print(
+        f"[RAG] got {len(curriculum_passages)} curriculum + "
+        f"{len(interest_passages)} interest passages"
+    )
+
     feedback_for_next: str | None = None
     final_explanation = ""
     final_verdict: dict[str, Any] = {}
@@ -70,6 +106,8 @@ def explain_with_review(
             concept=concept,
             interest=interest,
             level=level,
+            sub_interest_facts=interest_passages,
+            curriculum_context=curriculum_passages,
             prior_feedback=feedback_for_next,
         )
         time.sleep(_INTER_STEP_DELAY_SECONDS)
@@ -87,6 +125,8 @@ def explain_with_review(
                 "attempts": attempt,
                 "critique": final_verdict,
                 "history": history,
+                "curriculum_context": curriculum_passages,
+                "interest_context": interest_passages,
             }
 
         # On FAIL or ERROR, prepare feedback for the next attempt (if any).
@@ -102,4 +142,6 @@ def explain_with_review(
         "attempts": total_attempts,
         "critique": final_verdict,
         "history": history,
+        "curriculum_context": curriculum_passages,
+        "interest_context": interest_passages,
     }
