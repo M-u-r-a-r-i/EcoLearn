@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+from src.agents.assessor import generate_question, grade_answer
 from src.pipeline import explain_with_review
 
 
@@ -94,6 +95,147 @@ def _sanitize_explanation(raw: str) -> str:
         cleaned = cleaned[scenario_match.start():].strip()
 
     return cleaned
+
+
+# ---------------------------------------------------------------------------
+# Router — decides whether a message needs the full pipeline or just a chat.
+# ---------------------------------------------------------------------------
+
+_ROUTER_MODEL_DEFAULT = "gemma-4-31b-it"
+_ROUTER_PROMPT = (
+    "You are an intent router for an AI physics tutor for Class 11 students. "
+    "Decide which of three modes the student's message belongs to:\n"
+    "- TUTOR: the student wants a physics concept explained.\n"
+    "- ASSESS: the student wants to be tested. Includes explicit requests "
+    "(quiz me, test me, ask a question) AND implicit signals after an "
+    "explanation (I understood, got it, makes sense, I'm ready).\n"
+    "- CHAT: anything else — greetings, thanks, off-topic, requests to move "
+    "on without a new concept named, vague clarifications.\n\n"
+    "Output STRICT JSON only — no prose before or after, no markdown fences:\n"
+    "{\n"
+    '  "mode": "TUTOR" or "ASSESS" or "CHAT",\n'
+    '  "concept": "<for TUTOR: the concept to explain in 1-5 words. For '
+    'ASSESS: the concept to be quizzed on, OR empty string to quiz on the '
+    'concept the student most recently studied. For CHAT: empty string.>",\n'
+    '  "chat_reply": "<for CHAT: a short, warm reply. For TUTOR and ASSESS: '
+    'empty string.>"\n'
+    "}\n\n"
+    "CHAT REPLY RULES (only when mode is CHAT):\n"
+    "- Maximum 2 sentences.\n"
+    "- Warm but not sycophantic. Do NOT say things like 'Great question!'.\n"
+    "- Gently steer back to learning. If appropriate, suggest the student "
+    "name a concept to explore.\n"
+    "- If the message is an off-topic question (not physics), politely say "
+    "you focus on physics and invite a physics topic.\n\n"
+    "EXAMPLES (the student's interest area is shown in [brackets] for context):\n"
+    "[football] 'hello' → "
+    '{"mode":"CHAT","concept":"","chat_reply":"Hi! What physics concept '
+    'would you like to explore today?"}\n'
+    "[football] 'thanks' → "
+    '{"mode":"CHAT","concept":"","chat_reply":"You are welcome. Ready for '
+    'a new concept, or want a practice question to test yourself?"}\n'
+    "[football] 'I understood' → "
+    '{"mode":"ASSESS","concept":"","chat_reply":""}\n'
+    "[football] 'got it' → "
+    '{"mode":"ASSESS","concept":"","chat_reply":""}\n'
+    "[football] 'makes sense' → "
+    '{"mode":"ASSESS","concept":"","chat_reply":""}\n'
+    "[football] 'quiz me' → "
+    '{"mode":"ASSESS","concept":"","chat_reply":""}\n'
+    "[football] 'test me on momentum' → "
+    '{"mode":"ASSESS","concept":"momentum","chat_reply":""}\n'
+    "[football] 'give me a practice question' → "
+    '{"mode":"ASSESS","concept":"","chat_reply":""}\n'
+    "[football] 'what is kinetic energy' → "
+    '{"mode":"TUTOR","concept":"kinetic energy","chat_reply":""}\n'
+    "[gaming] 'explain projectile motion' → "
+    '{"mode":"TUTOR","concept":"projectile motion","chat_reply":""}\n'
+    "[football] 'I am confused about acceleration' → "
+    '{"mode":"TUTOR","concept":"acceleration","chat_reply":""}\n'
+    "[football] 'next concept' → "
+    '{"mode":"CHAT","concept":"","chat_reply":"Sure — which concept would '
+    'you like to learn next?"}\n'
+    "[football] 'who won the world cup' → "
+    '{"mode":"CHAT","concept":"","chat_reply":"I focus on Class 11 physics, '
+    'not match scores. Which physics topic would you like to explore?"}\n'
+)
+
+
+def _classify_intent(user_text: str, profile: dict) -> dict:
+    """Decide whether the user message needs the pipeline or just a quick reply.
+
+    Returns a dict with keys: mode ("TUTOR" or "CHAT"), concept (str), and
+    chat_reply (str). On any classifier failure we fail OPEN — i.e. treat the
+    message as a tutor request — so a buggy router never silences a real
+    learning question. Worst case behaviour matches the previous code.
+    """
+    load_dotenv()
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {"mode": "TUTOR", "concept": user_text, "chat_reply": ""}
+
+    model = os.getenv("ROUTER_MODEL", _ROUTER_MODEL_DEFAULT).strip()
+
+    contents = (
+        f"{_ROUTER_PROMPT}\n\n"
+        f"---\n"
+        f"Student interest: {profile.get('interest', 'unknown')}\n"
+        f"Student level:    {profile.get('class', 'Class 11')}\n"
+        f"Student message:  {user_text}\n\n"
+        f"Emit the JSON now."
+    )
+
+    config_kwargs: dict = {
+        "temperature": 0.0,
+        "max_output_tokens": 512,
+    }
+    if model.startswith("gemini-"):
+        config_kwargs["response_mime_type"] = "application/json"
+    if model.startswith("gemini-2.5"):
+        config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+
+    try:
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=types.GenerateContentConfig(**config_kwargs),
+        )
+        raw = (response.text or "").strip()
+    except Exception:  # noqa: BLE001 — fail open on any router error.
+        return {"mode": "TUTOR", "concept": user_text, "chat_reply": ""}
+
+    if not raw:
+        return {"mode": "TUTOR", "concept": user_text, "chat_reply": ""}
+
+    # Best-effort JSON parse: try direct first, then the first JSON-shaped
+    # block in the raw text (handles models that wrap output in fences).
+    import json
+    parsed: dict | None = None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if match:
+            try:
+                parsed = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                parsed = None
+
+    if not isinstance(parsed, dict) or "mode" not in parsed:
+        return {"mode": "TUTOR", "concept": user_text, "chat_reply": ""}
+
+    mode = parsed.get("mode", "TUTOR")
+    if mode not in {"TUTOR", "ASSESS", "CHAT"}:
+        mode = "TUTOR"
+    return {
+        "mode": mode,
+        # Empty-string-on-ASSESS is intentional — handler will fall back to
+        # session_state.last_concept. For TUTOR we keep the raw text as a
+        # last resort if the router returns an empty concept.
+        "concept": (parsed.get("concept") or "").strip(),
+        "chat_reply": (parsed.get("chat_reply") or "").strip(),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -215,6 +357,33 @@ def _init_state() -> None:
         st.session_state.profile = None
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    # Tracks the most-recent concept the student was tutored on; used as the
+    # default topic when the student asks to be quizzed.
+    if "last_concept" not in st.session_state:
+        st.session_state.last_concept = None
+    # When the assessor has asked a question, the question dict is stashed
+    # here so the next user message can be graded against it.
+    if "last_question" not in st.session_state:
+        st.session_state.last_question = None
+    # State flag: True when we are mid-quiz waiting for the student's answer.
+    if "awaiting_answer" not in st.session_state:
+        st.session_state.awaiting_answer = False
+    # Transient UI affordance to show below the chat history:
+    #   None         — nothing pending
+    #   "offer_quiz" — explanation just shown; offer Yes/Not-yet buttons
+    #   "post_grade" — answer just graded; offer Try-another/Move-on buttons
+    if "pending_action" not in st.session_state:
+        st.session_state.pending_action = None
+    # Marks an in-flight action being executed on this render.
+    # While set, NO buttons render — preventing the user from accidentally
+    # interrupting a long-running operation with a stray click on a stale
+    # button. Cleared by the worker after it finishes.
+    if "processing_action" not in st.session_state:
+        st.session_state.processing_action = None
+    # Mastery ledger per concept.
+    #   { concept_name: {"attempts": int, "best_score": int, "status": str} }
+    if "mastery" not in st.session_state:
+        st.session_state.mastery = {}
 
 
 # ---------------------------------------------------------------------------
@@ -267,11 +436,18 @@ def _render_onboarding() -> None:
 
 def _render_sidebar(profile: dict) -> None:
     """Right-rail with profile summary, session progress, and a reset button."""
-    # User messages submitted this session. A simple, defensible proxy for
-    # "concepts the student has explored" — every chat turn the student starts
-    # is one question/concept.
-    concepts_explored = sum(
-        1 for m in st.session_state.messages if m["role"] == "user"
+    # Distinct concepts that triggered a real tutoring turn.
+    concepts_explored = len({
+        (m.get("concept") or "").strip().lower()
+        for m in st.session_state.messages
+        if m.get("role") == "user"
+        and m.get("mode") == "TUTOR"
+        and (m.get("concept") or "").strip()
+    })
+    # Number of practice questions the student has answered.
+    quizzes_taken = sum(
+        1 for m in st.session_state.messages
+        if m.get("role") == "user" and m.get("mode") == "ANSWER"
     )
 
     with st.sidebar:
@@ -282,12 +458,46 @@ def _render_sidebar(profile: dict) -> None:
 
         st.divider()
         st.markdown("### Session progress")
-        st.metric("Concepts explored", concepts_explored)
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.metric("Concepts explored", concepts_explored)
+        with col_b:
+            st.metric("Quizzes taken", quizzes_taken)
+
+        # Mastery panel: one coloured pill per concept the student has been
+        # quizzed on. Sorted with mastered → partial → not_yet so the most
+        # progress shows first.
+        if st.session_state.mastery:
+            st.divider()
+            st.markdown("### Mastery")
+            order = {"mastered": 0, "partial": 1, "not_yet": 2}
+            sorted_items = sorted(
+                st.session_state.mastery.items(),
+                key=lambda kv: (order.get(kv[1].get("status", "not_yet"), 3),
+                                kv[0]),
+            )
+            for concept, data in sorted_items:
+                badge = _mastery_badge(data.get("status", "not_yet"))
+                best = data.get("best_score", 0)
+                attempts = data.get("attempts", 0)
+                st.markdown(
+                    f"{badge} **{concept}** "
+                    f"<span style='color:#9e9e9e; font-size:0.85em;'>"
+                    f"(best {best}/3 · {attempts} attempt"
+                    f"{'s' if attempts != 1 else ''})</span>",
+                    unsafe_allow_html=True,
+                )
 
         st.divider()
         if st.button("Reset Profile", use_container_width=True):
             st.session_state.profile = None
             st.session_state.messages = []
+            st.session_state.last_concept = None
+            st.session_state.last_question = None
+            st.session_state.awaiting_answer = False
+            st.session_state.pending_action = None
+            st.session_state.processing_action = None
+            st.session_state.mastery = {}
             st.rerun()
 
 
@@ -359,6 +569,291 @@ def _generate_reply(
     return polished
 
 
+def _status_from_score(score: int) -> str:
+    """Map a 0-3 score to a mastery status label."""
+    if score >= 3:
+        return "mastered"
+    if score >= 2:
+        return "partial"
+    return "not_yet"
+
+
+def _update_mastery(concept: str, score: int) -> None:
+    """Bump attempts, take best score, refresh status for the concept."""
+    if not concept:
+        return
+    entry = st.session_state.mastery.get(
+        concept, {"attempts": 0, "best_score": 0, "status": "not_yet"},
+    )
+    entry["attempts"] = entry.get("attempts", 0) + 1
+    entry["best_score"] = max(entry.get("best_score", 0), int(score))
+    entry["status"] = _status_from_score(entry["best_score"])
+    st.session_state.mastery[concept] = entry
+
+
+_MASTERY_COLORS = {
+    "mastered": "#2e7d32",  # green
+    "partial":  "#ef6c00",  # amber
+    "not_yet":  "#757575",  # grey
+}
+
+
+def _mastery_badge(status: str) -> str:
+    """Tiny coloured pill for the sidebar mastery panel."""
+    color = _MASTERY_COLORS.get(status, _MASTERY_COLORS["not_yet"])
+    label = status.replace("_", " ").title()
+    return (
+        f'<span style="background:{color}; color:white; padding:2px 8px; '
+        f'border-radius:8px; font-size:0.8em; white-space:nowrap;">'
+        f"{label}</span>"
+    )
+
+
+def _do_pending_work(profile: dict) -> None:
+    """Execute whichever long-running action `processing_action` names.
+
+    Called from `_render_pending_actions` at the START of each render, before
+    any buttons render. While this is running, the page shows ONLY a spinner
+    in the assistant bubble — there are no clickable elements that a stray
+    click could land on. After the work finishes, the worker clears
+    `processing_action` and calls `st.rerun()`.
+    """
+    action = st.session_state.get("processing_action")
+    if action != "generating_question":
+        st.session_state.processing_action = None
+        return
+
+    concept = st.session_state.last_concept or ""
+    if not concept:
+        st.session_state.processing_action = None
+        st.rerun()
+        return
+
+    with st.chat_message("assistant"):
+        with st.spinner("EcoLearn is preparing a practice question..."):
+            try:
+                qdict = generate_question(
+                    concept,
+                    profile["interest"].lower(),
+                    profile["class"],
+                )
+            except Exception as exc:  # noqa: BLE001 — surface any failure.
+                qdict = {"error": f"{type(exc).__name__}: {exc}"}
+
+    if qdict.get("error") or not qdict.get("question"):
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": (
+                "_I had trouble preparing a question on this concept. "
+                "Try again in a moment, or ask about another topic._"
+            ),
+        })
+        st.session_state.processing_action = None
+        st.rerun()
+        return
+
+    question_text = (
+        f"**Practice question — _{concept}_**\n\n"
+        f"{qdict['question']}\n\n"
+        "_Type your answer below._"
+    )
+    st.session_state.messages.append(
+        {"role": "assistant", "content": question_text}
+    )
+    st.session_state.last_question = qdict
+    st.session_state.awaiting_answer = True
+    st.session_state.processing_action = None
+    st.rerun()
+
+
+def _format_grade(verdict: dict) -> str:
+    """Render the assessor's verdict as a friendly markdown reply."""
+    score = verdict.get("score", 0)
+    mastery = (verdict.get("mastery_signal") or "not_yet").replace("_", " ")
+    feedback = (verdict.get("feedback") or "").strip()
+    missing = verdict.get("missing_concepts") or []
+
+    lines = [f"**Score: {score} / 3 — {mastery}**", ""]
+    if feedback:
+        lines.append(feedback)
+    if missing:
+        lines.append("")
+        lines.append("**Concepts to revisit:**")
+        for m in missing:
+            lines.append(f"- {m}")
+    lines.append("")
+    lines.append(
+        "_Ask any concept to keep learning, or say 'test me again' for "
+        "another question._"
+    )
+    return "\n".join(lines)
+
+
+def _handle_answer(user_text: str) -> tuple[str, str, str]:
+    """Grade the student's reply to the previously-asked question."""
+    question_data = st.session_state.last_question or {}
+    with st.chat_message("assistant"):
+        with st.spinner("EcoLearn is grading your answer..."):
+            verdict = grade_answer(
+                question_data.get("question", ""),
+                question_data.get("expected_concepts", []),
+                user_text,
+            )
+        reply = _format_grade(verdict)
+        st.markdown(reply)
+
+    # Update mastery for the concept that was being quizzed.
+    concept = st.session_state.last_concept or ""
+    _update_mastery(concept, verdict.get("score", 0))
+
+    # Clear the quiz state and arm the post-grade buttons.
+    st.session_state.awaiting_answer = False
+    st.session_state.last_question = None
+    st.session_state.pending_action = "post_grade"
+    return reply, "ANSWER", concept
+
+
+def _handle_new_turn(user_text: str, profile: dict) -> tuple[str, str, str]:
+    """Route a fresh user message through CHAT, TUTOR, or ASSESS."""
+    with st.chat_message("assistant"):
+        status_slot = st.empty()
+        status_slot.markdown("_EcoLearn is reading your message..._")
+
+        intent = _classify_intent(user_text, profile)
+        mode = intent.get("mode", "TUTOR")
+        concept_tag = (intent.get("concept") or "").strip()
+
+        if mode == "ASSESS":
+            # Use the explicit concept if the router extracted one, else fall
+            # back to the most recent concept the student studied.
+            target_concept = concept_tag or st.session_state.last_concept or ""
+            if not target_concept:
+                status_slot.empty()
+                reply = (
+                    "I'd love to test you. First, tell me which concept you "
+                    "want to learn — for example, 'explain kinetic energy'."
+                )
+                st.markdown(reply)
+                return reply, "CHAT", ""
+
+            status_slot.markdown("_EcoLearn is preparing a practice question..._")
+            qdict = generate_question(
+                target_concept,
+                profile["interest"].lower(),
+                profile["class"],
+            )
+            status_slot.empty()
+
+            if qdict.get("error") or not qdict.get("question"):
+                reply = (
+                    "I could not prepare a question right now. Could you try "
+                    "again in a moment?"
+                )
+                st.markdown(reply)
+                return reply, "CHAT", ""
+
+            reply = (
+                f"**Practice question — _{target_concept}_**\n\n"
+                f"{qdict['question']}\n\n"
+                "_Type your answer below and I'll grade it._"
+            )
+            st.markdown(reply)
+            # Arm the state machine: next user message will be graded.
+            st.session_state.awaiting_answer = True
+            st.session_state.last_question = qdict
+            return reply, "ASSESS_REQUEST", target_concept
+
+        if mode == "CHAT":
+            reply = (
+                intent.get("chat_reply")
+                or "Got it. What would you like to learn next?"
+            )
+            status_slot.empty()
+            st.markdown(reply)
+            return reply, "CHAT", ""
+
+        # mode == "TUTOR"
+        def _on_status(message: str) -> None:
+            status_slot.markdown(f"_EcoLearn is {message}..._")
+
+        concept = concept_tag or user_text
+        reply = _generate_reply(concept, profile, on_status=_on_status)
+        status_slot.empty()
+        st.markdown(reply)
+        # Remember the concept and arm the quiz offer for the next render.
+        st.session_state.last_concept = concept
+        st.session_state.pending_action = "offer_quiz"
+        return reply, "TUTOR", concept
+
+
+def _render_pending_actions(profile: dict) -> None:
+    """Show the transient affordance for the current pending state.
+
+    If `processing_action` is set, ONLY a spinner renders (no buttons), so a
+    stray click cannot interrupt the work.
+
+    Otherwise — for `offer_quiz` or `post_grade` — buttons render. Their
+    handlers only flip state and `st.rerun()`; they never do the long work
+    inline. That keeps each button press atomic.
+    """
+    # In-flight work always wins. Render the spinner, do the work, rerun.
+    if st.session_state.get("processing_action"):
+        _do_pending_work(profile)
+        return
+
+    action = st.session_state.pending_action
+    if action is None:
+        return
+
+    if action == "offer_quiz":
+        with st.chat_message("assistant"):
+            st.markdown("**Want to try a quick question to check?**")
+            col_yes, col_no = st.columns(2)
+            with col_yes:
+                if st.button(
+                    "Yes, quiz me",
+                    key="offer_quiz_yes",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    # Two-phase: flip state, rerun. The actual question
+                    # generation happens on the NEXT render with no buttons
+                    # visible, so a stray click cannot cancel it.
+                    st.session_state.pending_action = None
+                    st.session_state.processing_action = "generating_question"
+                    st.rerun()
+            with col_no:
+                if st.button(
+                    "Not yet",
+                    key="offer_quiz_no",
+                    use_container_width=True,
+                ):
+                    st.session_state.pending_action = None
+                    st.rerun()
+
+    elif action == "post_grade":
+        with st.chat_message("assistant"):
+            col_again, col_done = st.columns(2)
+            with col_again:
+                if st.button(
+                    "Try another question",
+                    key="post_grade_again",
+                    use_container_width=True,
+                ):
+                    st.session_state.pending_action = None
+                    st.session_state.processing_action = "generating_question"
+                    st.rerun()
+            with col_done:
+                if st.button(
+                    "Move on",
+                    key="post_grade_done",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    st.session_state.pending_action = None
+                    st.rerun()
+
+
 def _render_chat() -> None:
     profile = st.session_state.profile
     _render_sidebar(profile)
@@ -376,34 +871,48 @@ def _render_chat() -> None:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
+    # Render the current transient affordance (offer-quiz buttons OR
+    # post-grade buttons). Lives between history and the input bar.
+    _render_pending_actions(profile)
+
     # st.chat_input sticks to the bottom of the viewport and yields the user's
     # text only on submit (Enter or send button). Returns None otherwise.
-    user_text = st.chat_input("Ask about a concept (e.g., 'projectile motion').")
+    # When a long-running action is in flight we disable the input so the
+    # student can't fire a new turn that races with the worker.
+    user_text = st.chat_input(
+        "Ask about a concept (e.g., 'projectile motion').",
+        disabled=bool(st.session_state.get("processing_action")),
+    )
     if not user_text:
         return
 
-    # 1) Append the user message to history and render the bubble immediately
-    #    so the page does not look frozen while the pipeline runs.
-    st.session_state.messages.append({"role": "user", "content": user_text})
+    # Typing into the chat is an implicit "skip" of any pending button
+    # affordance — drop it so we don't leave stale buttons under the new turn.
+    st.session_state.pending_action = None
+
+    # 1) Render the user bubble immediately for instant visual feedback.
     with st.chat_message("user"):
         st.markdown(user_text)
 
-    # 2) Run the pipeline. A live status line inside the assistant bubble
-    #    shows which agent is currently working (retrieving, generating,
-    #    critiquing, polishing). The status placeholder is cleared once the
-    #    final reply is ready.
-    with st.chat_message("assistant"):
-        status_slot = st.empty()
-        status_slot.markdown("_EcoLearn is starting up..._")
+    # 2) Two paths through this turn, decided by state:
+    #    - If we previously asked a question, treat this message as the
+    #      student's answer and grade it.
+    #    - Otherwise route the message via the LLM router (CHAT / TUTOR /
+    #      ASSESS) and dispatch accordingly.
+    if st.session_state.awaiting_answer and st.session_state.last_question:
+        reply, msg_mode, msg_concept = _handle_answer(user_text)
+    else:
+        reply, msg_mode, msg_concept = _handle_new_turn(user_text, profile)
 
-        def _on_status(message: str) -> None:
-            status_slot.markdown(f"_EcoLearn is {message}..._")
-
-        reply = _generate_reply(user_text, profile, on_status=_on_status)
-        status_slot.empty()
-        st.markdown(reply)
-
-    # 3) Persist the assistant reply to history so the next rerun keeps it.
+    # 3) Persist both turns to history. The user message carries the routing
+    #    decision so the sidebar (and any future analytics) can tell which
+    #    turns were tutoring vs chat vs quiz vs answer.
+    st.session_state.messages.append({
+        "role": "user",
+        "content": user_text,
+        "mode": msg_mode,
+        "concept": msg_concept,
+    })
     st.session_state.messages.append({"role": "assistant", "content": reply})
 
     # 4) Trigger an explicit rerun so the page redraws cleanly from history,
