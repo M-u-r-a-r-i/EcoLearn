@@ -160,6 +160,25 @@ Three bugs the student reported in one message: pipeline frequently said "Intern
 - Returning `(text, ok)` from a reply generator is cleaner than special-casing error strings downstream. The caller decides what to do with failure; the function just reports it.
 - Markdown layout dramatically improves perceived quality even when the underlying content is unchanged. `###` headers + bullets + blockquotes turn a 600-word wall of text into a 10-second skim.
 
+## 2026-06-15: Curriculum spine (data-driven curriculum)
+
+### Changed
+- `src/curriculum/__init__.py` — package marker.
+- `src/curriculum/schema.py` — Pydantic models `Subject → Unit → Chapter → Concept`. `Concept` fields: `id`, `name`, `chapter_id`, `prerequisites: list[str]`, `learning_objective`, `bloom_target` (a `BloomLevel` Enum), `order: int >= 1`. Parent ids are stamped on children by the loader, not authored by hand.
+- `src/curriculum/loader.py` — `load_subject(path)`, `all_concepts(subject)`, `teaching_order(subject)` (sorted by `order`), `resolve_prerequisites(concept_id, subject, transitive=)` (direct or recursive), `validate_ordering(subject)` (catches "concept before its prereq" AND cycles in one pass). `_inject_parent_ids` walks the YAML tree and copies `subject_id`/`unit_id`/`chapter_id` onto children so authors don't repeat themselves.
+- `data/curriculum/physics.yaml` — Subject "Physics" → Unit "Kinematics" → Chapter "Motion in a Straight Line" with 9 concepts (position → distance/displacement → speed/velocity → average-vs-instantaneous + acceleration → equations of motion + relative velocity 1D). Each concept has a prereq list, an observable-action learning objective in my own words, and a Bloom target.
+- `tests/test_curriculum.py` — loads physics.yaml, prints the teaching order with prereqs and objectives, verifies prereqs are respected, and spot-checks `resolve_prerequisites` (direct vs transitive) for `equations_of_motion`.
+- `requirements.txt` — added `pyyaml` explicitly (was already a transitive dep via chromadb, but worth pinning).
+
+### Why
+EcoLearn is becoming a learning platform, not just a chatbot. A platform needs a stable, queryable curriculum spine that the rest of the system (lesson planner, mastery tracker, recommendations) can build on. YAML lets non-programmers author content; Pydantic guards the schema; the loader translates that into typed Python objects with prereq-respecting ordering.
+
+### Learned
+- **One source of truth, two representations.** YAML for authoring, Pydantic for runtime. The loader is the single boundary; nothing else in the codebase reads YAML directly. This is the "parse, don't validate" pattern: catch every authoring error at startup, then everyone downstream gets typed objects with no `dict[str, Any]` surprises.
+- **A correct simple check beats a clever broken one.** I initially wrote a stack-based cycle detector and it false-positived on the first run. Realised the existing "no concept before its prereq in the declared order" loop already catches cycles transitively — in any cycle, at least one node will be reached before its prereq is seen. Deleted the bespoke detector; the simple check covers it.
+- **Inject parent ids in the loader, not in YAML.** Forcing the author to repeat `chapter_id: motion_straight_line` on every concept under a chapter is noisy and error-prone. Letting the loader walk the tree and stamp ids keeps the YAML clean and the Pydantic schema strict.
+- **Bloom targets stay strings (Enum), not numbers.** A learning objective expressed as `apply` reads cleanly; `5` doesn't. Pydantic's `BloomLevel(str, Enum)` accepts strings, validates them, and renders them back as strings. Best of both worlds.
+
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:
