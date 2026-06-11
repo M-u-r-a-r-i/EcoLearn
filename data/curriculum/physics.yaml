@@ -1,0 +1,106 @@
+# EcoLearn — curriculum spine for Class 11 Physics.
+#
+# This file is the source of truth for what the platform teaches and in
+# what order. Concepts are nested under Chapters under Units under the
+# Subject; the loader fills in the parent ids (chapter_id, unit_id,
+# subject_id) so authors don't need to repeat them on every concept.
+#
+# Add a new chapter by appending another `- id: ...` entry under
+# `chapters:`. Add a new unit the same way under `units:`. Add a new
+# subject by creating a sibling YAML file (e.g., chemistry.yaml).
+
+subject:
+  id: physics
+  name: Physics
+  description: >-
+    Class 11 physics curriculum aligned to the CBSE/ISC scope —
+    kinematics, dynamics, work-energy, oscillations, and related topics.
+  units:
+    - id: kinematics
+      name: Kinematics
+      chapters:
+        - id: motion_straight_line
+          name: Motion in a Straight Line
+          concepts:
+
+            - id: position
+              name: Position
+              prerequisites: []
+              learning_objective: >-
+                Describe the location of an object along a line using a chosen
+                origin and a chosen positive direction.
+              bloom_target: understand
+              order: 1
+
+            - id: distance
+              name: Distance
+              prerequisites: [position]
+              learning_objective: >-
+                Recognise distance as a non-negative scalar equal to the total
+                length of the path travelled, independent of direction.
+              bloom_target: understand
+              order: 2
+
+            - id: displacement
+              name: Displacement
+              prerequisites: [position]
+              learning_objective: >-
+                Distinguish displacement as a vector pointing from the initial
+                position to the final position, with sign in one dimension.
+              bloom_target: understand
+              order: 3
+
+            - id: speed
+              name: Speed
+              prerequisites: [distance]
+              learning_objective: >-
+                Compute average speed as total distance over total time and
+                explain why speed cannot be negative.
+              bloom_target: understand
+              order: 4
+
+            - id: velocity
+              name: Velocity
+              prerequisites: [displacement, speed]
+              learning_objective: >-
+                Define velocity as the rate of change of displacement and
+                contrast it with speed using a concrete example.
+              bloom_target: understand
+              order: 5
+
+            - id: average_vs_instantaneous
+              name: Average vs instantaneous velocity
+              prerequisites: [velocity]
+              learning_objective: >-
+                Compute average velocity from two endpoints and approximate
+                instantaneous velocity as the limit over a vanishingly small
+                time interval.
+              bloom_target: apply
+              order: 6
+
+            - id: acceleration
+              name: Acceleration
+              prerequisites: [velocity]
+              learning_objective: >-
+                Define acceleration as the rate of change of velocity and read
+                its sign and magnitude off a velocity-time graph.
+              bloom_target: understand
+              order: 7
+
+            - id: equations_of_motion
+              name: Equations of motion (uniform acceleration)
+              prerequisites: [displacement, velocity, acceleration]
+              learning_objective: >-
+                Apply v = u + at, s = ut + (1/2) a t^2, and v^2 = u^2 + 2 a s to
+                solve one-dimensional uniformly accelerated motion problems.
+              bloom_target: apply
+              order: 8
+
+            - id: relative_velocity_1d
+              name: Relative velocity (one dimension)
+              prerequisites: [velocity]
+              learning_objective: >-
+                Compute the velocity of one object as observed from another's
+                frame in one dimension using v_AB = v_A - v_B with signed values.
+              bloom_target: apply
+              order: 9
