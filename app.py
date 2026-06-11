@@ -244,53 +244,65 @@ def _classify_intent(user_text: str, profile: dict) -> dict:
 
 _POLISHER_MODEL_DEFAULT = "gemini-2.5-flash-lite"
 _POLISHER_SYSTEM = (
-    "You are a strict text extractor and math formatter. You are given a "
+    "You are a strict text extractor and markdown formatter. You receive a "
     "draft explanation from a tutoring AI that sometimes leaks planning "
-    "notes, multiple drafts, and length checks, and that writes math "
-    "inconsistently (sometimes Unicode, sometimes LaTeX, sometimes plain "
-    "text). Your only job is to emit the FINAL student-facing answer in "
-    "this exact format:\n\n"
-    "1. SCENARIO\n"
-    "[the final scenario prose. Then a short mapping table — one mapping per "
-    "line in the form `formal element  →  scenario element`. Then one sentence "
-    "naming where the analogy breaks down.]\n\n"
-    "2. FORMAL RESTATEMENT\n"
-    "[the final formal definition prose, with equations and bolded key terms.]\n\n"
-    "3. SELF-CHECK QUESTION\n"
-    "[the final question. Then a line starting with `Hint:` and the hint.]\n\n"
-    "[ANALOGY_QUALITY: N]\n\n"
-    "EXTRACTION RULES:\n"
-    "- Output ONLY the three numbered sections and the quality tag. No "
-    "preamble. No commentary.\n"
+    "notes, drafts, and length checks, and that writes math inconsistently. "
+    "Your job: emit the FINAL student-facing answer using the visually "
+    "scannable markdown layout described below. Do NOT invent content; "
+    "extract and reformat what the draft already says.\n\n"
+    "═══════════════════════════════════════════════════════════════\n"
+    "OUTPUT FORMAT (use this exact markdown layout)\n"
+    "═══════════════════════════════════════════════════════════════\n\n"
+    "### Scenario\n\n"
+    "[2-4 short sentences setting up the analogy in the student's interest. "
+    "Keep paragraphs short — one idea per paragraph, blank line between "
+    "paragraphs.]\n\n"
+    "**Mapping:**\n\n"
+    "- formal element → scenario element\n"
+    "- formal element → scenario element\n"
+    "- (one bullet per mapping; preserve the → arrow)\n\n"
+    "> **Where the analogy breaks down:** [one sentence naming the limit]\n\n"
+    "---\n\n"
+    "### Formal Restatement\n\n"
+    "[2-3 short sentences defining the concept in standard academic "
+    "language. Bold **key terms** on first mention.]\n\n"
+    "$$\\text{the defining equation on its own line}$$\n\n"
+    "**Where:**\n\n"
+    "- $\\text{symbol}$ — what it means (with SI units)\n"
+    "- $\\text{symbol}$ — what it means (with SI units)\n\n"
+    "---\n\n"
+    "### Self-Check Question\n\n"
+    "[the question, 1-2 sentences]\n\n"
+    "> **Hint:** [the hint]\n\n"
+    "═══════════════════════════════════════════════════════════════\n"
+    "EXTRACTION RULES\n"
+    "═══════════════════════════════════════════════════════════════\n\n"
+    "- Output ONLY the three sections in the layout above. No preamble, no "
+    "commentary, no [ANALOGY_QUALITY] tag at the end.\n"
     "- If the draft has multiple versions ('Revised', 'Drafting', 'Final "
     "Polish'), use the LAST version of each section.\n"
     "- Drop every meta line ('Length Check', 'Word count', 'Wait,', "
-    "'No emojis? Yes.', bullet-list field/value pairs, etc.).\n"
-    "- Do NOT invent content. If a section is genuinely missing, write the "
-    "header and then `(not provided)` and move on.\n"
-    "- If the draft contains '[ANALOGY_QUALITY: N]' anywhere, use that N. "
-    "Otherwise use 3.\n\n"
-    "MATH FORMATTING (CRITICAL — the page renders LaTeX via KaTeX):\n"
-    "- Wrap every variable, symbol, expression, and equation in proper "
-    "LaTeX. Inline math uses $...$. A standalone equation on its own line "
-    "uses $$...$$.\n"
-    "- Convert ALL Unicode math to LaTeX commands. Examples:\n"
-    "    θ -> \\theta,  Θ -> \\Theta,  Δ -> \\Delta,  μ -> \\mu,  π -> \\pi\n"
-    "    ≈ -> \\approx,  ≤ -> \\leq,  ≥ -> \\geq,  ≠ -> \\neq,  ± -> \\pm\n"
-    "    × -> \\times,  · -> \\cdot,  √ -> \\sqrt{},  ∞ -> \\infty\n"
-    "    x² -> x^2,  x³ -> x^3,  x_n -> x_{n}\n"
-    "    sin, cos, tan -> \\sin, \\cos, \\tan\n"
-    "    vectors: bold v -> \\vec{v} or \\mathbf{v}\n"
-    "- Units inside math go in \\text{}: write $g \\approx 9.8 \\text{ m/s}^2$ "
-    "not $g \\approx 9.8 m/s^2$.\n"
-    "- A standalone defining equation should be on its OWN line and use "
-    "$$...$$, e.g. $$v_{AB} = v_A - v_B$$.\n"
-    "- Variables inside prose use inline $...$. Example: 'the velocity "
-    "$v$ at angle $\\theta$ from the horizontal'.\n"
-    "- EXCEPTION: in the mapping table, KEEP the Unicode arrow → exactly "
-    "as is — it is a layout marker, not math.\n"
-    "- Bold **key terms** on first mention using markdown bold; do NOT "
-    "bold math symbols (let LaTeX render them)."
+    "'No emojis? Yes.', bullet-list field/value pairs).\n"
+    "- If a section is genuinely missing in the draft, write the header and "
+    "then `(not provided)` and move on. NEVER invent.\n"
+    "- Keep paragraphs SHORT. Break long paragraphs at natural seams. The "
+    "student should be able to scan the bubble in 10 seconds.\n\n"
+    "═══════════════════════════════════════════════════════════════\n"
+    "MATH FORMATTING (CRITICAL — the page renders LaTeX via KaTeX)\n"
+    "═══════════════════════════════════════════════════════════════\n\n"
+    "- Inline math: $...$. Standalone equation: $$...$$ on its own line.\n"
+    "- Convert ALL Unicode math to LaTeX:\n"
+    "    θ → \\theta,  Δ → \\Delta,  μ → \\mu,  π → \\pi\n"
+    "    ≈ → \\approx,  ≤ → \\leq,  ≥ → \\geq,  ± → \\pm\n"
+    "    × → \\times,  · → \\cdot,  √x → \\sqrt{x},  ∞ → \\infty\n"
+    "    x² → x^2,  x_n → x_{n}\n"
+    "    sin/cos/tan → \\sin/\\cos/\\tan\n"
+    "    vectors: \\vec{v} or \\mathbf{v}\n"
+    "- Units inside math use \\text{}: $g \\approx 9.8 \\text{ m/s}^2$ "
+    "(not $g \\approx 9.8 m/s^2$).\n"
+    "- EXCEPTION: in the **Mapping** bullet list, KEEP the → as Unicode "
+    "(it's a layout marker, not math).\n"
+    "- Bold **key terms** with markdown; do NOT bold math symbols."
 )
 
 
@@ -514,16 +526,45 @@ div[data-testid="stChatMessage"]:has(span[data-testid="stChatMessageAvatarUser"]
 """
 
 
+def _explain_pipeline_error(exc: Exception) -> str:
+    """Turn a pipeline exception into a friendlier student-facing message."""
+    err_msg = str(exc).lower()
+    if "429" in err_msg or "quota" in err_msg or "resource_exhausted" in err_msg:
+        return (
+            "_The model is rate-limited right now._\n\n"
+            "Free-tier quotas reset after a short wait. Try the same question "
+            "again in a minute or two — no need to rephrase."
+        )
+    if "no text" in err_msg or "empty" in err_msg:
+        return (
+            "_The model returned an empty response._\n\n"
+            "This sometimes happens when a prompt confuses the model. Please "
+            "ask the same concept again."
+        )
+    if "not_found" in err_msg or "404" in err_msg:
+        return (
+            "_The configured model is unavailable._\n\n"
+            "Check `GEMINI_MODEL` in `.env` — the current value may not be a "
+            "valid model ID on your API key."
+        )
+    return (
+        "_Sorry, something went wrong while generating that explanation._\n\n"
+        f"Error: `{type(exc).__name__}`. Please try asking again — most "
+        "failures are transient (rate limits, network blips, temporary model "
+        "errors)."
+    )
+
+
 def _generate_reply(
     user_text: str,
     profile: dict,
     on_status=None,
-) -> str:
-    """Run the multi-agent pipeline and return the cleaned student-facing answer.
+) -> tuple[str, bool]:
+    """Run the multi-agent pipeline and return (text, ok).
 
-    Returns a clean three-section explanation on success. On any pipeline error,
-    returns a friendly fallback string so the chat keeps working and the user
-    can simply ask again.
+    `ok` is True only when a real explanation was produced. Callers can use
+    it to decide whether to offer a quiz, save `last_concept`, or treat the
+    turn as an inert error.
     """
     try:
         result = explain_with_review(
@@ -539,17 +580,9 @@ def _generate_reply(
             on_status=on_status,
         )
     except Exception as exc:  # noqa: BLE001 — any failure is shown to user.
-        return (
-            "_Sorry, something went wrong while generating that explanation._\n\n"
-            f"Error: `{type(exc).__name__}`. "
-            "Please try asking again — most failures are transient (rate "
-            "limits, network blips, or temporary model errors)."
-        )
+        return _explain_pipeline_error(exc), False
 
     raw = result.get("explanation") or ""
-    # Two passes: a fast regex pre-clean to give the polisher less garbage to
-    # chew on, then the polisher LLM to extract the final three-section
-    # answer regardless of how the generator dumped its scratchpad.
     pre_cleaned = _sanitize_explanation(raw)
 
     if on_status is not None:
@@ -562,11 +595,11 @@ def _generate_reply(
 
     if not polished or not polished.strip():
         return (
-            "_I could not produce a clean explanation this time. "
-            "Try rephrasing your question — e.g., a concept name like "
-            "'kinetic energy' or 'projectile motion'._"
+            "_I could not produce a clean explanation this time. Try the "
+            "same concept again, or rephrase if it keeps happening._",
+            False,
         )
-    return polished
+    return polished, True
 
 
 def _status_from_score(score: int) -> str:
@@ -692,21 +725,47 @@ def _format_grade(verdict: dict) -> str:
 def _handle_answer(user_text: str) -> tuple[str, str, str]:
     """Grade the student's reply to the previously-asked question."""
     question_data = st.session_state.last_question or {}
+    concept = st.session_state.last_concept or ""
+
     with st.chat_message("assistant"):
         with st.spinner("EcoLearn is grading your answer..."):
-            verdict = grade_answer(
-                question_data.get("question", ""),
-                question_data.get("expected_concepts", []),
-                user_text,
+            try:
+                verdict = grade_answer(
+                    question_data.get("question", ""),
+                    question_data.get("expected_concepts", []),
+                    user_text,
+                )
+            except Exception as exc:  # noqa: BLE001
+                verdict = {
+                    "score": 0,
+                    "mastery_signal": "not_yet",
+                    "feedback": "",
+                    "missing_concepts": [],
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+
+        if verdict.get("error"):
+            # Grader failed. Don't pollute mastery with a fake "not_yet". Show
+            # a friendly message and return state to the post-grade buttons so
+            # the student can try again.
+            reply = (
+                "_I could not grade that answer right now (the grader is "
+                "rate-limited or returned an error)._\n\n"
+                "Click **Try another question** to retry or **Move on** to "
+                "continue learning."
             )
+            st.markdown(reply)
+            st.session_state.awaiting_answer = False
+            st.session_state.last_question = None
+            st.session_state.pending_action = "post_grade"
+            return reply, "ANSWER", concept
+
         reply = _format_grade(verdict)
         st.markdown(reply)
 
-    # Update mastery for the concept that was being quizzed.
-    concept = st.session_state.last_concept or ""
+    # Real grade: update mastery.
     _update_mastery(concept, verdict.get("score", 0))
 
-    # Clear the quiz state and arm the post-grade buttons.
     st.session_state.awaiting_answer = False
     st.session_state.last_question = None
     st.session_state.pending_action = "post_grade"
@@ -777,10 +836,17 @@ def _handle_new_turn(user_text: str, profile: dict) -> tuple[str, str, str]:
             status_slot.markdown(f"_EcoLearn is {message}..._")
 
         concept = concept_tag or user_text
-        reply = _generate_reply(concept, profile, on_status=_on_status)
+        reply, ok = _generate_reply(concept, profile, on_status=_on_status)
         status_slot.empty()
         st.markdown(reply)
-        # Remember the concept and arm the quiz offer for the next render.
+
+        if not ok:
+            # Pipeline error — don't pretend a concept was taught. Skip the
+            # quiz offer and don't update last_concept. Logged as CHAT so the
+            # sidebar's "Concepts explored" metric stays honest.
+            return reply, "CHAT", ""
+
+        # Real explanation: remember the concept and arm the quiz offer.
         st.session_state.last_concept = concept
         st.session_state.pending_action = "offer_quiz"
         return reply, "TUTOR", concept
