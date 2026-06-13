@@ -5,3 +5,8 @@ __pycache__/
 
 # Local vector store — regenerable from src/data via src/rag/build_index.py
 chroma_db/
+
+# Transient run logs from the lesson factory (src/content/generate_lessons.py)
+generation.log
+generation_resume.log
+repolish.log

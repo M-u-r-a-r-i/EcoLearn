@@ -1,0 +1,14 @@
+{
+  "concept_id": "position",
+  "interest": "football",
+  "body": "Imagine you are tracking a ball on a football pitch. To describe where the ball is, you first pick a reference point, such as the center spot, to serve as your origin.\n\nIf the ball is sitting at the penalty spot, you describe its location as a specific distance and direction from that center spot, perhaps using the touchline as your x-axis and the goal line as your y-axis.\n\nIf you instead decide to measure everything from the goal line, the numerical value describing the ball's location changes, even though the ball itself has not moved.\n\nWhen a wing-back sprints from the flank to the center, their displacement is the straight-line arrow pointing from the starting point to the finishing point, regardless of whether they ran in a zig-zag or a curve.\n\n**Mapping:**\n\n- center spot $\\rightarrow$ origin\n- pitch lines $\\rightarrow$ reference frame/axes\n- ball's location $\\rightarrow$ position $\\mathbf{r}$\n- distance/direction from center $\\rightarrow$ coordinates $(x, y)$\n- straight line from flank to center $\\rightarrow$ displacement $\\Delta\\mathbf{r}$\n\n> **Where the analogy breaks down:** The analogy breaks because the pitch is treated as a flat surface, while true position in physics often requires a third dimension to account for the height of a ball during a high cross.",
+  "worked_example": "**Position** specifies where an object is located in space relative to a chosen origin and reference frame. In one dimension, position is a single coordinate $x$ measured along a chosen axis.\n\nIn two or three dimensions, position is expressed as a vector $\\mathbf{r} = x\\hat{i} + y\\hat{j} + z\\hat{k}$, where $\\hat{i}, \\hat{j},$ and $\\hat{k}$ are unit vectors along the x, y, and z axes respectively.\n\n**Displacement** is the change in position of an object, which depends only on the endpoints and not the path taken.\n\n$$\\Delta\\mathbf{r} = \\mathbf{r}_f - \\mathbf{r}_i$$\n\n**Where:**\n\n- $\\Delta\\mathbf{r}$ — displacement ($\\text{m}$)\n- $\\mathbf{r}_f$ — final position vector ($\\text{m}$)\n- $\\mathbf{r}_i$ — initial position vector ($\\text{m}$)",
+  "check_question": "A striker starts at the center spot, runs in a wide arc to the penalty spot, and then kicks the ball back exactly to the center spot before returning there themselves. What is the striker's total displacement for the entire trip, and how does this result differ from the total distance they ran?\n\n> **Hint:** Consider the mapping of the center spot as the origin and the formula for $\\Delta\\mathbf{r}$ using initial and final positions.",
+  "metadata": {
+    "generated_at": "2026-06-12T05:08:12.001739Z",
+    "critic_passed": true,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}
