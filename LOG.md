@@ -218,6 +218,27 @@ The whole point of the project's three-layer anti-leak defence is that **layer 3
 ### Status
 - Polisher fix verified working (clean body/worked_example/check_question, proper KaTeX). 9/18 lessons now clean (7 via flash-lite, 2 via Gemma); 9 still raw, blocked on flash-lite daily quota. Finish the remaining 9 by re-running `python -m src.content.generate_lessons repolish` after the flash-lite reset.
 
+## 2026-06-13: Phase 3 — Learning Path Engine + progress store
+
+### Changed
+- `src/progress/store.py` (new) — SQLite progress store. One row per (student_id, concept_id): status, best_score, attempts, last_seen. `get_progress`, `update_progress` (upsert mirroring app.py's `_update_mastery`: attempts+1, best_score=max, status from best), `get_mastered_concepts`, plus `mark_reviewed` (refresh last_seen only, for reviews). Status thresholds (`status_from_score`) identical to app.py so the live session ledger and the persisted store never disagree. DB path is read lazily from `ECOLEARN_PROGRESS_DB` (default `data/progress.db`) so tests can point at a temp file.
+- `src/path/engine.py` (new) — the path engine. `next_concept(student_id, chapter_id)` returns a `Recommendation(kind, concept, reason)` where kind ∈ new/review/done/blocked. Policy: (1) spaced repetition — a mastered concept unrevisited for ≥ `ECOLEARN_REVIEW_DAYS` (default 7) is surfaced for review first; (2) else the first not-mastered concept in teaching order whose prerequisites are all mastered; (3) else done (all mastered) or blocked (names the unmet prereqs). `get_roadmap(...)` tags every chapter concept mastered/available/locked with missing-prereq ids and progress detail for the future roadmap UI. Reuses `load_subject`, `teaching_order`, `resolve_prerequisites` from the curriculum spine; mastery from the store.
+- `src/progress/__init__.py`, `src/path/__init__.py` — package markers.
+- `tests/test_path_engine.py` (new) — three scenarios against a throwaway temp DB: (1) master all 9 concepts one at a time, asserting at every step that the recommended concept's *transitive* prerequisites are already mastered (the core invariant — zero violations); (2) roadmap for a partial student; (3) back-date a mastered concept's last_seen and confirm the review path fires. All pass.
+- `.gitignore` — added `data/progress.db` (per-user runtime state, like chroma_db/).
+
+### Why
+The platform needed to stop being reactive (student types a concept → we teach it) and become proactive (the system knows what each student should learn next and why). That requires durable per-student progress (the store) and a rule that combines progress with the prerequisite-ordered curriculum (the engine).
+
+### Learned
+- **The engine invents no pedagogy.** Ordering and prerequisites come from the curriculum spine; mastery from the store. The engine is purely the rule that joins them — which keeps all three pieces independently testable and means content authors (YAML) change behaviour without touching engine code.
+- **Inject `now` for time-dependent logic.** Spaced repetition depends on wall-clock time; passing `now` as a parameter (default `datetime.now`) made the review path deterministically testable without freezing the system clock.
+- **Lazy env-var config beats wide function signatures for testability.** Reading `ECOLEARN_PROGRESS_DB` inside `_connect()` (not at import) lets the test redirect the whole store to a temp DB with one `os.environ` line — no `db_path=` threaded through every function.
+- **Mirror, don't fork, the status logic.** Re-deriving `status_from_score` in the store with the same 3/2/else thresholds as app.py avoids the classic bug where the persisted "mastered" and the UI "mastered" drift apart. (Worth a later refactor to import one shared function.)
+
+### Status
+Phase 3 complete and tested. Not yet wired into app.py — the live UI still uses the in-session `st.session_state.mastery`; connecting it to the persistent store + showing a roadmap is the natural next step.
+
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:
