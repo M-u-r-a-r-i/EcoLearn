@@ -179,6 +179,45 @@ EcoLearn is becoming a learning platform, not just a chatbot. A platform needs a
 - **Inject parent ids in the loader, not in YAML.** Forcing the author to repeat `chapter_id: motion_straight_line` on every concept under a chapter is noisy and error-prone. Letting the loader walk the tree and stamp ids keeps the YAML clean and the Pydantic schema strict.
 - **Bloom targets stay strings (Enum), not numbers.** A learning objective expressed as `apply` reads cleanly; `5` doesn't. Pydantic's `BloomLevel(str, Enum)` accepts strings, validates them, and renders them back as strings. Best of both worlds.
 
+## 2026-06-12: Phase 2 — offline lesson generation (content factory)
+
+### Changed
+- `src/content/lesson_schema.py` — `Lesson` Pydantic model: `concept_id`, `interest`, `body`, `worked_example`, `check_question`, and a `LessonMetadata` sub-model (`generated_at`, `critic_passed`, `critic_verdict`, `attempts`, `critic_feedback`).
+- `src/content/generate_lessons.py` — `generate_all_lessons(chapter_id, interests, level, max_retries, skip_existing)`: for every concept × interest in a chapter, runs the existing `explain_with_review` pipeline (RAG → analogy generator → critic → retry), then saves `data/lessons/{concept_id}__{interest}.json`. On a non-passing critic verdict the lesson is still saved but `critic_passed=False`.
+- Made the run **resumable and idempotent**: `skip_existing=True` skips any pair already on disk; `flagged.jsonl` and the run summary are **rebuilt from disk** (`_rebuild_flagged_log`, `_summarize_from_disk`) at the end instead of appended per-run, so partial/interrupted runs never produce duplicate flag entries or miscounts.
+- Per-pair pipeline exceptions are now caught and skipped (one hung/disconnected generate call no longer kills the whole batch).
+
+### Why
+EcoLearn is moving from live per-student generation to a pre-generated content library. Generating offline lets every lesson be vetted by the critic once, cached, and served instantly — instead of paying 30–60 s and quota on every student view.
+
+### Learned
+- **Idempotent batch jobs beat fragile ones.** First run got interrupted by a hanging Gemma generate call; rather than restart from zero, making the job skip-existing + rebuild-state-from-disk turned a 6-hour-of-quota job into something you can stop and resume freely.
+- **Rebuild derived state from the source of truth, don't append.** Appending to `flagged.jsonl` per-run accumulated duplicates across runs. Scanning the saved JSONs and rewriting the log makes it always consistent with what's actually on disk.
+- **Critic quota exhaustion silently degrades quality, not availability.** Because the critic fails open (soft-PASS), the factory keeps producing lessons — but they're unvetted. Recording `critic_passed=False` for soft-passes preserves the distinction so a later re-vet pass can target exactly those.
+- **The Gemma generation endpoint hangs intermittently.** Two separate generate calls stalled with no response / "Server disconnected". Per-pair exception handling is essential for an unattended batch.
+
+### Run status (this session)
+- 9/18 lessons saved for Motion in a Straight Line (football + gaming): 2 passed (position ×2), 7 flagged (critic quota was exhausted), 9 still missing. Critic quota reset partway through. Resume planned ~3 hrs later when quota is fresh.
+
+## 2026-06-13: Lesson factory — the missing polisher (critical fix)
+
+### Changed
+- **Found a serious bug in the Phase 2 factory.** `generate_lessons.py` saved the *raw* generator output straight into `Lesson.body` — full Gemma scratchpad (drafts, "Word count: ~350, I need to expand", revised versions) — with `worked_example` and `check_question` empty. The factory called `explain_with_review()` (which returns raw text) but never ran the **polisher** that `app.py` uses to clean live replies. Every one of the first 18 lessons was unservable.
+- `src/agents/polisher.py` (new) — extracted `polish_explanation` + the extractor system prompt out of `app.py` into a shared module. `app.py` now imports it (kept the `_polish_explanation` alias for existing call sites). Single source of truth for polishing across the live app and the offline factory.
+- `src/content/generate_lessons.py` — `_build_lesson` now polishes before `_parse_sections`, so future runs split cleanly into the three fields. Added `repolish_existing()`: an idempotent, resumable repair pass that polishes lessons saved with raw bodies in place (detects them via empty worked_example/check_question), re-splits, and rewrites — skipping ones already clean and leaving raw bodies untouched on a polish fail-open so a later run retries. Added `_strip_trailing_rule` to drop the dangling `---` the section split left behind, applied to both freshly-split and already-clean lessons. New `repolish` CLI subcommand.
+
+### Why
+The whole point of the project's three-layer anti-leak defence is that **layer 3 (the LLM polisher) is the only one that reliably works**. The factory shipped without it and reintroduced exactly the scratchpad-leak problem the project spent days solving. The repair pass fixes the 18 already-generated lessons without paying to regenerate them — the raw bodies on disk already contain all the content.
+
+### Learned
+- **A new code path must reuse the proven cleanup, not reinvent it.** I first wrote a regex `_parse_sections` to split raw output — the exact "regex vs an LLM that invents new scratchpad labels" losing race the LOG already warned against. It fell through to its fallback on every lesson. The fix was to run the polisher *first*, then split its clean `###`-headed markdown.
+- **Polish, then parse.** Order matters: the parser can only split clean section headers, which only exist after the polisher has extracted them.
+- **Gemma is a poor polisher (2/11 success).** With the polisher at temperature 0.0, Gemma-4-31b-it produced cleanly-splittable output for only 2 of 11 lessons (the short `position` pair); the other 9 fail-opened. Confirms flash-lite is the right tool — Gemma leaks even when asked only to extract. (Quota note: flash-lite's 20/day bucket was exhausted by the resume run's critic calls + 6 polishes, which is why the Gemma attempt happened at all.)
+- **Idempotent repair beats regenerate.** Re-polishing stored raw bodies costs one cheap polish call each vs a full RAG+generate+critic cycle. Detect-broken-by-signature (empty sections) + skip-clean + fail-open-preserves-raw makes the pass safe to run repeatedly across quota windows.
+
+### Status
+- Polisher fix verified working (clean body/worked_example/check_question, proper KaTeX). 9/18 lessons now clean (7 via flash-lite, 2 via Gemma); 9 still raw, blocked on flash-lite daily quota. Finish the remaining 9 by re-running `python -m src.content.generate_lessons repolish` after the flash-lite reset.
+
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:

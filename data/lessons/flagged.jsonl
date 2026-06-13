@@ -1,0 +1,8 @@
+{"concept_id": "average_vs_instantaneous", "interest": "football", "critic_verdict": "PASS", "attempts": 2, "critic_feedback": ""}
+{"concept_id": "displacement", "interest": "football", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
+{"concept_id": "displacement", "interest": "gaming", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
+{"concept_id": "distance", "interest": "football", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
+{"concept_id": "distance", "interest": "gaming", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
+{"concept_id": "speed", "interest": "football", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
+{"concept_id": "speed", "interest": "gaming", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
+{"concept_id": "velocity", "interest": "football", "critic_verdict": "PASS", "attempts": 1, "critic_feedback": ""}
