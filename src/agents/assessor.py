@@ -35,6 +35,13 @@ _SYSTEM_PROMPT_PATH = _PROJECT_ROOT / "prompts" / "assessor.txt"
 _DEFAULT_QUESTION_MODEL = "gemma-4-31b-it"
 _DEFAULT_GRADE_MODEL = "gemma-4-31b-it"
 
+# Fallback models tried, in order, when the primary model fails with an API
+# error (e.g. a 500 INTERNAL outage on one model, or a 429 quota cap). This is
+# the "portfolio of models" reliability pattern: a single model going down on
+# the provider's side must not take grading/questioning offline. Override the
+# primary via the env vars above; these are the safety net behind it.
+_FALLBACK_MODELS = ("gemini-2.5-flash-lite", "gemini-flash-latest")
+
 # Mild variety on questions; near-deterministic on grading.
 _QUESTION_TEMPERATURE = 0.4
 _GRADE_TEMPERATURE = 0.1
@@ -122,19 +129,51 @@ def _call_assessor(model: str, user_message: str, temperature: float) -> str:
     return text
 
 
+def _model_chain(primary: str) -> list[str]:
+    """Build the ordered model list: primary first, then distinct fallbacks."""
+    chain = [primary]
+    for model in _FALLBACK_MODELS:
+        if model not in chain:
+            chain.append(model)
+    return chain
+
+
 def _attempt_with_retry(
-    model: str,
+    primary_model: str,
     user_message: str,
     temperature: float,
     required_keys: tuple[str, ...],
 ) -> tuple[dict | None, str]:
-    """Call the assessor; retry once on JSON parse failure."""
+    """Call the assessor, returning the first parseable JSON verdict.
+
+    Resilience strategy:
+      - try each model in the fallback chain (primary first);
+      - within a model, retry once on a JSON *parse* failure;
+      - on an API *error* (500 outage, 429 quota, network), skip straight to
+        the next model rather than crashing — the provider client has already
+        retried the same model internally, so re-hitting it is pointless.
+
+    Returns (parsed_or_None, last_raw_text). Never raises on API errors; an
+    all-models-failed run returns (None, last_raw) so the caller emits its
+    sentinel dict.
+    """
     last_raw = ""
-    for _attempt in range(2):
-        last_raw = _call_assessor(model, user_message, temperature)
-        parsed = _parse_json(last_raw, required_keys)
-        if parsed is not None:
-            return parsed, last_raw
+    for model in _model_chain(primary_model):
+        for _attempt in range(2):  # one parse-retry within a healthy model
+            try:
+                last_raw = _call_assessor(model, user_message, temperature)
+            except Exception as exc:  # noqa: BLE001 — API/network error, try next model.
+                print(
+                    f"[assessor] model {model!r} failed "
+                    f"({type(exc).__name__}: {str(exc)[:100]}); trying next model."
+                )
+                last_raw = f"{type(exc).__name__}: {exc}"
+                break  # don't retry the same model on an API error
+            parsed = _parse_json(last_raw, required_keys)
+            if parsed is not None:
+                if model != primary_model:
+                    print(f"[assessor] succeeded on fallback model {model!r}.")
+                return parsed, last_raw
     return None, last_raw
 
 
@@ -168,8 +207,9 @@ def generate_question(concept: str, interest: str, level: str) -> dict[str, Any]
         "expected_concepts": [],
         "difficulty_level": "recall",
         "error": (
-            "Assessor could not return valid JSON after two attempts. "
-            f"Last raw response: {last_raw[:300]!r}"
+            "Assessor could not produce valid JSON from any model "
+            "(primary + fallbacks). "
+            f"Last response/error: {last_raw[:300]!r}"
         ),
     }
 
@@ -207,7 +247,8 @@ def grade_answer(
         "feedback": "(grader could not parse a valid response)",
         "missing_concepts": [],
         "error": (
-            "Assessor could not return valid JSON after two attempts. "
-            f"Last raw response: {last_raw[:300]!r}"
+            "Assessor could not produce valid JSON from any model "
+            "(primary + fallbacks). "
+            f"Last response/error: {last_raw[:300]!r}"
         ),
     }
