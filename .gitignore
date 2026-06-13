@@ -10,6 +10,7 @@ chroma_db/
 generation.log
 generation_resume.log
 repolish.log
+platform_test.log
 
 # Per-student progress store — runtime state, rebuilt as students use the app
 data/progress.db

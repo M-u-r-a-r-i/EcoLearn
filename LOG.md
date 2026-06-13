@@ -239,6 +239,32 @@ The platform needed to stop being reactive (student types a concept → we teach
 ### Status
 Phase 3 complete and tested. Not yet wired into app.py — the live UI still uses the in-session `st.session_state.mastery`; connecting it to the persistent store + showing a roadmap is the natural next step.
 
+## 2026-06-13: Phase 4 — platform service layer (the API boundary)
+
+### Changed
+- `src/platform_api.py` (new) — the single service boundary every frontend calls. Exactly five functions: `create_or_load_student(name, interest, level)`, `get_roadmap(student_id, chapter_id)`, `get_next_lesson(student_id, chapter_id)`, `submit_assessment(student_id, concept_id, answer)`, `ask_help(student_id, concept_id, question)`. They orchestrate the path engine, lesson read-service, progress store, assessor, and live pipeline internally. **Every return value is plain JSON-serializable data** (dict / list of dict / primitives) — no Pydantic models or dataclasses cross the boundary.
+- `src/content/lesson_service.py` (new) — read side of the lesson factory: `get_lesson(concept_id, interest)` loads `data/lessons/{concept_id}__{interest}.json` (lower-cases interest to match factory filenames), `has_lesson`, `lesson_path`.
+- `src/progress/store.py` — added a `students` table and `get_student` / `save_student` (upsert; `created_at` preserved across updates). Same DB file as progress, so the `ECOLEARN_PROGRESS_DB` override covers both.
+- `src/path/engine.py` — added public `find_concept(concept_id)` so the service layer can fetch concept metadata (name, objective) without re-loading the subject itself.
+- `tests/test_platform_api.py` (new) — full student journey through ONLY `src.platform_api` (the sole domain import): create student → roadmap → next lesson → submit assessment (live grade) → ask help (live pipeline) → next lesson. Asserts the contract at each step and that the engine stays prerequisite-correct. **Ran green:** grade scored 3→mastered, the help pipeline did a real FAIL→regenerate→PASS and returned polished markdown, and step 6 advanced position→distance.
+- `.gitignore` — added `platform_test.log`.
+
+### Why
+The platform had four working subsystems (curriculum, lessons, path engine, live pipeline) but no front door. Without a boundary, a frontend would reach into all of them and couple itself to their internals — making a Streamlit→Next.js move a rewrite. One service layer that returns plain data decouples *what the platform does* from *how any UI renders it*.
+
+### Design decisions (don't re-debate)
+- **The assessment IS the lesson's self-check.** `submit_assessment` grades the answer against the concept's pre-generated lesson `check_question` (anchored with the concept name + learning objective as expected concepts), rather than generating a fresh question. One question the student actually saw; one grade.
+- **`ask_help` is the only live/expensive call in the API** and runs the full pipeline with `max_retries=1` (one critic-driven retry) to stay responsive. Cached lessons serve everything else instantly.
+- **`student_id` is a deterministic slug of the name** (`"Journey Student"` → `journey-student`), so `create_or_load_student` is idempotent — same name reloads the same student, refreshing interest/level.
+- **Plain-data returns are a hard rule**, not a style choice — it's what makes the boundary transport-agnostic (see takeaway below).
+
+### Learned
+- **A boundary test that imports only the boundary is the proof the boundary works.** `test_platform_api.py` has exactly one domain import (`platform_api`); the fact that a complete journey is expressible through it is the design validated.
+- **Returning Pydantic objects would have leaked the abstraction.** Calling `.model_dump()` at the boundary (lessons) and returning dicts everywhere means an HTTP layer can serialize results with `json.dumps` and no custom encoders — the precondition for a non-Python frontend.
+
+### Status
+Phases 1–4 complete. The service layer is ready for a frontend; `app.py` still talks to subsystems directly and should be refactored to call `platform_api` (Phase 5-ish), at which point Streamlit and a future Next.js app share identical logic.
+
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:

@@ -97,6 +97,20 @@ def _chapter_concepts(subject: Subject, chapter_id: str) -> list[Concept]:
     return concepts
 
 
+def find_concept(concept_id: str) -> Concept | None:
+    """Look up a single concept by id across the whole curriculum.
+
+    Public helper for callers (e.g. the service layer) that have a concept_id
+    and need its name / learning_objective without re-loading the subject
+    themselves. Returns None if the id isn't found.
+    """
+    subject = _load_subject()
+    for c in teaching_order(subject):
+        if c.id == concept_id:
+            return c
+    return None
+
+
 def _parse_ts(raw: str | None) -> datetime | None:
     if not raw:
         return None
