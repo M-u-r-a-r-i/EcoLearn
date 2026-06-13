@@ -90,16 +90,24 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
 # 3. Next lesson
 # ---------------------------------------------------------------------------
 
-def get_next_lesson(student_id: str, chapter_id: str) -> dict[str, Any]:
+def get_next_lesson(
+    student_id: str,
+    chapter_id: str,
+    concept_id: str | None = None,
+) -> dict[str, Any]:
     """Return the personalised lesson for the student's next concept.
 
     Orchestrates: ask the path engine what to learn next, then fetch the
     pre-generated lesson for that concept in the student's interest.
 
+    If `concept_id` is given, that specific concept is served instead of the
+    engine's pick — used when the student chooses to *re-practise* a concept
+    they only partly passed (the engine would otherwise advance past it).
+
     Returns an envelope dict so the frontend can handle every outcome:
         {
           "status":       "new" | "review" | "done" | "blocked" | "lesson_missing",
-          "reason":       why the engine chose this (human-readable),
+          "reason":       why this was chosen (human-readable),
           "concept_id":   the chosen concept id (None when status == "done"),
           "concept_name": the chosen concept name (None when status == "done"),
           "lesson":       the Lesson as a plain dict, or None,
@@ -114,22 +122,38 @@ def get_next_lesson(student_id: str, chapter_id: str) -> dict[str, Any]:
             f"Unknown student_id {student_id!r}. Call create_or_load_student first."
         )
 
-    rec = engine.next_concept(student_id, chapter_id)
-    envelope: dict[str, Any] = {
-        "status": rec.kind,
-        "reason": rec.reason,
-        "concept_id": rec.concept.id if rec.concept else None,
-        "concept_name": rec.concept.name if rec.concept else None,
-        "lesson": None,
-    }
+    if concept_id is not None:
+        # Explicit re-practise of a specific concept.
+        concept = engine.find_concept(concept_id)
+        if concept is None:
+            raise ValueError(f"Unknown concept_id {concept_id!r}.")
+        is_mastered = concept_id in store.get_mastered_concepts(student_id)
+        envelope: dict[str, Any] = {
+            "status": engine.KIND_REVIEW if is_mastered else engine.KIND_NEW,
+            "reason": f"Practising {concept.name} again to strengthen it.",
+            "concept_id": concept.id,
+            "concept_name": concept.name,
+            "lesson": None,
+        }
+        chosen = concept
+    else:
+        rec = engine.next_concept(student_id, chapter_id)
+        envelope = {
+            "status": rec.kind,
+            "reason": rec.reason,
+            "concept_id": rec.concept.id if rec.concept else None,
+            "concept_name": rec.concept.name if rec.concept else None,
+            "lesson": None,
+        }
+        chosen = rec.concept if rec.kind in (engine.KIND_NEW, engine.KIND_REVIEW) else None
 
-    # Only NEW and REVIEW recommendations carry a concept to actually teach.
-    if rec.concept is not None and rec.kind in (engine.KIND_NEW, engine.KIND_REVIEW):
-        lesson = lesson_service.get_lesson(rec.concept.id, profile["interest"])
+    # Load the lesson body when there's a concept to actually teach.
+    if chosen is not None:
+        lesson = lesson_service.get_lesson(chosen.id, profile["interest"])
         if lesson is None:
             envelope["status"] = "lesson_missing"
             envelope["reason"] = (
-                f"No pre-generated lesson exists for {rec.concept.name} in "
+                f"No pre-generated lesson exists for {chosen.name} in "
                 f"interest {profile['interest']!r} yet. "
                 "Generate it with the lesson factory."
             )
@@ -195,8 +219,18 @@ def submit_assessment(
         expected_concepts=expected_concepts,
         student_answer=answer,
     )
-    score = int(grade.get("score", 0))
 
+    # If the grader failed (all models errored / unparseable), it returns a
+    # sentinel with an `error` key. Do NOT write a fake score-0 to mastery —
+    # that would punish the student for an API outage. Surface it instead so
+    # the UI can show a "try again" message, leaving progress untouched.
+    if grade.get("error"):
+        raise RuntimeError(
+            "The grader is temporarily unavailable. Your progress was not "
+            "changed — please try submitting again in a moment."
+        )
+
+    score = int(grade.get("score", 0))
     updated = store.update_progress(student_id, concept_id, score)
 
     return {
@@ -243,8 +277,16 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
             f"Unknown student_id {student_id!r}. Call create_or_load_student first."
         )
 
+    # Ground the help in the concept the student is actually on. Leading with
+    # the concept name steers RAG retrieval to the right curriculum passages,
+    # and tells the generator the topic — so the answer is contextual to the
+    # lesson, not just a free-floating reply to the raw question text.
+    concept = engine.find_concept(concept_id)
+    concept_label = concept.name if concept is not None else concept_id
+    framed_query = f"{concept_label} — student asks: {question}"
+
     result = explain_with_review(
-        concept=question,
+        concept=framed_query,
         interest=profile["interest"],
         level=profile["level"],
         max_retries=_HELP_MAX_RETRIES,
@@ -253,6 +295,7 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
 
     return {
         "concept_id": concept_id,
+        "concept_name": concept_label,
         "answer": answer,
         "verdict": result.get("verdict", "ERROR"),
         "attempts": result.get("attempts", 0),

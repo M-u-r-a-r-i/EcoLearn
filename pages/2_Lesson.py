@@ -17,7 +17,12 @@ from src import platform_api as api
 ui_common.setup_page("Lesson", "📘")
 student_id = ui_common.require_student()
 
-result = api.get_next_lesson(student_id, ui_common.CHAPTER_ID)
+# If the student chose "practise this again" after a partial pass, the engine
+# would otherwise advance past it — so honour the explicit concept override.
+practise_concept = st.session_state.get("practise_concept")
+result = api.get_next_lesson(
+    student_id, ui_common.CHAPTER_ID, concept_id=practise_concept
+)
 status = result["status"]
 
 # Terminal / non-teaching states.
@@ -39,7 +44,7 @@ lesson = result["lesson"]
 
 st.title(result["concept_name"])
 if status == "review":
-    st.info(f"🔁 Review — {result['reason']}")
+    st.info(f"🔁 **Quick review before we move on.** {result['reason']}")
 else:
     st.caption(result["reason"])
 

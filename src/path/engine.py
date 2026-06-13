@@ -137,11 +137,14 @@ def next_concept(
     subject = _load_subject()
     concepts = _chapter_concepts(subject, chapter_id)
     progress = store.get_progress(student_id)
-    mastered = store.get_mastered_concepts(student_id)  # subject-wide
+    mastered = store.get_mastered_concepts(student_id)  # gold (3/3), for review
+    cleared = store.get_cleared_concepts(student_id)    # passed (>=2/3), for progress
 
     review_days = _review_interval_days()
 
-    # 1. Spaced repetition: the most-overdue mastered concept in this chapter.
+    # 1. Spaced repetition: the most-overdue *mastered* concept in this chapter.
+    #    We only schedule review for concepts the student truly mastered (3/3),
+    #    not ones they merely scraped a pass on.
     overdue: list[tuple[datetime, int, Concept]] = []
     for c in concepts:
         if c.id not in mastered:
@@ -164,48 +167,50 @@ def next_concept(
             ),
         )
 
-    # 2. Forward progress: first unmastered concept with all prereqs mastered.
+    # 2. Forward progress: first not-yet-cleared concept whose prerequisites are
+    #    all cleared. A 2/3 pass "clears" a concept, so a student who chose to
+    #    move on past a partial pass keeps advancing.
     for c in concepts:
-        if c.id in mastered:
+        if c.id in cleared:
             continue
         prereqs = resolve_prerequisites(c.id, subject)  # direct prerequisites
-        missing = [p for p in prereqs if p.id not in mastered]
+        missing = [p for p in prereqs if p.id not in cleared]
         if not missing:
             if prereqs:
                 reason = (
-                    f"Next in sequence: you've mastered its prerequisites "
+                    f"Next in sequence: you've cleared its prerequisites "
                     f"({', '.join(p.name for p in prereqs)}), so {c.name} is "
-                    f"now unlocked and you haven't mastered it yet."
+                    f"now unlocked and you haven't cleared it yet."
                 )
             else:
                 reason = (
                     f"Starting point: {c.name} has no prerequisites and you "
-                    f"haven't mastered it yet."
+                    f"haven't cleared it yet."
                 )
             return Recommendation(kind=KIND_NEW, concept=c, reason=reason)
 
     # 3. Nothing learnable: either the chapter is done, or it's blocked.
-    unmastered = [c for c in concepts if c.id not in mastered]
-    if not unmastered:
+    uncleared = [c for c in concepts if c.id not in cleared]
+    if not uncleared:
         return Recommendation(
             kind=KIND_DONE,
             concept=None,
             reason=(
-                "You've mastered every concept in this chapter. There's "
+                "You've worked through every concept in this chapter. There's "
                 "nothing due for review right now either — well done."
             ),
         )
 
-    first = unmastered[0]
+    first = uncleared[0]
     missing = [p for p in resolve_prerequisites(first.id, subject)
-               if p.id not in mastered]
+               if p.id not in cleared]
     return Recommendation(
         kind=KIND_BLOCKED,
         concept=first,
         reason=(
-            f"{first.name} is next, but it's locked until you master its "
+            f"{first.name} is next, but it's locked until you clear its "
             f"prerequisite(s): {', '.join(p.name for p in missing)}. "
-            f"Those live earlier in the curriculum — master them first."
+            f"Those live earlier in the curriculum — work through them first."
         ),
     )
 
@@ -220,9 +225,11 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
     """Return every concept in the chapter tagged with its roadmap status.
 
     Status is one of:
-      - "mastered"  : the student has mastered it
-      - "available" : not mastered, but all prerequisites are mastered
-      - "locked"    : not mastered, and at least one prerequisite is unmet
+      - "mastered"  : the student has mastered it (3/3) — the gold badge
+      - "available" : not mastered, but all prerequisites are cleared (>=2/3);
+                      includes concepts the student passed at 2/3 and can
+                      revisit to fully master
+      - "locked"    : not mastered, and at least one prerequisite is not cleared
 
     Each entry also carries the underlying progress detail (progress_status,
     best_score, attempts) and, for locked concepts, the missing prerequisite
@@ -232,11 +239,12 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
     concepts = _chapter_concepts(subject, chapter_id)
     progress = store.get_progress(student_id)
     mastered = store.get_mastered_concepts(student_id)
+    cleared = store.get_cleared_concepts(student_id)
 
     roadmap: list[dict] = []
     for c in concepts:
         prereqs = resolve_prerequisites(c.id, subject)
-        missing = [p.id for p in prereqs if p.id not in mastered]
+        missing = [p.id for p in prereqs if p.id not in cleared]
 
         if c.id in mastered:
             status = ROADMAP_MASTERED

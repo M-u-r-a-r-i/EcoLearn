@@ -213,6 +213,27 @@ def get_mastered_concepts(student_id: str) -> set[str]:
     return {row["concept_id"] for row in rows}
 
 
+def get_cleared_concepts(student_id: str) -> set[str]:
+    """Return concept_ids the student has *cleared* (best_score >= 2).
+
+    "Cleared" is the progression bar: a partial pass (2/3) or full mastery
+    (3/3). It's what the path engine uses to decide a concept no longer blocks
+    forward progress and that its dependents may unlock — so a student who
+    scored 2/3 can choose to move on. Mastery (3/3) remains the distinct gold
+    status shown on the roadmap and used for spaced-repetition review.
+    """
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT concept_id FROM progress "
+            "WHERE student_id = ? AND best_score >= 2",
+            (student_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+    return {row["concept_id"] for row in rows}
+
+
 # ---------------------------------------------------------------------------
 # Student profiles
 # ---------------------------------------------------------------------------

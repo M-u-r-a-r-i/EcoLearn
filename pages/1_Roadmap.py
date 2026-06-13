@@ -34,6 +34,20 @@ st.progress(
     text=f"{mastered} of {total} concepts mastered",
 )
 
+# Edge states: a friendly nudge when brand-new, a celebration when finished.
+all_done = total > 0 and mastered == total
+if mastered == 0:
+    first_available = next(
+        (r["name"] for r in roadmap if r["status"] == "available"), None
+    )
+    starter = f" — start with **{first_available}**" if first_available else ""
+    st.info(f"You're just getting started{starter}. Hit *Continue learning* below.")
+elif all_done:
+    st.success(
+        "🎉 You've mastered every concept in this chapter! "
+        "Revisit any concept for review, or take a well-earned break."
+    )
+
 st.write("")
 
 # Concept cards in teaching order.
@@ -53,5 +67,6 @@ for row in roadmap:
     )
 
 st.divider()
-if st.button("▶ Continue learning", type="primary", use_container_width=True):
+button_label = "🔁 Review the chapter" if all_done else "▶ Continue learning"
+if st.button(button_label, type="primary", use_container_width=True):
     st.switch_page("pages/2_Lesson.py")
