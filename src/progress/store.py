@@ -68,6 +68,17 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS students (
+            student_id  TEXT PRIMARY KEY,
+            name        TEXT NOT NULL,
+            interest    TEXT NOT NULL,
+            level       TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        )
+        """
+    )
     return conn
 
 
@@ -200,3 +211,72 @@ def get_mastered_concepts(student_id: str) -> set[str]:
     finally:
         conn.close()
     return {row["concept_id"] for row in rows}
+
+
+# ---------------------------------------------------------------------------
+# Student profiles
+# ---------------------------------------------------------------------------
+
+def get_student(student_id: str) -> dict[str, Any] | None:
+    """Return a student's profile dict, or None if no such student exists."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM students WHERE student_id = ?",
+            (student_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    return {
+        "student_id": row["student_id"],
+        "name": row["name"],
+        "interest": row["interest"],
+        "level": row["level"],
+        "created_at": row["created_at"],
+    }
+
+
+def save_student(
+    student_id: str,
+    name: str,
+    interest: str,
+    level: str,
+) -> dict[str, Any]:
+    """Insert or update a student profile and return it.
+
+    created_at is set once on first insert and preserved on later updates, so
+    a returning student keeps their original join date even if they change
+    interest or level.
+    """
+    conn = _connect()
+    try:
+        existing = conn.execute(
+            "SELECT created_at FROM students WHERE student_id = ?",
+            (student_id,),
+        ).fetchone()
+        created_at = existing["created_at"] if existing else _now_iso()
+
+        conn.execute(
+            """
+            INSERT INTO students (student_id, name, interest, level, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(student_id) DO UPDATE SET
+                name     = excluded.name,
+                interest = excluded.interest,
+                level    = excluded.level
+            """,
+            (student_id, name, interest, level, created_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {
+        "student_id": student_id,
+        "name": name,
+        "interest": interest,
+        "level": level,
+        "created_at": created_at,
+    }
