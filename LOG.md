@@ -265,6 +265,33 @@ The platform had four working subsystems (curriculum, lessons, path engine, live
 ### Status
 Phases 1–4 complete. The service layer is ready for a frontend; `app.py` still talks to subsystems directly and should be refactored to call `platform_api` (Phase 5-ish), at which point Streamlit and a future Next.js app share identical logic.
 
+## 2026-06-13: Phase 5 — multi-page Streamlit platform
+
+### Changed
+- `app.py` — **rewritten** as the onboarding landing page of a multi-page app (was the single-page chatbot). Form (name / interest / level) → `create_or_load_student` → stores `student_id` + `profile` in `st.session_state` → `st.switch_page` to the roadmap. Welcome-back branch with page links + "start over".
+- `pages/1_Roadmap.py` — visual roadmap via `get_roadmap`: progress bar + one coloured card per concept (mastered green / available blue / locked grey, left-border colour), missing prereqs on locked cards, "Continue learning" → lesson.
+- `pages/2_Lesson.py` — personalised lesson via `get_next_lesson`: Scenario (body) + Formal restatement (worked_example) as markdown/KaTeX, handles done/blocked/lesson_missing states, and a persistent "I'm stuck — ask for help" box that calls `ask_help` and shows the reply inline (stashed in session so it survives reruns) without leaving the page.
+- `pages/3_Assessment.py` — shows the lesson `check_question` via `get_next_lesson`, takes an answer, calls `submit_assessment`, shows score/feedback/mastery; persisted grade means the roadmap reflects it.
+- `ui_common.py` — shared presentation/session helpers (CSS, `setup_page`, `require_student`, status badges/cards, CHAPTER constants). Imports NOTHING from platform internals — keeps the "UI talks only to platform_api for data" rule clean.
+- `legacy_chat_app.py` — the previous single-page chatbot, preserved verbatim (`streamlit run legacy_chat_app.py`) so nothing is lost.
+- `.claude/launch.json` — preview-server config for the app (port 8502).
+
+### Why
+The platform_api boundary (Phase 4) needed a real frontend that respects it. A multi-page app — onboarding → roadmap → lesson → assessment — is the natural shape, and building it strictly on the five API functions is the proof the boundary is usable.
+
+### Verified
+- **Audit:** every UI file's only `src` import is `from src import platform_api as api`; calls used are exactly create_or_load_student / get_roadmap / get_next_lesson / ask_help / submit_assessment. `ui_common` has no domain import.
+- **Live walkthrough** (preview MCP, port 8502): onboarding form → submit creates student → switch_page to roadmap (0/9, position available, rest locked with correct prereqs) → lesson (scenario + formal restatement + KaTeX glossary + help box) → assessment (check question + KaTeX hint). All four pages render correctly; sidebar auto-nav lists all pages.
+- Live grade hit a transient Gemma `ServerError` twice during the walkthrough; the UI degraded gracefully ("Couldn't grade that right now…") with no crash. The grade path itself is proven by the green `test_platform_api.py` (score 3 → mastered).
+
+### Learned
+- **Streamlit multipage = one entry script + a `pages/` dir.** `streamlit run app.py` auto-discovers `pages/*.py` into the sidebar nav, ordered by numeric filename prefix (`1_Roadmap.py` → "Roadmap"). `st.switch_page("pages/..")` navigates programmatically; `st.session_state` is shared across pages within a session, which is what carries `student_id`.
+- **Streamlit's React-controlled inputs resist DOM automation.** `preview_fill` / plain selectors didn't register; the working approach was the native value-setter + dispatched `input` event via `preview_eval`. Worth remembering for any future UI automation here.
+- **The boundary made the UI thin and dumb — by design.** Each page is ~60-90 lines of "call one or two API functions, render the returned dict." No decisions live in the UI, which is exactly why a Next.js rewrite would touch zero logic.
+
+### Status
+Phases 1-5 complete. EcoLearn is now a working multi-page platform over a clean API boundary. The old chatbot lives on as `legacy_chat_app.py`.
+
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:
