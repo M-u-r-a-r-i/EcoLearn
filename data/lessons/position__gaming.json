@@ -1,0 +1,14 @@
+{
+  "concept_id": "position",
+  "interest": "gaming",
+  "body": "Imagine playing a fighting game where the center of the stage is designated as the origin. Your character's location is defined by a specific coordinate, such as $x = 3$, relative to that center point.\n\nIf you dash from $x = 3$ to $x = 8$, the straight-line gap between these coordinates is your displacement, regardless of whether you walked or jumped in a wide arc.\n\n**Mapping:**\n\n- origin $\\rightarrow$ center of the stage\n- position $\\rightarrow$ character's coordinate ($x$)\n- reference frame $\\rightarrow$ stage geometry\n- displacement $\\rightarrow$ difference between start and end coordinates\n\n> **Where the analogy breaks down:** Game coordinates are often discrete pixels or grid units, whereas physical position is a continuous value in real space.",
+  "worked_example": "**Position** specifies where an object is located in space relative to a chosen origin and reference frame. **Displacement** is the change in position, representing a vector quantity that depends only on the endpoints and not on the path taken.\n\n$$\\Delta\\mathbf{r} = \\mathbf{r}_f - \\mathbf{r}_i$$\n\n**Where:**\n\n- $\\Delta\\mathbf{r}$ — displacement ($\\text{m}$)\n- $\\mathbf{r}_f$ — final position ($\\text{m}$)\n- $\\mathbf{r}_i$ — initial position ($\\text{m}$)",
+  "check_question": "If a character starts at $x = -5$, moves to $x = 10$, and then returns to $x = -5$, what is the total displacement, and how does this differ from the total distance traveled?\n\n> **Hint:** Consider the mapping for displacement and whether the path taken between the initial and final coordinates affects the result.",
+  "metadata": {
+    "generated_at": "2026-06-12T05:09:31.257465Z",
+    "critic_passed": true,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

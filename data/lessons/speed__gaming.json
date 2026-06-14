@@ -1,0 +1,14 @@
+{
+  "concept_id": "speed",
+  "interest": "gaming",
+  "body": "Imagine you are piloting a hypercar in Asphalt 9, reaching top speeds over 150 m/s. To determine your performance over a full lap, you take the total distance of the track and divide it by the total time elapsed, resulting in a single value that summarizes the entire run.\n\nAs you drive, you keep your eyes on the speedometer on your HUD, which fluctuates wildly as you drift through corners and blast down straights. If the game engine renders at 60 fps, the car moves a specific distance in each 16.7 ms window; this tiny jump is essentially a snapshot of your motion at that exact moment.\n\nWhile the lap calculation tells you how you did overall, the HUD reading tells you exactly how fast you are moving in the current frame.\n\n**Mapping:**\n\n- total track distance → distance\n- total lap time → time\n- lap distance / lap time → average speed\n- HUD speedometer reading → instantaneous speed\n- distance jumped between frames → limit of distance/time as time approaches zero\n\n> **Where the analogy breaks down:** A game is discrete, moving in jumps between frames, whereas physical speed is a continuous limit where the time interval becomes infinitely small.",
+  "worked_example": "**Speed** is the rate of change of distance with time. It is a **scalar quantity**, meaning it possesses magnitude only and is always non-negative because distance and time cannot be negative. The **average speed** over a specific interval is calculated as the total distance traveled divided by the total time elapsed.\n\n$$\\text{average speed} = \\frac{\\text{total distance}}{\\text{total time}}$$\n\n**Where:**\n\n- $\\text{average speed}$ — the average rate of motion (m/s)\n- $\\text{total distance}$ — the total length covered (m)\n- $\\text{total time}$ — the duration of the motion (s)",
+  "check_question": "How would you calculate the average speed of a runner who completes a 10 km race in 45 minutes?\n\n> **Hint:** Ensure your units are consistent before calculating.",
+  "metadata": {
+    "generated_at": "2026-06-12T05:19:10.851730Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

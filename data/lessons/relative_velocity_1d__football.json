@@ -1,0 +1,14 @@
+{
+  "concept_id": "relative_velocity_1d",
+  "interest": "football",
+  "body": "Imagine you are a defender sprinting at 7 m/s down the touchline toward the opponent's goal, desperately trying to catch a winger who is sprinting at 9 m/s in that same direction. To the referee standing still on the sideline, the winger is moving at 9 m/s and you are moving at 7 m/s. However, from your own perspective, the winger does not appear to be moving at their full speed; instead, they seem to be drifting away from you at a much slower pace of only 2 m/s. This perceived speed of 2 m/s is the winger's velocity relative to you.\n\nNow consider a different play where you and the winger are sprinting directly toward each other to win a 50/50 ball, with you moving at 7 m/s and the winger moving at 9 m/s in the opposite direction. In this head-on collision course, the winger would appear to be closing the gap at a blistering speed of 16 m/s.\n\n**Mapping:**\n\n- winger's ground speed → $v_A$\n- your ground speed → $v_B$\n- perceived drift or closing speed → $v_{AB}$\n- referee on the sideline → ground reference frame\n\n> **Where the analogy breaks down:** The analogy breaks if the winger cuts inside or the defender curves their run, as one-dimensional subtraction cannot account for the vector components of motion in two dimensions.",
+  "worked_example": "The **relative velocity** of an object A with respect to an object B is the velocity that object A appears to have when observed from the reference frame of object B. In one dimension, this is defined by the equation $v_{AB} = v_A - v_B$. In this expression, $v_A$ and $v_B$ represent the velocities of objects A and B as measured from a common **ground frame**, where each value carries a positive or negative sign to indicate the direction of motion along a chosen axis. The resulting value, $v_{AB}$, represents the velocity of A as seen by an observer moving with B. Relative velocity is independent of the choice of origin but depends on the choice of reference frame.\n\n$$v_{AB} = v_A - v_B$$\n\n**Where:**\n\n- $v_{AB}$ — the velocity of object A relative to object B (m/s)\n- $v_A$ — the velocity of object A relative to the ground frame (m/s)\n- $v_B$ — the velocity of object B relative to the ground frame (m/s)",
+  "check_question": "If you are chasing a winger and you manage to accelerate until your ground speed exactly matches theirs, what happens to the relative velocity $v_{AB}$, and how does the winger's motion appear to you at that specific moment?\n\n> **Hint:** Consider what happens to the result of the subtraction in the mapping when the two ground speeds become identical.",
+  "metadata": {
+    "generated_at": "2026-06-12T16:40:53.948628Z",
+    "critic_passed": true,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

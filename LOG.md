@@ -160,20 +160,6 @@ Three bugs the student reported in one message: pipeline frequently said "Intern
 - Returning `(text, ok)` from a reply generator is cleaner than special-casing error strings downstream. The caller decides what to do with failure; the function just reports it.
 - Markdown layout dramatically improves perceived quality even when the underlying content is unchanged. `###` headers + bullets + blockquotes turn a 600-word wall of text into a 10-second skim.
 
-## 2026-06-12: Branch cleanup
-
-### Changed
-- Created local branch `curriculum` at commit `e7c3e0e` (Laid boiler plate for extension) to preserve the curriculum spine work (Pydantic schema, YAML loader, physics.yaml, tests).
-- Reset `master` to `e852392` (Handled frequent error popups) via `git reset --hard`.
-- Force-pushed `master` to remote to align remote with the reset.
-- Deleted `extension` branch locally and remotely (work is now on `curriculum`).
-
-### Why
-`master` had inadvertently advanced to include the in-progress curriculum work. The goal was: stable finished work on `master`, curriculum work isolated on its own branch so it can be reviewed and merged intentionally.
-
-### Learned
-- When two branches point at the same commit and you want to rename one, the safest path is: create the new branch first, then reset and force-push the old one — that way the commit is never unreachable during the operation.
-
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:

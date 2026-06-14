@@ -1,0 +1,14 @@
+{
+  "concept_id": "equations_of_motion",
+  "interest": "football",
+  "body": "Imagine you strike a short ground pass that leaves your boot at a launch speed of 20 m/s. As the ball rolls across the pitch, the friction from the grass acts as a steady brake, reducing the ball's speed by a constant amount every second. Because this slowing effect is uniform, you can precisely predict the ball's behavior. You can determine the exact speed the ball will have when it reaches your teammate, the total distance the pass covers, or the time it takes to travel that distance. The ball's journey represents a system where the change in velocity is consistent throughout the motion.\n\ninitial velocity u  →  launch speed from the boot\nfinal velocity v  →  arrival speed at the receiver\nconstant acceleration a  →  steady deceleration from grass friction\ndisplacement s  →  distance of the pass\ntime t  →  duration of the ball's travel\n\nThe analogy breaks down because real-world grass friction is not perfectly constant; it fluctuates based on the ball's spin, the moisture of the turf, or if the ball encounters a patch of mud.",
+  "worked_example": "The **equations of motion** describe the behavior of an object moving in a straight line under **uniform acceleration**, which means the acceleration remains constant in both magnitude and direction. These kinematic equations relate five variables: initial velocity $u$, final velocity $v$, constant acceleration $a$, time $t$, and displacement $s$. \n\nThe first equation, $v = u + at$, defines the final velocity as the sum of the initial velocity and the product of acceleration and time. The second equation, $s = ut + \\frac{1}{2}at^2$, calculates the total displacement based on the initial velocity and the constant acceleration acting over time. The third equation, $v^2 = u^2 + 2as$, allows for the calculation of velocity or displacement when the time interval is unknown. In these equations, $a$ is a vector; if the object is slowing down, $a$ is assigned a negative value relative to the direction of $u$. These formulas are derived from the definitions of velocity and acceleration and are only valid when $a$ does not change.",
+  "check_question": "If the pitch is watered and becomes slippery, the magnitude of the deceleration $a$ decreases. If you strike the ball with the same launch speed $u$ toward a teammate at the same distance $s$, how will the arrival speed $v$ change, and which equation best helps you prove this?\n\nHint: Consider the relationship between $v$, $u$, $a$, and $s$ in the third kinematic equation and remember that $a$ is a negative value in this scenario.",
+  "metadata": {
+    "generated_at": "2026-06-12T16:38:12.175820Z",
+    "critic_passed": true,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

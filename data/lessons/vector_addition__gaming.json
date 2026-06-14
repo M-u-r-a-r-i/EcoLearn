@@ -1,0 +1,14 @@
+{
+  "concept_id": "vector_addition",
+  "interest": "gaming",
+  "body": "You are playing a top-down simulator where your character moves based on precise velocity vectors. You hold the \"W\" key to move your character due North at a steady speed. At the same time, a powerful current in the game's water pushes your character due East.\n\nInstead of moving in a jagged zig-zag, your character glides in a smooth, diagonal line toward the North-East. This diagonal path is the actual movement the game engine calculates by combining your input and the water's push. If you increase your \"W\" key speed while the current remains constant, the diagonal path shifts closer to the North axis. If the current becomes stronger, the path bends further toward the East.\n\n**Mapping:**\n\n- Player's input velocity → Vector $\\mathbf{A}$\n- Water current velocity → Vector $\\mathbf{B}$\n- Actual diagonal path → Resultant Vector $\\mathbf{R}$\n- Speed of movement → Magnitude\n- Heading (North/East) → Direction\n\n> **Where the analogy breaks down:** The analogy breaks in arcade games where movement is often snapped to a grid or restricted to eight directions, meaning the game doesn't calculate a true resultant vector but instead rounds the movement to the nearest fixed axis.",
+  "worked_example": "**Vector addition** is the mathematical process of combining two or more vectors to find a single **resultant** vector that produces the same effect as the originals. This is governed by the **Triangle Law of Vector Addition**, which states that if two vectors are represented as two sides of a triangle taken in order, the third side represents the resultant in the opposite order. Alternatively, the **Parallelogram Law of Vector Addition** states that if two vectors acting at a point are represented by the adjacent sides of a parallelogram, the diagonal passing through that point is the resultant.\n\n$$R = \\sqrt{A^2 + B^2 + 2AB \\cos \\theta}$$\n\n**Where:**\n\n- $R$ — magnitude of the resultant vector (in $\\text{m/s}$)\n- $A$ — magnitude of the first vector (in $\\text{m/s}$)\n- $B$ — magnitude of the second vector (in $\\text{m/s}$)\n- $\\theta$ — the angle between vectors $\\mathbf{A}$ and $\\mathbf{B}$ (in $\\text{radians}$ or $\\text{degrees}$)",
+  "check_question": "If the water current's magnitude is doubled while your input speed remains the same, how does the direction of the resultant path change relative to the North axis, and why?\n\n> **Hint:** Consider how the \"pull\" of Vector $\\mathbf{B}$ affects the diagonal's angle in the mapping.",
+  "metadata": {
+    "generated_at": "2026-06-14T02:21:08.553432Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

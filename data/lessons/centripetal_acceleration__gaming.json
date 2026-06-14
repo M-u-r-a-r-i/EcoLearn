@@ -1,0 +1,14 @@
+{
+  "concept_id": "centripetal_acceleration",
+  "interest": "gaming",
+  "body": "Imagine you are driving a sports car in GTA V at a constant speed of 55 m/s. In a simulator like iRacing, you would feel a physical resistance in the wheel as you turn, representing the forces at play.\n\nEven if your speedometer is locked at 55 m/s, you are accelerating because your direction is constantly shifting to follow the curve of the road. This inward \"pull\" that keeps you from flying off the road in a straight line is the centripetal acceleration.\n\nIf you steer into a very tight hairpin turn, the radius of your path decreases, and the inward pull becomes significantly more intense. Conversely, if you maintain the same turn but double your speed, the intensity of the pull grows even faster than the speed does.\n\n**Mapping:**\n\n- velocity ($v$) → constant speedometer reading of 55 m/s\n- radius of the curve ($r$) → the tightness of the turn\n- centripetal acceleration ($a_c$) → the inward \"pull\" toward the center\n- change in direction → steering the car around the curve\n\n> **Where the analogy breaks down:** In a game, the \"pull\" is often a simplified script or friction coefficient, whereas in physics, acceleration is the result of a net force acting on the car's mass.",
+  "worked_example": "**Acceleration** is the rate of change of velocity with time, and because velocity is a vector quantity, it can change in magnitude, direction, or both. In the case of uniform circular motion, the magnitude of the velocity (the speed) remains constant, but the direction changes at every single point along the path.\n\nThis change in direction produces **centripetal acceleration**, which is a vector always pointing perpendicularly to the velocity, directed toward the center of the rotation. By Newton's second law, $\\mathbf{F}_{net} = m\\mathbf{a}$, this acceleration is caused by a net **centripetal force** acting on the object.\n\n$$a_c = \\frac{v^2}{r}$$\n\n**Where:**\n\n- $a_c$ — centripetal acceleration ($\\text{m/s}^2$)\n- $v$ — linear speed of the object ($\\text{m/s}$)\n- $r$ — radius of the circular path ($\\text{m}$)",
+  "check_question": "If you are navigating a turn in GTA V and you decide to enter a second turn that has exactly half the radius of the first one while maintaining the same speed, how does the inward \"pull\" change?\n\n> **Hint:** Look at the relationship between the radius ($r$) and the acceleration ($a_c$) in the mapping.",
+  "metadata": {
+    "generated_at": "2026-06-14T04:26:24.387208Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

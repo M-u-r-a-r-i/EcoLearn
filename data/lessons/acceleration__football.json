@@ -1,0 +1,14 @@
+{
+  "concept_id": "acceleration",
+  "interest": "football",
+  "body": "Imagine you are a defender tracking an attacker during a match. You start from a stationary position and sprint forward, increasing your speed from 0 m/s to 8 m/s over two seconds to close the gap. Suddenly, the attacker performs a sharp cut to the left to dodge you. Even if you maintain your speed of 8 m/s during this turn, the change in your direction of motion is a form of acceleration. As you finally reach the ball, you plant your foot to decelerate, bringing your speed down to 2 m/s to maintain control. In each of these moments—speeding up, changing direction, and slowing down—you are experiencing acceleration.\n\n**Mapping:**\n\n- Player's speed and direction → velocity ($\\mathbf{v}$)\n- The time it takes to change speed or direction → time ($t$)\n- The rate of change of that speed/direction → acceleration ($\\mathbf{a}$)\n- The effort/push from the grass/muscles → net force ($\\mathbf{F}_{net}$)\n\n> **Where the analogy breaks down:** The analogy simplifies the transition between velocities as a smooth rate, whereas in reality, a player's change in direction involves complex friction and forces that aren't captured by a simple linear rate of change.",
+  "worked_example": "**Acceleration** is the rate of change of **velocity** with respect to time. In one dimension, it is expressed as $a = dv/dt$, and in three dimensions as $\\mathbf{a} = d\\mathbf{v}/dt$. Because velocity is a **vector quantity** consisting of both magnitude (speed) and direction, acceleration occurs whenever either of these components changes. It is measured in the SI unit of metres per second squared ($\\text{m/s}^2$). **Instantaneous acceleration** is the derivative of velocity at a specific moment, while **average acceleration** is the total change in velocity divided by the time interval: $\\mathbf{a}_{avg} = \\Delta\\mathbf{v}/\\Delta t$. Furthermore, acceleration is the second derivative of position, $\\mathbf{a} = d^2\\mathbf{r}/dt^2$. By Newton's second law, $\\mathbf{F}_{net} = m\\mathbf{a}$, where $\\mathbf{F}_{net}$ is the net force and $m$ is the mass, meaning acceleration is always the result of an unbalanced force.",
+  "check_question": "A player is dribbling the ball in a perfect circle at a constant speed of 5 m/s. Based on the mapping provided, does this player have an acceleration of zero? Explain your reasoning by referencing the components of velocity.\n\n> **Hint:** Consider whether the player's \"velocity\" is staying the same if they are moving in a circle.",
+  "metadata": {
+    "generated_at": "2026-06-12T16:35:52.475696Z",
+    "critic_passed": true,
+    "critic_verdict": "PASS",
+    "attempts": 2,
+    "critic_feedback": ""
+  }
+}
