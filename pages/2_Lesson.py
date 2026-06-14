@@ -16,12 +16,13 @@ from src import platform_api as api
 
 ui_common.setup_page("Lesson", "📘")
 student_id = ui_common.require_student()
+chapter = ui_common.chapter_selector(api.list_chapters())
 
 # If the student chose "practise this again" after a partial pass, the engine
 # would otherwise advance past it — so honour the explicit concept override.
 practise_concept = st.session_state.get("practise_concept")
 result = api.get_next_lesson(
-    student_id, ui_common.CHAPTER_ID, concept_id=practise_concept
+    student_id, chapter["id"], concept_id=practise_concept
 )
 status = result["status"]
 

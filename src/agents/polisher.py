@@ -22,6 +22,13 @@ from google.genai import types
 # Polisher uses a cheap model on a separate quota bucket from the generator.
 # Override via POLISHER_MODEL. gemini-2.5-flash-lite is the proven default.
 _POLISHER_MODEL_DEFAULT = "gemini-2.5-flash-lite"
+
+# Fallback models tried in order when the primary polisher fails with an API
+# error (typically a 429 quota cap on a free-tier bucket). Same "portfolio of
+# models" resilience as the assessor: one bucket drying up must not stop
+# polishing. Gemini models go first (reliable at the strict extraction format);
+# Gemma is the last resort. Override the primary via POLISHER_MODEL.
+_FALLBACK_MODELS = ("gemini-2.5-flash", "gemini-flash-latest", "gemma-4-31b-it")
 _POLISHER_SYSTEM = (
     "You are a strict text extractor and markdown formatter. You receive a "
     "draft explanation from a tutoring AI that sometimes leaks planning "
@@ -100,7 +107,7 @@ def polish_explanation(messy_text: str) -> str:
     if not api_key:
         return messy_text
 
-    model = os.getenv("POLISHER_MODEL", _POLISHER_MODEL_DEFAULT).strip()
+    primary = os.getenv("POLISHER_MODEL", _POLISHER_MODEL_DEFAULT).strip()
 
     contents = (
         f"{_POLISHER_SYSTEM}\n\n"
@@ -108,24 +115,35 @@ def polish_explanation(messy_text: str) -> str:
         "Emit the cleaned final answer now."
     )
 
-    config_kwargs: dict = {
-        "temperature": 0.0,
-        "max_output_tokens": 2048,
-    }
-    # gemini-2.5-* enables thinking by default; disable it so all tokens go
-    # to the visible extraction.
-    if model.startswith("gemini-2.5"):
-        config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+    # Try the primary model, then each distinct fallback, until one returns a
+    # non-empty response. On an API error (e.g. 429), move to the next model.
+    chain = [primary] + [m for m in _FALLBACK_MODELS if m != primary]
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model=model,
-            contents=contents,
-            config=types.GenerateContentConfig(**config_kwargs),
-        )
-        polished = (response.text or "").strip()
-    except Exception:  # noqa: BLE001 — fail open on any polisher failure.
-        return messy_text
+    client = genai.Client(api_key=api_key)
+    for model in chain:
+        config_kwargs: dict = {
+            "temperature": 0.0,
+            "max_output_tokens": 2048,
+        }
+        # Thinking-capable Gemini models enable thinking by default, which would
+        # consume the output budget on hidden reasoning and starve the visible
+        # extraction. Disable it for the 2.5 family and the rolling "latest"
+        # aliases (which currently resolve to 2.5 flash). Older non-thinking
+        # models (e.g. gemini-2.0-flash) don't accept thinking_config.
+        if model.startswith("gemini-2.5") or model.startswith("gemini-flash"):
+            config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
 
-    return polished or messy_text
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=contents,
+                config=types.GenerateContentConfig(**config_kwargs),
+            )
+            polished = (response.text or "").strip()
+        except Exception:  # noqa: BLE001 — API/network error: try the next model.
+            continue
+        if polished:
+            return polished
+
+    # Every model failed — fail open so the caller still has the raw text.
+    return messy_text

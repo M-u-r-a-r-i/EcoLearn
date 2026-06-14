@@ -97,6 +97,19 @@ def _chapter_concepts(subject: Subject, chapter_id: str) -> list[Concept]:
     return concepts
 
 
+def list_chapters() -> list[dict]:
+    """Return every chapter in the subject as {id, name}, in document order.
+
+    Lets the UI offer a chapter picker without knowing the curriculum shape.
+    """
+    subject = _load_subject()
+    return [
+        {"id": ch.id, "name": ch.name}
+        for unit in subject.units
+        for ch in unit.chapters
+    ]
+
+
 def find_concept(concept_id: str) -> Concept | None:
     """Look up a single concept by id across the whole curriculum.
 

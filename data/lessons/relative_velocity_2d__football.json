@@ -1,0 +1,14 @@
+{
+  "concept_id": "relative_velocity_2d",
+  "interest": "football",
+  "body": "Imagine a winger striking a diagonal cross at 25 m/s toward the penalty box. As the ball arcs through the air, an attacker is sprinting toward the goal at 7 m/s to meet it. A spectator sitting in the stands sees both the ball and the player moving across the grass in different directions, each with their own distinct speed.\n\nHowever, the attacker does not perceive the ball moving at 25 m/s; instead, they see the ball approaching them at a different speed and from a shifted angle. This shift occurs because the attacker's own forward motion effectively \"subtracts\" from the ball's motion relative to the ground. From the attacker's point of view, the ball's trajectory is the result of the vector difference between the ball's velocity and their own sprinting velocity.\n\n**Mapping:**\n\n- ball's velocity relative to ground → $\\mathbf{v}_B$\n- attacker's velocity relative to ground → $\\mathbf{v}_A$\n- ball's velocity relative to attacker → $\\mathbf{v}_{BA}$\n- spectator in the stands → ground reference frame\n\n> **Where the analogy breaks down:** This analogy describes the instantaneous relative velocity at a single moment, whereas in a real match, air drag causes the ball to decelerate by 10–15%, meaning the relative velocity changes continuously as the ball flies.",
+  "worked_example": "**Relative velocity** is the velocity of an object as observed from a specific **reference frame** that may itself be moving. In two or three dimensions, the relative velocity of object A with respect to object B is defined by the vector difference:\n\n$$\\mathbf{v}_{AB} = \\mathbf{v}_A - \\mathbf{v}_B$$\n\n**Where:**\n\n- $\\mathbf{v}_{AB}$ — the velocity of object A as observed from the reference frame of object B ($\\text{m/s}$)\n- $\\mathbf{v}_A$ — the velocity of object A relative to a common stationary frame (e.g., the ground) ($\\text{m/s}$)\n- $\\mathbf{v}_B$ — the velocity of object B relative to a common stationary frame (e.g., the ground) ($\\text{m/s}$)",
+  "check_question": "If the attacker is sprinting in the exact same direction and at the exact same speed as the horizontal component of the ball's flight, how would the ball's motion appear to the attacker compared to how it appears to the spectator?\n\n> **Hint:** Consider what happens to the relative velocity vector when the attacker's velocity $\\mathbf{v}_A$ matches a component of the ball's velocity $\\mathbf{v}_B$.",
+  "metadata": {
+    "generated_at": "2026-06-14T04:23:47.402662Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 2,
+    "critic_feedback": ""
+  }
+}
