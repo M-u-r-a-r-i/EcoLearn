@@ -292,6 +292,38 @@ The platform_api boundary (Phase 4) needed a real frontend that respects it. A m
 ### Status
 Phases 1-5 complete. EcoLearn is now a working multi-page platform over a clean API boundary. The old chatbot lives on as `legacy_chat_app.py`.
 
+## 2026-06-13: Resilience + UX hardening (post-Phase-5)
+
+### Changed
+- **Assessor model fallback** (`src/agents/assessor.py`) — `gemma-4-31b-it` started returning `500 INTERNAL`, which the assessor didn't catch (only JSON-parse retries), so grading crashed the UI with "internal error". Added a fallback chain (`_FALLBACK_MODELS = gemini-2.5-flash-lite, gemini-flash-latest`): `_attempt_with_retry` now tries each model, skipping to the next on an API error. Verified: gemma 500 → fell back to flash-lite → graded 3/3.
+- **No fake-grade on grader failure** (`submit_assessment`) — if `grade_answer` returns its error sentinel, raise instead of writing a score-0 to mastery, so an API outage never punishes the student. Mirrors the legacy chat's behaviour.
+- **2/3 → choice, not a dead end** — previously the engine only advanced past a concept at full mastery (3/3), trapping a 2/3 student. Introduced a "cleared" bar (best_score ≥ 2): `store.get_cleared_concepts`, engine uses *cleared* for progression + prereq-unlock while keeping *mastered* (3/3) for the gold badge and spaced-repetition review. `get_next_lesson` gained an optional `concept_id` override to re-serve a specific concept ("practise this again"). Assessment page now branches on score: 3/3 → "Continue to next lesson"; 2/3 → "Move on" OR "Practise again"; <2 → "Practise again". The page uses an explicit RESULT/QUESTION mode split (pinned `active_grade`) so advancing always lands on the next LESSON, not the next assessment.
+- **Review label** (`pages/2_Lesson.py`) — spaced-repetition reviews now show "🔁 Quick review before we move on."
+- **Empty/edge states** (`pages/1_Roadmap.py`) — friendly "you're just getting started" banner when nothing's mastered; completion banner + "Review the chapter" button when all are.
+- **Lesson-polish bug fix** — 14 Ch1/Ch2 lessons had been saved raw (empty `check_question`) when flash-lite quota was exhausted during generation; the assessment page rendered a blank question. Fixed the data via the idempotent repolish, and added a UI guard: an empty `check_question` shows "question isn't ready yet" instead of a blank.
+- Tests: `tests/test_persistence.py` (two-process close/reopen proves SQLite restores roadmap state), `tests/test_edge_states.py` (empty/done/review + 2/3-advances-and-re-practise).
+
+### Learned
+- **Fallback chains belong on every LLM call site, not just one.** The critic had fail-open; the assessor and polisher didn't. Each unguarded call is a single point of failure on the free tier where any one model can 429/500 at any time.
+- **A "pass" needs a progression bar separate from "mastery."** Gating only on 3/3 makes a 2/3 a dead end. Cleared (≥2) for progress + mastered (3/3) for the gold star gives the student a real choice without lying about mastery.
+- **Pin the result; don't re-derive it.** Re-calling `get_next_lesson` to render an assessment result flips the page to the next concept the instant the student passes. Storing the grade and rendering from it keeps "advance → next lesson" correct.
+
+## 2026-06-13: Phase 7 — second chapter (scale test, content-only)
+
+### Changed
+- `data/curriculum/physics.yaml` — added Chapter 2 "Motion in a Plane" (8 concepts: scalars/vectors, vector addition, components, relative velocity 2D, projectile motion, trajectory, uniform circular motion, centripetal acceleration). Cross-chapter prerequisites point back into Chapter 1 (distance, displacement, acceleration, equations_of_motion, relative_velocity_1d). `order` continues globally (10–17).
+- Ran the existing factory via `generate_all_lessons("motion_plane", ["football","gaming"])` — 16/16 lessons generated, then all polished (34 lessons total clean).
+- `tests/test_scale_chapter2.py` — proves (no LLM) the new chapter loads, routes, and gates on cross-chapter prerequisites.
+- **Polisher resilience** (`src/agents/polisher.py`) — broadened the thinking-disable check to `gemini-flash*` (the rolling alias resolves to a thinking model and was wasting its output budget), and added a fallback chain (`gemini-2.5-flash, gemini-flash-latest, gemma-4-31b-it`) so polishing survives a per-model 429. This unblocked the 14 raw lessons when flash-lite was exhausted.
+- **Chapter selector** — `engine.list_chapters()` + `platform_api.list_chapters()` (new) expose chapters; `ui_common.chapter_selector()` renders a sidebar picker bound to `st.session_state["chapter_id"]` (clears the re-practise pin on chapter change); the three pages now read the selected chapter instead of the hardcoded `CHAPTER_ID`.
+
+### Result
+**Adding a whole chapter was content-only for the entire backend** — engine routing, cross-chapter prerequisites, lessons, and assessments all worked with zero code change (verified live: a Ch2 lesson served and graded 3/3). The only code needed was the **chapter selector** so the UI can *navigate* to a second chapter (the single-chapter UI was deliberate scaffold, not an architecture leak), plus the polisher fallback (a quota-resilience fix, not a scale requirement).
+
+### Learned
+- **`order` is global, not per-chapter** (despite the schema docstring). Chapter 2 must continue numbering (10+), or the global teaching-order sort interleaves chapters and `validate_ordering` rejects cross-chapter prereqs. Candidate cleanup: chapter-relative ordering.
+- **Scaling is authoring + generation, not engineering.** New chapters/subjects are YAML + a factory run. The recurring code costs are presentation **selectors** (chapter, then subject) and **generation throughput/quota resilience** — exactly the fallback chains added this session.
+
 ## Cross-cutting takeaways (rollup)
 
 Things that keep proving true across this project:
