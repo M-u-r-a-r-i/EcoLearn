@@ -1,0 +1,188 @@
+# EcoLearn — curriculum spine for Class 11 Physics.
+#
+# This file is the source of truth for what the platform teaches and in
+# what order. Concepts are nested under Chapters under Units under the
+# Subject; the loader fills in the parent ids (chapter_id, unit_id,
+# subject_id) so authors don't need to repeat them on every concept.
+#
+# Add a new chapter by appending another `- id: ...` entry under
+# `chapters:`. Add a new unit the same way under `units:`. Add a new
+# subject by creating a sibling YAML file (e.g., chemistry.yaml).
+
+subject:
+  id: physics
+  name: Physics
+  description: >-
+    Class 11 physics curriculum aligned to the CBSE/ISC scope —
+    kinematics, dynamics, work-energy, oscillations, and related topics.
+  units:
+    - id: kinematics
+      name: Kinematics
+      chapters:
+        - id: motion_straight_line
+          name: Motion in a Straight Line
+          concepts:
+
+            - id: position
+              name: Position
+              prerequisites: []
+              learning_objective: >-
+                Describe the location of an object along a line using a chosen
+                origin and a chosen positive direction.
+              bloom_target: understand
+              order: 1
+
+            - id: distance
+              name: Distance
+              prerequisites: [position]
+              learning_objective: >-
+                Recognise distance as a non-negative scalar equal to the total
+                length of the path travelled, independent of direction.
+              bloom_target: understand
+              order: 2
+
+            - id: displacement
+              name: Displacement
+              prerequisites: [position]
+              learning_objective: >-
+                Distinguish displacement as a vector pointing from the initial
+                position to the final position, with sign in one dimension.
+              bloom_target: understand
+              order: 3
+
+            - id: speed
+              name: Speed
+              prerequisites: [distance]
+              learning_objective: >-
+                Compute average speed as total distance over total time and
+                explain why speed cannot be negative.
+              bloom_target: understand
+              order: 4
+
+            - id: velocity
+              name: Velocity
+              prerequisites: [displacement, speed]
+              learning_objective: >-
+                Define velocity as the rate of change of displacement and
+                contrast it with speed using a concrete example.
+              bloom_target: understand
+              order: 5
+
+            - id: average_vs_instantaneous
+              name: Average vs instantaneous velocity
+              prerequisites: [velocity]
+              learning_objective: >-
+                Compute average velocity from two endpoints and approximate
+                instantaneous velocity as the limit over a vanishingly small
+                time interval.
+              bloom_target: apply
+              order: 6
+
+            - id: acceleration
+              name: Acceleration
+              prerequisites: [velocity]
+              learning_objective: >-
+                Define acceleration as the rate of change of velocity and read
+                its sign and magnitude off a velocity-time graph.
+              bloom_target: understand
+              order: 7
+
+            - id: equations_of_motion
+              name: Equations of motion (uniform acceleration)
+              prerequisites: [displacement, velocity, acceleration]
+              learning_objective: >-
+                Apply v = u + at, s = ut + (1/2) a t^2, and v^2 = u^2 + 2 a s to
+                solve one-dimensional uniformly accelerated motion problems.
+              bloom_target: apply
+              order: 8
+
+            - id: relative_velocity_1d
+              name: Relative velocity (one dimension)
+              prerequisites: [velocity]
+              learning_objective: >-
+                Compute the velocity of one object as observed from another's
+                frame in one dimension using v_AB = v_A - v_B with signed values.
+              bloom_target: apply
+              order: 9
+
+        # Chapter 2. NOTE: `order` continues globally from the previous chapter
+        # (10+), because teaching_order() sorts the whole subject by `order`.
+        # Several prerequisites point back into Chapter 1 (distance, displacement,
+        # acceleration, equations_of_motion, relative_velocity_1d) — the loader
+        # resolves prerequisites subject-wide, so cross-chapter links just work.
+        - id: motion_plane
+          name: Motion in a Plane
+          concepts:
+
+            - id: scalars_and_vectors
+              name: Scalars and vectors
+              prerequisites: [distance, displacement]
+              learning_objective: >-
+                Classify physical quantities as scalars or vectors, using
+                distance (scalar) and displacement (vector) as the anchoring
+                contrast.
+              bloom_target: understand
+              order: 10
+
+            - id: vector_addition
+              name: Vector addition
+              prerequisites: [scalars_and_vectors]
+              learning_objective: >-
+                Add two vectors using the triangle and parallelogram rules and
+                explain why the resultant depends on their directions.
+              bloom_target: apply
+              order: 11
+
+            - id: vector_components
+              name: Resolving vectors into components
+              prerequisites: [vector_addition]
+              learning_objective: >-
+                Resolve a vector into perpendicular x and y components and
+                reconstruct the vector from its components.
+              bloom_target: apply
+              order: 12
+
+            - id: relative_velocity_2d
+              name: Relative velocity (two dimensions)
+              prerequisites: [vector_addition, relative_velocity_1d]
+              learning_objective: >-
+                Compute the relative velocity of one object with respect to
+                another in a plane by subtracting velocity vectors.
+              bloom_target: apply
+              order: 13
+
+            - id: projectile_motion
+              name: Projectile motion
+              prerequisites: [vector_components, equations_of_motion]
+              learning_objective: >-
+                Treat projectile motion as independent horizontal (constant
+                velocity) and vertical (uniform acceleration) motions.
+              bloom_target: apply
+              order: 14
+
+            - id: projectile_trajectory
+              name: Range, height and trajectory
+              prerequisites: [projectile_motion]
+              learning_objective: >-
+                Derive time of flight, maximum height and horizontal range for a
+                projectile and identify the launch angle for maximum range.
+              bloom_target: analyze
+              order: 15
+
+            - id: uniform_circular_motion
+              name: Uniform circular motion
+              prerequisites: [vector_components, acceleration]
+              learning_objective: >-
+                Describe uniform circular motion and explain why velocity changes
+                direction even when speed is constant.
+              bloom_target: understand
+              order: 16
+
+            - id: centripetal_acceleration
+              name: Centripetal acceleration
+              prerequisites: [uniform_circular_motion]
+              learning_objective: >-
+                Apply a = v^2 / r to compute the centripetal acceleration of an
+                object in uniform circular motion and state its direction.
+              bloom_target: apply
+              order: 17

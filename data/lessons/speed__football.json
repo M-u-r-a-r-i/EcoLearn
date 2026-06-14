@@ -1,0 +1,14 @@
+{
+  "concept_id": "speed",
+  "interest": "football",
+  "body": "Imagine you strike a short ground pass that travels 15 meters across the pitch to a teammate. While the ball starts fast at 20 m/s, friction with the grass slows it down to 13 m/s by the time it reaches the receiver. To find the overall pace of the play, you divide the total 15 meters covered by the total time the ball was in motion. However, if you used a high-speed camera or a speed gun to measure the ball at the exact moment it left your boot, you would get a specific value for that split second. This speed gun only reports how fast the ball is moving, regardless of whether the pass is headed toward the goal or across the midline. Even if the ball curves wildly like a knuckleball or a Roberto Carlos free kick, the speed gun only tracks the magnitude of the motion.\n\n**Mapping:**\n\n- total distance traveled → distance\n- total time elapsed → time\n- total distance / total time → average speed\n- speed gun reading at one instant → instantaneous speed\n- speed gun ignoring direction → scalar quantity\n\n> **Where the analogy breaks down:** The analogy breaks down when the ball returns to the starting point; the speed gun still records a positive value, but the displacement—and thus the average velocity—becomes zero.",
+  "worked_example": "**Speed** is defined as the rate of change of distance with time. It is a **scalar quantity**, which means it is characterized by magnitude only and does not include a direction. The **average speed** over a specific time interval is the total distance traveled divided by the total time elapsed, expressed as $\\text{speed}_{\\text{avg}} = \\text{distance} / \\text{time}$. **Instantaneous speed** is the magnitude of the instantaneous velocity vector, denoted as $|v|$, and represents the speed of an object at a precise moment in time. The standard SI unit for speed is the metre per second (m/s). Because both distance and time are always non-negative values, speed is always non-negative.",
+  "check_question": "A player dribbles a ball 20 meters forward and then 20 meters directly back to the starting point in 10 seconds. Based on the mapping, why is the average speed of the player different from the magnitude of their average velocity in this scenario?\n\n> **Hint:** Consider whether the \"total distance\" used for speed is the same as the \"displacement\" used for velocity.",
+  "metadata": {
+    "generated_at": "2026-06-12T05:12:54.331103Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

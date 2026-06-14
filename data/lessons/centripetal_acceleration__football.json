@@ -1,0 +1,14 @@
+{
+  "concept_id": "centripetal_acceleration",
+  "interest": "football",
+  "body": "Imagine you are a winger sprinting down the flank at a constant speed. To beat a defender, you perform a sharp cut, carving a tight circular arc on the pitch. \n\nEven though your speed remains steady, your velocity is changing because your direction is shifting every millisecond. To achieve this, your boots bite into the dry grass, utilizing high static friction to pull your body toward the center of your turn. \n\nIf you attempt to make the turn tighter by reducing the arc's radius, or if you increase your sprinting speed, you feel a much more intense pull toward the center of the arc. This physical sensation is the result of your body experiencing a change in the direction of motion. This constant, center-seeking change in velocity is the essence of centripetal acceleration.\n\n**Mapping:**\n\n- player's constant speed → $v$\n- radius of the turn → $r$\n- change in direction → $a_c$\n- static friction from boots → $F_{net}$\n\n> **Where the analogy breaks down:** In a real football cut, players often slow down (magnitude of $v$ changes), whereas pure centripetal acceleration assumes constant speed.",
+  "worked_example": "**Centripetal acceleration** is the acceleration experienced by an object moving in a circular path at a constant speed. While we often think of acceleration as \"speeding up,\" physics defines it as the rate of change of velocity. Because velocity is a vector quantity—meaning it has both magnitude and direction—any change in the direction of motion constitutes acceleration, even if the speed remains constant. \n\nThe magnitude of this acceleration is defined by the equation:\n\n$$a_c = \\frac{v^2}{r}$$\n\n**Where:**\n\n- $a_c$ — centripetal acceleration ($\\text{m/s}^2$)\n- $v$ — constant tangential speed of the object ($\\text{m/s}$)\n- $r$ — radius of the circular path ($\\text{m}$)\n\nThis acceleration vector is always directed perpendicular to the instantaneous velocity, pointing directly toward the center of the rotation. According to **Newton's second law**, $\\mathbf{F}_{net} = m\\mathbf{a}$, this acceleration cannot happen without a **net force** acting toward the center, which provides the necessary change in direction.",
+  "check_question": "If a player attempts the same sharp cut at double the speed while maintaining the same turn radius, how does the required friction from their boots change, and why?\n\n> **Hint:** Examine how the velocity term $v$ is treated in the equation for $a_c$ and how that acceleration relates to the net force provided by the boots.",
+  "metadata": {
+    "generated_at": "2026-06-14T04:25:05.364739Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "concept_id": "vector_components",
+  "interest": "football",
+  "body": "You are a winger delivering a 40 m diagonal pass at 25 m/s toward a striker. While the ball travels along a single straight-line path, its movement can be analyzed as the combined result of two perpendicular effects.\n\nOne part of the ball's speed is dedicated to moving it forward toward the goal line, while the other part moves it sideways toward the center of the pitch. If you strike the ball at a very sharp angle relative to the sideline, most of the speed is spent moving the ball across the pitch.\n\n**Mapping:**\n\n- vector → diagonal pass\n- vector components → forward and sideways motion\n- magnitude of vector → speed of the ball\n\n> **Where the analogy breaks down:** The analogy simplifies the real-world physics of a soccer pass by ignoring air resistance, spin, and gravity.",
+  "worked_example": "A **vector** is a mathematical object that has both **magnitude** (or length) and **direction**. Vectors are often represented graphically as arrows, where the length of the arrow indicates the magnitude and the arrowhead indicates the direction.\n\nA vector can be broken down into two or more **vector components**, which are individual vectors that sum to the original vector. These components are often chosen to be perpendicular to each other, simplifying analysis.\n\n$$\\vec{v} = \\vec{v_x} + \\vec{v_y}$$\n\n**Where:**\n\n- $\\vec{v}$ — the original vector (e.g., velocity in $\\text{m/s}$)\n- $\\vec{v_x}$ — the component of the vector along the x-axis (e.g., x-velocity in $\\text{m/s}$)\n- $\\vec{v_y}$ — the component of the vector along the y-axis (e.g., y-velocity in $\\text{m/s}$)",
+  "check_question": "If a boat is traveling northeast at $10 \\text{ km/h}$ relative to the water, and the current is flowing east at $3 \\text{ km/h}$, how would you use vector components to find the boat's actual velocity relative to the shore?\n\n> **Hint:** Consider the boat's velocity and the current's velocity as two separate vectors.",
+  "metadata": {
+    "generated_at": "2026-06-14T02:22:41.534515Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

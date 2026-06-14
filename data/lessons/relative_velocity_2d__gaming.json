@@ -1,0 +1,14 @@
+{
+  "concept_id": "relative_velocity_2d",
+  "interest": "gaming",
+  "body": "Imagine you are driving a sports car in GTA V at $55 \\text{ m/s}$ heading due North. Simultaneously, another player is driving their vehicle at $55 \\text{ m/s}$ heading due East. To a spectator standing still on the sidewalk, both cars are simply moving in their respective straight lines.\n\nHowever, as you look through your windshield, the other player does not appear to be moving solely East. Instead, they seem to be receding from you diagonally toward the South-East, as if they are being pushed away by an invisible force. This perceived diagonal motion—both in speed and direction—is the relative velocity of the second car as measured from your frame of reference. To intercept them, you cannot simply steer East; you must calculate a heading that accounts for your own northward momentum to close the gap.\n\n**Mapping:**\n\n- $\\mathbf{v}_A$ (target car's ground velocity) → second player's Eastward speed ($55 \\text{ m/s}$)\n- $\\mathbf{v}_B$ (your ground velocity) → your Northward speed ($55 \\text{ m/s}$)\n- $\\mathbf{v}_{AB}$ (relative velocity) → the diagonal South-East drift you perceive\n- ground frame → the spectator on the sidewalk\n\n> **Where the analogy breaks down:** The analogy breaks if the cars accelerate, as relative velocity formulas here assume constant velocity vectors.",
+  "worked_example": "The **relative velocity** of an object A with respect to an object B is defined as the vector difference:\n\n$$\\mathbf{v}_{AB} = \\mathbf{v}_A - \\mathbf{v}_B$$\n\n**Where:**\n\n- $\\mathbf{v}_{AB}$ — the relative velocity of object A with respect to object B ($\\text{m/s}$)\n- $\\mathbf{v}_A$ — the velocity of object A relative to a common **reference frame** ($\\text{m/s}$)\n- $\\mathbf{v}_B$ — the velocity of object B relative to a common **reference frame** ($\\text{m/s}$)",
+  "check_question": "If you are driving North at $55 \\text{ m/s}$ and the target car is also driving North at $55 \\text{ m/s}$, what is the relative velocity $\\mathbf{v}_{AB}$, and how would the other car appear to move from your perspective?\n\n> **Hint:** Look at the vector subtraction in the mapping when both vectors are identical.",
+  "metadata": {
+    "generated_at": "2026-06-14T02:26:30.209082Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

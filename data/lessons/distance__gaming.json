@@ -1,0 +1,14 @@
+{
+  "concept_id": "distance",
+  "interest": "gaming",
+  "body": "Imagine you are playing GTA V and driving a sports car. You start at your garage, speed across the city to a mission marker, and then drive back to the same garage.\n\nYour game's \"Total Distance Traveled\" stat in the pause menu increases continuously throughout the entire trip. Even when you return to the garage, that counter shows a large positive number because it tracked every meter of the road you covered.\n\nHowever, if you check the mini-map, the straight-line gap between your current position and your starting point is now zero. The stat tracks your journey, while the map tracks your net change in position.\n\n**Mapping:**\n\n- Total Distance Traveled → The total length of the path taken\n- Straight-line gap on mini-map → The magnitude of the displacement vector\n- Driving across the city and back → The path of motion\n\n> **Where the analogy breaks down:** The analogy doesn't capture the vector nature of displacement, only its magnitude.",
+  "worked_example": "**Displacement** is a vector quantity that describes the change in position of an object. It is the shortest distance between an object's initial and final positions, and it has both magnitude and direction.\n\nIn contrast, **distance** is a scalar quantity representing the total length of the path traveled by an object.\n\n$$\\Delta \\vec{x} = \\vec{x}_f - \\vec{x}_i$$\n\n**Where:**\n\n- $\\Delta \\vec{x}$ — the displacement vector (meters, m)\n- $\\vec{x}_f$ — the final position vector (meters, m)\n- $\\vec{x}_i$ — the initial position vector (meters, m)",
+  "check_question": "If you walk 5 meters east and then 5 meters west, what is your total distance traveled and what is your displacement?\n\n> **Hint:** Consider the difference between the total path length and the net change in position.",
+  "metadata": {
+    "generated_at": "2026-06-12T05:12:12.975305Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}
