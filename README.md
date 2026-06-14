@@ -386,12 +386,6 @@ guard + an idempotent `repolish` repair pass.
 
 ---
 
-## 9. 📖 Where to read more
-
-- **`LOG.md`** — a dated, narrative dev log (Changed / Why / Learned) covering
-  every phase from setup to the current UI redesign. The best place to see how
-  the project evolved and what was learned at each step.
-- **`HANDOFF.md`** — a context-restore document with deeper architectural notes.
 
 <div align="center">
 <br>
