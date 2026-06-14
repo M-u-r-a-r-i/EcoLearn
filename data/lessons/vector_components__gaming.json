@@ -1,0 +1,14 @@
+{
+  "concept_id": "vector_components",
+  "interest": "gaming",
+  "body": "Imagine you are controlling a character moving diagonally across a game map. The game engine resolves your single diagonal input into two separate, perpendicular shifts: one along the X-axis (horizontal) and one along the Y-axis (vertical).\n\nThe total speed you see on your screen is the resulting magnitude of these two hidden components working in tandem. By breaking your diagonal path into these two straight lines, the engine can efficiently check for collisions.\n\n**Mapping:**\n\n- diagonal movement vector → vector A\n- horizontal shift (East) → X-component (Ax)\n- vertical shift (North) → Y-component (Ay)\n- angle of the joystick → angle $\\theta$\n\n> **Where the analogy breaks down:** This analogy simplifies the complexities of game engine physics for clarity.",
+  "worked_example": "(not provided)",
+  "check_question": "(not provided)",
+  "metadata": {
+    "generated_at": "2026-06-14T02:24:27.249540Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}

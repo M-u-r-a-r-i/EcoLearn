@@ -17,14 +17,15 @@ from src import platform_api as api
 ui_common.setup_page("Roadmap", "🗺️")
 student_id = ui_common.require_student()
 profile = st.session_state.get("profile", {})
+chapter = ui_common.chapter_selector(api.list_chapters())
 
 st.title("🗺️ Your roadmap")
 st.caption(
-    f"{ui_common.CHAPTER_NAME} · learning through "
+    f"{chapter['name']} · learning through "
     f"{profile.get('interest', '').title()}"
 )
 
-roadmap = api.get_roadmap(student_id, ui_common.CHAPTER_ID)
+roadmap = api.get_roadmap(student_id, chapter["id"])
 
 # Progress summary.
 total = len(roadmap)

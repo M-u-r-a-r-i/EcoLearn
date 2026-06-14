@@ -82,6 +82,41 @@ def require_student() -> str:
     return student_id
 
 
+def chapter_selector(chapters: list[dict]) -> dict:
+    """Render a sidebar chapter picker and return the selected {id, name}.
+
+    Pure presentation: the page passes in the chapters (from the API), this
+    renders the selectbox and persists the choice in session_state. Switching
+    chapter clears the per-concept "re-practise" flag so it can't leak across
+    chapters. Falls back to CHAPTER_ID/CHAPTER_NAME if the list is empty.
+    """
+    if not chapters:
+        return {"id": CHAPTER_ID, "name": CHAPTER_NAME}
+
+    ids = [c["id"] for c in chapters]
+    names = {c["id"]: c["name"] for c in chapters}
+    current = st.session_state.get("chapter_id", ids[0])
+    if current not in ids:
+        current = ids[0]
+
+    with st.sidebar:
+        selected = st.selectbox(
+            "Chapter",
+            options=ids,
+            index=ids.index(current),
+            format_func=lambda cid: names.get(cid, cid),
+            key="chapter_id",
+        )
+
+    # On a chapter change, drop the re-practise override so it doesn't point at
+    # a concept from the previous chapter.
+    if st.session_state.get("_active_chapter") != selected:
+        st.session_state["_active_chapter"] = selected
+        st.session_state.pop("practise_concept", None)
+
+    return {"id": selected, "name": names.get(selected, selected)}
+
+
 def status_badge(status: str) -> str:
     """Return an HTML status pill for a roadmap status."""
     color = STATUS_COLORS.get(status, "#9e9e9e")

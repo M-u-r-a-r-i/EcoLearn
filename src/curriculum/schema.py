@@ -45,7 +45,8 @@ class Concept(BaseModel):
     prerequisites: list[str] = Field(
         default_factory=list,
         description=(
-            "Concept ids the student must have learned first. May reference "
+            "Concept ids the student must have learned first. May re"
+            "ference "
             "concepts in the same or earlier chapters."
         ),
     )

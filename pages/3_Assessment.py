@@ -24,6 +24,7 @@ from src import platform_api as api
 
 ui_common.setup_page("Assessment", "✅")
 student_id = ui_common.require_student()
+chapter = ui_common.chapter_selector(api.list_chapters())
 
 
 def _go_to_next_lesson() -> None:
@@ -108,7 +109,7 @@ if active_grade is not None:
 # ---------------------------------------------------------------------------
 practise_concept = st.session_state.get("practise_concept")
 result = api.get_next_lesson(
-    student_id, ui_common.CHAPTER_ID, concept_id=practise_concept
+    student_id, chapter["id"], concept_id=practise_concept
 )
 status = result["status"]
 

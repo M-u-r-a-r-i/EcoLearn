@@ -69,8 +69,17 @@ def create_or_load_student(name: str, interest: str, level: str) -> dict[str, An
 
 
 # ---------------------------------------------------------------------------
-# 2. Roadmap
+# 2. Chapters + roadmap
 # ---------------------------------------------------------------------------
+
+def list_chapters() -> list[dict[str, Any]]:
+    """Return all chapters in the curriculum as [{id, name}, ...].
+
+    Lets a frontend render a chapter picker without reaching into the
+    curriculum directly.
+    """
+    return engine.list_chapters()
+
 
 def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
     """Return every concept in a chapter tagged mastered / available / locked.

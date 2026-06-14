@@ -1,0 +1,14 @@
+{
+  "concept_id": "uniform_circular_motion",
+  "interest": "football",
+  "body": "You are practicing agility drills by sprinting around a training cone at a perfectly constant speed. To keep your path a perfect circle, you cannot run straight; you must constantly lean your body inward and dig your cleats into the turf toward the cone. This inward push prevents you from sliding away and keeps you locked into the curve.\n\nIf you were to suddenly slip on a wet patch of grass, you would stop curving and shoot off in a straight line tangent to the circle. Even though your speed is constant, your velocity is changing because your direction is shifting every second.\n\n**Mapping:**\n\n- constant speed of sprint → $v$ (linear speed)\n- distance from the cone → $r$ (radius)\n- inward lean and cleat grip → $F_c$ (centripetal force)\n- change in sprinting direction → $a_c$ (centripetal acceleration)\n- the training cone → center of the circular path\n\n> **Where the analogy breaks down:** The analogy breaks down because a human runner cannot maintain a mathematically perfect radius or constant speed, whereas the physics model assumes an idealized point mass.",
+  "worked_example": "**Uniform circular motion** describes the motion of an object traveling along a circular path at a constant speed. Although the speed remains unchanged, the **velocity** is constantly changing because its direction is continuously shifting. This change in velocity implies the existence of an acceleration directed toward the center of the circle, known as **centripetal acceleration**.\n\nTo produce this acceleration, a net **centripetal force** must act on the object. This force is always perpendicular to the velocity vector, meaning it changes the direction of motion without changing the object's speed. The time taken to complete one full revolution is called the **period** $T$.\n\n$$F_c = \\frac{mv^2}{r}$$\n\n**Where:**\n\n- $F_c$ — centripetal force (in Newtons, $\\text{N}$)\n- $m$ — mass of the object (in kilograms, $\\text{kg}$)\n- $v$ — linear speed of the object (in meters per second, $\\text{m/s}$)\n- $r$ — radius of the circular path (in meters, $\\text{m}$)",
+  "check_question": "If you decide to tighten your circle by sprinting closer to the cone while maintaining the exact same speed $v$, does the required inward lean (centripetal force) increase or decrease?\n\n> **Hint:** Consider how the radius $r$ appears in the denominator of the force equation.",
+  "metadata": {
+    "generated_at": "2026-06-14T02:35:40.718614Z",
+    "critic_passed": false,
+    "critic_verdict": "PASS",
+    "attempts": 1,
+    "critic_feedback": ""
+  }
+}
