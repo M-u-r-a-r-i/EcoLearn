@@ -1,0 +1,13 @@
+# EcoLearn presentation config.
+#
+# Pin a LIGHT base theme with the EcoLearn palette so Streamlit's own chrome
+# (sidebar nav, page links, expanders, inputs, borders) computes dark-on-light
+# colours natively. Without this, Streamlit follows the OS colour scheme; on a
+# dark-mode machine it emits near-white text, which is invisible against the
+# light surfaces our CSS paints. This is presentation only — no app logic.
+[theme]
+base = "light"
+primaryColor = "#4F46E5"
+backgroundColor = "#FAFAFB"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1E293B"

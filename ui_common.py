@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.ui import theme
+
 # The platform currently ships a single chapter. Centralised here so every
 # page refers to the same id; adding a chapter picker later is a local change.
 CHAPTER_ID = "motion_straight_line"
@@ -64,6 +66,7 @@ def setup_page(title: str, icon: str = "📘") -> None:
         page_icon=icon,
         layout="centered",
     )
+    theme.inject_global_css()
     st.markdown(_BASE_CSS, unsafe_allow_html=True)
 
 
