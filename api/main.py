@@ -10,6 +10,13 @@ HTTP. So we put a small web server in front of `platform_api` that:
 
 We do NOT change any business logic here. Every real decision still lives in
 `src/platform_api.py`; this file only does translation. That is what "thin" means.
+
+GET vs POST (the rule of thumb used below)
+------------------------------------------
+* GET  = "read something." No body; inputs ride in the URL as ?query=params.
+         Safe to repeat — calling it twice changes nothing.
+* POST = "do/create/change something." Inputs travel in a JSON request *body*.
+         Calling it twice may create/modify data, so it's not a pure read.
 """
 
 from __future__ import annotations
@@ -23,22 +30,15 @@ from pydantic import BaseModel
 from src import platform_api as api
 
 # ---------------------------------------------------------------------------
-# 1. Create the FastAPI application object.
-#
-#    `app` is the whole web application. FastAPI is a Python library for building
-#    web APIs: you write normal Python functions and "decorate" them so FastAPI
-#    turns them into web endpoints. The title/version below just show up on the
-#    auto-generated docs page.
+# The FastAPI application object. `app` IS the web application: you attach
+# endpoints to it with decorators like @app.get(...) / @app.post(...).
 # ---------------------------------------------------------------------------
 app = FastAPI(title="EcoLearn API", version="0.1.0")
 
 # ---------------------------------------------------------------------------
-# 2. CORS — let your Next.js site (a different origin) call this API.
-#
-#    A browser blocks JavaScript on http://localhost:3000 (Next.js dev server)
-#    from calling an API on http://localhost:8000 unless the API explicitly
-#    allows it. This middleware grants that permission for local development.
-#    (You'll tighten `allow_origins` to your real domain before deploying.)
+# CORS — let your Next.js dev server (a different origin) call this API.
+# A browser blocks JS on http://localhost:3000 from calling http://localhost:8000
+# unless the API explicitly allows it. (Tighten this to your real domain later.)
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
@@ -48,45 +48,113 @@ app.add_middleware(
 )
 
 
-# ---------------------------------------------------------------------------
-# 3. Describe the shape of the request body.
+# ===========================================================================
+# Request body models (POST endpoints only).
 #
-#    When the browser POSTs JSON like {"name": "...", "interest": "...",
-#    "level": "..."}, FastAPI validates it against this Pydantic model before
-#    your code runs. If a field is missing or the wrong type, the caller gets a
-#    clear 422 error automatically — you never see bad data.
-# ---------------------------------------------------------------------------
+# A Pydantic model describes the JSON shape we expect. FastAPI validates the
+# incoming body against it BEFORE your handler runs: missing/wrong-typed fields
+# get an automatic, descriptive 422 error, so your code only ever sees clean
+# data. (GET endpoints don't use these — their inputs come from the URL.)
+# ===========================================================================
 class StudentRequest(BaseModel):
+    """Body for POST /api/student."""
+
     name: str
     interest: str
-    level: str = "Class 11"  # a sensible default if the caller omits it
+    level: str = "Class 11"  # sensible default if the caller omits it
 
 
-# ---------------------------------------------------------------------------
-# 4. A tiny health-check endpoint (handy to confirm the server is alive).
-#    GET http://localhost:8000/  ->  {"status": "ok", ...}
-# ---------------------------------------------------------------------------
+class AssessmentRequest(BaseModel):
+    """Body for POST /api/assessment."""
+
+    student_id: str
+    concept_id: str
+    answer: str
+
+
+class HelpRequest(BaseModel):
+    """Body for POST /api/help."""
+
+    student_id: str
+    concept_id: str
+    question: str
+
+
+# ===========================================================================
+# Endpoints
+# ===========================================================================
 @app.get("/")
 def root() -> dict:
+    """Health check — confirms the server is alive."""
     return {"status": "ok", "service": "EcoLearn API"}
 
 
-# ---------------------------------------------------------------------------
-# 5. THE endpoint for today.
-#
-#    `@app.post("/api/student")` registers the function below as the handler for
-#    HTTP POST requests to the path /api/student. An "endpoint" is just that
-#    pairing: (HTTP method + URL path) -> a function that runs.
-#
-#    FastAPI gives us the parsed, validated body as `payload` (a StudentRequest).
-#    We call your existing function and return its dict; FastAPI serializes it
-#    to a JSON HTTP response for us.
-# ---------------------------------------------------------------------------
 @app.post("/api/student")
 def create_student(payload: StudentRequest) -> dict:
-    profile = api.create_or_load_student(
+    """Create a student (or load an existing one) and return their profile.
+
+    POST because it creates/updates data. Wraps `create_or_load_student`.
+    """
+    return api.create_or_load_student(
         name=payload.name,
         interest=payload.interest,
         level=payload.level,
     )
-    return profile
+
+
+@app.get("/api/roadmap")
+def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
+    """Return every concept in a chapter tagged mastered / available / locked.
+
+    GET because it only reads. `student_id` and `chapter_id` are query params,
+    e.g. /api/roadmap?student_id=ada&chapter_id=motion_straight_line.
+    Wraps `get_roadmap`.
+    """
+    return api.get_roadmap(student_id=student_id, chapter_id=chapter_id)
+
+
+@app.get("/api/next-lesson")
+def get_next_lesson(
+    student_id: str,
+    chapter_id: str,
+    concept_id: str | None = None,
+) -> dict:
+    """Return the personalised lesson for the student's next concept.
+
+    GET because it only reads. `concept_id` is optional — pass it to re-serve a
+    specific concept (e.g. "practise this again") instead of the engine's pick.
+    Wraps `get_next_lesson`.
+    """
+    return api.get_next_lesson(
+        student_id=student_id,
+        chapter_id=chapter_id,
+        concept_id=concept_id,
+    )
+
+
+@app.post("/api/assessment")
+def submit_assessment(payload: AssessmentRequest) -> dict:
+    """Grade a student's answer to a concept's self-check and update mastery.
+
+    POST because submitting an answer changes stored mastery. Wraps
+    `submit_assessment`.
+    """
+    return api.submit_assessment(
+        student_id=payload.student_id,
+        concept_id=payload.concept_id,
+        answer=payload.answer,
+    )
+
+
+@app.post("/api/help")
+def ask_help(payload: HelpRequest) -> dict:
+    """Answer a free-form question via the live (expensive) tutor pipeline.
+
+    POST because it sends a question payload and triggers real LLM work. Wraps
+    `ask_help`.
+    """
+    return api.ask_help(
+        student_id=payload.student_id,
+        concept_id=payload.concept_id,
+        question=payload.question,
+    )
