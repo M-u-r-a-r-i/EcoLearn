@@ -35,7 +35,7 @@ export default function Home() {
 
         {/* Primary call-to-action (shared branded button) */}
         <PrimaryButton asChild className="mt-2">
-          <Link href="/">Get Started</Link>
+          <Link href="/onboarding">Get Started</Link>
         </PrimaryButton>
       </PageContainer>
     </main>

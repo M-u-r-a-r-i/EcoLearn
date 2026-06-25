@@ -24,7 +24,7 @@ export function SiteNav() {
 
         {/* Primary action (uses the shared PrimaryButton, rendered as a link) */}
         <PrimaryButton asChild size="default" className="h-10 px-5 text-sm">
-          <Link href="/">Get Started</Link>
+          <Link href="/onboarding">Get Started</Link>
         </PrimaryButton>
       </div>
     </header>
