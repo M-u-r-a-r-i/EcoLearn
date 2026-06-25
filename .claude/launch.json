@@ -6,6 +6,13 @@
       "runtimeExecutable": "D:\\Projects\\EcoLearn\\venv\\Scripts\\streamlit.exe",
       "runtimeArgs": ["run", "app.py", "--server.headless", "true", "--server.port", "8502"],
       "port": 8502
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "3100"],
+      "cwd": "D:\\Projects\\EcoLearn\\web",
+      "port": 3100
     }
   ]
 }

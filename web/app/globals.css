@@ -39,6 +39,16 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* EcoLearn brand amber — a reusable accent. Use as bg-brand-accent /
+     text-brand-accent (with optional opacity, e.g. bg-brand-accent/10). */
+  --color-brand-accent: var(--brand-accent);
+  /* Success green — use as bg-success / text-success. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  /* Soft shadow scale — use as shadow-soft / shadow-card / shadow-card-hover. */
+  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(79, 70, 229, 0.14);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,24 +59,28 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* ---- EcoLearn brand palette ---------------------------------------- */
+  --background: #FAFAFB;          /* near-white page background */
+  --foreground: #1E293B;          /* dark slate text */
+  --card: #FFFFFF;                /* cards sit slightly brighter than the page */
+  --card-foreground: #1E293B;
+  --popover: #FFFFFF;
+  --popover-foreground: #1E293B;
+  --primary: #4F46E5;             /* indigo — primary buttons & actions */
+  --primary-foreground: #FFFFFF;  /* text on indigo */
+  --brand-accent: #F59E0B;        /* amber — highlights (see --color-brand-accent) */
+  --success: #10B981;             /* green — mastered / passed states */
+  --success-foreground: #FFFFFF;
+  --ring: #4F46E5;                /* indigo focus ring */
+  --secondary: #F1F5F9;           /* light slate surface */
+  --secondary-foreground: #1E293B;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;    /* muted slate text */
+  --accent: #F1F5F9;
+  --accent-foreground: #1E293B;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #E2E8F0;              /* hairline borders */
+  --input: #E2E8F0;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
