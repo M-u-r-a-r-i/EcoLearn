@@ -88,3 +88,50 @@ export async function getRoadmap(
   }
   return (await response.json()) as RoadmapConcept[];
 }
+
+// ---------------------------------------------------------------------------
+// A lesson's content (the pre-generated, polished markdown).
+// ---------------------------------------------------------------------------
+export interface Lesson {
+  concept_id: string;
+  interest: string;
+  body: string; // markdown
+  worked_example: string; // markdown
+  check_question: string; // markdown / text
+  metadata: Record<string, unknown>;
+}
+
+export type LessonStatus =
+  | "new"
+  | "review"
+  | "done"
+  | "blocked"
+  | "lesson_missing";
+
+// The "envelope" get_next_lesson returns: it always has a status + reason, and
+// a lesson only when there's something to teach (lesson is null otherwise).
+export interface NextLesson {
+  status: LessonStatus;
+  reason: string;
+  concept_id: string | null;
+  concept_name: string | null;
+  lesson: Lesson | null;
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/next-lesson?student_id=...&chapter_id=...  ->  the next lesson.
+// ---------------------------------------------------------------------------
+export async function getNextLesson(
+  studentId: string,
+  chapterId: string,
+): Promise<NextLesson> {
+  const url = new URL(`${API_URL}/api/next-lesson`);
+  url.searchParams.set("student_id", studentId);
+  url.searchParams.set("chapter_id", chapterId);
+
+  const response = await fetch(url, { method: "GET" });
+  if (!response.ok) {
+    throw new Error(`Backend returned ${response.status} ${response.statusText}`);
+  }
+  return (await response.json()) as NextLesson;
+}
