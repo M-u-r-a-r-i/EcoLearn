@@ -7,13 +7,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Lightbulb, HelpCircle } from "lucide-react";
+import { ArrowRight, Lightbulb } from "lucide-react";
 
 import { getNextLesson, type NextLesson } from "@/lib/api";
 import { useStudent } from "@/components/student-provider";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Markdown } from "@/components/markdown";
+import { HelpWidget } from "@/components/help-widget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const CHAPTER_ID = "motion_straight_line";
@@ -159,13 +160,8 @@ export default function LessonPage() {
           </Card>
         )}
 
-        {/* ----- Reserved spot for the "I'm stuck" help widget (built next) ----- */}
-        <div className="rounded-xl border border-dashed border-border bg-muted/40 p-5 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-            <HelpCircle className="size-4" />
-            “I&apos;m stuck” help widget — coming next
-          </div>
-        </div>
+        {/* "I'm stuck" help widget — live tutor, stays on the lesson. */}
+        <HelpWidget studentId={student.student_id} conceptId={lesson.concept_id} />
       </PageContainer>
     </main>
   );

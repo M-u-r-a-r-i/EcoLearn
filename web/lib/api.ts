@@ -135,3 +135,38 @@ export async function getNextLesson(
   }
   return (await response.json()) as NextLesson;
 }
+
+// ---------------------------------------------------------------------------
+// POST /api/help  ->  a live, grounded answer from the multi-agent pipeline.
+//
+// This is the ONE expensive call: it runs generation → critic → (retry) →
+// polish on the server, so it takes several seconds (vs the instant cached
+// lessons). The UI must show a "thinking" state while it's in flight.
+// ---------------------------------------------------------------------------
+export interface HelpResponse {
+  concept_id: string;
+  concept_name: string;
+  answer: string; // markdown
+  verdict: string;
+  attempts: number;
+}
+
+export async function askHelp(
+  studentId: string,
+  conceptId: string,
+  question: string,
+): Promise<HelpResponse> {
+  const response = await fetch(`${API_URL}/api/help`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: studentId,
+      concept_id: conceptId,
+      question,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Backend returned ${response.status} ${response.statusText}`);
+  }
+  return (await response.json()) as HelpResponse;
+}
