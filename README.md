@@ -9,14 +9,20 @@
 <br>
 
 ![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.58-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.138-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![Google Gemini](https://img.shields.io/badge/Google%20Gemini%20%2F%20Gemma-4F46E5?style=for-the-badge&logo=googlegemini&logoColor=white)
-![ChromaDB](https://img.shields.io/badge/ChromaDB-RAG-F59E0B?style=for-the-badge)
-![SQLite](https://img.shields.io/badge/SQLite-progress-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+
+![Streamlit](https://img.shields.io/badge/Streamlit-1.58-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)
+![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-black?style=flat-square)
+![ChromaDB](https://img.shields.io/badge/ChromaDB-RAG-F59E0B?style=flat-square)
+![SQLite](https://img.shields.io/badge/SQLite-progress-003B57?style=flat-square&logo=sqlite&logoColor=white)
 
 ![Architecture](https://img.shields.io/badge/architecture-multi--agent%20%2B%20RAG-10B981?style=flat-square)
-![Frontend](https://img.shields.io/badge/UI-multi--page%20Streamlit-1E293B?style=flat-square)
-![Status](https://img.shields.io/badge/status-Phases%201–7%20complete-4F46E5?style=flat-square)
+![Frontends](https://img.shields.io/badge/frontends-Streamlit%20%2B%20Next.js-1E293B?style=flat-square)
+![Status](https://img.shields.io/badge/status-full--stack%20journey%20working-4F46E5?style=flat-square)
 
 </div>
 
@@ -52,9 +58,16 @@ It began as a single-page chatbot and was deliberately re-architected into a
 **data-driven learning platform**:
 
 ```
-curriculum spine  →  learning-path engine  →  service API  →  multi-page UI
+curriculum spine  →  learning-path engine  →  service API  →  UI
                         (lessons pre-generated offline, served instantly)
 ```
+
+Because all logic sits behind one plain-data **service boundary**, EcoLearn now
+ships **two interchangeable frontends over the same backend**:
+
+- 🐍 **Streamlit** — the original all-in-one Python app (complete reference UI).
+- ⚛️ **FastAPI + Next.js** — a thin HTTP API over the boundary, consumed by a
+  modern React/Next.js website. The full student journey works end-to-end.
 
 > [!IMPORTANT]
 > **On the name:** "EcoLearn" is a holdover from an earlier
@@ -65,10 +78,11 @@ curriculum spine  →  learning-path engine  →  service API  →  multi-page U
 
 ## 2. 🧰 Tech stack — everything used, and why
 
+### Backend, AI & data
+
 | Layer | Technology | Why it's here |
 |---|---|---|
 | 🐍 Language / runtime | **Python 3.10** | Project baseline; fully type-annotated. |
-| 🖥️ Web UI | **Streamlit 1.58** (multi-page) | Fastest way to ship a data app in pure Python. *(trade-offs in [§7](#7--known-limitations--trade-offs-honest))* |
 | 🔌 LLM SDK | **`google-genai`** | Current Google GenAI SDK (the older `google-generativeai` is deprecated). |
 | ✍️ Generation model | **Gemma `gemma-4-31b-it`** | Creative analogy generation; separate free-tier quota from Gemini Flash. |
 | ⚖️ Critic / Polisher | **Gemini `gemini-2.5-flash-lite`** | Cheap, fast, strict-JSON judgement & markdown cleanup. |
@@ -78,29 +92,44 @@ curriculum spine  →  learning-path engine  →  service API  →  multi-page U
 | 🧾 Curriculum schema | **Pydantic** | Parse-don't-validate: YAML → typed objects at load. |
 | 🗒️ Curriculum authoring | **PyYAML** | Non-programmer-friendly source of truth. |
 | 💾 Progress store | **SQLite** (stdlib) | Durable per-student mastery + profiles; zero-setup. |
-| 🔐 Config / secrets | **`python-dotenv`** | Loads `GEMINI_API_KEY` etc. from `.env`. |
 | 🎛️ Prompts | **plain `.txt` files** | Tunable without code changes, reviews, or rebuilds. |
+
+### Frontend A — Streamlit (all-in-one Python)
+
+| Layer | Technology | Why it's here |
+|---|---|---|
+| 🖥️ Web UI | **Streamlit 1.58** (multi-page) | Fastest way to ship a data app in pure Python. *(trade-offs in [§7](#7--known-limitations--trade-offs-honest))* |
+| 🎨 Theming | Custom CSS design system + `.streamlit/config.toml` | Premium, calm look over Streamlit's defaults. |
+
+### Frontend B — FastAPI + Next.js (the migration)
+
+| Layer | Technology | Why it's here |
+|---|---|---|
+| 🚪 Web API | **FastAPI 0.138** + **Uvicorn** | Thin HTTP layer over `platform_api` — the browser can't import Python. |
+| ⚛️ Framework | **Next.js 16** (App Router) + **React 19** | Modern, routable, component-based web frontend. |
+| 🔤 Language | **TypeScript** | Typed API client + components. |
+| 💅 Styling | **Tailwind CSS v4** + **shadcn/ui** (radix, lucide icons) | Utility-first styling + owned, editable components. |
+| 📝 Markdown/Math | **react-markdown** + remark-gfm + **remark-math / rehype-katex** + `@tailwindcss/typography` | Render the backend's markdown & KaTeX lessons beautifully. |
 
 ---
 
 ## 3. 🏗️ Architecture
 
+Two frontends, **one backend**, joined at a single plain-data boundary:
+
 ```
-  ┌─────────────────────────────────────────────┐
-  │  Multi-page Streamlit UI                      │
-  │  app.py · pages/ · src/ui design system       │
-  └───────────────────────┬─────────────────────┘
-                          │  calls ONLY
-                          ▼
-  ┌─────────────────────────────────────────────┐
-  │  src/platform_api.py   ── the service boundary │
-  └───────────────────────┬─────────────────────┘
-                          │ orchestrates
-        ┌─────────────┬───┴────┬─────────────┬──────────────┐
-        ▼             ▼        ▼             ▼              ▼
-   path engine   progress   lesson      live pipeline   curriculum
-   (what next)    store     service   (gen→critic→      (YAML →
-                 (SQLite)  (cached)    retry→polish)    typed objs)
+  🐍 Streamlit UI                    ⚛️ Next.js UI (web/)
+  app.py · pages/ · src/ui                 │  fetch() over HTTP
+        │                                   ▼
+        │                        🚪 FastAPI (api/main.py)  ── thin HTTP wrapper
+        │                                   │
+        └──────────── both call ───────────┴────────────▶  src/platform_api.py
+                                                                   │  orchestrates
+             ┌──────────────┬──────────────┬───────────────┬──────────────┐
+             ▼              ▼              ▼               ▼              ▼
+        path engine     progress        lesson       live pipeline   curriculum
+        (what next)      store         service      (gen→critic→      (YAML →
+                        (SQLite)       (cached)       retry→polish)   typed objs)
 ```
 
 **Two content paths, by design:**
@@ -112,10 +141,11 @@ curriculum spine  →  learning-path engine  →  service API  →  multi-page U
 
 ### 🚪 The service boundary — `src/platform_api.py`
 
-The entire UI imports **exactly one** module for data: `platform_api`. It never
-reaches into the engine, store, or pipeline directly, and every return value is
-**plain JSON-serializable data**. That single rule is what makes a future
-Next.js/React frontend a pure presentation swap. The six functions:
+Every UI talks to the platform through **one module** returning **plain
+JSON-serializable data** — never reaching into the engine, store, or pipeline
+directly. That rule is what let the Next.js frontend be a *pure presentation
+swap*: FastAPI serializes the same dicts to JSON with zero custom encoders. The
+six functions:
 
 | Function | Purpose |
 |---|---|
@@ -125,6 +155,31 @@ Next.js/React frontend a pure presentation swap. The six functions:
 | `get_next_lesson(student_id, chapter_id, concept_id=None)` | What to teach next (or re-serve a concept). |
 | `submit_assessment(student_id, concept_id, answer)` | Grades the answer against the lesson's check question. |
 | `ask_help(student_id, concept_id, question)` | Live, grounded tutor answer (the only expensive call). |
+
+### 🌐 The HTTP API — `api/main.py`
+
+A thin FastAPI layer maps each endpoint to one boundary function (no logic of its
+own). CORS is opened to the Next.js dev origin (`http://localhost:3000`).
+
+| Method + path | Calls | Notes |
+|---|---|---|
+| `GET /` | — | Health check. |
+| `POST /api/student` | `create_or_load_student` | Create/load a student. |
+| `GET /api/roadmap` | `get_roadmap` | Query params: `student_id`, `chapter_id`. |
+| `GET /api/next-lesson` | `get_next_lesson` | Query params (+ optional `concept_id`). |
+| `POST /api/assessment` | `submit_assessment` | Live grade → writes mastery. |
+| `POST /api/help` | `ask_help` | Live pipeline (slow, seconds–minutes). |
+
+*(`list_chapters` is not yet exposed over HTTP — the Next.js app currently
+targets the first chapter.)*
+
+### ⚛️ The Next.js frontend — `web/`
+
+Routes mirror the journey: `/` (landing) → `/onboarding` → `/roadmap` →
+`/lesson` (with the live **"I'm stuck" help widget**) → `/assessment`. A typed
+`web/lib/api.ts` client wraps `fetch`; the created student is held in React
+Context. Instant screens (roadmap, lesson) render cached data; help & grading
+show a "thinking/grading" state because they hit the live pipeline.
 
 ### 🤖 The AI design (multi-agent + RAG)
 
@@ -158,19 +213,9 @@ Next.js/React frontend a pure presentation swap. The six functions:
 ## 4. 🗺️ Repository layout (load-bearing files)
 
 ```text
-🎨 Presentation
-├─ app.py                         Onboarding / landing (multi-page entry)
-├─ pages/1_Roadmap.py             Visual roadmap (status-coloured concepts)
-├─ pages/2_Lesson.py              Lesson + persistent "ask for help" box
-├─ pages/3_Assessment.py          Self-check question → grade → next-step choice
-├─ ui_common.py                   Session guards + UI constants (no domain imports)
-├─ src/ui/theme.py                Design system: palette, tokens, inject_global_css()
-├─ src/ui/components.py           Reusable themed components (cards, nodes, badges)
-└─ .streamlit/config.toml         Pinned LIGHT base theme + palette
-
-🧩 Domain
+🧩 Domain (shared by both frontends)
 ├─ src/platform_api.py            THE service boundary (6 functions)
-├─ src/curriculum/                Pydantic schema + YAML loader (teaching order, validation)
+├─ src/curriculum/                Pydantic schema + YAML loader (order, validation)
 ├─ src/path/engine.py             next_concept, get_roadmap, list_chapters
 ├─ src/progress/store.py          SQLite progress + students
 ├─ src/content/                   lesson schema · read service · offline factory
@@ -178,21 +223,40 @@ Next.js/React frontend a pure presentation swap. The six functions:
 ├─ src/pipeline.py                explain_with_review: RAG→gen→critic→retry
 └─ src/rag/                       ingest · build_index · retrieve (ChromaDB)
 
+🌐 Web API (FastAPI)
+└─ api/main.py                    Thin HTTP layer over platform_api (health + 5 endpoints)
+
+⚛️ Next.js frontend
+├─ web/app/                       Routes: / · /onboarding · /roadmap · /lesson · /assessment
+├─ web/lib/api.ts                 Typed fetch client (createStudent, getRoadmap,
+│                                  getNextLesson, askHelp, submitAssessment)
+├─ web/components/                site-nav · page-container · section-heading ·
+│                                  primary-button · markdown · help-widget ·
+│                                  student-provider · ui/ (shadcn)
+└─ web/.env.local                 NEXT_PUBLIC_API_URL (gitignored)
+
+🐍 Streamlit frontend
+├─ app.py                         Onboarding / landing (multi-page entry)
+├─ pages/1_Roadmap.py · 2_Lesson.py · 3_Assessment.py
+├─ ui_common.py · src/ui/         Session helpers + CSS design system
+├─ .streamlit/config.toml         Pinned LIGHT base theme + palette
+└─ legacy_chat_app.py             The original single-page chatbot, preserved
+
 📦 Data & content
 ├─ data/curriculum/physics.yaml   Curriculum source of truth (2 chapters · 17 concepts)
 ├─ data/lessons/*.json            34 pre-generated, polished lessons (committed)
 └─ prompts/*.txt                  System prompts (generator / critic / assessor)
 
 📚 Misc
-├─ legacy_chat_app.py             The original single-page chatbot, preserved
 ├─ tests/                         Deterministic + LLM-backed suites
 └─ LOG.md                         Dated dev log (Changed / Why / Learned)
 ```
 
 > [!NOTE]
-> Not in the repo (created locally): `venv/`, `.env`, `chroma_db/`
-> (rebuildable), `data/progress.db` (runtime state). The 34 cached lessons
-> **are** committed, so the core experience works on first run.
+> Not in the repo (created locally): `venv/`, `.env`, `web/node_modules/`,
+> `web/.env.local`, `chroma_db/` (rebuildable), `data/progress.db` (runtime
+> state). The 34 cached lessons **are** committed, so the core experience works
+> on first run.
 
 ---
 
@@ -204,6 +268,7 @@ Next.js/React frontend a pure presentation swap. The six functions:
 ### 🔹 Step 0 — Prerequisites
 - **Python 3.10+** on your PATH (`python --version`)
 - **git**
+- **Node.js 18+** and **npm** — *only for the Next.js frontend (Option B below)*
 - *(optional — only for live grading & "ask for help")* a free
   **Google AI Studio API key** → https://aistudio.google.com/apikey
 
@@ -233,7 +298,7 @@ source venv/bin/activate
 </td></tr>
 </table>
 
-### 🔹 Step 3 — Install dependencies
+### 🔹 Step 3 — Install Python dependencies
 ```bash
 pip install -r requirements.txt
 ```
@@ -269,12 +334,44 @@ Needed **only** for the live "ask for help" pipeline; cached lessons don't need 
 python src/rag/build_index.py
 ```
 
-### 🔹 Step 6 — Run the app 🚀
+### 🔹 Step 6 — Run it 🚀 — pick a frontend
+
+<details open>
+<summary><b>Option A — Streamlit (all-in-one Python, simplest)</b></summary>
+
 ```bash
 streamlit run app.py
 ```
-Streamlit prints a local URL (default **http://localhost:8501**). Open it,
-enter a name, pick an interest, and you land on your roadmap.
+Opens at **http://localhost:8501**. Enter a name, pick an interest, land on your
+roadmap. No Node.js required.
+</details>
+
+<details>
+<summary><b>Option B — FastAPI + Next.js (the modern web stack)</b></summary>
+
+Needs **two terminals** (backend + frontend). First-time only, install the web deps:
+```bash
+cd web
+npm install
+# create the frontend env file pointing at the backend:
+#   echo NEXT_PUBLIC_API_URL=http://localhost:8000 > .env.local
+cd ..
+```
+
+**Terminal 1 — backend (FastAPI):**
+```bash
+python -m uvicorn api.main:app --reload --port 8000
+```
+Interactive API docs at **http://localhost:8000/docs**.
+
+**Terminal 2 — frontend (Next.js):**
+```bash
+cd web
+npm run dev
+```
+Open **http://localhost:3000**. Both servers must run together; the frontend must
+be on port **3000** (that's the origin the backend's CORS allows).
+</details>
 
 ### 🔹 Step 7 — Run the tests *(optional)*
 The **deterministic** suites need no API key and prove the core logic:
@@ -294,18 +391,19 @@ The **LLM-backed** suites (`test_platform_api.py`, `test_pipeline.py`,
 ## 6. ⚙️ Environment variables
 
 Only `GEMINI_API_KEY` is required for live features; the rest have sensible code
-defaults (see `.env.example`).
+defaults (see `.env.example`). The one frontend var lives in `web/.env.local`.
 
-| Variable | Required? | Default | Purpose |
-|---|:---:|---|---|
-| `GEMINI_API_KEY` | for live calls | — | Your Google AI Studio key. |
-| `GEMINI_MODEL` | no | `gemma-3-27b-it` | Generator/assessor model. Dev key uses `gemma-4-31b-it`. |
-| `GEMINI_MAX_OUTPUT_TOKENS` | no | `2048` | Output cap (Gemma needs headroom past its scratchpad). |
-| `GEMINI_THINKING_BUDGET` | no | unset | Only applies to `gemini-2.5-flash*` models. |
-| `CRITIC_MODEL` | no | `gemini-2.5-flash-lite` | Critic model. |
-| `POLISHER_MODEL` | no | `gemini-2.5-flash-lite` | Polisher model. |
-| `ECOLEARN_PROGRESS_DB` | no | `data/progress.db` | SQLite path (tests use a temp file). |
-| `ECOLEARN_REVIEW_DAYS` | no | `7` | Days before a mastered concept resurfaces for review. |
+| Variable | Where | Required? | Default | Purpose |
+|---|---|:---:|---|---|
+| `GEMINI_API_KEY` | `.env` | for live calls | — | Your Google AI Studio key. |
+| `GEMINI_MODEL` | `.env` | no | `gemma-3-27b-it` | Generator/assessor model. Dev key uses `gemma-4-31b-it`. |
+| `GEMINI_MAX_OUTPUT_TOKENS` | `.env` | no | `2048` | Output cap (Gemma needs headroom past its scratchpad). |
+| `GEMINI_THINKING_BUDGET` | `.env` | no | unset | Only applies to `gemini-2.5-flash*` models. |
+| `CRITIC_MODEL` | `.env` | no | `gemini-2.5-flash-lite` | Critic model. |
+| `POLISHER_MODEL` | `.env` | no | `gemini-2.5-flash-lite` | Polisher model. |
+| `ECOLEARN_PROGRESS_DB` | `.env` | no | `data/progress.db` | SQLite path (tests use a temp file). |
+| `ECOLEARN_REVIEW_DAYS` | `.env` | no | `7` | Days before a mastered concept resurfaces for review. |
+| `NEXT_PUBLIC_API_URL` | `web/.env.local` | for Next.js | `http://localhost:8000` | Where the Next.js app finds the FastAPI backend. |
 
 ---
 
@@ -315,14 +413,31 @@ This section is deliberately candid — real shortcomings, each with reasoning a
 mitigation.
 
 <details open>
+<summary><b>⚛️ The Next.js frontend is functional but early</b></summary>
+
+- **The full journey works** end-to-end: onboarding → roadmap → lesson → live
+  "ask for help" → graded assessment → mastery reflected on the roadmap.
+- **The student id lives in in-memory React Context**, so a hard browser refresh
+  loses *who you are* (you'd re-onboard). Your *progress* is safe — it's keyed by
+  `student_id` in the backend DB. Persisting the id (localStorage) is the next
+  hardening step.
+- **One chapter, hardcoded.** The web app targets `motion_straight_line`;
+  `list_chapters` isn't exposed over HTTP yet, so there's no chapter picker.
+- **Dev-only setup:** no auth, and CORS is pinned to `http://localhost:3000`.
+- **Streamlit remains the complete reference UI**; the two frontends share the
+  exact same backend and behaviour.
+</details>
+
+<details>
 <summary><b>🖌️ Streamlit was the right tool, but fought us on polish</b></summary>
 
 - **Default look is generic.** We added a full custom **design system**
   (`src/ui/theme.py`) that injects global CSS — pinned palette, Inter typeface,
   hidden Streamlit chrome, restyled buttons/sidebar/inputs, constrained
-  max-width — to reach a premium, calm, Brilliant.org-style register. It's a
-  workaround, not native support: it depends on Streamlit's internal
-  `data-testid` selectors, which can change between versions.
+  max-width — to reach a premium, calm, Brilliant.org-style register. It depends
+  on Streamlit's internal `data-testid` selectors, which can change between
+  versions. *(Building the Next.js frontend was partly a response to these
+  ceilings.)*
 - **Theming pitfalls we hit (and fixed):** a global font override clobbered
   Streamlit's Material-Symbols **icon font** (icons rendered as literal text like
   `keyboard_double_arrow_left`); and on a dark-mode OS Streamlit defaulted to a
@@ -330,11 +445,7 @@ mitigation.
   exception + a pinned light base in `.streamlit/config.toml`).
 - **Reactive-rerun model.** Streamlit re-runs the whole script on every
   interaction. Long work must never live in a click handler; we use
-  state-flip-then-rerun and pin results in `session_state`. State is per-session
-  and resets on a hard browser reload.
-- **Not a production web framework.** No real auth, client-side routing, or
-  component encapsulation. The `platform_api` boundary exists precisely so the UI
-  can later be swapped for Next.js with zero backend changes.
+  state-flip-then-rerun and pin results in `session_state`.
 </details>
 
 <details>
@@ -344,7 +455,8 @@ Every Gemini/Gemma model has its own ~20 requests/day free-tier bucket. Heavy
 live grading/help **will** hit limits. Mitigations: lessons are pre-generated and
 cached (no LLM at view time); judges **fail open** (a failed critic/polisher
 degrades quality, not availability); the assessor/polisher have **multi-model
-fallback chains**. `gemma-4-31b-it` also shows intermittent `500 INTERNAL`s.
+fallback chains**. `gemma-4-31b-it` also shows intermittent `500 INTERNAL`s. The
+live "ask for help" call can take seconds-to-minutes for the same reason.
 </details>
 
 <details>
@@ -374,10 +486,11 @@ guard + an idempotent `repolish` repair pass.
 
 - **One source of truth, two representations** — YAML for authoring, Pydantic for
   runtime; the loader is the only boundary that reads YAML.
+- **One backend, many frontends** — everything runs through `platform_api`'s
+  plain-data boundary, so Streamlit and Next.js share identical logic and a
+  swap/addition touches zero backend code.
 - **The engine invents no pedagogy** — ordering/prereqs from the curriculum,
   mastery from the store; the engine only joins them.
-- **Plain-data returns at the boundary** — the precondition for a non-Python
-  frontend.
 - **Fail open on judges, fail loud on inputs** — a failed critic shouldn't blank
   a lesson; a missing key or unknown student must surface immediately.
 - **Pre-generate offline, serve cached** — pay the multi-agent cost once; quota
@@ -386,8 +499,16 @@ guard + an idempotent `repolish` repair pass.
 
 ---
 
+## 9. 📖 Where to read more
+
+- **`LOG.md`** — a dated, narrative dev log (Changed / Why / Learned) covering
+  every phase from setup through the Streamlit polish and the full Next.js
+  migration. The best place to see how the project evolved.
+- **`HANDOFF.md`** — a context-restore document with deeper architectural notes.
+- **`http://localhost:8000/docs`** — the live, interactive FastAPI reference
+  (once the backend is running).
 
 <div align="center">
 <br>
-<sub>Built with a multi-agent pipeline, grounded in RAG, served from a clean API boundary.</sub>
+<sub>Built with a multi-agent pipeline, grounded in RAG, served from a clean API boundary — now with two frontends.</sub>
 </div>
