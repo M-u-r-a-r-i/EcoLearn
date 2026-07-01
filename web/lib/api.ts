@@ -170,3 +170,48 @@ export async function askHelp(
   }
   return (await response.json()) as HelpResponse;
 }
+
+// ---------------------------------------------------------------------------
+// POST /api/assessment  ->  grade the answer and update mastery in the store.
+//
+// The grade is LIVE (runs the Assessor), so it takes a few seconds. The score
+// (0-3) is written to the backend's SQLite progress store, which is the single
+// source of truth the roadmap reads from — so a pass here shows up on the
+// roadmap next time it loads.
+// ---------------------------------------------------------------------------
+export interface MasteryRow {
+  status: string;
+  best_score: number;
+  attempts: number;
+  [key: string]: unknown;
+}
+
+export interface AssessmentResult {
+  concept_id: string;
+  score: number; // 0-3
+  mastery_signal: "mastered" | "partial" | "not_yet";
+  feedback: string;
+  missing_concepts: string[];
+  graded_question: string;
+  mastery: MasteryRow;
+}
+
+export async function submitAssessment(
+  studentId: string,
+  conceptId: string,
+  answer: string,
+): Promise<AssessmentResult> {
+  const response = await fetch(`${API_URL}/api/assessment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      student_id: studentId,
+      concept_id: conceptId,
+      answer,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Backend returned ${response.status} ${response.statusText}`);
+  }
+  return (await response.json()) as AssessmentResult;
+}
