@@ -509,32 +509,6 @@ guard + an idempotent `repolish` repair pass.
 
 ---
 
-## 8. 🧭 Engineering principles (the "why")
-
-- **One source of truth, two representations** — YAML for authoring, Pydantic for
-  runtime; the loader is the only boundary that reads YAML.
-- **One backend, many frontends** — everything runs through `platform_api`'s
-  plain-data boundary, so Streamlit and Next.js share identical logic and a
-  swap/addition touches zero backend code.
-- **The engine invents no pedagogy** — ordering/prereqs from the curriculum,
-  mastery from the store; the engine only joins them.
-- **Fail open on judges, fail loud on inputs** — a failed critic shouldn't blank
-  a lesson; a missing key or unknown student must surface immediately.
-- **Pre-generate offline, serve cached** — pay the multi-agent cost once; quota
-  exhaustion delays *authoring*, never the *product*.
-- **Prompts live in `.txt`, not code** — tunable without a review or rebuild.
-
----
-
-## 9. 📖 Where to read more
-
-- **`LOG.md`** — a dated, narrative dev log (Changed / Why / Learned) covering
-  every phase from setup through the Streamlit polish and the full Next.js
-  migration. The best place to see how the project evolved.
-- **`HANDOFF.md`** — a context-restore document with deeper architectural notes.
-- **`http://localhost:8000/docs`** — the live, interactive FastAPI reference
-  (once the backend is running).
-
 <div align="center">
 <br>
 <sub>Built with a multi-agent pipeline, grounded in RAG, served from a clean API boundary — now with two frontends.</sub>
