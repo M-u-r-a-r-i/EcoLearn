@@ -21,7 +21,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-progress-003B57?style=flat-square&logo=sqlite&logoColor=white)
 
 ![Architecture](https://img.shields.io/badge/architecture-multi--agent%20%2B%20RAG-10B981?style=flat-square)
-![Frontends](https://img.shields.io/badge/frontends-Streamlit%20%2B%20Next.js-1E293B?style=flat-square)
+![Frontends](https://img.shields.io/badge/frontend-Next.js%20(%2B%20Streamlit%20legacy)-1E293B?style=flat-square)
 ![Status](https://img.shields.io/badge/status-full--stack%20journey%20working-4F46E5?style=flat-square)
 
 </div>
@@ -62,12 +62,14 @@ curriculum spine  →  learning-path engine  →  service API  →  UI
                         (lessons pre-generated offline, served instantly)
 ```
 
-Because all logic sits behind one plain-data **service boundary**, EcoLearn now
-ships **two interchangeable frontends over the same backend**:
+Because all logic sits behind one plain-data **service boundary**, EcoLearn runs
+as a modern **full-stack web app** — with a legacy option for convenience:
 
-- 🐍 **Streamlit** — the original all-in-one Python app (complete reference UI).
-- ⚛️ **FastAPI + Next.js** — a thin HTTP API over the boundary, consumed by a
-  modern React/Next.js website. The full student journey works end-to-end.
+- ⚛️ **Next.js + FastAPI** *(primary)* — a React/Next.js website talking to a thin
+  FastAPI layer over the backend. This is the main product; the full student
+  journey works end-to-end. **→ [How to run it](#5--running-it-yourself-step-by-step)**
+- 🐍 **Streamlit** *(legacy)* — the original all-in-one Python app, kept as a
+  zero-Node reference UI over the exact same backend.
 
 > [!IMPORTANT]
 > **On the name:** "EcoLearn" is a holdover from an earlier
@@ -94,14 +96,7 @@ ships **two interchangeable frontends over the same backend**:
 | 💾 Progress store | **SQLite** (stdlib) | Durable per-student mastery + profiles; zero-setup. |
 | 🎛️ Prompts | **plain `.txt` files** | Tunable without code changes, reviews, or rebuilds. |
 
-### Frontend A — Streamlit (all-in-one Python)
-
-| Layer | Technology | Why it's here |
-|---|---|---|
-| 🖥️ Web UI | **Streamlit 1.58** (multi-page) | Fastest way to ship a data app in pure Python. *(trade-offs in [§7](#7--known-limitations--trade-offs-honest))* |
-| 🎨 Theming | Custom CSS design system + `.streamlit/config.toml` | Premium, calm look over Streamlit's defaults. |
-
-### Frontend B — FastAPI + Next.js (the migration)
+### Frontend (primary) — Next.js + FastAPI
 
 | Layer | Technology | Why it's here |
 |---|---|---|
@@ -110,6 +105,13 @@ ships **two interchangeable frontends over the same backend**:
 | 🔤 Language | **TypeScript** | Typed API client + components. |
 | 💅 Styling | **Tailwind CSS v4** + **shadcn/ui** (radix, lucide icons) | Utility-first styling + owned, editable components. |
 | 📝 Markdown/Math | **react-markdown** + remark-gfm + **remark-math / rehype-katex** + `@tailwindcss/typography` | Render the backend's markdown & KaTeX lessons beautifully. |
+
+### Frontend (legacy) — Streamlit (all-in-one Python)
+
+| Layer | Technology | Why it's here |
+|---|---|---|
+| 🖥️ Web UI | **Streamlit 1.58** (multi-page) | The original app; ships a full UI in pure Python with no separate server. *(trade-offs in [§7](#7--known-limitations--trade-offs-honest))* |
+| 🎨 Theming | Custom CSS design system + `.streamlit/config.toml` | Premium, calm look over Streamlit's defaults. |
 
 ---
 
@@ -334,43 +336,68 @@ Needed **only** for the live "ask for help" pipeline; cached lessons don't need 
 python src/rag/build_index.py
 ```
 
-### 🔹 Step 6 — Run it 🚀 — pick a frontend
+### 🔹 Step 6 — Run it 🚀
 
-<details open>
-<summary><b>Option A — Streamlit (all-in-one Python, simplest)</b></summary>
+#### ⚛️ Option A — Next.js + FastAPI (the main app)
 
-```bash
-streamlit run app.py
-```
-Opens at **http://localhost:8501**. Enter a name, pick an interest, land on your
-roadmap. No Node.js required.
-</details>
+The web app is two programs that run **together**: the **FastAPI backend**
+(port 8000) and the **Next.js frontend** (port 3000). You'll use **two terminals**.
 
-<details>
-<summary><b>Option B — FastAPI + Next.js (the modern web stack)</b></summary>
+**One-time web setup** (installs the frontend deps + points it at the backend):
+<table>
+<tr><th>Windows (PowerShell)</th><th>macOS / Linux (bash)</th></tr>
+<tr><td>
 
-Needs **two terminals** (backend + frontend). First-time only, install the web deps:
-```bash
+```powershell
 cd web
 npm install
-# create the frontend env file pointing at the backend:
-#   echo NEXT_PUBLIC_API_URL=http://localhost:8000 > .env.local
+"NEXT_PUBLIC_API_URL=http://localhost:8000" | Out-File -Encoding utf8 .env.local
 cd ..
 ```
 
-**Terminal 1 — backend (FastAPI):**
+</td><td>
+
+```bash
+cd web
+npm install
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+cd ..
+```
+
+</td></tr>
+</table>
+
+**Terminal 1 — backend (from the project root, venv active):**
 ```bash
 python -m uvicorn api.main:app --reload --port 8000
 ```
 Interactive API docs at **http://localhost:8000/docs**.
 
-**Terminal 2 — frontend (Next.js):**
+**Terminal 2 — frontend:**
 ```bash
 cd web
 npm run dev
 ```
-Open **http://localhost:3000**. Both servers must run together; the frontend must
-be on port **3000** (that's the origin the backend's CORS allows).
+
+Open **http://localhost:3000** → **Get Started** → onboard → roadmap → lesson →
+assessment.
+
+> [!IMPORTANT]
+> Both servers must be running at once. Keep the frontend on port **3000** —
+> that's the origin the backend's CORS allows. (If Next.js says the port is busy
+> and switches to 3001, either free 3000 or add the new origin to the CORS list
+> in `api/main.py`.)
+
+#### 🐍 Option B — Streamlit (legacy, all-in-one Python)
+
+<details>
+<summary>Prefer the original zero-Node UI? Expand.</summary>
+
+```bash
+streamlit run app.py
+```
+Opens at **http://localhost:8501**. No Node.js and no separate backend required —
+Streamlit imports `platform_api` directly. Same features, same backend.
 </details>
 
 ### 🔹 Step 7 — Run the tests *(optional)*
