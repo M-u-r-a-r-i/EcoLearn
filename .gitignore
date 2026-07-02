@@ -14,4 +14,9 @@ platform_test.log
 
 # Per-student progress store — runtime state, rebuilt as students use the app
 data/progress.db
-log.md  
+log.md
+
+
+
+AI_CONTEXT.md
+
