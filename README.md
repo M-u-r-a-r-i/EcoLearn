@@ -241,17 +241,17 @@ show a "thinking/grading" state because they hit the live pipeline.
 ├─ app.py                         Onboarding / landing (multi-page entry)
 ├─ pages/1_Roadmap.py · 2_Lesson.py · 3_Assessment.py
 ├─ ui_common.py · src/ui/         Session helpers + CSS design system
-├─ .streamlit/config.toml         Pinned LIGHT base theme + palette
-└─ legacy_chat_app.py             The original single-page chatbot, preserved
+└─ .streamlit/config.toml         Pinned LIGHT base theme + palette
 
 📦 Data & content
 ├─ data/curriculum/physics.yaml   Curriculum source of truth (2 chapters · 17 concepts)
 ├─ data/lessons/*.json            34 pre-generated, polished lessons (committed)
 └─ prompts/*.txt                  System prompts (generator / critic / assessor)
 
-📚 Misc
-├─ tests/                         Deterministic + LLM-backed suites
-└─ LOG.md                         Dated dev log (Changed / Why / Learned)
+📚 Docs & tests
+├─ tests/                         Deterministic + LLM-backed suites (standalone scripts)
+├─ PROJECT_HISTORY.md             What exists, every commit explained, decisions, lessons
+└─ ROADMAP.md                     The v2 plan: milestones, acceptance criteria, open decisions
 ```
 
 > [!NOTE]
