@@ -111,13 +111,24 @@ def _chapter_concepts(subject: Subject, chapter_id: str) -> list[Concept]:
 
 
 def list_chapters() -> list[dict]:
-    """Return every chapter in the subject as {id, name}, in document order.
+    """Return every chapter in the subject, in teaching (document) order.
 
-    Lets the UI offer a chapter picker without knowing the curriculum shape.
+    Each entry: {id, name, unit_id, unit_name, grade, domain, concept_count}.
+    The unit and grade fields let a UI group 29 chapters as class → unit →
+    chapter instead of one long flat list; `id` and `name` are unchanged, so
+    older callers (the Streamlit chapter selector) keep working.
     """
     subject = _load_subject()
     return [
-        {"id": ch.id, "name": ch.name}
+        {
+            "id": ch.id,
+            "name": ch.name,
+            "unit_id": unit.id,
+            "unit_name": unit.name,
+            "grade": ch.grade,
+            "domain": ch.domain.value,
+            "concept_count": len(ch.concepts),
+        }
         for unit in subject.units
         for ch in unit.chapters
     ]

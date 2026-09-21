@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two rules side by side: adding keeps the fewest decimal places, multiplying keeps the fewest significant figures</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <line x1="320" y1="20" x2="320" y2="380" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- left: addition -->
+  <text x="20" y="40" font-size="18" font-weight="700" fill="#111827">Add or subtract</text>
+  <text x="20" y="62" font-size="14" fill="#374151">keep the fewest decimal places</text>
+  <g font-size="28" fill="#111827">
+    <text x="150" y="130" text-anchor="end">20</text><text x="150" y="130">.12</text>
+    <text x="150" y="172" text-anchor="end">+ 1</text><text x="150" y="172">.5</text>
+    <text x="172" y="172" fill="#9ca3af">?</text>
+    <text x="150" y="226" text-anchor="end">21</text><text x="150" y="226">.6</text>
+    <text x="172" y="226" fill="#9ca3af">2</text>
+  </g>
+  <line x1="80" y1="186" x2="230" y2="186" stroke="#111827" stroke-width="2"/>
+  <text x="80" y="276" font-size="24" font-weight="700" fill="#16a34a">→ 21.6 m</text>
+  <text x="20" y="318" font-size="14" fill="#374151">1.5 m is known only to the nearest</text>
+  <text x="20" y="338" font-size="14" fill="#374151">0.1 m, so the hundredths digit of</text>
+  <text x="20" y="358" font-size="14" fill="#374151">the sum is unknown too.</text>
+
+  <!-- right: multiplication -->
+  <text x="340" y="40" font-size="18" font-weight="700" fill="#111827">Multiply or divide</text>
+  <text x="340" y="62" font-size="14" fill="#374151">keep the fewest significant figures</text>
+  <g font-size="26" fill="#111827">
+    <text x="360" y="130">20.12 m</text>
+    <text x="360" y="172">× 3.05 m</text>
+    <text x="360" y="226">= 61.366 m²</text>
+  </g>
+  <g font-size="14" fill="#6b7280" text-anchor="end">
+    <text x="620" y="128">4 sig. figs</text>
+    <text x="620" y="170">3 sig. figs</text>
+    <text x="620" y="224">calculator</text>
+  </g>
+  <line x1="350" y1="186" x2="620" y2="186" stroke="#111827" stroke-width="2"/>
+  <text x="360" y="276" font-size="24" font-weight="700" fill="#16a34a">→ 61.4 m²</text>
+  <text x="620" y="274" font-size="14" fill="#16a34a" text-anchor="end">3 sig. figs</text>
+  <text x="340" y="318" font-size="14" fill="#374151">The answer can be no more precise</text>
+  <text x="340" y="338" font-size="14" fill="#374151">than the least precise factor.</text>
+</svg>

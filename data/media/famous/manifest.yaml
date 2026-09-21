@@ -24,3 +24,19 @@ images:
     credit: "Georg Simon Ohm (1789–1854). Artist unknown; source: Lebendiges Museum Online, via Wikimedia Commons. Public domain."
     concepts: [ohms_law, resistivity]
     downloaded: 2026-09-21
+
+  - file: us-prototype-kilogram-k20.jpg
+    title: US national prototype kilogram K20 under its glass bell jars
+    source: https://commons.wikimedia.org/wiki/File:National_prototype_kilogram_K20_replica.jpg
+    license: Public domain
+    credit: "National prototype kilogram K20, a platinum-iridium cylinder kept by NIST. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
+    concepts: [si_units, unit_conversion]
+    downloaded: 2026-09-21
+
+  - file: us-prototype-metre-bar-27.jpg
+    title: National Prototype Metre Bar No. 27 (1889)
+    source: https://commons.wikimedia.org/wiki/File:US_National_Length_Meter.JPG
+    license: Public domain
+    credit: "National Prototype Metre Bar No. 27 (1889), the US length standard from 1893 to 1960. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
+    concepts: [si_units, significant_figures, measurement_uncertainty]
+    downloaded: 2026-09-21

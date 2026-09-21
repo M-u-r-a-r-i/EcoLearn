@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Six measured values with their significant digits in green and the rule each one shows</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="32" font-size="18" font-weight="700" fill="#111827">Counting significant figures</text>
+
+  <rect x="12" y="46" width="616" height="30" fill="#1e3a8a"/>
+  <g font-size="14" font-weight="700" fill="#ffffff">
+    <text x="24" y="66">Value</text>
+    <text x="226" y="66" text-anchor="middle">Sig. figs</text>
+    <text x="290" y="66">Rule it shows</text>
+  </g>
+  <g fill="#eff6ff">
+    <rect x="12" y="76" width="616" height="48"/>
+    <rect x="12" y="172" width="616" height="48"/>
+    <rect x="12" y="268" width="616" height="48"/>
+  </g>
+
+  <g font-size="21" font-weight="700">
+    <text x="24" y="108"><tspan fill="#16a34a">20.12</tspan><tspan fill="#6b7280"> m</tspan></text>
+    <text x="24" y="156"><tspan fill="#9ca3af">0.0</tspan><tspan fill="#16a34a">480</tspan><tspan fill="#6b7280"> kg</tspan></text>
+    <text x="24" y="204"><tspan fill="#16a34a">160.0</tspan><tspan fill="#6b7280"> g</tspan></text>
+    <text x="24" y="252"><tspan fill="#16a34a">15</tspan><tspan fill="#ea580c">00</tspan><tspan fill="#6b7280"> m</tspan></text>
+    <text x="24" y="300"><tspan fill="#16a34a">1.5</tspan><tspan fill="#6b7280"> × 10³ m</tspan></text>
+    <text x="24" y="348"><tspan fill="#16a34a">1.500</tspan><tspan fill="#6b7280"> × 10³ m</tspan></text>
+  </g>
+  <g font-size="21" font-weight="700" fill="#111827" text-anchor="middle">
+    <text x="226" y="108">4</text>
+    <text x="226" y="156">3</text>
+    <text x="226" y="204">4</text>
+    <text x="226" y="252" fill="#ea580c">?</text>
+    <text x="226" y="300">2</text>
+    <text x="226" y="348">4</text>
+  </g>
+  <g font-size="14" fill="#374151">
+    <text x="290" y="105">a zero between non-zero digits counts</text>
+    <text x="290" y="153">leading zeros only place the decimal point</text>
+    <text x="290" y="201">a final zero after a decimal point counts</text>
+    <text x="290" y="249">final zeros, no decimal point: ambiguous</text>
+    <text x="290" y="297">scientific notation removes the doubt</text>
+    <text x="290" y="345">...and can show 4 figures if they were measured</text>
+  </g>
+  <text x="20" y="386" font-size="13" fill="#374151"><tspan fill="#16a34a" font-weight="700">green</tspan> = significant<tspan dx="18" fill="#9ca3af" font-weight="700">grey</tspan> = not significant<tspan dx="18" fill="#ea580c" font-weight="700">orange</tspan> = can't tell</text>
+</svg>

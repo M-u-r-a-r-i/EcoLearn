@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two equations checked term by term: in v squared equals u squared plus 2as every term has the same dimensions; in s equals ut plus half at one term does not</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="34" font-size="17" font-weight="700" fill="#111827">Principle of homogeneity: every term must have the same dimensions</text>
+
+  <!-- consistent equation -->
+  <rect x="16" y="56" width="608" height="148" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <g font-size="32" font-weight="700" fill="#111827" text-anchor="middle">
+    <text x="120" y="112">v²</text>
+    <text x="200" y="112">=</text>
+    <text x="290" y="112">u²</text>
+    <text x="370" y="112">+</text>
+    <text x="470" y="112">2as</text>
+  </g>
+  <g font-size="16" fill="#15803d" text-anchor="middle">
+    <text x="120" y="146">[L² T⁻²]</text>
+    <text x="290" y="146">[L² T⁻²]</text>
+    <text x="470" y="146">[L² T⁻²]</text>
+  </g>
+  <text x="320" y="184" font-size="15" font-weight="700" fill="#15803d" text-anchor="middle">✓ Every term is [L² T⁻²]: dimensionally consistent</text>
+
+  <!-- inconsistent equation -->
+  <rect x="16" y="222" width="608" height="148" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+  <g font-size="32" font-weight="700" fill="#111827" text-anchor="middle">
+    <text x="120" y="278">s</text>
+    <text x="200" y="278">=</text>
+    <text x="290" y="278">ut</text>
+    <text x="370" y="278">+</text>
+    <text x="470" y="278">½at</text>
+  </g>
+  <g font-size="16" text-anchor="middle">
+    <text x="120" y="312" fill="#15803d">[L]</text>
+    <text x="290" y="312" fill="#15803d">[L]</text>
+    <text x="470" y="312" fill="#dc2626" font-weight="700">[L T⁻¹]</text>
+  </g>
+  <text x="320" y="350" font-size="15" font-weight="700" fill="#dc2626" text-anchor="middle">✗ ½at is [L T⁻¹], not [L]: inconsistent, so it must be wrong</text>
+
+  <text x="20" y="392" font-size="13" fill="#374151">v, u: velocities<tspan dx="16">a: acceleration</tspan><tspan dx="16">s: displacement</tspan><tspan dx="16">t: time</tspan></text>
+</svg>

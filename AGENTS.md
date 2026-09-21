@@ -113,10 +113,16 @@ and pushed.
   by `web/components/markdown.tsx`. Graphs: `scripts/render_graphs.py`. The validator checks every
   image (exists, alt text, caption, safe SVG, famous-image licence).
 
-**-> YOUR NEXT ACTION:** the user reviews the revised 12 gold lessons. Once approved, run the pilot batch
-(Units and Measurement × one interest), measure its usage, then start bulk writing in teaching
-order per `ROADMAP.md` §0. Every writing session must read `content/AUTHORING_GUIDE.md` first.
-In parallel: `api/security.py` and the auth endpoints (username-based).
+- *Pilot batch:* Units and Measurement × cricket — 24 lessons + 15 images, all valid, reviewed.
+  Measured cost ~269k tokens / 24 min per batch. **The user is on Claude Pro**, which cannot carry
+  ~300 such batches by 2026-09-30.
+- *Auth HTTP layer:* `api/security.py` + auth/profile/chapters/interests endpoints, error mapping,
+  CORS with credentials — `tests/test_api_auth.py` (34 checks).
+
+**-> YOUR NEXT ACTION:** get the user's decision on content scope vs plan (Pro can't write all
+7,470 lessons by the deadline — see `ROADMAP.md` §0 pilot row). Then either run batches within the
+chosen scope (one sub-session per chapter × interest, reading `content/AUTHORING_GUIDE.md` first),
+or continue the frontend: auth provider, login/signup, chapter picker, breaking flip.
 
 Keep every change **additive** until the auth "breaking flip", so Streamlit and the current web
 app keep working.

@@ -688,6 +688,44 @@ nothing key-shaped is in the diff.
 
 ---
 
+## 9j. Pilot batch + the auth HTTP layer (2026-09-21)
+
+**Changed.**
+- **Pilot batch:** Units and Measurement × cricket — 24 lessons (8 concepts × 3 formats) and 15
+  images (the chapter scene, 11 diagrams, 2 graphs), written by one Claude Code **sub-session**
+  that started cold from `content/AUTHORING_GUIDE.md` and the gold lessons. Two more public-domain
+  NIST images were downloaded **with the user's approval** (US prototype kilogram K20, Prototype
+  Metre Bar No. 27) and added to the manifest.
+- Review by the main session: validator 36/36; every new image rendered and inspected; physics and
+  answer keys re-derived in the densest lessons (error propagation 0.63% + 3 × 0.88% ≈ 3.3%; SI
+  2019 redefinition dates; ball mass limits). Nothing needed fixing. MCQ answers A/B/C/D 6 each.
+- `scripts/render_graphs.py` — crashed on relative paths (`relative_to` on an unresolved path);
+  fixed with `.resolve()`. Reported by the sub-session.
+- `content/AUTHORING_GUIDE.md` — headless-Edge command for checking drawn SVGs (the browser pane
+  can't open folders created mid-session); reuse a chapter's figures for later interests.
+- **Auth HTTP layer:** `api/security.py` (HS256 JWT `{sub, iat, exp}`, 7-day TTL, httpOnly +
+  SameSite=Lax cookie, Secure in production, pinned algorithm, dev-secret warning / production
+  refusal, `get_current_student_id` → 401 incl. tokens for deleted accounts); `api/main.py` gains
+  register/login/logout/me/change-password, `PATCH /api/profile`, public `GET /api/chapters`
+  (now with unit, grade, domain, concept count) and `GET /api/interests` (active only), error →
+  status handlers (404/409/401/400/503) and `allow_credentials=True`. Learning endpoints are
+  unchanged until the breaking flip. `platform_api.list_interests()` added.
+  `tests/test_api_auth.py` — 34 checks, including cookie flags, token tampering/expiry and CORS.
+
+**Why.** The pilot exists to measure what a batch really costs before committing to ~300 of them.
+The auth layer was the plan's parallel track and touched none of the pilot's files.
+
+**Learned.**
+- **Measured cost per batch: ~269k tokens, 100 tool calls, 24 minutes** — about 7.5 min reading,
+  5 min drawing, then ~30 s per lesson. Lesson writing is not the slow part; setup is, so larger
+  batches (a chapter × several interests per session) and figure reuse cut the average.
+- **Check the plan before planning the volume.** The account is on Claude **Pro**; after this day's
+  work the 5-hour window was at 65% and the weekly at 47%. At pilot cost, 7,470 lessons is roughly
+  80M tokens — far beyond Pro in nine days. This should have been checked before the sprint plan
+  assumed "Claude Code sessions write everything"; the pilot is what surfaced it, which is its job.
+- The sub-session followed the guide well enough that review found nothing to fix — evidence that
+  the guide + gold lessons + validator carry quality without a critic.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

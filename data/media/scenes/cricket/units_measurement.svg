@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Groundstaff measure the pitch with a tape while a ball sits on a scale, a stopwatch reads a time and a speed display shows a bowler's speed</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4ade80"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- sky and stands -->
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <path d="M0,215 Q400,150 800,215 L800,262 L0,262 z" fill="#1e3a8a"/>
+  <path d="M0,232 Q400,172 800,232 L800,262 L0,262 z" fill="#3b5bdb"/>
+  <g fill="#f8fafc" opacity="0.55">
+    <circle cx="110" cy="226" r="3"/><circle cx="160" cy="219" r="3"/><circle cx="250" cy="206" r="3"/>
+    <circle cx="330" cy="200" r="3"/><circle cx="470" cy="200" r="3"/><circle cx="540" cy="204" r="3"/>
+  </g>
+
+  <!-- floodlight, left -->
+  <rect x="58" y="70" width="8" height="150" fill="#64748b"/>
+  <rect x="36" y="52" width="52" height="24" rx="3" fill="#334155"/>
+  <g fill="#fef9c3"><circle cx="46" cy="64" r="5"/><circle cx="62" cy="64" r="5"/><circle cx="78" cy="64" r="5"/></g>
+
+  <!-- speed display board, right -->
+  <rect x="618" y="118" width="8" height="100" fill="#64748b"/>
+  <rect x="734" y="118" width="8" height="100" fill="#64748b"/>
+  <rect x="590" y="36" width="180" height="86" rx="6" fill="#0f172a"/>
+  <text x="680" y="62" font-size="14" fill="#94a3b8" text-anchor="middle" letter-spacing="2">SPEED</text>
+  <text x="680" y="104" font-size="32" font-weight="700" fill="#fbbf24" text-anchor="middle">142 km/h</text>
+
+  <!-- ground and pitch -->
+  <rect x="0" y="262" width="800" height="188" fill="url(#grass)"/>
+  <polygon points="130,318 670,318 700,352 100,352" fill="#e7d3a6"/>
+  <line x1="170" y1="322" x2="170" y2="348" stroke="#ffffff" stroke-width="3"/>
+  <line x1="630" y1="322" x2="630" y2="348" stroke="#ffffff" stroke-width="3"/>
+
+  <!-- stumps at both ends -->
+  <g stroke="#fde68a" stroke-width="4" stroke-linecap="round">
+    <line x1="146" y1="292" x2="146" y2="334"/>
+    <line x1="153" y1="292" x2="153" y2="334"/>
+    <line x1="160" y1="292" x2="160" y2="334"/>
+    <line x1="640" y1="296" x2="640" y2="332"/>
+    <line x1="647" y1="296" x2="647" y2="332"/>
+    <line x1="654" y1="296" x2="654" y2="332"/>
+  </g>
+
+  <!-- measuring tape laid along the pitch, stump to stump -->
+  <line x1="153" y1="338" x2="647" y2="338" stroke="#facc15" stroke-width="5"/>
+  <g stroke="#78350f" stroke-width="1.5">
+    <line x1="203" y1="335" x2="203" y2="341"/><line x1="253" y1="335" x2="253" y2="341"/>
+    <line x1="303" y1="335" x2="303" y2="341"/><line x1="353" y1="335" x2="353" y2="341"/>
+    <line x1="403" y1="335" x2="403" y2="341"/><line x1="453" y1="335" x2="453" y2="341"/>
+    <line x1="503" y1="335" x2="503" y2="341"/><line x1="553" y1="335" x2="553" y2="341"/>
+    <line x1="603" y1="335" x2="603" y2="341"/>
+  </g>
+  <circle cx="664" cy="338" r="10" fill="#334155" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="664" cy="338" r="3" fill="#facc15"/>
+
+  <!-- dimension line and label for the pitch length -->
+  <g stroke="#0f172a" stroke-width="2">
+    <line x1="153" y1="300" x2="350" y2="300"/>
+    <line x1="450" y1="300" x2="647" y2="300"/>
+    <line x1="153" y1="293" x2="153" y2="307"/>
+    <line x1="647" y1="293" x2="647" y2="307"/>
+  </g>
+  <rect x="350" y="287" width="100" height="26" rx="5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="400" y="306" font-size="17" font-weight="700" fill="#0f172a" text-anchor="middle">20.12 m</text>
+
+  <!-- groundsman holding the tape reel -->
+  <g stroke-linecap="round">
+    <line x1="712" y1="330" x2="700" y2="398" stroke="#334155" stroke-width="15"/>
+    <line x1="712" y1="330" x2="700" y2="398" stroke="#0f766e" stroke-width="11"/>
+    <line x1="714" y1="330" x2="728" y2="398" stroke="#334155" stroke-width="15"/>
+    <line x1="714" y1="330" x2="728" y2="398" stroke="#0f766e" stroke-width="11"/>
+    <line x1="713" y1="330" x2="710" y2="282" stroke="#334155" stroke-width="24"/>
+    <line x1="713" y1="330" x2="710" y2="282" stroke="#f97316" stroke-width="20"/>
+    <line x1="706" y1="292" x2="674" y2="332" stroke="#334155" stroke-width="10"/>
+    <line x1="706" y1="292" x2="674" y2="332" stroke="#a16207" stroke-width="6"/>
+  </g>
+  <circle cx="710" cy="262" r="12" fill="#a16207" stroke="#334155" stroke-width="2"/>
+  <path d="M 697 258 Q 710 244 723 258 z" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+  <rect x="692" y="394" width="14" height="7" rx="3" fill="#0f172a"/>
+  <rect x="724" y="394" width="14" height="7" rx="3" fill="#0f172a"/>
+
+  <!-- table with a digital scale and a ball -->
+  <rect x="230" y="392" width="170" height="10" rx="2" fill="#92400e"/>
+  <rect x="240" y="402" width="8" height="40" fill="#78350f"/>
+  <rect x="382" y="402" width="8" height="40" fill="#78350f"/>
+  <rect x="270" y="366" width="90" height="26" rx="4" fill="#475569"/>
+  <rect x="285" y="371" width="60" height="16" rx="2" fill="#bbf7d0"/>
+  <text x="315" y="384" font-size="12" font-weight="700" fill="#065f46" text-anchor="middle">158.0 g</text>
+  <rect x="290" y="359" width="50" height="6" rx="2" fill="#94a3b8"/>
+  <circle cx="315" cy="348" r="11" fill="#b91c1c" stroke="#7f1d1d" stroke-width="1.5"/>
+  <path d="M 309 340 Q 315 348 309 356" fill="none" stroke="#fef2f2" stroke-width="1.2"/>
+
+  <!-- stopwatch -->
+  <rect x="553" y="369" width="14" height="9" rx="2" fill="#334155"/>
+  <circle cx="560" cy="406" r="28" fill="#f8fafc" stroke="#334155" stroke-width="3"/>
+  <text x="560" y="411" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">3.50 s</text>
+</svg>

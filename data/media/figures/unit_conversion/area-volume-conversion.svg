@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A one-metre square divided into a 10 by 10 grid and a one-metre cube, showing that one square metre is ten thousand square centimetres and one cubic metre is a million cubic centimetres</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="34" font-size="18" font-weight="700" fill="#111827">Squared and cubed units: convert every factor</text>
+
+  <!-- square: 1 m x 1 m, grid of 10 cm cells -->
+  <rect x="50" y="70" width="200" height="200" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <g stroke="#93c5fd" stroke-width="1">
+    <line x1="70" y1="70" x2="70" y2="270"/><line x1="90" y1="70" x2="90" y2="270"/>
+    <line x1="110" y1="70" x2="110" y2="270"/><line x1="130" y1="70" x2="130" y2="270"/>
+    <line x1="150" y1="70" x2="150" y2="270"/><line x1="170" y1="70" x2="170" y2="270"/>
+    <line x1="190" y1="70" x2="190" y2="270"/><line x1="210" y1="70" x2="210" y2="270"/>
+    <line x1="230" y1="70" x2="230" y2="270"/>
+    <line x1="50" y1="90" x2="250" y2="90"/><line x1="50" y1="110" x2="250" y2="110"/>
+    <line x1="50" y1="130" x2="250" y2="130"/><line x1="50" y1="150" x2="250" y2="150"/>
+    <line x1="50" y1="170" x2="250" y2="170"/><line x1="50" y1="190" x2="250" y2="190"/>
+    <line x1="50" y1="210" x2="250" y2="210"/><line x1="50" y1="230" x2="250" y2="230"/>
+    <line x1="50" y1="250" x2="250" y2="250"/>
+  </g>
+  <rect x="50" y="70" width="20" height="20" fill="#2563eb"/>
+  <text x="150" y="292" font-size="14" fill="#111827" text-anchor="middle">1 m = 100 cm</text>
+  <text x="40" y="170" font-size="14" fill="#111827" text-anchor="middle" transform="rotate(-90 40 170)">1 m = 100 cm</text>
+  <text x="150" y="324" font-size="15" font-weight="700" fill="#1d4ed8" text-anchor="middle">1 m² = 100 × 100 cm²</text>
+  <text x="150" y="348" font-size="15" font-weight="700" fill="#1d4ed8" text-anchor="middle">= 10⁴ cm²</text>
+  <text x="150" y="368" font-size="12" fill="#6b7280" text-anchor="middle">each small square: 10 cm × 10 cm = 100 cm²</text>
+
+  <!-- cube: 1 m each edge -->
+  <polygon points="400,110 540,110 580,70 440,70" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.5"/>
+  <polygon points="540,110 580,70 580,210 540,250" fill="#86efac" stroke="#16a34a" stroke-width="2.5"/>
+  <rect x="400" y="110" width="140" height="140" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="470" y="272" font-size="14" fill="#111827" text-anchor="middle">100 cm</text>
+  <text x="390" y="184" font-size="14" fill="#111827" text-anchor="end">100 cm</text>
+  <text x="590" y="150" font-size="14" fill="#111827">100 cm</text>
+  <text x="480" y="324" font-size="15" font-weight="700" fill="#15803d" text-anchor="middle">1 m³ = 100 × 100 × 100 cm³</text>
+  <text x="480" y="348" font-size="15" font-weight="700" fill="#15803d" text-anchor="middle">= 10⁶ cm³</text>
+
+  <text x="20" y="392" font-size="13" fill="#374151">So 1 g/cm³ = 10⁻³ kg ÷ 10⁻⁶ m³ = 1000 kg/m³, not 10 kg/m³.</text>
+</svg>

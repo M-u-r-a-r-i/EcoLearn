@@ -285,7 +285,11 @@ interest-neutral in `figures/{concept_id}/` so all ten interests can reuse them.
   (the validator rejects them). Keep files under 600 KB — hand SVGs are usually under 10 KB.
 - No real people's likenesses, no logos, no copyrighted characters, no team kits of real teams.
 - Scenes are simple flat illustrations — clarity over detail. Labels only where they teach.
-- Look at what you drew before using it (open the SVG in the browser pane).
+- Look at what you drew before using it. The browser pane often can't open files in folders
+  created during the session, so render a PNG with headless Edge and read that:
+  `& "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --disable-gpu --hide-scrollbars --window-size=820,540 --screenshot="<scratchpad>\shot.png" "file:///D:/Projects/EcoLearn/data/media/<path>.svg"`
+- For a chapter's **second and later interests**, reuse the chapter's existing `figures/` — only
+  the scene is per interest. Check `data/media/figures/{concept_id}/` before drawing anything.
 
 ### Famous images — licensing
 

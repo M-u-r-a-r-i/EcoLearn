@@ -117,7 +117,9 @@ def render(spec_path: Path) -> Path:
 
 
 def main(argv: list[str]) -> int:
-    specs = [Path(a) for a in argv] or sorted(FIGURES.glob("**/*.graph.yaml"))
+    # resolve(): relative paths from the command line must still sit under _ROOT
+    # for the relative_to() in the report line below.
+    specs = [Path(a).resolve() for a in argv] or sorted(FIGURES.glob("**/*.graph.yaml"))
     for spec in specs:
         out = render(spec)
         print(f"rendered {out.relative_to(_ROOT)}  ({out.stat().st_size // 1000} KB)")

@@ -12,7 +12,8 @@ to the platform through exactly these five functions and nothing else:
 
     LEARNING
     create_or_load_student(name, interest, level) -> profile  (legacy, no password)
-    list_chapters()                               -> [{id, name}, ...]
+    list_chapters()                               -> [{id, name, unit_id, unit_name, grade, ...}]
+    list_interests(active_only=True)              -> [{id, label, emoji, ...}]
     get_roadmap(student_id, chapter_id)           -> list of concept statuses
     get_next_lesson(student_id, chapter_id)       -> next lesson envelope
     submit_assessment(student_id, concept_id, answer) -> grade + new mastery
@@ -348,12 +349,35 @@ def change_password(
 # ---------------------------------------------------------------------------
 
 def list_chapters() -> list[dict[str, Any]]:
-    """Return all chapters in the curriculum as [{id, name}, ...].
+    """Return all chapters in teaching order as
+    [{id, name, unit_id, unit_name, grade, domain, concept_count}, ...].
 
-    Lets a frontend render a chapter picker without reaching into the
-    curriculum directly.
+    Lets a frontend render a chapter picker (grouped class → unit) without
+    reaching into the curriculum directly.
     """
     return engine.list_chapters()
+
+
+def list_interests(active_only: bool = True) -> list[dict[str, Any]]:
+    """Return the interests a student can choose, from data/interests.yaml.
+
+    `active_only=True` (the default) returns only interests whose lessons are
+    ready — offering a draft interest would mean "coming soon" on every screen.
+
+    Returns:
+        [{id, label, emoji, description, status}, ...] in registry order.
+    """
+    return [
+        {
+            "id": i.id,
+            "label": i.label,
+            "emoji": i.emoji,
+            "description": i.description,
+            "status": i.status.value,
+        }
+        for i in load_interests()
+        if not active_only or i.status.value == "active"
+    ]
 
 
 def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
