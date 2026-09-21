@@ -35,6 +35,30 @@ class BloomLevel(str, Enum):
     CREATE = "create"
 
 
+class Domain(str, Enum):
+    """The broad area of physics a chapter belongs to.
+
+    Used to match interests to chapters: each interest in
+    `data/interests.yaml` lists the domains it grounds analogies in naturally.
+    """
+
+    GENERAL = "general"          # measurement, units, dimensions
+    MECHANICS = "mechanics"
+    THERMAL = "thermal"
+    WAVES = "waves"              # oscillations and mechanical waves
+    ELECTRICITY = "electricity"
+    MAGNETISM = "magnetism"
+    OPTICS = "optics"            # light and electromagnetic radiation
+    MODERN = "modern"            # quantum, atomic, nuclear, semiconductors
+
+
+class Board(str, Enum):
+    """Exam boards whose syllabus includes a concept."""
+
+    CBSE = "cbse"
+    ISC = "isc"
+
+
 class _Strict(BaseModel):
     """Base for curriculum models: reject unknown YAML keys (catches typos)."""
 
@@ -87,12 +111,17 @@ class Concept(_Strict):
         ...,
         description="Class (11 or 12). Stamped down from the parent Unit by the loader.",
     )
+    boards: list[Board] = Field(
+        default_factory=lambda: [Board.CBSE, Board.ISC],
+        description=(
+            "Exam boards whose syllabus includes this concept. Defaults to "
+            "both. An empty list marks enrichment beyond both syllabuses "
+            "(kept deliberately — say why in `syllabus_note`)."
+        ),
+    )
     syllabus_note: str | None = Field(
         default=None,
-        description=(
-            "Optional reviewer note, e.g. a topic whose status in the "
-            "current rationalised CBSE syllabus should be confirmed."
-        ),
+        description="Optional human note about the concept's syllabus status.",
     )
 
 
@@ -103,6 +132,7 @@ class Chapter(_Strict):
     name: str
     unit_id: str
     grade: int = Field(..., description="Stamped down from the parent Unit by the loader.")
+    domain: Domain = Field(..., description="Broad physics area, used to match interests.")
     concepts: list[Concept] = Field(default_factory=list)
 
 

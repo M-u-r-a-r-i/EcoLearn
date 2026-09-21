@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A cricket ground at dusk: floodlights on, an electronic scoreboard, light-up stumps, and an umpire checking a light meter</title>
+  <defs>
+    <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e1b4b"/>
+      <stop offset="0.6" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fef08a" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#fef08a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#dusk)"/>
+  <path d="M0,225 Q400,165 800,225 L800,272 L0,272 z" fill="#0f172a"/>
+
+  <!-- floodlight tower with glow -->
+  <circle cx="110" cy="70" r="70" fill="url(#glow)"/>
+  <rect x="104" y="84" width="12" height="170" fill="#334155"/>
+  <rect x="72" y="50" width="76" height="36" rx="4" fill="#1e293b"/>
+  <g fill="#fef9c3">
+    <circle cx="86" cy="62" r="6"/><circle cx="104" cy="62" r="6"/><circle cx="122" cy="62" r="6"/><circle cx="140" cy="62" r="4"/>
+    <circle cx="86" cy="76" r="6"/><circle cx="104" cy="76" r="6"/><circle cx="122" cy="76" r="6"/>
+  </g>
+  <!-- cable from the tower -->
+  <path d="M 116 250 Q 200 262 280 250" fill="none" stroke="#facc15" stroke-width="3" stroke-dasharray="8 6" opacity="0.7"/>
+
+  <!-- electronic scoreboard -->
+  <rect x="470" y="46" width="250" height="118" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <text x="490" y="76" font-size="15" fill="#94a3b8" font-weight="600">TEAM A</text>
+  <text x="490" y="118" font-size="34" fill="#fbbf24" font-weight="700" font-family="Consolas, monospace">187/4</text>
+  <text x="630" y="76" font-size="15" fill="#94a3b8" font-weight="600">OVERS</text>
+  <text x="630" y="118" font-size="34" fill="#34d399" font-weight="700" font-family="Consolas, monospace">18.2</text>
+  <text x="490" y="150" font-size="13" fill="#64748b">LED scoreboard</text>
+  <rect x="690" y="164" width="12" height="96" fill="#334155"/>
+
+  <!-- grass and pitch -->
+  <rect x="0" y="272" width="800" height="178" fill="#15803d"/>
+  <polygon points="200,330 640,330 680,370 160,370" fill="#d6c08f"/>
+
+  <!-- light-up stumps and bails -->
+  <circle cx="300" cy="305" r="40" fill="url(#glow)"/>
+  <g stroke="#fde047" stroke-width="6" stroke-linecap="round">
+    <line x1="288" y1="296" x2="288" y2="352"/>
+    <line x1="300" y1="296" x2="300" y2="352"/>
+    <line x1="312" y1="296" x2="312" y2="352"/>
+  </g>
+  <g stroke="#fef08a" stroke-width="5" stroke-linecap="round">
+    <line x1="282" y1="291" x2="298" y2="287"/>
+    <line x1="304" y1="283" x2="320" y2="279"/>
+  </g>
+  <text x="330" y="300" font-size="14" fill="#fef9c3" font-weight="600">bails light up when</text>
+  <text x="330" y="317" font-size="14" fill="#fef9c3" font-weight="600">the wicket is broken</text>
+
+  <!-- umpire with a light meter -->
+  <g stroke-linecap="round">
+    <line x1="560" y1="300" x2="548" y2="360" stroke="#0f172a" stroke-width="15"/>
+    <line x1="562" y1="300" x2="576" y2="360" stroke="#0f172a" stroke-width="15"/>
+    <line x1="561" y1="302" x2="561" y2="252" stroke="#f8fafc" stroke-width="28"/>
+    <line x1="561" y1="262" x2="596" y2="244" stroke="#c08457" stroke-width="7"/>
+  </g>
+  <rect x="592" y="230" width="22" height="30" rx="4" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="596" y="235" width="14" height="9" fill="#34d399"/>
+  <circle cx="561" cy="232" r="14" fill="#c08457"/>
+  <ellipse cx="561" cy="221" rx="22" ry="5" fill="#f8fafc"/>
+  <rect x="549" y="208" width="24" height="14" rx="4" fill="#f8fafc"/>
+  <text x="600" y="282" font-size="14" fill="#fef9c3" font-weight="600">light meter</text>
+</svg>

@@ -55,7 +55,12 @@ def verify() -> None:
     # The restored mastery must also drive the derived state correctly:
     assert status["displacement"] == "available", "displacement unlocks after position"
     assert status["speed"] == "available", "speed unlocks after distance"
-    assert status["velocity"] == "locked", "velocity still locked (needs displacement+speed)"
+    # Nothing is locked, but velocity's uncleared prerequisites are still reported.
+    assert status["velocity"] == "available", "nothing is ever locked"
+    velocity_row = next(r for r in roadmap if r["concept_id"] == "velocity")
+    assert set(velocity_row["missing_prerequisites"]) == {"displacement", "speed"}, (
+        "velocity should still cite displacement + speed as brush-up hints"
+    )
     print("[verify] PASS — roadmap state fully restored from SQLite across processes.")
 
 

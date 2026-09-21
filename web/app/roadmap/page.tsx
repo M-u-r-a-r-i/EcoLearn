@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Play, Lock, ArrowRight, PartyPopper } from "lucide-react";
+import { Check, Play, ArrowRight, PartyPopper } from "lucide-react";
 
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
 import { useStudent } from "@/components/student-provider";
@@ -39,12 +39,6 @@ const STATUS: Record<
     Icon: Play,
     node: "bg-primary text-white border-primary",
     badge: "bg-primary/10 text-primary",
-  },
-  locked: {
-    label: "Locked",
-    Icon: Lock,
-    node: "bg-muted text-muted-foreground border-border",
-    badge: "bg-muted text-muted-foreground",
   },
 };
 
@@ -194,7 +188,6 @@ export default function RoadmapPage() {
                       isNext
                         ? "border-primary/40 shadow-card"
                         : "border-border shadow-soft",
-                      c.status === "locked" && "opacity-70",
                     )}
                   >
                     <div className="flex flex-col">
@@ -206,8 +199,10 @@ export default function RoadmapPage() {
                           (c.attempts
                             ? `Ready to learn · best ${c.best_score}/3`
                             : "Ready to learn")}
-                        {c.status === "locked" &&
-                          `Unlocks after ${c.missing_prerequisites.length} earlier concept${c.missing_prerequisites.length === 1 ? "" : "s"}`}
+                        {/* Nothing is locked; uncleared prerequisites are only a hint. */}
+                        {c.status === "available" &&
+                          c.missing_prerequisites.length > 0 &&
+                          ` · builds on ${c.missing_prerequisites.length} earlier concept${c.missing_prerequisites.length === 1 ? "" : "s"}`}
                       </span>
                     </div>
 

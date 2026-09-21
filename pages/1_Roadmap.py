@@ -1,7 +1,7 @@
 """Roadmap page — the visual chapter map.
 
 Shows every concept in the chapter coloured by status (mastered green /
-available blue / locked grey) and a "Continue Learning" button that jumps to
+available blue) and a "Continue Learning" button that jumps to
 the next lesson.
 
 Platform calls used (only the API): get_roadmap.
@@ -53,15 +53,15 @@ st.write("")
 
 # Concept cards in teaching order.
 for row in roadmap:
-    if row["status"] == "locked":
-        missing = ", ".join(row["missing_prerequisites"])
-        detail = f"Locked until you master: {missing}"
-    elif row["status"] == "mastered":
+    # Nothing is locked; uncleared prerequisites are shown only as a hint.
+    if row["status"] == "mastered":
         detail = f"Best score {row['best_score']}/3 · {row['attempts']} attempt(s)"
     else:  # available
         detail = "Ready to learn" + (
             f" · best so far {row['best_score']}/3" if row["attempts"] else ""
         )
+        if row["missing_prerequisites"]:
+            detail += f" · brush up first: {', '.join(row['missing_prerequisites'])}"
     st.markdown(
         ui_common.concept_card(row["name"], row["status"], detail),
         unsafe_allow_html=True,

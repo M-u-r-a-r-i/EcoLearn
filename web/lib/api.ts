@@ -6,7 +6,7 @@
 
 // The base URL comes from the environment (web/.env.local). We fall back to
 // localhost so the app still runs if the var is missing in development.
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 // ---------------------------------------------------------------------------
 // Types — describe the shapes that cross the network, so TypeScript can check
@@ -54,7 +54,8 @@ export async function createStudent(
 // ---------------------------------------------------------------------------
 // One concept on the roadmap, as returned by GET /api/roadmap.
 // ---------------------------------------------------------------------------
-export type ConceptStatus = "mastered" | "available" | "locked";
+// Nothing is ever locked — prerequisites are hints (see missing_prerequisites).
+export type ConceptStatus = "mastered" | "available";
 
 export interface RoadmapConcept {
   concept_id: string;
@@ -64,7 +65,7 @@ export interface RoadmapConcept {
   progress_status: string;
   best_score: number;
   attempts: number;
-  missing_prerequisites: string[];
+  missing_prerequisites: string[]; // uncleared prerequisites — a "brush up first" hint
 }
 
 // ---------------------------------------------------------------------------

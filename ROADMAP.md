@@ -7,14 +7,90 @@
 >
 > **Read first:** [`PROJECT_HISTORY.md`](PROJECT_HISTORY.md) — what exists today and why.
 >
-> **Current position:** branch `auth-and-ux`. **Milestone 0: the backend auth core is done and
-> tested (`tests/test_auth.py`, 60 checks); the HTTP layer and all frontend work are not started.**
-> See §5 for exactly what remains and in what order.
+> **Current position (2026-09-21):** repo github.com/Niranjan-207/EcoLearn, branch `main`, **sprint to 2026-09-30 — see §0, which
+> overrides the milestone order below.** Sprint day 1 (full 28-chapter curriculum + interest
+> registry, 242 concepts, nothing locked) is done. M0's backend auth core is done but still
+> email-based; the sprint switches it to username.
 >
 > **Project goal:** the full Class 11 + 12 syllabus (28 chapters) × **15–20 interests** (up from
 > 2), generated on a **self-hosted GPU LLM** rather than a paid API tier. See §1 for how that
 > threads through the milestones. **When M0 is done, stop and ask the user every decision marked
 > "after M0" in §15 before starting M1.**
+
+---
+
+## 0. SPRINT TO 2026-09-30 — the plan of record ← **CURRENT**
+
+> **Set by the user on 2026-09-21. Where this section conflicts with anything below, this wins.**
+> Hackathon finals (HackAStone, Amsterdam) are on 2026-10-29; the build must be finished by
+> 2026-09-30 so it can be pilot-tested on real students first.
+
+### Decisions (user, 2026-09-21)
+
+| Topic | Decision |
+|---|---|
+| Accounts | **Username + password, no email** (minors — minimal PII). Teacher/admin password reset + bulk class account creation |
+| Content scope | **All Class 11 + 12 concepts × 10 interests × 3 formats** — 249 × 10 × 3 = **7,470 lessons** |
+| Boards | **CBSE and ISC students.** Every concept carries `boards` (default both); ISC-only topics are included and tagged `[isc]`; two enrichment topics kept at the user's request are tagged `[]` |
+| Syllabus source | Verified against the **official CBSE 2025-26 syllabus**; topics it specifies are included. ISC-only topics come from a third-party summary — verify against the official CISCE PDF |
+| Locking | **Nothing is ever locked.** Prerequisites are "brush up first" hints; the engine recommends the first uncleared concept in teaching order |
+| Writing order | Lessons are written in the standard school teaching order — Class 11 chapter 1 through Class 12 chapter 14 |
+| Who writes lessons | **Claude Code sessions (Opus 5), written straight to files.** No LLM API, no GPU for static content |
+| Critic | **No LLM critic.** Deterministic validator (format only) + **random 2% review sample** (~145 lessons) + human read of the first chapters students will use |
+| Interests | Chosen by physics fit (every domain covered at least 3×): football, gaming, cricket, music, motorsport, space, smartphones, cooking, photography, amusement_parks — `data/interests.yaml` |
+| Formats | **Explain** (today's shape) · **Challenge-first** · **Misconception-buster**. Shown as tabs; default: first visit → Explain, after a score < 2 → Misconception-buster, review → Challenge |
+| Lesson opening | **Every lesson opens with `## The story`** — a short narrative with a named character that sparks curiosity before any explanation (user, 2026-09-21) |
+| Images | **At least one image per lesson.** Scene illustrations: **one per chapter × interest** (~290 SVGs, user's choice). Graphs (rendered from data specs) and diagrams: per concept, shared by all interests (~250–400). Famous images: public domain / CC only, from Wikimedia Commons, **each download approved by the user**, recorded in `data/media/famous/manifest.yaml` |
+| Grading | **MCQ check questions**, each distractor mapped to a misconception → **no live LLM call** for grading |
+| Doubt chatbot | **Gemini only.** 3090/self-hosted backend is a later feature — placeholder only |
+| Hosting | **Local first**; cloud later |
+| Deferred | M1a (LLM layer/GPU), M1b (pilot gate), M2–M5 (learner model, profiler, adaptive sequencer), M8–M9, diagrams, interest corpora |
+
+### Day plan
+
+| Day | Work | Status |
+|---|---|---|
+| 1 — Mon 22 | Content spine: schema (`grade`, `domain`, `boards`, strict keys, duplicate-id guard, sparse global order), full 28-chapter curriculum verified against CBSE 2025-26 (242 concepts), interest registry, generated review doc, **nothing locked** | ✅ **done 2026-09-21** |
+| 2 — Tue 23 | Lesson schema v2 — Markdown + YAML front matter at `data/lessons/{grade}/{chapter}/{concept}/{interest}__{format}.md`, read by `lesson_service` alongside the legacy JSON. Deterministic validator (front matter, ids, required sections, KaTeX renders, MCQ answer valid, no scratchpad). `content/AUTHORING_GUIDE.md` + 12 gold examples. **Next:** the user approves the gold examples → pilot batch, measuring usage per batch | ✅ **done 2026-09-21** except the pilot batch, which waits for gold approval |
+| 2–3 | Switch auth to username (store, boundary, `tests/test_auth.py`); validate interests against the registry | ✅ **done 2026-09-21** — 73 checks |
+| 3–7 | **Bulk writing** in waves: one batch = one chapter × one interest (~27 lessons), several Claude Code sessions in parallel, validator after each wave. In teaching order: Class 11 ch. 1 first | |
+| 3–5 | `api/security.py` (JWT cookie), auth endpoints, exception handlers; frontend `request()` wrapper, auth provider, login/signup, route guard, **breaking flip**; chapter picker (class → unit), class overview | |
+| 6 | Format tabs + format rule, MCQ answer/feedback UI, "coming soon" state, 👍/👎 + format-view logging for pilot metrics, **clickable roadmap concepts** (`/lesson?concept=`, same URL mechanism as the chapter picker) so students can open any concept | |
+| 7 | Dark mode, toasts, error pages, skeletons, settings, teacher tools (reset password, create a class from a roster) | |
+| 8 | Chatbot on Gemini with a self-hosted placeholder, local run end-to-end, 30-student load test, coverage report | |
+| 9 — Tue 30 | 2% sample review, human read of pilot chapters, fixes, trial run, demo account, docs | |
+
+### Resolved (user, 2026-09-21, second round)
+
+- **Kept topics:** all eight kept; students are on both boards. Newton's law of cooling and eddy
+  currents are in neither syllabus — tagged `boards: []` as enrichment.
+- **Order:** lessons are written in the standard school teaching order.
+- **Locking:** nothing is locked, anywhere (`src/path/engine.py`).
+- **Missing topics:** added where the CBSE 2025-26 syllabus specifies them — uncertainty in
+  measurement, motion graphs, calculus for motion, unit vectors, constant acceleration in a plane,
+  motion in a vertical circle, elastic energy, Oersted's experiment. Free fall is not listed as a
+  topic, so it is taught inside the equations-of-motion lessons. The AC generator moved to
+  Alternating Current, where CBSE lists it.
+
+### Open decisions for the user
+
+1. **Approve the revised gold lessons** (story openings + images) — 12 files under
+   `data/lessons/11/laws_of_motion/second_law/` and `data/lessons/12/current_electricity/ohms_law/`.
+   Bulk writing starts after approval.
+2. **Famous images for the bulk run** — each needs the user's download approval. Plan: compile the
+   list per chapter (title, Commons page, licence, size) and ask once per chapter, not per image.
+
+*(Communication Systems: added 2026-09-21 as chapter 29, ISC-only — 7 concepts.)*
+
+### Risks
+
+- **No critic → some wrong physics will ship.** Even 0.5% of 7,470 is ~37 lessons. Mitigated by
+  the validator, the 2% sample (which also yields a measured error rate for the pitch), and full
+  human review of pilot chapters.
+- **Claude plan usage limits** — roughly 10M+ output tokens in total. The pilot batch measures
+  real usage per batch; fallback is Explain-only for non-pilot chapters first, or Sonnet for
+  simpler batches.
+- **Background sessions need the PC on** and the app open.
 
 ---
 
@@ -120,8 +196,8 @@ Violating these breaks the project.
    `CREATE UNIQUE INDEX` for uniqueness (SQLite rejects `ADD COLUMN … UNIQUE`). Legacy rows and
    Streamlit must keep working.
 7. **Update the history file after any directory-touching change** (Changed / Why / Learned).
-8. **Do NOT auto-commit or push.** The human runs commits. Work on a feature branch; suggest a
-   branch for any `master` change.
+8. **Commit and push to `origin` (github.com/Niranjan-207/EcoLearn, branch `main`) when a chunk of work is complete and every check passes** (user authorisation, 2026-09-21). Never force-push, never rewrite pushed history, never commit secrets (`.env`, keys) or local files (`venv/`, `data/progress.db`, `chroma_db/`). Suggest a
+   feature branch for risky or experimental work.
 9. **Models and providers.** *Today:* Gemma `gemma-4-31b-it` (generator/assessor) and Gemini
    2.5 Flash-Lite (critic/polisher) via the `google-genai` SDK; local `all-MiniLM-L6-v2`
    embeddings. *The plan (user decision, 2026-09-21):* bulk generation moves to a **self-hosted
@@ -1077,6 +1153,6 @@ front of the user for each; most can be accepted in one line.
 - Relevant tests pass (standalone scripts, run from the project root).
 - For web changes: `npx tsc --noEmit` and `npm run build` are clean.
 - [`PROJECT_HISTORY.md`](PROJECT_HISTORY.md) updated (Changed / Why / Learned).
-- Nothing auto-committed or pushed.
+- Committed and pushed to `origin main` once every check passes (never force-push).
 - Prefer `curl.exe` + `tsc` + computed-style checks over screenshots — the screenshot path is
   unreliable in this environment.

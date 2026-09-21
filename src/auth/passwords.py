@@ -37,7 +37,7 @@ MAX_PASSWORD_BYTES = 72
 MIN_PASSWORD_LENGTH = 8
 
 # A real bcrypt hash of a throwaway value, used only by `dummy_verify` to burn
-# the same ~100ms an actual verification costs when the email is unknown. Built
+# the same ~100ms an actual verification costs when the username is unknown. Built
 # once at import so the cost isn't paid twice on that path.
 _DUMMY_HASH = bcrypt.hashpw(b"ecolearn-dummy-password", bcrypt.gensalt()).decode("utf-8")
 
@@ -112,8 +112,8 @@ def verify_password(password: str, password_hash: str | None) -> bool:
 def dummy_verify() -> None:
     """Burn one bcrypt verification against a throwaway hash.
 
-    Called on the unknown-email login path so that "no such account" and "wrong
+    Called on the unknown-username login path so that "no such account" and "wrong
     password" take ~the same wall-clock time. Without it, a fast rejection is a
-    side channel that tells an attacker which emails are registered.
+    side channel that tells an attacker which usernames are registered.
     """
     bcrypt.checkpw(b"ecolearn-dummy-password-probe", _DUMMY_HASH.encode("utf-8"))

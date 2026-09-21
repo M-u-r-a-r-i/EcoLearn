@@ -1,0 +1,20 @@
+# V-I graphs: an ohmic 20-ohm resistor vs a filament lamp.
+# Lamp data (illustrative, matches the challenge lesson): 1.0 V at 50 mA (20 ohm),
+# 6.0 V at 150 mA (40 ohm); resistance rises steadily in between as it heats.
+# Resistor: V = 0.020 * I(mA)  ->  6.0 V at 300 mA.
+x: {label: "Current $I$ (mA)", min: 0, max: 320}
+y: {label: "Voltage $V$ (V)", min: 0, max: 7}
+title: "V–I graphs: ohmic vs non-ohmic"
+legend: below
+series:
+  - label: "20 Ω resistor (ohmic): straight line"
+    points: [[0, 0], [300, 6.0]]
+    color: blue
+  - label: "Filament lamp (non-ohmic): curves up as it heats"
+    points: [[0, 0], [25, 0.45], [50, 1.0], [75, 1.9], [100, 3.0], [125, 4.4], [150, 6.0]]
+    color: red
+    markers: true
+marks:
+  - {x: 50, y: 1.0, text: "R = 20 Ω", color: red, offset: [10, -4]}
+  - {x: 150, y: 6.0, text: "R = 40 Ω (hot)", color: red, offset: [-110, 6]}
+  - {x: 300, y: 6.0, text: "ohmic: 300 mA at 6 V", color: blue, offset: [-150, 10]}

@@ -1,0 +1,128 @@
+# EcoLearn — the interest registry.
+#
+# The single source of truth for which interests a student can choose. The web
+# app, Streamlit and the lesson tooling all read this list; nothing else may
+# hardcode interests.
+#
+# Fields:
+#   id              lowercase slug, used in lesson filenames. NEVER rename one —
+#                   lessons and student profiles store it verbatim.
+#   label, emoji    what the student sees.
+#   description     the world lesson authors draw analogies from.
+#   strong_domains  physics domains (see Domain in src/curriculum/schema.py)
+#                   where this interest grounds analogies naturally. Lessons are
+#                   still written for EVERY chapter; outside these domains the
+#                   author may teach directly rather than force an analogy.
+#   status          active = offered to students; draft = lessons still being
+#                   written. Promote to active only when its lessons exist.
+#
+# Chosen so every domain has at least three natural fits:
+#   mechanics    football, cricket, motorsport, amusement_parks, space, gaming
+#   thermal      cooking, motorsport, space, football
+#   waves        music, cricket, smartphones
+#   electricity  smartphones, motorsport, gaming, music, photography
+#   magnetism    music, smartphones, cooking, amusement_parks, motorsport
+#   optics       photography, space, gaming, smartphones
+#   modern       space, smartphones, gaming, photography
+#   general      cooking, motorsport, cricket
+
+interests:
+  - id: football
+    label: Football
+    emoji: "⚽"
+    description: >-
+      Kicks, passes, headers and free kicks; ball spin and swerve; sprinting,
+      tackling and goalkeeping; boots, studs and pitch surfaces; stadiums,
+      floodlights and goal-line technology.
+    strong_domains: [mechanics, thermal]
+    status: active
+
+  - id: gaming
+    label: Gaming
+    emoji: "🎮"
+    description: >-
+      Video games and the hardware behind them — game physics engines, racing
+      and shooter mechanics, frame rates and screens, controllers and haptics,
+      batteries, GPUs and cooling fans, VR headsets.
+    strong_domains: [mechanics, optics, electricity, modern]
+    status: active
+
+  - id: cricket
+    label: Cricket
+    emoji: "🏏"
+    description: >-
+      Batting, bowling and fielding; swing, seam and spin; the bat hitting the
+      ball; catches and run-outs; pitch conditions; DRS, Hawk-Eye cameras,
+      Snickometer microphones and speed guns.
+    strong_domains: [mechanics, waves, general]
+    status: draft
+
+  - id: music
+    label: Music
+    emoji: "🎵"
+    description: >-
+      Singing and instruments — guitar and violin strings, flutes and drums;
+      pitch, harmonics and tuning; concert halls and echoes; microphones,
+      guitar pickups, amplifiers, speakers and headphones.
+    strong_domains: [waves, electricity, magnetism]
+    status: draft
+
+  - id: motorsport
+    label: Cars & Formula 1
+    emoji: "🏎️"
+    description: >-
+      Road cars and racing — acceleration, braking and cornering, tyres and
+      grip, downforce, engines and brake heat, electric cars, batteries,
+      motors and regenerative braking, lap timing.
+    strong_domains: [mechanics, thermal, electricity, magnetism, general]
+    status: draft
+
+  - id: space
+    label: Space & Astronomy
+    emoji: "🚀"
+    description: >-
+      Rockets, satellites and space stations; orbits and escape; planets,
+      moons, stars and black holes; telescopes; starlight and spectra; how the
+      Sun shines by fusion; astronauts and microgravity.
+    strong_domains: [mechanics, thermal, optics, modern]
+    status: draft
+
+  - id: smartphones
+    label: Smartphones & Gadgets
+    emoji: "📱"
+    description: >-
+      Phones, earbuds and smartwatches — batteries and charging, wireless
+      charging pads, touchscreens, cameras, speakers and vibration motors,
+      Wi-Fi and mobile signals, chips, LEDs and displays.
+    strong_domains: [electricity, magnetism, optics, modern, waves]
+    status: draft
+
+  - id: cooking
+    label: Cooking & Kitchen
+    emoji: "🍳"
+    description: >-
+      Boiling, frying, baking and freezing; pressure cookers; induction
+      cooktops, microwaves and electric kettles; pouring honey versus water;
+      measuring ingredients; ice, steam and melting chocolate.
+    strong_domains: [thermal, magnetism, general]
+    status: draft
+
+  - id: photography
+    label: Photography & Film
+    emoji: "📷"
+    description: >-
+      Cameras and filmmaking — lenses, focus, zoom and aperture; mirrors and
+      reflections; camera sensors and exposure; camera flash; colour and
+      light; projectors and cinema screens.
+    strong_domains: [optics, modern, electricity]
+    status: draft
+
+  - id: amusement_parks
+    label: Theme Parks & Rides
+    emoji: "🎢"
+    description: >-
+      Roller coasters, loops and drops; Ferris wheels and spinning rides;
+      bumper cars and water slides; magnetic launch systems and magnetic
+      brakes; free-fall towers and swings.
+    strong_domains: [mechanics, magnetism]
+    status: draft

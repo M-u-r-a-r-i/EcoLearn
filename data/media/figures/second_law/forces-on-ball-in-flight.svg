@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Forces on a ball in flight: only weight acts; velocity is not a force</title>
+  <defs>
+    <marker id="headBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="headRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+    <marker id="headGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+
+  <rect width="640" height="400" fill="#ffffff"/>
+  <!-- ground -->
+  <rect x="0" y="340" width="640" height="60" fill="#dcfce7"/>
+  <line x1="0" y1="340" x2="640" y2="340" stroke="#16a34a" stroke-width="2"/>
+
+  <!-- trajectory (quadratic Bezier, apex at x=330) -->
+  <path d="M 60 340 Q 330 -40 600 340" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+
+  <!-- the bat that started it, at the left -->
+  <rect x="36" y="300" width="12" height="46" rx="4" fill="#d6b27c" stroke="#92400e" stroke-width="1.5" transform="rotate(-35 42 323)"/>
+
+  <!-- misconception: a forward "force of the hit" arrow, crossed out -->
+  <line x1="249" y1="167" x2="345" y2="205" stroke="#9ca3af" stroke-width="4" stroke-dasharray="7 5" marker-end="url(#headGray)"/>
+  <line x1="282" y1="170" x2="318" y2="206" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+  <line x1="318" y1="170" x2="282" y2="206" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+  <text x="352" y="222" font-size="14" fill="#6b7280">"force of the hit"</text>
+  <text x="352" y="240" font-size="14" fill="#6b7280">— gone after contact</text>
+
+  <!-- velocity: tangent to the path. NOT a force -->
+  <line x1="249" y1="167" x2="350" y2="124" stroke="#2563eb" stroke-width="4" marker-end="url(#headBlue)"/>
+  <text x="358" y="118" font-size="15" fill="#2563eb" font-weight="600">velocity v</text>
+  <text x="358" y="136" font-size="13" fill="#2563eb">(motion — not a force)</text>
+
+  <!-- weight: the only force (ignoring air) -->
+  <line x1="249" y1="175" x2="249" y2="268" stroke="#dc2626" stroke-width="4" marker-end="url(#headRed)"/>
+  <text x="260" y="262" font-size="15" fill="#dc2626" font-weight="600">weight mg</text>
+  <text x="260" y="280" font-size="13" fill="#dc2626">the only force</text>
+
+  <!-- the ball -->
+  <circle cx="249" cy="167" r="10" fill="#b91c1c" stroke="#7f1d1d" stroke-width="1.5"/>
+  <path d="M 241 161 Q 249 167 241 173" fill="none" stroke="#fef2f2" stroke-width="1.2"/>
+
+  <text x="20" y="30" font-size="17" font-weight="700" fill="#111827">A ball in flight (air resistance ignored)</text>
+  <text x="20" y="52" font-size="14" fill="#374151">Force changes motion. It isn't carried along with the ball.</text>
+</svg>

@@ -6,20 +6,27 @@ concepts, and answers two questions:
 
     next_concept(student_id, chapter_id)  -> the single best next step + why
     get_roadmap(student_id, chapter_id)   -> every concept tagged
-                                             mastered / available / locked
+                                             mastered / available
 
 The engine never invents pedagogy of its own: ordering and prerequisites come
 from the curriculum spine (src/curriculum), mastery comes from the progress
 store (src/progress). The engine is the rule that combines them.
 
+NOTHING IS EVER LOCKED (user decision, 2026-09-21). Prerequisites are advice,
+not gates: a student may open any concept in any chapter. With 28 chapters, hard
+gating would lock a Class 12 student out of Class 12 chapters behind Class 11
+concepts they never studied in the app. Uncleared prerequisites are still
+reported — as "brush up first" suggestions — in both the recommendation reason
+and the roadmap's `missing_prerequisites` field.
+
 `next_concept` policy, in order:
   1. Spaced repetition — if a mastered concept in this chapter hasn't been
      revisited in REVIEW_INTERVAL_DAYS, surface it for review first. A forgotten
      prerequisite quietly undermines everything built on top of it.
-  2. Forward progress — otherwise recommend the first not-yet-mastered concept
-     (in teaching order) whose prerequisites are ALL mastered.
-  3. Done / blocked — if nothing is learnable, say whether the chapter is fully
-     mastered or blocked on a prerequisite from elsewhere.
+  2. Forward progress — otherwise recommend the first not-yet-cleared concept
+     in teaching order. Teaching order already puts prerequisites first, so a
+     student following the recommendations meets them in a sensible sequence.
+  3. Done — every concept in the chapter is cleared.
 """
 
 from __future__ import annotations
@@ -54,7 +61,9 @@ _DEFAULT_REVIEW_INTERVAL_DAYS = 7
 KIND_NEW = "new"        # learn this for the first time
 KIND_REVIEW = "review"  # revisit a mastered concept (spaced repetition)
 KIND_DONE = "done"      # whole chapter mastered, nothing due
-KIND_BLOCKED = "blocked"  # next concept locked by an unmet prerequisite
+# No longer returned — nothing is locked. Kept because UIs and older clients
+# still branch on the string "blocked".
+KIND_BLOCKED = "blocked"
 
 
 @dataclass
@@ -184,50 +193,38 @@ def next_concept(
             ),
         )
 
-    # 2. Forward progress: first not-yet-cleared concept whose prerequisites are
-    #    all cleared. A 2/3 pass "clears" a concept, so a student who chose to
-    #    move on past a partial pass keeps advancing.
+    # 2. Forward progress: the first not-yet-cleared concept in teaching order.
+    #    A 2/3 pass "clears" a concept, so a student who chose to move on past a
+    #    partial pass keeps advancing. Uncleared prerequisites never block — they
+    #    become a suggestion in the reason.
     for c in concepts:
         if c.id in cleared:
             continue
         prereqs = resolve_prerequisites(c.id, subject)  # direct prerequisites
         missing = [p for p in prereqs if p.id not in cleared]
-        if not missing:
-            if prereqs:
-                reason = (
-                    f"Next in sequence: you've cleared its prerequisites "
-                    f"({', '.join(p.name for p in prereqs)}), so {c.name} is "
-                    f"now unlocked and you haven't cleared it yet."
-                )
-            else:
-                reason = (
-                    f"Starting point: {c.name} has no prerequisites and you "
-                    f"haven't cleared it yet."
-                )
-            return Recommendation(kind=KIND_NEW, concept=c, reason=reason)
+        if not prereqs:
+            reason = f"Starting point: {c.name} doesn't build on anything earlier."
+        elif not missing:
+            reason = (
+                f"Next in sequence: you've cleared what it builds on "
+                f"({', '.join(p.name for p in prereqs)}), so {c.name} is a "
+                f"natural next step."
+            )
+        else:
+            reason = (
+                f"Next in sequence: {c.name}. It builds on "
+                f"{', '.join(p.name for p in missing)} — a quick brush-up on "
+                f"those first will make it easier, but you can start right away."
+            )
+        return Recommendation(kind=KIND_NEW, concept=c, reason=reason)
 
-    # 3. Nothing learnable: either the chapter is done, or it's blocked.
-    uncleared = [c for c in concepts if c.id not in cleared]
-    if not uncleared:
-        return Recommendation(
-            kind=KIND_DONE,
-            concept=None,
-            reason=(
-                "You've worked through every concept in this chapter. There's "
-                "nothing due for review right now either — well done."
-            ),
-        )
-
-    first = uncleared[0]
-    missing = [p for p in resolve_prerequisites(first.id, subject)
-               if p.id not in cleared]
+    # 3. Everything in the chapter is cleared.
     return Recommendation(
-        kind=KIND_BLOCKED,
-        concept=first,
+        kind=KIND_DONE,
+        concept=None,
         reason=(
-            f"{first.name} is next, but it's locked until you clear its "
-            f"prerequisite(s): {', '.join(p.name for p in missing)}. "
-            f"Those live earlier in the curriculum — work through them first."
+            "You've worked through every concept in this chapter. There's "
+            "nothing due for review right now either — well done."
         ),
     )
 
@@ -235,6 +232,7 @@ def next_concept(
 # Roadmap status labels (drive the roadmap UI).
 ROADMAP_MASTERED = "mastered"
 ROADMAP_AVAILABLE = "available"
+# "locked" is no longer produced — nothing is locked. Kept for older clients.
 ROADMAP_LOCKED = "locked"
 
 
@@ -243,14 +241,11 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
 
     Status is one of:
       - "mastered"  : the student has mastered it (3/3) — the gold badge
-      - "available" : not mastered, but all prerequisites are cleared (>=2/3);
-                      includes concepts the student passed at 2/3 and can
-                      revisit to fully master
-      - "locked"    : not mastered, and at least one prerequisite is not cleared
+      - "available" : everything else. Nothing is ever locked.
 
     Each entry also carries the underlying progress detail (progress_status,
-    best_score, attempts) and, for locked concepts, the missing prerequisite
-    ids — everything a roadmap view needs to render without re-querying.
+    best_score, attempts) and `missing_prerequisites`: the ids of prerequisites
+    not yet cleared (>=2/3), for the UI to show as "brush up first" hints.
     """
     subject = _load_subject()
     concepts = _chapter_concepts(subject, chapter_id)
@@ -263,12 +258,7 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
         prereqs = resolve_prerequisites(c.id, subject)
         missing = [p.id for p in prereqs if p.id not in cleared]
 
-        if c.id in mastered:
-            status = ROADMAP_MASTERED
-        elif not missing:
-            status = ROADMAP_AVAILABLE
-        else:
-            status = ROADMAP_LOCKED
+        status = ROADMAP_MASTERED if c.id in mastered else ROADMAP_AVAILABLE
 
         row = progress.get(c.id, {})
         roadmap.append({

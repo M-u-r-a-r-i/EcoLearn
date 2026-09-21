@@ -65,7 +65,7 @@ def main() -> None:
         print(f"  {row['name']:<34} {row['status']:<10} missing: {missing}")
     statuses = {r["concept_id"]: r["status"] for r in roadmap}
     assert statuses["position"] == "available", "position has no prereqs → available"
-    assert statuses["velocity"] == "locked", "velocity should be locked initially"
+    assert statuses["velocity"] == "available", "nothing is ever locked"
 
     # --- 3. get_next_lesson ---------------------------------------------
     _rule("STEP 3 — get_next_lesson")

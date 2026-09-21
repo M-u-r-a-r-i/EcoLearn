@@ -21,8 +21,11 @@ GET vs POST (the rule of thumb used below)
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # Import your existing backend UNCHANGED. Because we run uvicorn from the project
@@ -46,6 +49,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------
+# Lesson images — graphs, diagrams, scene illustrations and famous images —
+# served as static files from data/media/. Lessons reference them by relative
+# path (e.g. "figures/ohms_law/vi-ohmic-vs-lamp.svg"); the web app prefixes
+# this route. Every file is checked by scripts/validate_lessons.py first
+# (SVGs are rejected if they contain scripts, handlers or external links).
+# ---------------------------------------------------------------------------
+_MEDIA_DIR = Path(__file__).resolve().parents[1] / "data" / "media"
+app.mount("/media", StaticFiles(directory=_MEDIA_DIR), name="media")
 
 
 # ===========================================================================
@@ -104,7 +117,7 @@ def create_student(payload: StudentRequest) -> dict:
 
 @app.get("/api/roadmap")
 def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
-    """Return every concept in a chapter tagged mastered / available / locked.
+    """Return every concept in a chapter tagged mastered / available (nothing is locked).
 
     GET because it only reads. `student_id` and `chapter_id` are query params,
     e.g. /api/roadmap?student_id=ada&chapter_id=motion_straight_line.

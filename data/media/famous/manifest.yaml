@@ -1,0 +1,26 @@
+# Famous images — historical photographs, portraits and documents.
+#
+# Every file in this folder MUST have an entry here, and the validator refuses a
+# lesson that uses an image without one. Only public-domain or openly licensed
+# images (CC0 / CC BY / CC BY-SA), each verified on its Wikimedia Commons page.
+# `credit` is shown under the image in the app; for CC BY / BY-SA it is a
+# licence requirement, for public domain it is courtesy.
+#
+# Files are ~960px web-sized versions, not the originals.
+
+images:
+  - file: newton-principia-title-page.jpg
+    title: Title page of Newton's Principia (1687)
+    source: https://commons.wikimedia.org/wiki/File:Newton%27s_Principia_title_page.png
+    license: Public domain
+    credit: "Isaac Newton, Philosophiæ Naturalis Principia Mathematica (1687). Scan: Internet Archive (Bern Dibner copy), via Wikimedia Commons. Public domain."
+    concepts: [inertia_first_law, second_law, third_law, universal_gravitation]
+    downloaded: 2026-09-21
+
+  - file: georg-simon-ohm-portrait.jpg
+    title: Portrait of Georg Simon Ohm
+    source: https://commons.wikimedia.org/wiki/File:Georg_Simon_Ohm3.jpg
+    license: Public domain
+    credit: "Georg Simon Ohm (1789–1854). Artist unknown; source: Lebendiges Museum Online, via Wikimedia Commons. Public domain."
+    concepts: [ohms_law, resistivity]
+    downloaded: 2026-09-21

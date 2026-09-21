@@ -24,5 +24,10 @@ bcrypt                # password hashing, used DIRECTLY (not via passlib, which
                       # guards the limit explicitly, so either major works.
 pyjwt                 # HS256 session tokens for api/security.py
 
+# --- Content tooling ---------------------------------------------------------
+matplotlib            # renders lesson graphs from data specs
+                      # (scripts/render_graphs.py: *.graph.yaml -> *.svg).
+                      # Build-time only; the app just serves the SVGs.
+
 # --- Legacy frontend ---------------------------------------------------------
 streamlit             # the legacy UI (app.py + pages/); must keep working

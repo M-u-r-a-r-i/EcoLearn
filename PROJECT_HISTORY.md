@@ -9,7 +9,8 @@
 > **Companion file:** [`ROADMAP.md`](ROADMAP.md) — everything still to be done (the v2 plan).
 > **Evaluator-facing overview:** [`README.md`](README.md).
 >
-> History closes at: **2026-09-21**, branch `auth-and-ux`, 44 commits.
+> History closes at: **2026-09-21**. Repo: github.com/Niranjan-207/EcoLearn, branch `main` (fresh
+> history from 2026-09-21; the original 44 commits in §8 live in the teammate's repo).
 
 ---
 
@@ -486,6 +487,205 @@ question before anyone asked it: Gemma's recorded **2/11** polish success means 
 setup cannot assume one model for every role — hence per-role configuration and a parity gate
 before the pilot, not after it.
 
+## 9e. Sprint to 2026-09-30 + the full content spine (2026-09-21)
+
+**Changed.**
+- *Plan:* the user set a 10-day sprint (build done by 2026-09-30, student pilot in October,
+  HackAStone finals 2026-10-29) and made new decisions: **username + password** accounts (no
+  email), **all Class 11 + 12 concepts × 10 interests × 3 formats** (6,690 lessons) **written by
+  Claude Code sessions — no LLM API, no GPU, no LLM critic** — MCQ check questions graded with no
+  LLM call, **Gemini only** for the doubt chatbot (3090 backend deferred to a placeholder), local
+  hosting first. Recorded as `ROADMAP.md` §0 (overrides the milestone order) and in `AGENTS.md` §2.
+- `src/curriculum/schema.py` — `grade` on `Unit` (loader stamps it onto chapters and concepts),
+  a `Domain` enum + `domain` on `Chapter`, optional `syllabus_note` on `Concept`, and
+  `extra="forbid"` on every model. Fixed the `Concept.order` docstring (order is global).
+- `src/curriculum/loader.py` — `validate_unique_ids()` run at load **before** any dict index is
+  built (fixes the silent last-one-wins duplicate bug in `_by_id`); grade stamping.
+- `data/curriculum/physics.yaml` — **28 chapters, 223 concepts** (Class 11: 119, Class 12: 104),
+  NCERT rationalised structure. Sparse global order `chapter_seq*1000 + pos*10`; the original 17
+  concepts renumbered (2010…3080) but **no id renamed or moved**. 8 concepts carry a
+  `syllabus_note` for the user to keep or drop.
+- `data/interests.yaml` + `src/curriculum/interests.py` — the interest registry: 10 interests
+  chosen so every physics domain has ≥ 3 natural fits; football and gaming `active`, the rest
+  `draft`.
+- `scripts/curriculum_report.py` → `content/CURRICULUM.md`, a generated review document.
+- `tests/test_content_spine.py` — 27 checks, including fixtures proving the loader **rejects** a
+  duplicate concept id, a duplicate chapter id, a key typo, a missing grade, a mis-ordered
+  prerequisite and an unknown domain.
+- `venv` rebuilt with Python 3.12 — the committed one pointed at another machine's interpreter
+  (`C:\Users\murar\…\Python310`) and could not run.
+
+**Why.** The user wants to see and approve the curriculum before any lesson is written, and every
+lesson file is keyed on a concept id, so the spine has to be right — and guarded — first.
+
+**Learned.**
+- Pydantic's default `extra="ignore"` is a trap for hand-authored data: `prerequisite: [a]`
+  (missing "s") would have loaded silently as *no prerequisites*. Forbid unknown keys wherever
+  humans type the input.
+- Order-encoding the chapter (`15030` = chapter 15, concept 3) makes the number readable and
+  leaves gaps everywhere, at the cost of nothing.
+- Scaling surfaced a product bug no test could show at 2 chapters: prerequisites across chapters
+  **hard-lock** concepts, so a Class 12 student would be blocked behind Class 11. Recorded as an
+  open decision rather than silently changed, because a pinned test asserts today's behaviour.
+
+## 9f. Curriculum review applied: both boards, syllabus-verified, nothing locked (2026-09-21)
+
+**Changed.**
+- *User decisions:* keep all eight flagged topics (students are on **CBSE and ISC**); write
+  lessons in standard school teaching order; **lock nothing**; add missing topics wherever the
+  syllabus specifies them.
+- `src/curriculum/schema.py` — `Board` enum + `boards` on `Concept` (default both; `[isc]` for
+  ISC-only; `[]` for enrichment).
+- `data/curriculum/physics.yaml` — checked line by line against the **official CBSE 2025-26
+  syllabus** (the NIC-hosted PDF). Added 8 CBSE topics I had missed (`measurement_uncertainty`,
+  `motion_graphs`, `calculus_for_motion`, `unit_vectors`, `motion_plane_constant_acceleration`,
+  `vertical_circle_motion`, `elastic_potential_energy`, `magnetic_field_oersted`) and 11 ISC-only
+  topics (axes theorems, geostationary satellites, metre bridge, potentiometer, cyclotron,
+  dispersion, Davisson-Germer, Zener diode, junction transistor, transistor amplifier, logic
+  gates). Moved `ac_generator` into Alternating Current. Poisson's ratio turned out to be in CBSE
+  2025-26 — its "trimmed" note was wrong and is gone. **242 concepts → 7,260 lessons.**
+- `src/path/engine.py` — **nothing is locked**: `next_concept` recommends the first uncleared
+  concept in teaching order (brush-up advice in the reason), never `blocked`; `get_roadmap`
+  returns only `mastered`/`available`, with `missing_prerequisites` kept as a hint.
+- UIs: web roadmap drops the locked style and shows "builds on N earlier concepts"; the
+  `ConceptStatus` type loses `locked`. Streamlit roadmap shows "brush up first: …".
+- Tests: `test_scale_chapter2.py` rewritten to prove nothing locks and hints clear as prerequisites
+  are cleared; `test_persistence.py` and the live `test_platform_api.py` updated;
+  `test_content_spine.py` now 41 checks (board tags, the added CBSE topics, unknown-board rejection,
+  originals kept in relative order).
+- `scripts/curriculum_report.py` — board column, board-specific section.
+
+**Why.** "Keep both" meant students from both boards, which made board a property of each concept
+rather than a yes/no on eight topics. "Don't lock anything" removes the cross-class trap found in
+§9e at its root instead of special-casing cross-chapter prerequisites.
+
+**Learned.**
+- Check the syllabus, not your memory of it. The official 2025-26 text had six topics the
+  memory-based draft missed, and one note that was simply wrong (Poisson's ratio). The only way to
+  find that was to read the document.
+- The official CISCE site refuses automated fetches (403), so ISC topics rest on a third-party
+  summary and are labelled as such in the data. Unverified inputs should carry that label with
+  them, not only in a chat message.
+- `npm run lint` already fails on three pages (setState called synchronously inside `useEffect`) —
+  pre-existing, and scheduled to disappear with the frontend `request()`/auth-provider rewrite.
+
+## 9g. Sprint day 2: authored lessons, validator, gold examples, username login (2026-09-21)
+
+**Changed.**
+- `data/curriculum/physics.yaml` — **Communication Systems** added as chapter 29 (ISC-only, 7
+  concepts, orders 29010–29070). 249 concepts → 7,470 lessons.
+- `src/content/lesson_schema.py` — `LessonFormat` (explain / challenge / misconception),
+  `FORMAT_SECTIONS` (required H2s per format, in order), `MCQCheck` (exactly A–D, answer among
+  them, one misconception per wrong option — validated by the model itself), `AuthoredLesson`;
+  `LessonMetadata.source`.
+- `src/content/authored.py` — parse the Markdown + YAML header; `to_legacy_lesson()` so today's
+  UIs render authored lessons unchanged; `student_view()`; neither ever contains the answer,
+  explanation or misconceptions.
+- `src/content/lesson_service.py` — serves an authored "explain" lesson first, legacy JSON second;
+  `get_authored_lesson`, `available_formats`; lessons dir overridable via `ECOLEARN_LESSONS_DIR`.
+- `src/content/validate.py` + `scripts/validate_lessons.py` + `scripts/katex_check.mjs` — the
+  deterministic validator (location/ids, MCQ consistency, sections, length, control characters,
+  drafting text, `$` balance) and **real KaTeX rendering** via the web app's own `katex` package;
+  `--coverage` report.
+- `content/AUTHORING_GUIDE.md` — the brief every writing session reads: the three formats, the
+  no-invented-facts rule, the weak-fit rule, physics-correctness rules, MCQ design, a self-check.
+- **12 gold lessons**: `second_law` (Class 11) and `ohms_law` (Class 12) × cricket and music × 3
+  formats. `ohms_law × cricket` demonstrates the weak-fit rule (real devices, no forced analogy).
+  All 12 validate.
+- **Username login**: `store` gains `username` + `idx_students_username` (the email draft's
+  column is left in old DBs, unused); `register_student` / `authenticate_student` take a username
+  (3–20 chars, `[a-z0-9_.]`, case-insensitive); interests are validated against the registry on
+  register and profile update. `tests/test_auth.py` → 73 checks, including a DB migrated by the
+  email draft.
+- New `tests/test_authored_lessons.py` (25 checks); `test_content_spine.py` → 42 checks.
+
+**Why.** Day 2 of `ROADMAP.md` §0: nothing can be written at scale until the file format, the
+automatic format check and the quality bar exist — and the user approves the bar before 7,458
+more lessons copy it.
+
+**Learned.**
+- Markdown + YAML block scalars beat JSON for hand-written physics: backslashes stay literal. The
+  one remaining trap — a backslash inside a *double-quoted* YAML string — shows up as a control
+  character, which the validator now names with the fix.
+- Rendering maths with the exact library the browser uses is cheap (one Node process per run)
+  and turns "does this formula render?" from a manual check into a test.
+- A multiple-choice answer key is a secret: the adapter and the student view are tested to never
+  include it, because the browser's network tab would show it otherwise.
+
+## 9h. Gold-lesson feedback: story openings and images (2026-09-21)
+
+**Changed.**
+- *User feedback on the gold lessons:* "good, but start with a story that sparks curiosity, then
+  explain; include images of scenarios, graphs and famous images related to the concept." Scene
+  illustrations: **one per chapter × interest** (user's choice of three offered options).
+- `src/content/lesson_schema.py` — every format now opens with a required `## The story`
+  (explain's "The scene" is gone).
+- **Media library** `data/media/`: `scenes/{interest}/{chapter}.svg` (4 drawn), `figures/{concept}/`
+  (2 graph specs rendered to SVG + 2 drawn diagrams), `famous/` (Newton's *Principia* title page
+  and a portrait of Ohm — both public domain, downloaded from Wikimedia Commons **with the user's
+  approval**, recorded in `famous/manifest.yaml`; the 1.9 MB Principia PNG was converted to a
+  268 KB JPEG).
+- `scripts/render_graphs.py` — graphs are YAML data specs rendered by matplotlib in one house style
+  (`matplotlib` added to `requirements.txt`); a legend can sit below the plot so it never covers data.
+- `src/content/validate.py` — image rules: ≥ 1 image per lesson; local paths under
+  `figures/ scenes/ famous/` only; alt text + caption required; files exist and are < 600 KB;
+  SVGs parse, have a `viewBox`, and contain no `<script>`, `<foreignObject>`, `on…` handlers or
+  external links; famous images need a manifest entry with an open licence, stated in the caption.
+  `check_media_library()` catches unlisted famous images and stale graphs.
+- `api/main.py` — `/media` static route. `web/components/markdown.tsx` — images render with their
+  caption on a white card (spans, not `<figure>`, since Markdown wraps images in `<p>`);
+  `API_URL` exported from `web/lib/api.ts`.
+- All 12 gold lessons rewritten with story openings (named characters, a moment, an open question)
+  and 2–3 images each. `content/AUTHORING_GUIDE.md` gains §4a (the story) and §7a (images,
+  SVG rules, colour conventions, famous-image licensing).
+- `tests/test_authored_lessons.py` → 41 checks (story required; every image rule, including five
+  kinds of unsafe SVG).
+
+**Why.** A story makes the student want the answer before it arrives; pictures carry what text
+can't — especially graphs and circuit diagrams, which Class 12 depends on.
+
+**Learned.**
+- Graphs belong in data, not drawings: a spec rendered by code can't disagree with its own numbers,
+  and a hand-drawn curve easily can.
+- Look at every image before shipping it. Each of the four scenes had at least one overlap
+  (a label running into a drum, a guitar across the headphones, a hat over a scoreboard) that was
+  invisible in the SVG source and obvious in the browser pane.
+- SVG is code: it can carry scripts and external requests, so "safe SVG" is a validator rule, not a
+  hope. A famous image is a licence obligation, so its source and licence live in data the
+  validator reads.
+- The web app can't display these lessons yet (the lesson page hardcodes chapter 1). The image
+  pipeline was verified end to end through the API (`/media` serves every referenced file with the
+  right content type and refuses path traversal) and by `tsc`; the visible check waits for the
+  chapter picker.
+
+## 9i. More images where needed; commit-and-push authorised (2026-09-21)
+
+**Changed.**
+- *User instruction:* "include more images if required in future lessons and concepts", and
+  "https://github.com/Niranjan-207/EcoLearn is the GitHub repo — push into it when required."
+- `content/AUTHORING_GUIDE.md` §7a — images are now **as many as the concept needs**, no upper
+  limit, with guidance on when to add more (processes in steps, differing cases, every important
+  relationship, structure words can't describe); **story-specific scenes** allowed as
+  `scenes/{interest}/{chapter_id}--{short-name}.svg` when the shared chapter scene doesn't show
+  what the story needs; a self-check line asking whether any step would be clearer as a picture.
+  No validator change needed — it has never capped the count.
+- The standing git rule changed from "never commit — the user commits" to **commit and push to
+  `origin main` when a chunk of work is complete and every check passes** — never force-push,
+  never commit secrets or local files. Updated in `AGENTS.md` (§2 state, rule 11, §5, §8),
+  `ROADMAP.md` (rule 8, §18) and §14 here.
+- Repo facts recorded: `origin` = github.com/Niranjan-207/EcoLearn, branch `main`, re-initialised
+  by the user with one "Initial Commit" (the 44 commits in §8 live in the teammate's repo).
+- First commit under the new rule: all of sprint days 1–2 (content spine, no-lock engine,
+  username auth, lesson format + validator, gold lessons with stories and images).
+
+**Why.** The remote is the only backup, and a day of uncommitted work existed only in one working
+tree. Pushing at the end of each verified chunk removes that single point of failure.
+
+**Learned.** Before a first push to a new remote, check three things rather than assume them: what
+the remote already holds (`git ls-remote` — here it matched local HEAD, so a plain fast-forward),
+that secrets and local state are ignored (`git check-ignore` on `.env`, the DB, `venv/`), and that
+nothing key-shaped is in the diff.
+
 ---
 
 ## 10. Key decisions and why
@@ -642,6 +842,6 @@ cd web && npx tsc --noEmit && npm run lint && npm run build
 - **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
   global across the subject.
 - **Tests are standalone scripts**, added in the same style as the existing ones.
-- **Do not auto-commit or push.** The human runs commits; suggest a branch for `master` changes.
+- **Commit and push to `origin` (github.com/Niranjan-207/EcoLearn, branch `main`) when a chunk of work is complete and every check passes** (user authorisation, 2026-09-21). Never force-push, never rewrite pushed history, never commit secrets (`.env`, keys) or local files (`venv/`, `data/progress.db`, `chroma_db/`). (Until 2026-09-21 the rule was "the human runs commits".)
 - Beginner-friendly explanations are appreciated — explain the *why*. Honest, specific critique
   over vague praise.

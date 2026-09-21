@@ -5,7 +5,7 @@ WHY THESE EXIST
 Before this module, everything the backend rejected was a bare `ValueError`
 ("Unknown student_id ...", "No lesson for concept ..."). That is fine in-process
 — Streamlit just shows the message — but the HTTP layer needs to tell those
-cases apart: an unknown student is a **404**, a duplicate email is a **409**,
+cases apart: an unknown student is a **404**, a duplicate username is a **409**,
 a bad password is a **401**, and a malformed input is a **400**. A single
 exception type cannot carry that distinction.
 
@@ -39,7 +39,7 @@ class NotFoundError(EcoLearnError):
 
 
 class ConflictError(EcoLearnError):
-    """The request collides with existing state (e.g. email already registered)."""
+    """The request collides with existing state (e.g. username already taken)."""
 
 
 class AuthError(EcoLearnError):

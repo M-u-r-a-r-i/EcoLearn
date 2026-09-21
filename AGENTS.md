@@ -20,8 +20,8 @@
 picks an interest — today football or gaming — and every concept is taught through analogies
 grounded in that interest, with the physics kept correct by an automated critic. It is full-stack:
 **FastAPI + Next.js** (primary) with **Streamlit** kept as a legacy UI over the same backend.
-2 chapters, 17 concepts, 34 pre-generated lessons, all committed and working. The plan scales this
-to the full Class 11 + 12 syllabus × 15–20 interests, generated on a self-hosted GPU (§2).
+The curriculum now spans the full Class 11 + 12 syllabus for CBSE and ISC (29 chapters, 249 concepts); 34 lessons
+exist today, and a 10-day sprint writes the rest — 10 interests × 3 formats (§2).
 
 The one architectural fact everything depends on:
 
@@ -40,79 +40,94 @@ The one architectural fact everything depends on:
    are the substance.
 2. **Check the handoff state:** `git status` and `git log --oneline -5`. **If there are
    uncommitted changes you didn't make, they are the handoff — never `reset`, `checkout .`,
-   `stash drop` or `clean` them.** The previous instance never commits (the user does), so the
-   latest work may exist only in the working tree.
+   `stash drop` or `clean` them.** Work is normally committed and pushed at the end of each chunk
+   (§5), but the latest work may still exist only in the working tree.
 3. **Run the deterministic suite (§6).** All of it should pass. If anything fails, stop and tell
    the user before building on top — something changed since the handoff.
 4. **Tell the user, in a few sentences, what you understood** — where the project is, the next
    action, and anything that looked inconsistent. Let them correct you before you start.
 5. Then begin the next action below.
 
-### The goal
+### The goal — a 10-day sprint (set by the user, 2026-09-21)
 
-The user has set three scale-up goals (2026-09-21):
+**Hackathon finals (HackAStone, Amsterdam): 2026-10-29. The build must be finished by
+2026-09-30** so it can be pilot-tested on real school students in October. The sprint plan of
+record is **`ROADMAP.md` §0** — it supersedes the milestone order below wherever they conflict.
 
-- **Full Class 11 + Class 12 Physics** — 28 chapters, ~250 concepts (today: 2 chapters, 17).
-- **15–20 interests** (today: 2). Which ones is still the user's call (decision I1).
-- **Generation on a self-hosted LLM running on a GPU**, instead of a paid API tier.
+User decisions (2026-09-21) — don't re-litigate them:
 
-Together: ~250 concepts × 20 interests × 5 formats ≈ **25,000 lessons**, against 34 today. That
-scale-up is already planned and woven into the milestones (§3 and `ROADMAP.md` §1). It is **not**
-the immediate next action — Milestone 0 is in flight and finishes first.
+- **Accounts: username + password, no email** (the pilot is on minors — minimal PII). The
+  auth backend was switched from email to username on 2026-09-21. No email means password
+  resets go through a teacher/admin tool.
+- **Content: every concept of Class 11 + 12 × 10 interests × 3 formats, pre-written.** 249
+  concepts × 10 × 3 = **7,470 lessons**, written in standard teaching order. Students are on
+  **CBSE and ISC** — every concept carries `boards` (ISC-only topics are tagged `[isc]`).
+- **Nothing is ever locked.** Prerequisites are "brush up first" hints, never gates.
+- **Every lesson opens with a story and has images** — scene illustration per chapter × interest,
+  graphs/diagrams per concept, famous images (public domain / CC only). **Never download an image
+  without the user's approval**; every famous image needs a manifest entry. See
+  `content/AUTHORING_GUIDE.md` §4a and §7a.
+- **Lessons are written by Claude Code sessions (Opus 5) straight to files — no LLM API, no GPU,
+  and no LLM critic** for static content. Quality comes from a shared authoring guide + approved
+  gold examples, a deterministic validator (format only), a random 2% review sample, and full
+  human reading of the pilot chapters.
+- **Check questions are multiple-choice** with each wrong option mapped to a misconception, so
+  grading needs **no live LLM call**.
+- **The doubt chatbot is the only live LLM feature: Gemini only.** The RTX 3090 backend is a
+  later feature — leave a placeholder, don't build it.
+- **Run locally first**; cloud hosting comes after the sprint.
 
 ### Current state
 
-**Branch:** `auth-and-ux`. Work here. **Milestone 0 (accounts, auth & UX foundation) is in
-progress: the backend auth core is DONE and TESTED; the HTTP layer and all frontend work are NOT
-started.**
+**Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`** (a fresh history: the user
+re-initialised it with one "Initial Commit" on 2026-09-21; the older 44-commit history described
+in `PROJECT_HISTORY.md` §8 lives in the teammate's repo). **Sprint days 1–2 are DONE**, committed
+and pushed.
 
-**Done and verified** (see `ROADMAP.md` §5 for the detail): `src/errors.py`,
-`src/auth/passwords.py`, the additive `students` migration + credential functions in
-`src/progress/store.py`, the five account functions in `src/platform_api.py`
-(`register_student`, `authenticate_student`, `get_student_profile`, `update_student_profile`,
-`change_password`), and `NotFoundError` for unknown chapters in `src/path/engine.py`.
+**Done and verified:**
+- *M0 backend auth core* (from the previous handoff): `src/errors.py`, `src/auth/passwords.py`,
+  the `students` migration + credential functions in `src/progress/store.py`, five account
+  functions in `src/platform_api.py` — now **username-based** (switched on sprint day 2).
+- *Content spine:* `data/curriculum/physics.yaml` now holds **29 chapters / 249 concepts**
+  (the 29th is the ISC-only Communication Systems),
+  verified against the official CBSE 2025-26 syllabus plus ISC-only topics, with global sparse ordering (`chapter_seq*1000 + pos*10`),
+  a `grade` on every unit (stamped onto chapters/concepts) and a `domain` on every chapter.
+  The loader rejects duplicate ids and unknown keys. The original 17 concept ids are unchanged.
+- *Interest registry:* `data/interests.yaml` (10 interests; football + gaming `active`, the rest
+  `draft`) + `src/curriculum/interests.py`.
+- *Review doc:* `content/CURRICULUM.md`, generated by `scripts/curriculum_report.py` — never
+  edit it by hand.
 
-**Proof it works:** `venv\Scripts\python.exe tests\test_auth.py` → **60 checks pass**, covering
-the migration from an old-shape DB, bcrypt's 72-byte cliff, every error branch, and the two
-backwards-compatibility contracts. Run it first — if it's green, the foundation under you is
-sound and you can build straight on top. The other deterministic tests pass too.
+**Proof:** all deterministic tests pass, including the new `tests/test_content_spine.py`
+(42 checks), `tests/test_authored_lessons.py` (41 checks) and `tests/test_auth.py` (73 checks).
+- *No locking:* `src/path/engine.py` never returns `locked`/`blocked`; `missing_prerequisites`
+  is now a hint. Both UIs show it as "builds on / brush up first".
 
-> Don't re-derive or rewrite that layer. It is finished. Start at the next action below.
+- *Sprint day 2:* authored-lesson format (`src/content/lesson_schema.py`, `authored.py`,
+  `lesson_service.py`), the validator (`src/content/validate.py`, `scripts/validate_lessons.py`,
+  `scripts/katex_check.mjs`), `content/AUTHORING_GUIDE.md`, and **12 gold lessons**. Accounts
+  switched to **username** login; interests validated against the registry.
 
-**→ YOUR NEXT ACTION:** `api/security.py` — PyJWT HS256, claims `{sub, iat, exp}`, ~7-day TTL,
-secret from `ECOLEARN_JWT_SECRET`, httpOnly + `samesite="lax"` cookie, and a
-`get_current_student_id(request)` dependency that 401s. Then the new endpoints and exception
-handlers in `api/main.py`. `ROADMAP.md` §5 lists everything remaining in order, including the
-frontend work and the atomic "breaking flip".
+- *Stories + images:* every format opens with `## The story`; lessons carry images from
+  `data/media/` (scenes, figures, famous) served by the API at `/media` and rendered with captions
+  by `web/components/markdown.tsx`. Graphs: `scripts/render_graphs.py`. The validator checks every
+  image (exists, alt text, caption, safe SVG, famous-image licence).
 
-Keep every change **additive** until that flip, so Streamlit and the current web app keep working.
+**-> YOUR NEXT ACTION:** the user reviews the revised 12 gold lessons. Once approved, run the pilot batch
+(Units and Measurement × one interest), measure its usage, then start bulk writing in teaching
+order per `ROADMAP.md` §0. Every writing session must read `content/AUTHORING_GUIDE.md` first.
+In parallel: `api/security.py` and the auth endpoints (username-based).
 
-**Two forward-looking constraints on M0** (details in `ROADMAP.md` §5):
-- Build the web chapter picker for **28 chapters grouped class → unit**, not a flat list of 2 —
-  M1 enriches `GET /api/chapters` with `unit_id`, `unit_name` and `grade`.
-- Build the interest picker for **~20 interests**, not 2 big cards — read them from one typed list
-  (`lib/interests.ts`) shaped like the future `GET /api/interests`, which M1 introduces.
-
-### ⛔ Checkpoint after Milestone 0
-
-**When M0's acceptance criteria pass, stop and ask the user every decision marked "After M0" in
-`ROADMAP.md` §15 before starting M1 or M1a.** That is currently **S1, S2, I1, I3, L0, L1, L3, L4**:
-
-| | Decision |
-|---|---|
-| S1, S2 | Concept ordering scheme; one physics subject vs one per class |
-| I1, I3 | Which 15–20 interests; how interest corpora are sourced |
-| L0 | **The GPU facts** — which GPU and how much VRAM, where it runs, when it's available |
-| L1, L3, L4 | Always-on vs batch-only; serving stack; keep the Gemini API as a fallback |
-
-They are the user's calls, not yours. Put the recommended default for each in front of them (most
-can be accepted in one line), record the answers in `ROADMAP.md`, then start. The other decisions
-(S3, S4, I2, I4, L2) are asked later, at the milestone that needs them — the "Ask when" column
-says exactly when.
+Keep every change **additive** until the auth "breaking flip", so Streamlit and the current web
+app keep working.
 
 ---
 
 ## 3. The phases, in the order they must be done
+
+> **During the sprint to 2026-09-30, `ROADMAP.md` §0 overrides this table.** The sprint drops
+> M1a/M1b (no GPU, no API generation), writes all lessons with Claude Code sessions, and defers
+> M2–M5 and M8–M9. The table below is the longer-term plan after the pilot.
 
 Do these in sequence — each unblocks the next. Full specs and acceptance criteria per milestone are
 in [`ROADMAP.md`](ROADMAP.md).
@@ -152,7 +167,8 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
    UI. The web app goes `web/lib/api.ts` → FastAPI → boundary.
 2. **The boundary returns plain JSON-serializable dicts/lists.** No Pydantic objects cross it.
 3. **Cached vs live:** the **only** live LLM calls are the doubt chat (`ask_help`) and grading
-   (`submit_assessment`). Everything else is served from pre-generated cache. **This is the entire
+   (`submit_assessment`) — and in the sprint, grading becomes multiple-choice with **no** LLM call.
+   Static lessons are written by Claude Code sessions, never generated through an API. Everything else is served from pre-generated cache. **This is the entire
    cost, latency and capacity strategy — do not add a live call.** A self-hosted GPU doesn't change
    that: a live lesson would take minutes, and every student would compete for one GPU.
 4. **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
@@ -185,17 +201,19 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
     (`{concept_id}__{interest}.json`), student progress rows and tests are all keyed on them — a
     rename silently orphans all three. New ids must be unique across the **whole subject**, not
     just the chapter.
-11. **Never commit or push.** See §5.
+11. **Commit and push only as §5 describes** — never force-push, never commit secrets.
 
 ---
 
 ## 5. How the user works (match this)
 
-- **Never auto-commit or push.** The user runs every commit themselves. Stage nothing on their
-  behalf without asking; propose the commit command instead. For any change to `master`, suggest a
-  feature branch first.
-- **Remind them to push** after a successful chunk of work — it's easy to forget and the remote is
-  the only backup.
+- **Commit and push to `origin` (github.com/Niranjan-207/EcoLearn, branch `main`) when a chunk of work is complete and every check passes** (user authorisation, 2026-09-21). Never force-push, never rewrite pushed history, never commit secrets (`.env`, keys) or local files (`venv/`, `data/progress.db`, `chroma_db/`).
+  Run the full check list (§6) first; a red check means no commit. Write a descriptive message
+  (what changed and why), not ".". Report the pushed commit hash to the user.
+- *(Before 2026-09-21 the rule was "never commit — the user commits". Superseded.)* For risky or
+  experimental work, suggest a feature branch instead of committing straight to `main`.
+- **The remote is the only backup** — so push after every successful chunk, and never leave a day's
+  work only in the working tree.
 - **Log every change.** After any request that adds, modifies or removes something in this
   directory, append an entry to **`PROJECT_HISTORY.md`** with **Changed / Why / Learned**
   (absolute date, terse file-level bullets — the diff is in git, the doc is for narrative
@@ -254,6 +272,9 @@ venv\Scripts\python.exe tests\test_edge_states.py
 venv\Scripts\python.exe tests\test_scale_chapter2.py
 venv\Scripts\python.exe tests\test_persistence.py seed
 venv\Scripts\python.exe tests\test_persistence.py verify
+venv\Scripts\python.exe tests\test_content_spine.py
+venv\Scripts\python.exe tests\test_authored_lessons.py
+venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 
 # web changes
 cd web && npx tsc --noEmit && npm run lint && npm run build
@@ -293,4 +314,4 @@ Full list: `PROJECT_HISTORY.md` §13.
 - Relevant deterministic tests pass; `tsc --noEmit` + `npm run build` clean for web changes.
 - `PROJECT_HISTORY.md` updated (Changed / Why / Learned).
 - `ROADMAP.md` milestone status updated if you advanced or finished one.
-- Nothing committed or pushed — hand the user the commit command and remind them to push.
+- Committed with a descriptive message and pushed to `origin main`; report the commit hash.

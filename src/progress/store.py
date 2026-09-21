@@ -90,27 +90,32 @@ def _migrate_students(conn: sqlite3.Connection) -> None:
     EXISTS calls above: every connection checks, and only the first one on an
     old database actually changes anything. Existing rows keep working — the new
     columns are nullable, so a legacy name-only student simply has
-    email = password_hash = NULL and can still be loaded by
+    username = password_hash = NULL and can still be loaded by
     `create_or_load_student`.
+
+    Accounts log in with a **username**, not an email (user decision,
+    2026-09-21: the pilot is on minors, so collect as little personal data as
+    possible). An earlier uncommitted draft added an `email` column; databases
+    that already have it keep it, unused — migrations only ever add.
 
     Two SQLite specifics worth knowing:
       * there is no `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, so we read
         `PRAGMA table_info` and compare names ourselves;
-      * `ADD COLUMN ... UNIQUE` is outright rejected by SQLite, so email
+      * `ADD COLUMN ... UNIQUE` is outright rejected by SQLite, so username
         uniqueness comes from a separate unique *index*. A unique index still
         permits many NULLs (SQLite treats NULLs as distinct), which is exactly
         what legacy rows need.
     """
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(students)")}
 
-    if "email" not in existing:
-        conn.execute("ALTER TABLE students ADD COLUMN email TEXT")
+    if "username" not in existing:
+        conn.execute("ALTER TABLE students ADD COLUMN username TEXT")
     if "password_hash" not in existing:
         conn.execute("ALTER TABLE students ADD COLUMN password_hash TEXT")
 
     conn.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_email "
-        "ON students(email)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username "
+        "ON students(username)"
     )
     conn.commit()
 
@@ -276,7 +281,7 @@ def get_student(student_id: str) -> dict[str, Any] | None:
 
     **Never** includes `password_hash` — the profile is the shape that crosses
     the service boundary and reaches a browser. Only
-    `get_student_by_email` (the login path) sees the hash.
+    `get_student_by_username` (the login path) sees the hash.
     """
     conn = _connect()
     try:
@@ -348,27 +353,27 @@ def _student_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         "interest": row["interest"],
         "level": row["level"],
         "created_at": row["created_at"],
-        # Nullable: legacy name-only students have no email.
-        "email": row["email"],
+        # Nullable: legacy name-only students have no username.
+        "username": row["username"],
     }
 
 
-def get_student_by_email(email: str) -> dict[str, Any] | None:
+def get_student_by_username(username: str) -> dict[str, Any] | None:
     """Return the full student row **including `password_hash`**, or None.
 
     The one function that exposes the hash, because authentication needs to
     compare against it. Its result must stay inside the backend — pass the
     profile from `get_student` to anything that talks to a client.
 
-    Email matching is case-insensitive: addresses are stored already normalised
-    (lowercased + stripped by the boundary), and we normalise the lookup too so
-    "Ada@x.com" finds the account registered as "ada@x.com".
+    Username matching is case-insensitive: usernames are stored already
+    normalised (lowercased + stripped by the boundary), and we normalise the
+    lookup too so "Ada_K" finds the account registered as "ada_k".
     """
-    normalised = email.strip().lower()
+    normalised = username.strip().lower()
     conn = _connect()
     try:
         row = conn.execute(
-            "SELECT * FROM students WHERE email = ?",
+            "SELECT * FROM students WHERE username = ?",
             (normalised,),
         ).fetchone()
     finally:
@@ -385,7 +390,7 @@ def save_student_with_credentials(
     name: str,
     interest: str,
     level: str,
-    email: str,
+    username: str,
     password_hash: str,
 ) -> dict[str, Any]:
     """Insert a brand-new student that has real credentials.
@@ -396,9 +401,10 @@ def save_student_with_credentials(
     would be a security hole.
 
     Raises:
-        sqlite3.IntegrityError: if the student_id or email is already taken
-                                (the unique index on `email` enforces the
-                                latter). The boundary translates this.
+        sqlite3.IntegrityError: if the student_id or username is already
+                                taken (the unique index on `username`
+                                enforces the latter). The boundary translates
+                                this.
     """
     created_at = _now_iso()
     conn = _connect()
@@ -406,11 +412,11 @@ def save_student_with_credentials(
         conn.execute(
             """
             INSERT INTO students
-                (student_id, name, interest, level, created_at, email, password_hash)
+                (student_id, name, interest, level, created_at, username, password_hash)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (student_id, name, interest, level, created_at,
-             email.strip().lower(), password_hash),
+             username.strip().lower(), password_hash),
         )
         conn.commit()
     finally:
@@ -422,7 +428,7 @@ def save_student_with_credentials(
         "interest": interest,
         "level": level,
         "created_at": created_at,
-        "email": email.strip().lower(),
+        "username": username.strip().lower(),
     }
 
 

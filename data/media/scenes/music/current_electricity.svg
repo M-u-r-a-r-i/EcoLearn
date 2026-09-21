@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A music desk: a phone with headphones plugged in, and a guitar plugged through an effects pedal into an amplifier</title>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#312e81"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#wall)"/>
+  <!-- desk -->
+  <rect x="0" y="330" width="800" height="120" fill="#78350f"/>
+  <rect x="0" y="322" width="800" height="12" fill="#a16207"/>
+
+  <!-- phone lying on the desk -->
+  <rect x="50" y="276" width="70" height="46" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>
+  <rect x="58" y="283" width="54" height="32" rx="4" fill="#38bdf8"/>
+  <path d="M 70 300 L 78 292 L 86 302 L 94 290 L 102 304" fill="none" stroke="#f8fafc" stroke-width="2"/>
+  <path d="M 120 300 C 160 300 170 230 196 214" fill="none" stroke="#e5e7eb" stroke-width="3"/>
+  <text x="30" y="360" font-size="14" fill="#fde68a" font-weight="600">phone: small output voltage</text>
+
+  <!-- big studio headphones -->
+  <path d="M 198 172 Q 250 74 302 172" fill="none" stroke="#1f2937" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 198 172 Q 250 74 302 172" fill="none" stroke="#4b5563" stroke-width="6" stroke-linecap="round"/>
+  <ellipse cx="200" cy="192" rx="22" ry="30" fill="#111827" stroke="#9ca3af" stroke-width="3"/>
+  <ellipse cx="300" cy="192" rx="22" ry="30" fill="#111827" stroke="#9ca3af" stroke-width="3"/>
+  <text x="168" y="248" font-size="14" fill="#e0e7ff" font-weight="600">300 Ω studio headphones</text>
+
+  <!-- electric guitar standing on its stand -->
+  <g transform="rotate(-8 420 230)">
+    <rect x="412" y="44" width="16" height="150" rx="3" fill="#a16207"/>
+    <rect x="408" y="32" width="24" height="22" rx="4" fill="#422006"/>
+    <path d="M 420 184 C 372 184 370 236 390 252 C 372 282 390 318 420 318 C 450 318 468 282 450 252 C 470 236 468 184 420 184 z" fill="#dc2626" stroke="#7f1d1d" stroke-width="3"/>
+    <rect x="406" y="232" width="28" height="8" rx="2" fill="#f8fafc"/>
+    <rect x="406" y="262" width="28" height="8" rx="2" fill="#f8fafc"/>
+  </g>
+  <text x="380" y="360" font-size="14" fill="#e0e7ff" font-weight="600">guitar</text>
+
+  <!-- effects pedal with its 9 V battery -->
+  <rect x="482" y="286" width="84" height="40" rx="6" fill="#16a34a" stroke="#052e16" stroke-width="3"/>
+  <circle cx="502" cy="302" r="6" fill="#f8fafc"/><circle cx="524" cy="302" r="6" fill="#f8fafc"/>
+  <circle cx="548" cy="312" r="7" fill="#e5e7eb" stroke="#374151" stroke-width="2"/>
+  <rect x="500" y="360" width="46" height="30" rx="3" fill="#1d4ed8"/>
+  <text x="510" y="380" font-size="13" fill="#ffffff" font-weight="700">9 V</text>
+  <path d="M 523 360 L 523 326" stroke="#e5e7eb" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="456" y="420" font-size="14" fill="#fde68a" font-weight="600">effects pedal + 9 V battery</text>
+
+  <!-- guitar amplifier -->
+  <rect x="600" y="150" width="170" height="172" rx="10" fill="#1c1917" stroke="#a8a29e" stroke-width="3"/>
+  <rect x="612" y="162" width="146" height="30" rx="4" fill="#d6d3d1"/>
+  <g fill="#1c1917">
+    <circle cx="630" cy="177" r="8"/><circle cx="656" cy="177" r="8"/><circle cx="682" cy="177" r="8"/><circle cx="708" cy="177" r="8"/>
+  </g>
+  <circle cx="740" cy="177" r="5" fill="#ef4444"/>
+  <rect x="614" y="202" width="142" height="108" rx="6" fill="#292524"/>
+  <g stroke="#44403c" stroke-width="2">
+    <line x1="614" y1="220" x2="756" y2="220"/><line x1="614" y1="238" x2="756" y2="238"/>
+    <line x1="614" y1="256" x2="756" y2="256"/><line x1="614" y1="274" x2="756" y2="274"/>
+    <line x1="614" y1="292" x2="756" y2="292"/>
+  </g>
+  <text x="630" y="140" font-size="14" fill="#e0e7ff" font-weight="600">guitar amplifier</text>
+
+  <!-- cables: guitar -> pedal -> amp -->
+  <path d="M 452 296 C 466 300 470 306 482 306" fill="none" stroke="#f8fafc" stroke-width="3"/>
+  <path d="M 566 306 C 586 306 584 250 600 250" fill="none" stroke="#f8fafc" stroke-width="3"/>
+</svg>

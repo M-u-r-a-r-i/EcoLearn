@@ -91,9 +91,9 @@ def all_concepts(subject: Subject) -> list[Concept]:
 def teaching_order(subject: Subject) -> list[Concept]:
     """Return all concepts sorted by their declared `order` field.
 
-    `order` is set per-concept by the author. Within a chapter the field is
-    1, 2, 3, …; across chapters and units we sort by (unit_order_implicit,
-    chapter_order_implicit, order) using the document's natural sequence.
+    `order` is GLOBAL across the subject (chapter_seq * 1000 + position * 10
+    by convention), so a plain sort yields the whole-subject teaching sequence
+    and filtering it to one chapter yields that chapter's sequence.
     """
     flat = all_concepts(subject)
     # Sort by `order` but break ties by the original document position so
@@ -129,9 +129,7 @@ def validate_unique_ids(subject: Subject) -> None:
                 _check("concept", concept.id, f"chapter {chapter.id!r}")
 
     if problems:
-        raise ValueError("Curriculum has duplicate ids:
-  " + "
-  ".join(problems))
+        raise ValueError("Curriculum has duplicate ids:\n  " + "\n  ".join(problems))
 
 
 def _by_id(subject: Subject) -> dict[str, Concept]:
