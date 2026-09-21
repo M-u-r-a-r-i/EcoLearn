@@ -9,8 +9,9 @@ pipeline, or lesson service directly. This page uses a single API function:
 
     create_or_load_student(name, interest, level)
 
-The previous single-page chatbot is preserved as `legacy_chat_app.py`
-(`streamlit run legacy_chat_app.py`) and is independent of this platform.
+This multi-page platform replaced an earlier single-page chatbot; that original
+lives on in git history (`git show c22e453:legacy_chat_app.py`) and is not part
+of the current app.
 """
 
 from __future__ import annotations
