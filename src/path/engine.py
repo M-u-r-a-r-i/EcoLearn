@@ -35,6 +35,10 @@ from src.curriculum.loader import (
     teaching_order,
 )
 from src.curriculum.schema import Concept, Subject
+# NotFoundError subclasses ValueError, so callers that already do
+# `except ValueError` keep working — the HTTP layer just gains the precision to
+# answer 404 instead of 400 for an unknown chapter.
+from src.errors import NotFoundError
 from src.progress import store
 
 # Project root = .../EcoLearn/  (this file lives at .../EcoLearn/src/path/).
@@ -90,7 +94,7 @@ def _chapter_concepts(subject: Subject, chapter_id: str) -> list[Concept]:
     concepts = [c for c in teaching_order(subject) if c.chapter_id == chapter_id]
     if not concepts:
         known = sorted({c.chapter_id for c in teaching_order(subject)})
-        raise ValueError(
+        raise NotFoundError(
             f"Chapter {chapter_id!r} has no concepts (or doesn't exist). "
             f"Known chapters: {', '.join(known)}"
         )

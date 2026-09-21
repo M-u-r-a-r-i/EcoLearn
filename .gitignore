@@ -1,22 +1,55 @@
-venv/
+# ---------------------------------------------------------------------------
+# Secrets — never commit these.
+# ---------------------------------------------------------------------------
 .env
+.env.local
+
+# ---------------------------------------------------------------------------
+# Python environment + bytecode (recreate: pip install -r requirements.txt)
+# ---------------------------------------------------------------------------
+venv/
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
 
-# Local vector store — regenerable from src/data via src/rag/build_index.py
+# ---------------------------------------------------------------------------
+# Machine-local developer config
+#   .claude/  — agent launch configs + local permissions; contains absolute
+#               Windows paths, so it is meaningless on another machine.
+# ---------------------------------------------------------------------------
+.claude/
+.vscode/
+.idea/
+
+# ---------------------------------------------------------------------------
+# Generated at runtime — regenerable, and per-machine
+#   chroma_db/        vector index      → python src/rag/build_index.py
+#   data/progress.db  student progress  → rebuilt as students use the app
+#   graphify-out/     knowledge-graph artifact from the graphify skill
+# ---------------------------------------------------------------------------
 chroma_db/
+data/*.db
+data/*.db-journal
+data/*.db.bak
+graphify-out/
 
-# Transient run logs from the lesson factory (src/content/generate_lessons.py)
-generation.log
-generation_resume.log
-repolish.log
-platform_test.log
+# ---------------------------------------------------------------------------
+# Transient run logs (lesson factory, manual test runs). Console captures only —
+# the durable narrative lives in PROJECT_HISTORY.md.
+# ---------------------------------------------------------------------------
+*.log
 
-# Per-student progress store — runtime state, rebuilt as students use the app
-data/progress.db
-log.md
+# ---------------------------------------------------------------------------
+# Regenerable test/benchmark reports — written by tests/benchmark_analogy.py,
+# tests/benchmark_v3.py and tests/test_pipeline.py on each run.
+# ---------------------------------------------------------------------------
+tests/benchmark_output.md
+tests/benchmark_v3_output.md
+tests/pipeline_output.md
 
-
-
-AI_CONTEXT.md
-
+# ---------------------------------------------------------------------------
+# OS noise
+# ---------------------------------------------------------------------------
+Thumbs.db
+.DS_Store

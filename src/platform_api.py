@@ -3,7 +3,16 @@
 Every frontend (today Streamlit, tomorrow Next.js, a mobile app, a CLI) talks
 to the platform through exactly these five functions and nothing else:
 
-    create_or_load_student(name, interest, level) -> profile
+    ACCOUNTS
+    register_student(name, email, password, interest, level) -> profile
+    authenticate_student(email, password)         -> profile (raises AuthError)
+    get_student_profile(student_id)               -> profile
+    update_student_profile(student_id, ...)       -> updated profile
+    change_password(student_id, current, new)     -> {student_id, changed}
+
+    LEARNING
+    create_or_load_student(name, interest, level) -> profile  (legacy, no password)
+    list_chapters()                               -> [{id, name}, ...]
     get_roadmap(student_id, chapter_id)           -> list of concept statuses
     get_next_lesson(student_id, chapter_id)       -> next lesson envelope
     submit_assessment(student_id, concept_id, answer) -> grade + new mastery
@@ -23,11 +32,15 @@ same results over HTTP without translation.
 from __future__ import annotations
 
 import re
+import sqlite3
+import uuid
 from typing import Any
 
 from src.agents.assessor import grade_answer
 from src.agents.polisher import polish_explanation
+from src.auth import passwords
 from src.content import lesson_service
+from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
 from src.path import engine
 from src.pipeline import explain_with_review
 from src.progress import store
@@ -66,6 +79,247 @@ def create_or_load_student(name: str, interest: str, level: str) -> dict[str, An
     """
     student_id = _slugify(name)
     return store.save_student(student_id, name, interest, level)
+
+
+# ---------------------------------------------------------------------------
+# 1b. Accounts (email + password)
+#
+# `create_or_load_student` above treats a *name* as the credential: type "Ada"
+# and you are Ada, forever, on any device. That was fine for a demo and is kept
+# working (Streamlit and the pinned contract test depend on it), but it is not an
+# account. These functions add real ones.
+#
+# Two id schemes now coexist, and they are provably disjoint:
+#   * legacy ids are slugs        -> "ada-lovelace"   (letters, digits, hyphens)
+#   * account ids are uuid-based  -> "stu_9f8a...c1"  (contains an underscore)
+# `_slugify` can never emit "_", so no new account can ever collide with a
+# legacy student's progress rows.
+# ---------------------------------------------------------------------------
+
+# Deliberately permissive: one @, a dot in the domain, no whitespace. Real
+# address validation is delivery, not regex — we only reject obvious typos so a
+# student isn't locked out of an account they can't spell.
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+# ONE message for every login failure. Saying "no such account" vs "wrong
+# password" hands an attacker a free email-enumeration oracle.
+_INVALID_CREDENTIALS = "Incorrect email or password."
+
+
+def _new_student_id() -> str:
+    """Mint an opaque id for a real account ("stu_" + 32 hex chars).
+
+    Random, not derived from the name or email: an id ends up in URLs and logs,
+    and it must stay stable when the student changes their name.
+    """
+    return f"stu_{uuid.uuid4().hex}"
+
+
+def _normalise_email(email: str) -> str:
+    """Trim + lowercase an email, rejecting anything obviously malformed.
+
+    Normalising on the way in is what makes the unique index meaningful:
+    "Ada@Example.com " and "ada@example.com" must be the same account, and the
+    database compares bytes, not intentions.
+
+    Raises:
+        EcoLearnError: if the address is empty or not email-shaped.
+    """
+    cleaned = (email or "").strip().lower()
+    if not cleaned:
+        raise EcoLearnError("Email is required.")
+    if not _EMAIL_PATTERN.match(cleaned):
+        raise EcoLearnError(f"{email!r} doesn't look like an email address.")
+    return cleaned
+
+
+def _require_name(name: str) -> str:
+    """Trim a display name, rejecting blank input."""
+    cleaned = (name or "").strip()
+    if not cleaned:
+        raise EcoLearnError("Name is required.")
+    return cleaned
+
+
+def register_student(
+    name: str,
+    email: str,
+    password: str,
+    interest: str,
+    level: str = "Class 11",
+) -> dict[str, Any]:
+    """Create a brand-new account and return its profile (never the hash).
+
+    Args:
+        name:     Display name (not an identifier — two students may share one).
+        email:    Login identifier; normalised and unique across the platform.
+        password: Plaintext, hashed here and never stored or logged as-is.
+        interest: "football" / "gaming" — drives which cached lessons are served.
+        level:    Academic level, e.g. "Class 11".
+
+    Returns:
+        Profile dict {student_id, name, interest, level, created_at, email}.
+
+    Raises:
+        EcoLearnError:  blank name, malformed email, or a password that fails
+                        the length rules.
+        ConflictError:  that email is already registered.
+    """
+    name = _require_name(name)
+    email = _normalise_email(email)
+    if not (interest or "").strip():
+        raise EcoLearnError("Interest is required.")
+    if not (level or "").strip():
+        raise EcoLearnError("Level is required.")
+
+    # Hash first: a weak/over-long password should fail before we touch the DB.
+    password_hash = passwords.hash_password(password)
+
+    # Friendly pre-check, then rely on the unique index as the real guarantee —
+    # between this SELECT and the INSERT another request could claim the email.
+    if store.get_student_by_email(email) is not None:
+        raise ConflictError(
+            "An account with that email already exists. Try logging in instead."
+        )
+
+    try:
+        return store.save_student_with_credentials(
+            student_id=_new_student_id(),
+            name=name,
+            interest=interest.strip(),
+            level=level.strip(),
+            email=email,
+            password_hash=password_hash,
+        )
+    except sqlite3.IntegrityError as exc:
+        # The index caught a race (or, vanishingly unlikely, a uuid4 collision).
+        raise ConflictError(
+            "An account with that email already exists. Try logging in instead."
+        ) from exc
+
+
+def authenticate_student(email: str, password: str) -> dict[str, Any]:
+    """Verify credentials and return the student's profile.
+
+    Constant-ish time on purpose. Both failure branches — unknown email and
+    wrong password — do one bcrypt comparison and raise the *same* message, so
+    neither timing nor wording reveals whether an address is registered.
+
+    Returns:
+        Profile dict (no password_hash).
+
+    Raises:
+        AuthError: on any failure, always with the same generic message.
+    """
+    # A malformed address can't match any account; fail like a wrong password
+    # rather than explaining the format (this is the login form, not signup).
+    try:
+        email = _normalise_email(email)
+    except EcoLearnError:
+        passwords.dummy_verify()
+        raise AuthError(_INVALID_CREDENTIALS) from None
+
+    record = store.get_student_by_email(email)
+    if record is None:
+        passwords.dummy_verify()  # spend the same ~100ms as a real check
+        raise AuthError(_INVALID_CREDENTIALS)
+
+    if not passwords.verify_password(password, record.get("password_hash")):
+        raise AuthError(_INVALID_CREDENTIALS)
+
+    # Strip the hash before the profile escapes the boundary.
+    return {k: v for k, v in record.items() if k != "password_hash"}
+
+
+def get_student_profile(student_id: str) -> dict[str, Any]:
+    """Return a student's profile, raising if they don't exist.
+
+    The read behind `GET /api/auth/me`: the browser holds an httpOnly cookie it
+    cannot read, so it asks the server who it is on every page load.
+
+    Raises:
+        NotFoundError: if no such student (e.g. a token for a deleted account).
+    """
+    profile = store.get_student(student_id)
+    if profile is None:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    return profile
+
+
+def update_student_profile(
+    student_id: str,
+    *,
+    name: str | None = None,
+    interest: str | None = None,
+    level: str | None = None,
+) -> dict[str, Any]:
+    """Patch name / interest / level; omitted fields are left alone.
+
+    Note what is *not* here: email and password. Changing a login identifier or
+    a secret needs its own re-authentication flow, so it doesn't ride along with
+    "pick a different interest".
+
+    Returns:
+        The updated profile dict.
+
+    Raises:
+        EcoLearnError:  nothing to update, or a blank value passed explicitly.
+        NotFoundError:  no such student.
+    """
+    if name is None and interest is None and level is None:
+        raise EcoLearnError("Nothing to update.")
+
+    if name is not None:
+        name = _require_name(name)
+    if interest is not None:
+        interest = interest.strip()
+        if not interest:
+            raise EcoLearnError("Interest cannot be blank.")
+    if level is not None:
+        level = level.strip()
+        if not level:
+            raise EcoLearnError("Level cannot be blank.")
+
+    updated = store.update_student_profile(
+        student_id, name=name, interest=interest, level=level
+    )
+    if updated is None:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    return updated
+
+
+def change_password(
+    student_id: str,
+    current_password: str,
+    new_password: str,
+) -> dict[str, Any]:
+    """Re-authenticate with the current password, then set a new one.
+
+    Requiring the current password matters even though the caller already holds
+    a valid session: it stops a borrowed or stolen session from locking the real
+    owner out of their own account.
+
+    Returns:
+        {"student_id": ..., "changed": True}
+
+    Raises:
+        NotFoundError: no such student.
+        AuthError:     the current password is wrong (or the account has none).
+        EcoLearnError: the new password fails the length rules, or repeats the
+                       current one.
+    """
+    if store.get_student(student_id) is None:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+
+    existing_hash = store.get_password_hash(student_id)
+    if not passwords.verify_password(current_password, existing_hash):
+        raise AuthError("Your current password is incorrect.")
+
+    if new_password == current_password:
+        raise EcoLearnError("Your new password must be different from the current one.")
+
+    store.update_student_password(student_id, passwords.hash_password(new_password))
+    return {"student_id": student_id, "changed": True}
 
 
 # ---------------------------------------------------------------------------
@@ -127,7 +381,7 @@ def get_next_lesson(
     """
     profile = store.get_student(student_id)
     if profile is None:
-        raise ValueError(
+        raise NotFoundError(
             f"Unknown student_id {student_id!r}. Call create_or_load_student first."
         )
 
@@ -135,7 +389,7 @@ def get_next_lesson(
         # Explicit re-practise of a specific concept.
         concept = engine.find_concept(concept_id)
         if concept is None:
-            raise ValueError(f"Unknown concept_id {concept_id!r}.")
+            raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
         is_mastered = concept_id in store.get_mastered_concepts(student_id)
         envelope: dict[str, Any] = {
             "status": engine.KIND_REVIEW if is_mastered else engine.KIND_NEW,
@@ -205,13 +459,13 @@ def submit_assessment(
     """
     profile = store.get_student(student_id)
     if profile is None:
-        raise ValueError(
+        raise NotFoundError(
             f"Unknown student_id {student_id!r}. Call create_or_load_student first."
         )
 
     lesson = lesson_service.get_lesson(concept_id, profile["interest"])
     if lesson is None:
-        raise ValueError(
+        raise NotFoundError(
             f"No lesson for concept {concept_id!r} in interest "
             f"{profile['interest']!r}; cannot assess."
         )
@@ -282,7 +536,7 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
     """
     profile = store.get_student(student_id)
     if profile is None:
-        raise ValueError(
+        raise NotFoundError(
             f"Unknown student_id {student_id!r}. Call create_or_load_student first."
         )
 

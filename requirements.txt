@@ -1,8 +1,28 @@
-google-genai
-chromadb
-streamlit
-python-dotenv
-pydantic
-pyyaml
-fastapi
-uvicorn[standard]
+# EcoLearn — Python dependencies.   Install:  pip install -r requirements.txt
+# (Node dependencies for the web frontend live in web/package.json.)
+
+# --- LLM + RAG ---------------------------------------------------------------
+google-genai          # the CURRENT Google SDK (`from google import genai`).
+                      # NOT google-generativeai, which is deprecated.
+chromadb              # local vector store; ships all-MiniLM-L6-v2 via ONNX,
+                      # so embeddings need no API key and no quota.
+
+# --- Data + config -----------------------------------------------------------
+pydantic              # curriculum + lesson schemas ("parse, don't validate")
+pyyaml                # data/curriculum/physics.yaml
+python-dotenv         # reads .env
+
+# --- Web layer ---------------------------------------------------------------
+fastapi               # the thin HTTP wrapper over src/platform_api.py
+uvicorn[standard]     # ASGI server: uvicorn api.main:app --reload --port 8000
+
+# --- Auth (Milestone 0) ------------------------------------------------------
+bcrypt                # password hashing, used DIRECTLY (not via passlib, which
+                      # is unmaintained and breaks on modern bcrypt).
+                      # NOTE: bcrypt >= 5 RAISES on passwords over 72 bytes
+                      # where bcrypt 4 silently truncated. src/auth/passwords.py
+                      # guards the limit explicitly, so either major works.
+pyjwt                 # HS256 session tokens for api/security.py
+
+# --- Legacy frontend ---------------------------------------------------------
+streamlit             # the legacy UI (app.py + pages/); must keep working
