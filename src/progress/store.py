@@ -79,7 +79,40 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    _migrate_students(conn)
     return conn
+
+
+def _migrate_students(conn: sqlite3.Connection) -> None:
+    """Add the account columns to `students` if this DB predates them.
+
+    Idempotent and additive, in the same lazy spirit as the CREATE TABLE IF NOT
+    EXISTS calls above: every connection checks, and only the first one on an
+    old database actually changes anything. Existing rows keep working — the new
+    columns are nullable, so a legacy name-only student simply has
+    email = password_hash = NULL and can still be loaded by
+    `create_or_load_student`.
+
+    Two SQLite specifics worth knowing:
+      * there is no `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, so we read
+        `PRAGMA table_info` and compare names ourselves;
+      * `ADD COLUMN ... UNIQUE` is outright rejected by SQLite, so email
+        uniqueness comes from a separate unique *index*. A unique index still
+        permits many NULLs (SQLite treats NULLs as distinct), which is exactly
+        what legacy rows need.
+    """
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(students)")}
+
+    if "email" not in existing:
+        conn.execute("ALTER TABLE students ADD COLUMN email TEXT")
+    if "password_hash" not in existing:
+        conn.execute("ALTER TABLE students ADD COLUMN password_hash TEXT")
+
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_email "
+        "ON students(email)"
+    )
+    conn.commit()
 
 
 def _now_iso() -> str:
@@ -239,7 +272,12 @@ def get_cleared_concepts(student_id: str) -> set[str]:
 # ---------------------------------------------------------------------------
 
 def get_student(student_id: str) -> dict[str, Any] | None:
-    """Return a student's profile dict, or None if no such student exists."""
+    """Return a student's profile dict, or None if no such student exists.
+
+    **Never** includes `password_hash` — the profile is the shape that crosses
+    the service boundary and reaches a browser. Only
+    `get_student_by_email` (the login path) sees the hash.
+    """
     conn = _connect()
     try:
         row = conn.execute(
@@ -250,13 +288,7 @@ def get_student(student_id: str) -> dict[str, Any] | None:
         conn.close()
     if row is None:
         return None
-    return {
-        "student_id": row["student_id"],
-        "name": row["name"],
-        "interest": row["interest"],
-        "level": row["level"],
-        "created_at": row["created_at"],
-    }
+    return _student_to_dict(row)
 
 
 def save_student(
@@ -301,3 +333,167 @@ def save_student(
         "level": level,
         "created_at": created_at,
     }
+
+
+def _student_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    """Map a `students` row to the public profile dict.
+
+    Field-by-field on purpose (not `dict(row)`): the row also carries
+    `password_hash`, and a secret must never leave this module by accident when
+    someone later adds a column. Whitelist, don't blacklist.
+    """
+    return {
+        "student_id": row["student_id"],
+        "name": row["name"],
+        "interest": row["interest"],
+        "level": row["level"],
+        "created_at": row["created_at"],
+        # Nullable: legacy name-only students have no email.
+        "email": row["email"],
+    }
+
+
+def get_student_by_email(email: str) -> dict[str, Any] | None:
+    """Return the full student row **including `password_hash`**, or None.
+
+    The one function that exposes the hash, because authentication needs to
+    compare against it. Its result must stay inside the backend — pass the
+    profile from `get_student` to anything that talks to a client.
+
+    Email matching is case-insensitive: addresses are stored already normalised
+    (lowercased + stripped by the boundary), and we normalise the lookup too so
+    "Ada@x.com" finds the account registered as "ada@x.com".
+    """
+    normalised = email.strip().lower()
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM students WHERE email = ?",
+            (normalised,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    profile = _student_to_dict(row)
+    profile["password_hash"] = row["password_hash"]
+    return profile
+
+
+def save_student_with_credentials(
+    student_id: str,
+    name: str,
+    interest: str,
+    level: str,
+    email: str,
+    password_hash: str,
+) -> dict[str, Any]:
+    """Insert a brand-new student that has real credentials.
+
+    Unlike `save_student` this is a strict INSERT — no upsert. A caller that
+    lands on a duplicate must decide what that means (the boundary turns it into
+    a ConflictError), and silently overwriting an existing account's password
+    would be a security hole.
+
+    Raises:
+        sqlite3.IntegrityError: if the student_id or email is already taken
+                                (the unique index on `email` enforces the
+                                latter). The boundary translates this.
+    """
+    created_at = _now_iso()
+    conn = _connect()
+    try:
+        conn.execute(
+            """
+            INSERT INTO students
+                (student_id, name, interest, level, created_at, email, password_hash)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (student_id, name, interest, level, created_at,
+             email.strip().lower(), password_hash),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {
+        "student_id": student_id,
+        "name": name,
+        "interest": interest,
+        "level": level,
+        "created_at": created_at,
+        "email": email.strip().lower(),
+    }
+
+
+def update_student_profile(
+    student_id: str,
+    *,
+    name: str | None = None,
+    interest: str | None = None,
+    level: str | None = None,
+) -> dict[str, Any] | None:
+    """Patch the editable profile fields, leaving the rest untouched.
+
+    Every argument is optional: this is a PATCH, not a PUT, so passing only
+    `interest` changes only the interest. Returns the updated profile, or None
+    if the student does not exist (the caller decides whether that is a 404).
+    """
+    updates: list[str] = []
+    values: list[Any] = []
+    for column, value in (("name", name), ("interest", interest), ("level", level)):
+        if value is not None:
+            updates.append(f"{column} = ?")
+            values.append(value)
+
+    if updates:
+        conn = _connect()
+        try:
+            cursor = conn.execute(
+                f"UPDATE students SET {', '.join(updates)} WHERE student_id = ?",
+                (*values, student_id),
+            )
+            conn.commit()
+            if cursor.rowcount == 0:
+                return None
+        finally:
+            conn.close()
+
+    return get_student(student_id)
+
+
+def update_student_password(student_id: str, password_hash: str) -> bool:
+    """Replace a student's password hash. Returns False if no such student.
+
+    Takes an already-hashed value — this module never sees a plaintext password;
+    hashing belongs to `src/auth/passwords.py`.
+    """
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "UPDATE students SET password_hash = ? WHERE student_id = ?",
+            (password_hash, student_id),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def get_password_hash(student_id: str) -> str | None:
+    """Return a student's stored password hash, or None.
+
+    None means one of two different things — no such student, or a legacy
+    name-only student who never had a password. Neither can authenticate, so the
+    caller treats them alike; when it needs to tell them apart it also calls
+    `get_student`.
+    """
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT password_hash FROM students WHERE student_id = ?",
+            (student_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    return row["password_hash"] if row is not None else None
