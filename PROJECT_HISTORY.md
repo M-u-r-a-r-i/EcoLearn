@@ -726,6 +726,32 @@ The auth layer was the plan's parallel track and touched none of the pilot's fil
 - The sub-session followed the guide well enough that review found nothing to fix — evidence that
   the guide + gold lessons + validator carry quality without a critic.
 
+## 9k. Batch 2 — Units and Measurement × football, and the first exact cost (2026-09-22)
+
+**Changed.**
+- 24 lessons `data/lessons/11/units_measurement/*/football__*.md`, written by a sub-session that
+  used the cricket batch of the same chapter as its model but wrote new stories and numbers.
+- `data/media/scenes/football/units_measurement.svg` (goal 7.32 × 2.44 m, 430 g ball, 0.9 atm,
+  match clock) and one new interest-neutral graph
+  `figures/measurement_uncertainty/repeated-circumference.graph.yaml` → `.svg`; the chapter's other
+  12 figures and both NIST famous images were reused.
+- Review: validator 60/60; scene and graph inspected (mean 69.0 cm, mean absolute error 0.12 cm
+  re-derived); answer keys re-derived in the three most numeric lessons. Nothing needed fixing.
+
+**Why.** The user postponed the scope decision to 2026-09-22 and asked for the next batch in the
+same way; football is an active interest in every scope option, and reusing the chapter's figures
+tests how much a second interest saves.
+
+**Learned.**
+- **Exact plan cost, measured with a before/after usage reading:** one batch moved the Pro weekly
+  limit **48% → 50%** and the 5-hour window **71% → 88%** (the latter includes the main session's
+  own, expensive long-context turns). Earlier estimates of 8–20 batches a week were too
+  pessimistic: the weekly limit allows roughly **45–50 batches**, the 5-hour window about **5**.
+- Reusing figures made the second interest cheaper and faster: ~248k tokens / 16 min vs
+  ~269k / 24 min, with 51 tool calls instead of 100.
+- Measure, don't estimate: the first estimate was off by a factor of 2–5 because usage was only
+  read after the first batch, never before it.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

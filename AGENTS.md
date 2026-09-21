@@ -114,8 +114,10 @@ and pushed.
   image (exists, alt text, caption, safe SVG, famous-image licence).
 
 - *Pilot batch:* Units and Measurement × cricket — 24 lessons + 15 images, all valid, reviewed.
-  Measured cost ~269k tokens / 24 min per batch. **The user is on Claude Pro**, which cannot carry
-  ~300 such batches by 2026-09-30.
+  Measured cost ~269k tokens / 24 min per batch. **The user is on Claude Pro**.
+- *Batch 2:* Units and Measurement × football (24 lessons, figures reused). **Exact cost: ~2% of
+  the Pro weekly limit and ~17% of a 5-hour window per batch** → ~45–50 batches/week. Full
+  scope (290 batches) ≈ 6 weeks — the user decides scope on 2026-09-22.
 - *Auth HTTP layer:* `api/security.py` + auth/profile/chapters/interests endpoints, error mapping,
   CORS with credentials — `tests/test_api_auth.py` (34 checks).
 
