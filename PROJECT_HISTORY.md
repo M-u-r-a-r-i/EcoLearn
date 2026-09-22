@@ -919,6 +919,17 @@ could read or change any student's progress by sending their id.
 - Pending with the user: the Thermodynamics session suggests a Clausius or Kelvin portrait for the
   second-law lesson, which needs download approval.
 
+**Follow-up, the same day (frontend, while the window reset):**
+- Every roadmap concept card is now a link to `/lesson?chapter=…&concept=…`. Nothing is locked, so
+  any concept can be opened.
+- New `app/(app)/settings/page.tsx` with two independent forms:
+  - profile: name, plus interest and class through `InterestLevelFields` →
+    `PATCH /api/profile`;
+  - password: current, new and confirm → `POST /api/auth/change-password`.
+- The nav gains a Settings link.
+- `tsc`, lint and build are clean. **Still not browser-tested**; it was deferred with the rest of
+  §9n because the window was at 93%.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

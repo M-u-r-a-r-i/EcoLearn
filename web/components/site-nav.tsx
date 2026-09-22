@@ -44,6 +44,12 @@ export function SiteNav() {
             >
               Roadmap
             </Link>
+            <Link
+              href="/settings"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+            >
+              Settings
+            </Link>
             <span className="hidden text-sm text-muted-foreground sm:inline">
               Hi, <span className="font-semibold text-foreground">{student.name}</span>
             </span>

@@ -146,10 +146,11 @@ function Roadmap() {
                     <s.Icon className="size-5" strokeWidth={2.5} />
                   </div>
 
-                  {/* Concept card */}
-                  <div
+                  {/* Concept card — every concept opens its lesson; nothing is locked. */}
+                  <Link
+                    href={withChapter("/lesson", chapterId, { concept: c.concept_id })}
                     className={cn(
-                      "flex flex-1 items-center justify-between rounded-xl border bg-card px-4 py-3 transition-all",
+                      "flex flex-1 items-center justify-between rounded-xl border bg-card px-4 py-3 transition-all hover:border-primary/40 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isNext
                         ? "border-primary/40 shadow-card"
                         : "border-border shadow-soft",
@@ -179,7 +180,7 @@ function Roadmap() {
                     >
                       {isNext ? "Next up" : s.label}
                     </span>
-                  </div>
+                  </Link>
                 </div>
               );
             })}

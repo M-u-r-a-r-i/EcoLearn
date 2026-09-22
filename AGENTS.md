@@ -130,8 +130,9 @@ and pushed.
 always knows which one is next. Between usage windows, continue the frontend. Auth provider,
 login/signup, chapter picker and the breaking flip are **done** (2026-09-22, `PROJECT_HISTORY.md`
 §9n) but **not yet clicked through in a browser**. Do that first (signup → roadmap → switch chapter
-→ lesson → refresh stays logged in → logout), then the sprint day-6 items: format tabs, MCQ
-answer UI, clickable roadmap concepts (`/lesson?concept=` already works), settings page.
+→ lesson → refresh stays logged in → settings → logout), then the sprint day-6 items: format tabs
+and the MCQ answer UI. (Clickable roadmap concepts and `/settings` are done, but not yet
+browser-tested either.)
 
 ### How to run a lesson batch (the standard procedure)
 
