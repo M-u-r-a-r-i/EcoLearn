@@ -1,0 +1,23 @@
+# Uniform acceleration: u = 2 m/s, a = 1.5 m/s^2, t = 4 s, so v = u + at = 8 m/s.
+# Area = rectangle u t (= 8 m) + triangle (1/2) a t^2 (= 12 m) = 20 m.
+title: "Area under a straight v–t line gives s = ut + ½at²"
+x: {label: "Time $t$ (s)", min: 0, max: 4.6}
+y: {label: "Velocity $v$ (m/s)", min: 0, max: 9.5}
+series:
+  - label: "$v = u + at$"
+    points: [[0, 2], [4, 8]]
+    color: blue
+  - label: "rectangle, height $u$"
+    points: [[0, 2], [4, 2], [4, 0]]
+    color: gray
+    style: dashed
+  - label: "triangle, height $at$"
+    points: [[4, 2], [4, 8]]
+    color: green
+    style: dotted
+marks:
+  - {x: 0, y: 2, text: "u = 2 m/s", color: blue, offset: [8, -16]}
+  - {x: 4, y: 8, text: "v = 8 m/s", color: blue, offset: [-72, 4]}
+  - {x: 2, y: 1, text: "area ut = 8 m", color: gray, offset: [8, -4]}
+  - {x: 2.4, y: 3.2, text: "area ½at² = 12 m", color: green, offset: [8, -4]}
+legend: upper left

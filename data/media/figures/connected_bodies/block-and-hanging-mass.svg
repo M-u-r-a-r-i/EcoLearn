@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A body on a smooth horizontal surface tied by a string over a pulley to a hanging body, with the free-body diagram of each</title>
+  <defs>
+    <marker id="hr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    <marker id="hg" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="190" y="30" font-size="16" font-weight="600" fill="#111827" text-anchor="middle">The system</text>
+  <text x="520" y="30" font-size="16" font-weight="600" fill="#111827" text-anchor="middle">Free-body diagrams</text>
+  <line x1="400" y1="45" x2="400" y2="385" stroke="#d1d5db" stroke-width="2" stroke-dasharray="6 5"/>
+
+  <!-- surface -->
+  <rect x="30" y="180" width="270" height="14" fill="#a8a29e"/>
+  <rect x="280" y="194" width="14" height="190" fill="#a8a29e"/>
+  <text x="40" y="214" font-size="12" fill="#4b5563">smooth surface (no friction)</text>
+  <!-- block m1 -->
+  <rect x="110" y="130" width="90" height="50" rx="4" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+  <text x="155" y="160" font-size="15" fill="#111827" text-anchor="middle">m₁</text>
+  <!-- pulley -->
+  <line x1="300" y1="182" x2="312" y2="168" stroke="#374151" stroke-width="3"/>
+  <circle cx="312" cy="168" r="12" fill="#e5e7eb" stroke="#374151" stroke-width="2"/>
+  <circle cx="312" cy="168" r="2.5" fill="#374151"/>
+  <!-- string -->
+  <line x1="200" y1="156" x2="312" y2="156" stroke="#374151" stroke-width="2"/>
+  <line x1="324" y1="168" x2="324" y2="260" stroke="#374151" stroke-width="2"/>
+  <!-- block m2 -->
+  <rect x="304" y="260" width="40" height="50" rx="4" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+  <text x="324" y="290" font-size="15" fill="#111827" text-anchor="middle">m₂</text>
+  <!-- accelerations -->
+  <line x1="125" y1="112" x2="190" y2="112" stroke="#16a34a" stroke-width="3" marker-end="url(#hg)"/>
+  <text x="130" y="102" font-size="13" fill="#16a34a">a</text>
+  <line x1="364" y1="262" x2="364" y2="318" stroke="#16a34a" stroke-width="3" marker-end="url(#hg)"/>
+  <text x="372" y="294" font-size="13" fill="#16a34a">a</text>
+  <text x="30" y="340" font-size="13" fill="#4b5563">One light, inextensible string:</text>
+  <text x="30" y="358" font-size="13" fill="#4b5563">same tension T all along it,</text>
+  <text x="30" y="376" font-size="13" fill="#4b5563">same size of acceleration a for both.</text>
+
+  <!-- FBD m1 -->
+  <text x="420" y="70" font-size="13" fill="#111827">m₁</text>
+  <circle cx="480" cy="130" r="6" fill="#111827"/>
+  <line x1="480" y1="124" x2="480" y2="72" stroke="#dc2626" stroke-width="4" marker-end="url(#hr)"/>
+  <line x1="480" y1="136" x2="480" y2="188" stroke="#dc2626" stroke-width="4" marker-end="url(#hr)"/>
+  <line x1="486" y1="130" x2="514" y2="130" stroke="#dc2626" stroke-width="4" marker-end="url(#hr)"/>
+  <text x="490" y="84" font-size="14" fill="#dc2626">N</text>
+  <text x="490" y="186" font-size="14" fill="#dc2626">m₁g</text>
+  <text x="520" y="135" font-size="14" fill="#dc2626">T</text>
+  <!-- FBD m2 -->
+  <text x="420" y="240" font-size="13" fill="#111827">m₂</text>
+  <circle cx="520" cy="280" r="6" fill="#111827"/>
+  <line x1="520" y1="274" x2="520" y2="226" stroke="#dc2626" stroke-width="4" marker-end="url(#hr)"/>
+  <line x1="520" y1="286" x2="520" y2="360" stroke="#dc2626" stroke-width="4" marker-end="url(#hr)"/>
+  <text x="530" y="240" font-size="14" fill="#dc2626">T</text>
+  <text x="530" y="352" font-size="14" fill="#dc2626">m₂g</text>
+  <text x="520" y="384" font-size="12" fill="#374151" text-anchor="middle">m₂g &gt; T, so m₂ speeds up downwards</text>
+</svg>

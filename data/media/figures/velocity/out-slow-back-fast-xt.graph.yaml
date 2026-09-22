@@ -1,0 +1,12 @@
+# Walk 18 m in the negative direction in 15 s (v = -1.2 m/s),
+# then return 18 m in 4 s (v = +4.5 m/s). Positive direction: +x.
+title: "Out slowly, back quickly"
+x: {label: "Time $t$ (s)", min: 0, max: 20}
+y: {label: "Position $x$ (m)", min: -20, max: 3}
+series:
+  - label: "Position"
+    points: [[0, 0], [15, -18], [19, 0]]
+    color: purple
+marks:
+  - {x: 5, y: -6, text: "slope = −18/15 = −1.2 m/s", color: blue, offset: [-60, -90]}
+  - {x: 18, y: -4.5, text: "slope = +18/4 = +4.5 m/s", color: blue, offset: [-150, -4]}

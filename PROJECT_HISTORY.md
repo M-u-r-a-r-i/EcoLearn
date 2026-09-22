@@ -783,6 +783,41 @@ and progress is derived from the disk, so there is no checklist to fall out of d
 *written down* (a checklist) always does. Same for briefs: a template filled from data gives every
 batch the same instructions, where hand-written prompts slowly diverge.
 
+## 9m. Four explain batches in parallel (2026-09-22)
+
+**Changed.**
+- 38 explain lessons, each batch written by its own background sub-session from its unchanged
+  `batch_status.py --brief --batch …` output, all running at once on *different* chapters:
+  - Units and Measurement × gaming (8)
+  - Motion in a Straight Line × cricket (11)
+  - Motion in a Plane × cricket (10)
+  - Laws of Motion × cricket (9; `second_law` already existed)
+- New scenes: `scenes/gaming/units_measurement.svg`, `scenes/cricket/motion_straight_line.svg`,
+  `scenes/cricket/motion_plane.svg`.
+- About 30 new interest-neutral figures and graphs under `data/media/figures/` for the three
+  kinematics/dynamics chapters, which later interests will reuse. Plus one gaming-specific graph,
+  `measurement_uncertainty/reaction-time-readings`.
+- Review:
+  - Every new image was rendered with headless Edge and tiled into grids with PIL.
+  - Answer keys and distractors were re-derived in 8 of the most numeric lessons.
+  - Two fixes: a label on `circular_motion_dynamics/banked-road-forces.svg` overlapped the `mg`
+    arrow; the slope labels on `velocity/out-slow-back-fast-xt.graph.yaml` sat on the wrong segment.
+  - Validator 98/98; the phase-1 count is 6/70 batches.
+
+**Why.** The user asked for the next batches using several sessions at once.
+
+**Learned.**
+- **Parallel cost:** four batches together moved the 5-hour window **20% → 63%** (about 11% per
+  batch) and the weekly limit **53% → 59%** (about 1.5% per batch). Three of the four were a
+  chapter's first interest and had to draw its figures. So about 4 batches fit in one 5-hour window
+  with room left for review.
+- **Parallel sessions see each other's work:** while they ran, the validator flagged other
+  sessions' graph specs that weren't rendered yet as errors. Each sub-session correctly left them
+  alone, and the final run was clean. A validator error during a parallel run needs a re-run once
+  all sessions have finished before anyone acts on it.
+- Tiling rendered PNGs into one grid image makes reviewing 10+ figures one image read instead of
+  ten.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

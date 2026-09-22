@@ -1,0 +1,25 @@
+# Five reaction-time readings by one person on the same test: 0.24, 0.27, 0.25, 0.22, 0.27 s.
+# Mean = 1.25 / 5 = 0.250 s. Deviations 0.01, 0.02, 0.00, 0.03, 0.02 -> sum 0.08 -> mean absolute error 0.016 s.
+# The readings are plotted as marks (not a joined line: they are separate trials).
+title: "Five readings of one reaction time"
+x: {label: "Attempt number", min: 0.5, max: 5.5}
+y: {label: "Reaction time measured $t$ (s)", min: 0.19, max: 0.30}
+legend: below
+series:
+  - label: "mean = 0.250 s"
+    points: [[0.5, 0.25], [5.5, 0.25]]
+    color: gray
+    style: dashed
+  - label: "mean ± mean absolute error (± 0.016 s)"
+    points: [[0.5, 0.266], [5.5, 0.266]]
+    color: orange
+    style: dotted
+  - points: [[0.5, 0.234], [5.5, 0.234]]
+    color: orange
+    style: dotted
+marks:
+  - {x: 1, y: 0.24, text: "0.24", color: blue, offset: [8, 5]}
+  - {x: 2, y: 0.27, text: "0.27", color: blue, offset: [8, -4]}
+  - {x: 3, y: 0.25, text: "0.25", color: blue, offset: [8, -14]}
+  - {x: 4, y: 0.22, text: "0.22", color: blue, offset: [8, -4]}
+  - {x: 5, y: 0.27, text: "0.27", color: blue, offset: [-36, -4]}

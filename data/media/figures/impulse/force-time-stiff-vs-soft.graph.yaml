@@ -1,0 +1,17 @@
+# Two ways to stop the same ball: impulse = area under the F-t graph = 4.8 N s both times.
+# Stiff: triangle lasting 0.020 s (20 ms), peak 480 N  -> area = 0.5 * 480 * 0.020 = 4.8 N s (average 240 N).
+# Soft:  triangle lasting 0.100 s (100 ms), peak 96 N  -> area = 0.5 * 96 * 0.100 = 4.8 N s (average 48 N).
+title: "Same impulse (4.8 N s), very different forces"
+x: {label: "Time $t$ (ms)", min: 0, max: 110}
+y: {label: "Force on the ball $F$ (N)", min: 0, max: 520}
+series:
+  - label: "Stiff hands: 20 ms, peak 480 N"
+    points: [[0, 0], [10, 480], [20, 0]]
+    color: red
+  - label: "Soft hands: 100 ms, peak 96 N"
+    points: [[0, 0], [50, 96], [100, 0]]
+    color: blue
+marks:
+  - {x: 10, y: 480, text: "area = 4.8 N s", color: red, offset: [10, -6]}
+  - {x: 50, y: 96, text: "area = 4.8 N s too", color: blue, offset: [8, 10]}
+legend: upper right
