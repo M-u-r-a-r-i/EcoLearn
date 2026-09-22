@@ -469,6 +469,17 @@ def get_next_lesson(
             )
         else:
             envelope["lesson"] = lesson.model_dump()
+            # Authored lessons carry their own sections and a multiple-choice
+            # check. Send those alongside the legacy fields: the web app renders
+            # section by section (so it can collapse the worked example) and
+            # shows real options. `student_view` never includes the answer key —
+            # grading happens on the server in submit_assessment.
+            authored = lesson_service.get_authored_lesson(chosen.id, profile["interest"])
+            if authored is not None:
+                view = lesson_service.student_view(authored)
+                envelope["lesson"]["title"] = view["title"]
+                envelope["lesson"]["sections"] = view["sections"]
+                envelope["lesson"]["check"] = view["check"]
 
     return envelope
 
@@ -477,6 +488,56 @@ def get_next_lesson(
 # 4. Assessment
 # ---------------------------------------------------------------------------
 
+def _grade_multiple_choice(
+    student_id: str,
+    concept_id: str,
+    answer: str,
+    authored: Any,
+) -> dict[str, Any]:
+    """Grade one multiple-choice pick against an authored lesson's answer key.
+
+    No model call: the answer key and the per-option misconceptions are written
+    into the lesson file, so this is pure lookup. `answer` is the option letter;
+    anything else is the student's mistake to fix, not a server error, so it
+    raises EcoLearnError (→ 400) without touching their progress.
+    """
+    check = authored.check
+    picked = (answer or "").strip().upper()
+    if picked not in check.options:
+        raise EcoLearnError(
+            f"Pick one of the options ({', '.join(check.options)}) — got {answer!r}."
+        )
+
+    correct = picked == check.answer
+    # 3 = mastered, 0 = not yet. The store's pass mark is 2, so a correct pick
+    # masters the concept and a wrong one leaves it unmastered but attempted.
+    score = 3 if correct else 0
+
+    if correct:
+        feedback = f"Correct. {check.explanation.strip()}"
+    else:
+        why_wrong = (check.misconceptions.get(picked) or "").strip()
+        feedback = (
+            f"Not quite. {why_wrong}\n\n"
+            f"The right answer is **{check.answer}**. {check.explanation.strip()}"
+        ).strip()
+
+    updated = store.update_progress(student_id, concept_id, score)
+    return {
+        "concept_id": concept_id,
+        "score": score,
+        "mastery_signal": "mastered" if correct else "not_yet",
+        "feedback": feedback,
+        "missing_concepts": [],
+        "graded_question": check.question,
+        "mastery": updated,
+        # Multiple-choice extras the web app shows; absent for legacy grading.
+        "correct": correct,
+        "selected_option": picked,
+        "correct_option": check.answer,
+    }
+
+
 def submit_assessment(
     student_id: str,
     concept_id: str,
@@ -484,10 +545,20 @@ def submit_assessment(
 ) -> dict[str, Any]:
     """Grade a student's answer to a concept's self-check and update mastery.
 
-    The question graded against is the concept's pre-generated lesson
-    `check_question` (the assessment *is* the lesson's self-check). The grade
-    is run through the existing Assessor, then the 0-3 score is written to the
-    progress store, advancing the student's mastery.
+    Two paths, chosen by what the lesson is:
+
+    * **Authored lessons (all new content): multiple choice, no LLM.** `answer`
+      is the option letter the student picked ("A".."D"). It is checked against
+      the answer key in the lesson file, which never leaves the server. Correct
+      scores 3, wrong scores 0, and the feedback is the lesson's own written
+      explanation plus, for a wrong pick, the misconception that option was
+      designed to catch. This is instant, free and deterministic — the reason
+      grading needs no model and no API key.
+    * **Legacy JSON lessons: free text, graded by the Assessor.** Kept so older
+      generated lessons and Streamlit keep working.
+
+    Either way the 0-3 score is written to the progress store, advancing the
+    student's mastery.
 
     Returns:
         {
@@ -516,6 +587,10 @@ def submit_assessment(
             f"No lesson for concept {concept_id!r} in interest "
             f"{profile['interest']!r}; cannot assess."
         )
+
+    authored = lesson_service.get_authored_lesson(concept_id, profile["interest"])
+    if authored is not None:
+        return _grade_multiple_choice(student_id, concept_id, answer, authored)
 
     # Anchor the grader with the concept's name and learning objective so it
     # knows what a correct answer should demonstrate.

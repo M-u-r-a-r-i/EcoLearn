@@ -976,6 +976,50 @@ could read or change any student's progress by sending their id.
   - Chosen over Kelvin: the lesson's figure contrasts both statements, but Clausius's heat-flow
     statement is the one students remember, and he later named entropy.
 
+## 9q. MCQ grading with no LLM, and a lesson page that hides the workings (2026-09-23)
+
+**Changed.** Three problems the user found by running the site:
+
+1. *Grading called a cloud model.* `submit_assessment` now takes the option letter and grades it
+   against the authored lesson's answer key — `_grade_multiple_choice` in `src/platform_api.py`.
+   Correct → 3 (mastered), wrong → 0, feedback is the lesson's own explanation plus, for a wrong
+   pick, that option's misconception. No model, no API key, no latency, and the answer key never
+   leaves the server. Legacy JSON lessons keep the Assessor path, so Streamlit still works.
+   A bad letter raises `EcoLearnError` (400) and leaves progress untouched.
+2. *The page showed everything, including the sanity check.* `get_next_lesson` now adds
+   `lesson.sections` and `lesson.check` (from `student_view`) next to the legacy fields.
+   The lesson page renders section by section and puts **Worked example** and **Where the picture
+   breaks** inside `<details>` — one click away, keyboard- and screen-reader-friendly by default.
+3. *Worked examples were too dense.* `content/AUTHORING_GUIDE.md` §7 now requires few, round,
+   picturable numbers, one quantity per step and a plain-sentence sanity check, for lessons from
+   2026-09-23 on. Existing lessons are left alone.
+
+- `web/lib/api.ts`: `LessonSection` / `LessonCheck` types, `correct` / `selected_option` /
+  `correct_option` on the result.
+- `web/app/(app)/assessment/page.tsx`: a radio group of options (falling back to the textarea for
+  legacy lessons); the result shows "you chose A; the right answer is D" instead of a score out of 3.
+- `tests/test_mcq_grading.py` — 24 checks: no answer key or misconception reaches the browser,
+  right/wrong scoring, the misconception in the feedback, and rubbish input refused without
+  recording an attempt.
+- `.claude/launch.json`: a `web` entry on **3000** (3100 broke the session cookie — CORS allows
+  only 3000) and an `api` entry for uvicorn.
+
+**Verified in a browser** (the click-through owed since §9n): signup → roadmap (29 chapters) →
+lesson → collapsed sections → wrong answer shows the misconception → retry, correct answer →
+roadmap shows "Best 3/3 · 2 attempts". The whole check answered in about 2 s including page work,
+with no LLM call.
+
+**Why.** The user's own decisions from 2026-09-21 (MCQ grading, no live call for grading) were
+written into the lesson files but never wired up, so the site still used the old free-text path.
+
+**Learned.**
+- Content and UI can drift apart silently: the MCQ data was authored into 250 lessons for days
+  before anything read it. When a decision changes the *data*, wire up one consumer immediately,
+  even a crude one, or nobody notices the gap.
+- The desktop app's browser can't deliver clicks while the window is minimized ("could not get the
+  tab ready for input"). Driving the page with `javascript_tool` works, and reading
+  `document.querySelector('main').innerText` is a cheap way to verify a flow without screenshots.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

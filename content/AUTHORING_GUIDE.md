@@ -228,6 +228,26 @@ There is no critic. You are the check.
 **Worked examples** follow this shape: what's given (with units) → what's asked → the relation
 used and why → substitution → the answer with units → a one-line sanity check.
 
+**Keep the numbers few, round and picturable** (user decision, 2026-09-23 — the first worked
+examples were "hard to visualize"):
+
+- **Two or three given quantities, not five.** If a fourth is needed to make the story work, state
+  it in words rather than adding another symbol to track.
+- **Round numbers that divide cleanly.** $10\,\text{m/s}$, $20\,\text{m}$, $0.5\,\text{kg}$ —
+  not $17.3\,\text{m/s}$ and $0.436\,\text{kg}$. The student should follow the *method*, not chase
+  arithmetic. Realistic-but-ugly values belong in the check question, if anywhere.
+- **One quantity per step, and say what it means** before the next line of algebra: "so the ball
+  is climbing at half its starting speed — half its upward motion is already gone."
+- **Answers a student can picture:** "about the height of a two-storey building", "roughly a
+  fast walk". Attach a mental image to at least the final answer.
+- **No chains of intermediate values.** If the working needs more than about four numbered steps,
+  the example is too big: cut the scenario down, don't shrink the explanation.
+- The sanity check stays, but as one plain sentence ("a fielder can't outrun a car, so tens of
+  m/s is the right size"), not a second calculation.
+
+*These rules apply to lessons written from 2026-09-23 on. Earlier lessons are denser; they are
+being left alone for now, and the lesson page collapses the worked example behind a click.*
+
 ## 7a. Images
 
 Every lesson needs **at least one image** — and should have **as many as the concept needs**.

@@ -23,7 +23,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from src.content.authored import parse_lesson_file, to_legacy_lesson
+from src.content.authored import parse_lesson_file, student_view, to_legacy_lesson
 from src.content.lesson_schema import AuthoredLesson, Lesson, LessonFormat
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]

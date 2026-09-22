@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, AlertCircle, XCircle, ArrowRight, RotateCcw } from "lucide-react";
 
 import {
+  friendlyMessage,
   getNextLesson,
   submitAssessment,
   type AssessmentResult,
@@ -74,12 +75,16 @@ function Assessment() {
   const loading = next.loading;
   const conceptId = next.data?.lesson ? next.data.concept_id : null;
   const conceptName = next.data?.concept_name ?? "";
-  const question = next.data?.lesson?.check_question ?? "";
+  // Authored lessons carry a multiple-choice check; the older generated ones
+  // only have a question to answer in prose.
+  const check = next.data?.lesson?.check ?? null;
+  const question = check?.question ?? next.data?.lesson?.check_question ?? "";
+  const options = check ? Object.entries(check.options) : [];
   const loadError =
     next.error ??
     (next.data && !conceptId ? (next.data.reason ?? "No concept to assess right now.") : null);
 
-  // Answer + grading state.
+  // Answer + grading state. For multiple choice the answer is the option letter.
   const [answer, setAnswer] = useState("");
   const [grading, setGrading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -92,9 +97,10 @@ function Assessment() {
     try {
       const res = await submitAssessment(conceptId, answer.trim());
       setResult(res);
-    } catch {
+    } catch (err) {
       setSubmitError(
-        "Couldn't grade that right now — your progress wasn't changed. Please try again.",
+        friendlyMessage(err) ||
+          "Couldn't record that right now — your progress wasn't changed. Please try again.",
       );
     } finally {
       setGrading(false);
@@ -145,16 +151,27 @@ function Assessment() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-5">
-              {/* Score — clearly separated */}
-              <div className="flex items-baseline gap-2">
-                <span className={cn("text-4xl font-bold", tier.accent)}>
-                  {result.score}
-                </span>
-                <span className="text-lg text-muted-foreground">/ 3</span>
-                <span className="ml-2 text-sm text-muted-foreground">
-                  {tier.blurb}
-                </span>
-              </div>
+              {/* What happened. For multiple choice a score out of 3 means
+                  nothing to a student, so show the letters instead. */}
+              {result.correct === undefined ? (
+                <div className="flex items-baseline gap-2">
+                  <span className={cn("text-4xl font-bold", tier.accent)}>{result.score}</span>
+                  <span className="text-lg text-muted-foreground">/ 3</span>
+                  <span className="ml-2 text-sm text-muted-foreground">{tier.blurb}</span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  You chose{" "}
+                  <span className={cn("font-bold", tier.accent)}>{result.selected_option}</span>
+                  {!result.correct && (
+                    <>
+                      ; the right answer is{" "}
+                      <span className="font-bold text-success">{result.correct_option}</span>
+                    </>
+                  )}
+                  . {tier.blurb}
+                </p>
+              )}
 
               {/* Feedback — clearly separated */}
               <div className="flex flex-col gap-1 rounded-xl border border-border bg-card p-4">
@@ -226,14 +243,55 @@ function Assessment() {
           <CardContent className="flex flex-col gap-5">
             <Markdown>{question}</Markdown>
 
-            <textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              disabled={grading}
-              rows={6}
-              placeholder="Explain your reasoning…"
-              className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-            />
+            {options.length > 0 ? (
+              // Multiple choice: one radio group, so arrow keys move between
+              // options and a screen reader announces "2 of 4".
+              <fieldset className="flex flex-col gap-3" disabled={grading}>
+                <legend className="sr-only">Choose one answer</legend>
+                {options.map(([letter, text]) => (
+                  <label
+                    key={letter}
+                    className={cn(
+                      "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all",
+                      answer === letter
+                        ? "border-primary bg-primary/5 ring-2 ring-primary"
+                        : "border-border bg-card hover:border-primary/40 hover:shadow-soft",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="answer"
+                      value={letter}
+                      checked={answer === letter}
+                      onChange={() => setAnswer(letter)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={cn(
+                        "flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                        answer === letter
+                          ? "border-primary bg-primary text-white"
+                          : "border-border text-muted-foreground",
+                      )}
+                      aria-hidden
+                    >
+                      {letter}
+                    </span>
+                    <Markdown className="prose-sm">{text}</Markdown>
+                  </label>
+                ))}
+              </fieldset>
+            ) : (
+              // Legacy generated lesson: free text, graded by the Assessor.
+              <textarea
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                disabled={grading}
+                rows={6}
+                placeholder="Explain your reasoning…"
+                className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+              />
+            )}
 
             {submitError && (
               <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
@@ -246,7 +304,7 @@ function Assessment() {
               disabled={grading || !answer.trim()}
               className="self-start"
             >
-              {grading ? "Grading…" : "Submit answer"}
+              {grading ? "Checking…" : options.length > 0 ? "Check my answer" : "Submit answer"}
             </PrimaryButton>
           </CardContent>
         </Card>

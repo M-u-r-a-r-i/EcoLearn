@@ -9,7 +9,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Lightbulb } from "lucide-react";
+import { ArrowRight, ChevronRight, Lightbulb } from "lucide-react";
 
 import { getNextLesson, type NextLesson } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
@@ -71,6 +71,16 @@ function LessonView() {
 
   const { lesson, concept_name, status, reason } = data;
 
+  // Authored lessons arrive as sections, so we choose what a student sees
+  // first. The story, the explanation and the takeaway are the lesson; the
+  // worked example and the caveats are there when wanted, not in the way.
+  // (Older generated lessons have no sections — they fall back to one body.)
+  const sections = lesson.sections ?? [];
+  const collapsed = (heading: string) =>
+    /worked example|picture breaks/i.test(heading);
+  const openSections = sections.filter((s) => !collapsed(s.heading));
+  const extraSections = sections.filter((s) => collapsed(s.heading));
+
   return (
     <main className="flex flex-1 flex-col">
       {/* ~720px reading column with generous vertical rhythm. */}
@@ -92,39 +102,58 @@ function LessonView() {
           {reason && <p className="text-muted-foreground">{reason}</p>}
         </header>
 
-        {/* Explanation — clean prose via the Markdown renderer */}
-        <article>
-          <Markdown>{lesson.body}</Markdown>
-        </article>
-
-        {/* Worked example — subtly amber-tinted callout */}
-        {lesson.worked_example?.trim() && (
-          <Card className="border-brand-accent/30 bg-brand-accent/5 shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base text-foreground">
-                <Lightbulb className="size-5 text-brand-accent" />
-                Worked example
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Markdown>{lesson.worked_example}</Markdown>
-            </CardContent>
-          </Card>
+        {/* The lesson itself */}
+        {sections.length > 0 ? (
+          openSections.map((section) => (
+            <article key={section.heading}>
+              <h2 className="mb-3 text-2xl font-bold tracking-tight text-foreground">
+                {section.heading}
+              </h2>
+              <Markdown>{section.markdown}</Markdown>
+            </article>
+          ))
+        ) : (
+          // Legacy lesson: one markdown blob.
+          <article>
+            <Markdown>{lesson.body}</Markdown>
+          </article>
         )}
 
-        {/* Check question — clearly set apart */}
-        {lesson.check_question?.trim() && (
+        {/* Worth having, but only when asked for: <details> gives us a real
+            disclosure widget with keyboard and screen-reader support built in. */}
+        {extraSections.map((section) => (
+          <details
+            key={section.heading}
+            className="group rounded-xl border border-border bg-card px-5 py-4 shadow-soft"
+          >
+            <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold text-foreground marker:content-none">
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+              {/worked example/i.test(section.heading) ? (
+                <>
+                  <Lightbulb className="size-5 text-brand-accent" />
+                  Show the worked example
+                </>
+              ) : (
+                "Where this picture breaks down"
+              )}
+            </summary>
+            <div className="mt-4 border-t border-border pt-4">
+              <Markdown>{section.markdown}</Markdown>
+            </div>
+          </details>
+        ))}
+
+        {/* Check question — the multiple-choice check lives on its own page */}
+        {(lesson.check || lesson.check_question?.trim()) && (
           <Card className="border-primary/20 bg-card shadow-card">
             <CardHeader>
-              <CardTitle className="text-base text-foreground">
-                Check yourself
-              </CardTitle>
+              <CardTitle className="text-base text-foreground">Check yourself</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-5">
-              <Markdown>{lesson.check_question}</Markdown>
+              <Markdown>{lesson.check?.question ?? lesson.check_question}</Markdown>
               <PrimaryButton asChild className="self-start">
                 <Link href={withChapter("/assessment", chapterId, { concept: lesson.concept_id })}>
-                  Take the quick check <ArrowRight className="size-5" />
+                  Answer the question <ArrowRight className="size-5" />
                 </Link>
               </PrimaryButton>
             </CardContent>

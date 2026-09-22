@@ -207,13 +207,31 @@ export function getRoadmap(chapterId: string): Promise<RoadmapConcept[]> {
 // ---------------------------------------------------------------------------
 // A lesson's content (the pre-generated, polished markdown).
 // ---------------------------------------------------------------------------
+// One "## heading" block of an authored lesson, so the page can decide what to
+// show and what to tuck behind a click.
+export interface LessonSection {
+  heading: string;
+  markdown: string;
+}
+
+// The check question as the browser is allowed to see it: the question and the
+// options, never the answer key. Grading happens on the server.
+export interface LessonCheck {
+  question: string;
+  options: Record<string, string>; // {"A": "...", "B": "...", ...}
+}
+
 export interface Lesson {
   concept_id: string;
   interest: string;
-  body: string; // markdown
-  worked_example: string; // markdown
-  check_question: string; // markdown / text
+  body: string; // markdown — the whole lesson (legacy shape)
+  worked_example: string; // markdown (legacy, empty for authored lessons)
+  check_question: string; // markdown / text (legacy)
   metadata: Record<string, unknown>;
+  // Present for authored lessons (everything written since 2026-09):
+  title?: string;
+  sections?: LessonSection[];
+  check?: LessonCheck;
 }
 
 export type LessonStatus =
@@ -278,12 +296,19 @@ export interface AssessmentResult {
   missing_concepts: string[];
   graded_question: string;
   mastery: MasteryRow;
+  // Multiple-choice grading only (authored lessons); absent for legacy lessons.
+  correct?: boolean;
+  selected_option?: string;
+  correct_option?: string;
 }
 
+// `answer` is the chosen option letter ("A".."D") for authored lessons, or free
+// text for the older generated ones. Multiple-choice grading is a lookup against
+// the lesson file, so it answers immediately — no model call.
 export function submitAssessment(conceptId: string, answer: string): Promise<AssessmentResult> {
   return request("/api/assessment", {
     method: "POST",
     body: { concept_id: conceptId, answer },
-    timeoutMs: LIVE_TIMEOUT_MS, // still a live grade until MCQ grading lands
+    timeoutMs: LIVE_TIMEOUT_MS, // legacy free-text grading is still a live call
   });
 }
