@@ -818,6 +818,21 @@ batch the same instructions, where hand-written prompts slowly diverge.
 - Tiling rendered PNGs into one grid image makes reviewing 10+ figures one image read instead of
   ten.
 
+**Follow-up, the same day: two more batches, run in parallel.**
+- Units and Measurement × smartphones (8) and Motion in a Straight Line × football (11). Both
+  reused the chapter's figures, so each drew only its scene.
+- The smartphones batch added one interest-neutral graph,
+  `measurement_uncertainty/repeated-thickness`.
+- Validator 117/117; phase 1 is at 8/70 batches.
+- Both batches together moved the 5-hour window **63% → 79%**, about 8% per batch when figures are
+  reused against about 11% when they're drawn.
+- *Fix:* the kilogram photo `famous/us-prototype-kilogram-k20.jpg` shows an **exact display
+  replica** of K20, per its Commons description, not K20 itself. The manifest title and credit and
+  the 4 captions that use it now say so. A sub-session spotted the `_replica` in the source
+  filename.
+- **Learned:** read a famous image's Commons description, not just its title. The filename said
+  "replica", and three batches had captioned it as the real object.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

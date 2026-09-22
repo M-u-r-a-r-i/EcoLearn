@@ -46,7 +46,7 @@ The umpire laughs, but he doesn't disagree. Riya isn't sure. Would one scratch i
 
 For most of the history of the SI, this was true. From 1889 until 2019, the kilogram was defined as the mass of the International Prototype Kilogram, a platinum-iridium cylinder kept near Paris. Countries received numbered copies. The one below, K20, is the United States' copy.
 
-![A small metal cylinder sitting under two nested glass bell jars](famous/us-prototype-kilogram-k20.jpg "National prototype kilogram K20, a platinum-iridium copy of the international prototype, kept under glass. Such cylinders defined the kilogram until 2019; now they are history. Public domain, via Wikimedia Commons.")
+![A small metal cylinder sitting under two nested glass bell jars](famous/us-prototype-kilogram-k20.jpg "A display replica of national prototype kilogram K20, the US platinum-iridium copy of the international prototype. Such cylinders defined the kilogram until 2019; now they are history. Public domain, via Wikimedia Commons.")
 
 The metre had a similar story: from 1889 it was the length of a metal bar, and countries held copies such as Bar No. 27.
 

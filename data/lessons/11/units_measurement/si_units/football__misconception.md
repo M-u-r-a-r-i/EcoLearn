@@ -54,7 +54,7 @@ So the second was taken away from the Earth. In 1960 it was briefly defined thro
 
 The same move happened to every SI base unit: the metre is fixed through the speed of light, and since 20 May 2019 the kilogram through the Planck constant — no longer by a metal cylinder like this national copy.
 
-![A small metal cylinder sitting under two nested glass bell jars](famous/us-prototype-kilogram-k20.jpg "National prototype kilogram K20, a copy of the international prototype that defined the kilogram until 2019. Like the Earth's spin for the second, an object was replaced by a constant. Public domain, via Wikimedia Commons.")
+![A small metal cylinder sitting under two nested glass bell jars](famous/us-prototype-kilogram-k20.jpg "A display replica of national prototype kilogram K20, a copy of the international prototype that defined the kilogram until 2019. Like the Earth's spin for the second, an object was replaced by a constant. Public domain, via Wikimedia Commons.")
 
 ## The physics
 

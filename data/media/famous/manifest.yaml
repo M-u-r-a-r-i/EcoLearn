@@ -26,10 +26,10 @@ images:
     downloaded: 2026-09-21
 
   - file: us-prototype-kilogram-k20.jpg
-    title: US national prototype kilogram K20 under its glass bell jars
+    title: Display replica of the US national prototype kilogram K20 under its glass bell jars
     source: https://commons.wikimedia.org/wiki/File:National_prototype_kilogram_K20_replica.jpg
     license: Public domain
-    credit: "National prototype kilogram K20, a platinum-iridium cylinder kept by NIST. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
+    credit: "An exact replica of national prototype kilogram K20 (a platinum-iridium cylinder kept by NIST), made for public display. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
     concepts: [si_units, unit_conversion]
     downloaded: 2026-09-21
 

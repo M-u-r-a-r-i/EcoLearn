@@ -56,7 +56,7 @@ Mechanics needs three: the **metre** (m), the **kilogram** (kg) and the **second
 
 Before 2019, the kilogram *was* an object: a platinum-iridium cylinder kept near Paris, with numbered national copies around the world.
 
-![A small metal cylinder under two glass bell jars on a stand](famous/us-prototype-kilogram-k20.jpg "Kilogram K20, the US national copy of the old prototype kilogram. An object can gain grime or lose atoms; a constant of nature can't, which is why the definition changed. Public domain, via Wikimedia Commons.")
+![A small metal cylinder under two glass bell jars on a stand](famous/us-prototype-kilogram-k20.jpg "A display replica of kilogram K20, the US national copy of the old prototype kilogram. An object can gain grime or lose atoms; a constant of nature can't, which is why the definition changed. Public domain, via Wikimedia Commons.")
 
 All other units are **derived units**, built from the base units through the equation that defines the quantity:
 
