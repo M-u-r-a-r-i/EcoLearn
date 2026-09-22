@@ -50,6 +50,8 @@ The first law says energy is conserved. It says nothing about **which way** proc
 
 **Clausius statement:** No process is possible whose sole result is the transfer of heat from a colder object to a hotter object.
 
+![Black-and-white portrait photograph of a bearded man in a dark coat](famous/rudolf-clausius.jpg "Rudolf Clausius (1822–1888), the German physicist who put the second law in terms of heat flow, and later named entropy. Public domain, via Wikimedia Commons.")
+
 ![Two crossed-out machines: an engine turning all heat Q from a hot reservoir into work W equal to Q with no heat rejected, and a fridge moving heat Q from a cold reservoir to a hot one with no work](figures/second_law_thermodynamics/forbidden-machines.svg "Left: Aditya's scoreboard engine. Right: his plugless fridge. Both obey the first law; the second law rules out both.")
 
 The words **sole result** matter. A gas expanding isothermally does turn all the heat it absorbs into work, but the gas ends up at a larger volume, so that is not the sole result; it cannot be repeated in a cycle without compressing the gas again. A fridge does move heat from cold to hot, but only by using work, so that is not the sole result either.

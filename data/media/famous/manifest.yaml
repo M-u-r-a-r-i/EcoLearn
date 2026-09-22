@@ -40,3 +40,11 @@ images:
     credit: "National Prototype Metre Bar No. 27 (1889), the US length standard from 1893 to 1960. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
     concepts: [si_units, significant_figures, measurement_uncertainty]
     downloaded: 2026-09-21
+
+  - file: rudolf-clausius.jpg
+    title: Portrait photograph of Rudolf Clausius (before 1888)
+    source: https://commons.wikimedia.org/wiki/File:Clausius.jpg
+    license: Public domain
+    credit: "Rudolf Clausius (1822-1888), who stated the second law of thermodynamics in terms of heat flow and coined the word entropy. Photographer unknown, before 1888. Via Wikimedia Commons (from the MacTutor archive, University of St Andrews). Public domain."
+    concepts: [second_law_thermodynamics]
+    downloaded: 2026-09-22

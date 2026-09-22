@@ -968,6 +968,13 @@ could read or change any student's progress by sending their id.
   That's consistent with §9o's figures (about 11% of a window per batch).
 - A session ending mid-batch loses nothing that was written, because writing is resumable.
   Check for `[part]` in `batch_status.py --all` at the start of a session.
+- *Follow-up:*
+  - The last two Gauss's-law lessons were written (batch 11/11, commit `6f34558`).
+  - **Famous image approved by the user:** `famous/rudolf-clausius.jpg` (Commons `File:Clausius.jpg`,
+    PD-old, 275×326 px, 12 KB). It has a manifest entry and is placed after the Clausius statement in
+    `thermodynamics/second_law_thermodynamics/cricket__explain.md`.
+  - Chosen over Kelvin: the lesson's figure contrasts both statements, but Clausius's heat-flow
+    statement is the one students remember, and he later named entropy.
 
 ## 10. Key decisions and why
 
