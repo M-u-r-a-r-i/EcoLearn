@@ -930,6 +930,45 @@ could read or change any student's progress by sending their id.
 - `tsc`, lint and build are clean. **Still not browser-tested**; it was deferred with the rest of
   §9n because the window was at 93%.
 
+## 9p. Seven more explain batches, one left partial (2026-09-22)
+
+**Changed.**
+- Six complete batches (60 lessons):
+  - Motion in a Straight Line × smartphones (11)
+  - Motion in a Plane × gaming (10)
+  - Laws of Motion × gaming (10)
+  - Work, Energy and Power × football (11)
+  - Gravitation × football (8)
+  - **Electrostatic Potential and Capacitance × cricket (10)**, the chapter's first interest and
+    the first Class 12 chapter.
+- **Electric Charges and Fields × cricket is partial (9/11).** The session ended before its
+  sub-session finished. The two Gauss's-law lessons are missing, but their figures are drawn. The
+  batch is resumable: rerun its brief and it skips the existing files.
+- New images:
+  - 6 scenes;
+  - about 25 Class 12 electrostatics figures, several computed from exact formulas (dipole field
+    lines, equipotentials, the conductor in a field);
+  - 4 football graphs for Work, Energy and Power, and 2 gravitation diagrams (Kepler's unequal
+    half-years, dish elevation against latitude).
+- Review:
+  - All 38 new images checked in grids, with no fixes needed.
+  - Numbers re-derived across capacitors, Coulomb, Gauss, superposition, satellite-dish angles and
+    energy graphs; 3 answer keys plus the drag explanation in satellite energy checked.
+  - Validator: 253/253 valid.
+- `content/AUTHORING_GUIDE.md` §7a: shared figures must not print batch-specific numbers.
+
+**Why.** The user asked for the next batches after the window reset.
+
+**Learned.**
+- **Neutral figures need neutral numbers.** Several cricket graphs for Work, Energy and Power print
+  "0.16 kg ball" and "24 m/s" in their titles and legends. The football session rightly redrew
+  four of them rather than confuse students. That was lost reuse, so the guide now says to label
+  the shape of the physics and keep the numbers in the lesson text.
+- **Cost:** 7 batches took the window from 4% to about 80% and the weekly limit from 16% to 26%.
+  That's consistent with §9o's figures (about 11% of a window per batch).
+- A session ending mid-batch loses nothing that was written, because writing is resumable.
+  Check for `[part]` in `batch_status.py --all` at the start of a session.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

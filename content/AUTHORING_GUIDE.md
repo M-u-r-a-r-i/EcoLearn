@@ -272,6 +272,11 @@ picture of something that scene doesn't show — a specific moment, device or co
 extra one named `scenes/{interest}/{chapter_id}--{short-name}.svg` (e.g.
 `scenes/music/current_electricity--headphones.svg`). Diagrams that explain physics stay
 interest-neutral in `figures/{concept_id}/` so all ten interests can reuse them.
+**Neutral means the numbers too:** don't print a batch-specific mass, speed or story value (e.g.
+"0.16 kg ball", "24 m/s") in a shared figure's title, legend or labels. Label the shape of the
+physics instead ("K ∝ v²", "doubling v quadruples K", "slope = power"), and put the worked numbers
+in the lesson text. Otherwise the next interest has to redraw the figure (this happened with
+Work, Energy and Power in 2026-09).
 
 ### Rules for drawn images (SVG)
 

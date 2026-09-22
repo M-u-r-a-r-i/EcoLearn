@@ -1,0 +1,18 @@
+# Charging C = 150 uF to V = 300 V: Q = CV = 0.045 C = 45 mC. V = q/C rises linearly with q.
+# Energy = area under the line = (1/2) Q V = 0.5 * 0.045 * 300 = 6.75 J.
+# The dashed line is the average voltage (150 V) at which the charge was moved.
+x: {label: "Charge moved $q$ (mC)", min: 0, max: 50}
+y: {label: "Voltage $V$ (V)", min: 0, max: 340}
+title: "Charging a 150 μF capacitor to 300 V"
+legend: below
+series:
+  - label: "V = q/C  (energy stored = area under this line = 6.75 J)"
+    points: [[0, 0], [45, 300]]
+    color: blue
+  - label: "average voltage during charging: 150 V"
+    points: [[0, 150], [45, 150]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 45, y: 300, text: "Q = 45 mC at V = 300 V", color: blue, offset: [-170, 4]}
+  - {x: 22.5, y: 150, text: "halfway: 150 V", color: gray, offset: [-105, 8]}

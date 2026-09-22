@@ -1,0 +1,20 @@
+# Thin spherical shell, R = 0.20 m, Q = +40 nC. kQ = 9.0e9 * 40e-9 = 360 N m^2/C.
+# Inside (r < R): E = 0. Outside: E = 360/r^2 -> 9000 N/C just outside R, 4000 at 0.30 m.
+x: {label: "Distance from the centre $r$ (m)", min: 0, max: 0.62}
+y: {label: "Field strength $E$ (N/C)", min: 0, max: 10000}
+title: "Field of a thin charged shell (R = 0.20 m, Q = 40 nC)"
+legend: upper right
+series:
+  - label: "inside: E = 0"
+    points: [[0, 0], [0.20, 0]]
+    color: blue
+  - label: "outside: E = kQ/r², as if Q were at the centre"
+    points: [[0.20, 9000], [0.21, 8163], [0.22, 7438], [0.23, 6805], [0.25, 5760], [0.27, 4938], [0.30, 4000], [0.35, 2939], [0.40, 2250], [0.45, 1778], [0.50, 1440], [0.55, 1190], [0.60, 1000]]
+    color: red
+  - label: "shell surface, r = R"
+    points: [[0.20, 0], [0.20, 9000]]
+    color: gray
+    style: dotted
+marks:
+  - {x: 0.30, y: 4000, text: "0.30 m: 4000 N/C", color: red, offset: [10, 6]}
+  - {x: 0.10, y: 0, text: "0.10 m: zero", color: blue, offset: [-20, 14]}

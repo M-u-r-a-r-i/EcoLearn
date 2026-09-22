@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">An exaggerated elliptical orbit cut in two by the equinox line through the Sun: the small half near perihelion is covered fast, the big half near aphelion slowly</title>
+  <defs>
+    <marker id="vb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="dir" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <!-- legend -->
+  <rect x="20" y="12" width="16" height="12" fill="#fed7aa" stroke="#ea580c"/>
+  <text x="44" y="23" font-size="13" fill="#0f172a">Half near the Sun: September → March, covered faster (about 179 days)</text>
+  <rect x="20" y="34" width="16" height="12" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="44" y="45" font-size="13" fill="#0f172a">Far half: March → September, covered slower (about 186 days)</text>
+
+  <!-- the two halves of the orbit (a = 200, b = 150, Sun at the focus x = 188) -->
+  <path d="M188,112.5 A200,150 0 0,0 188,337.5 z" fill="#fed7aa" stroke="none"/>
+  <path d="M188,112.5 A200,150 0 1,1 188,337.5 z" fill="#dbeafe" stroke="none"/>
+  <ellipse cx="320" cy="225" rx="200" ry="150" fill="none" stroke="#334155" stroke-width="2"/>
+  <line x1="188" y1="112.5" x2="188" y2="337.5" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- direction of motion (anticlockwise seen from the north) -->
+  <path d="M462,105 Q442,92 414,84" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#dir)"/>
+
+  <!-- Sun -->
+  <circle cx="188" cy="225" r="13" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/>
+  <text x="206" y="221" font-size="13" fill="#0f172a">Sun</text>
+
+  <!-- Earth at perihelion and aphelion, with speed arrows in the ratio of the distances -->
+  <circle cx="120" cy="225" r="6" fill="#2563eb"/>
+  <line x1="120" y1="231" x2="120" y2="280" stroke="#2563eb" stroke-width="3" marker-end="url(#vb)"/>
+  <text x="112" y="206" font-size="13" text-anchor="end" fill="#0f172a">perihelion</text>
+  <text x="112" y="222" font-size="12" text-anchor="end" fill="#475569">early January</text>
+  <text x="112" y="268" font-size="12" text-anchor="end" fill="#2563eb">fast</text>
+
+  <circle cx="520" cy="225" r="6" fill="#2563eb"/>
+  <line x1="520" y1="219" x2="520" y2="209" stroke="#2563eb" stroke-width="3" marker-end="url(#vb)"/>
+  <text x="530" y="230" font-size="13" fill="#0f172a">aphelion</text>
+  <text x="530" y="246" font-size="12" fill="#475569">early July</text>
+  <text x="530" y="212" font-size="12" fill="#2563eb">slow</text>
+
+  <!-- equinox labels -->
+  <text x="150" y="98" font-size="13" text-anchor="middle" fill="#0f172a">September equinox</text>
+  <text x="150" y="362" font-size="13" text-anchor="middle" fill="#0f172a">March equinox</text>
+
+  <text x="320" y="394" font-size="12" text-anchor="middle" fill="#475569">Shape greatly exaggerated: Earth's real orbit is almost a circle, with the Sun only slightly off-centre.</text>
+</svg>

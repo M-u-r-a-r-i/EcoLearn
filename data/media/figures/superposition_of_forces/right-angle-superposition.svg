@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A +2.0 microcoulomb charge at the corner O, a +3.0 microcoulomb charge 0.30 m to its right and a −4.0 microcoulomb charge 0.40 m above it. The right-hand charge pushes O's charge left with 0.60 N; the upper charge pulls it up with 0.45 N; the net force is 0.75 N, up and to the left at 37 degrees above the leftward direction.</title>
+  <defs>
+    <marker id="f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+    <marker id="n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7f1d1d"/>
+    </marker>
+  </defs>
+  <rect width="640" height="420" fill="#ffffff"/>
+
+  <!-- geometry: 1 m = 600 px; O at (260,330) -->
+  <line x1="260" y1="330" x2="440" y2="330" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="260" y1="330" x2="260" y2="90" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="350" y="356" font-size="15" fill="#374151" text-anchor="middle">0.30 m</text>
+  <text x="272" y="214" font-size="15" fill="#374151">0.40 m</text>
+
+  <!-- parallelogram guides -->
+  <line x1="140" y1="330" x2="140" y2="240" stroke="#fca5a5" stroke-width="2" stroke-dasharray="4 4"/>
+  <line x1="260" y1="240" x2="140" y2="240" stroke="#fca5a5" stroke-width="2" stroke-dasharray="4 4"/>
+
+  <!-- forces on q0: scale 200 px per newton -->
+  <line x1="260" y1="330" x2="142" y2="330" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <line x1="260" y1="330" x2="260" y2="242" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <line x1="260" y1="330" x2="142" y2="242" stroke="#7f1d1d" stroke-width="5" marker-end="url(#n)"/>
+
+  <text x="150" y="354" font-size="15" fill="#dc2626" font-weight="600">F₁ = 0.60 N</text>
+  <text x="172" y="232" font-size="15" fill="#dc2626" font-weight="600" text-anchor="end">F₂ = 0.45 N</text>
+  <text x="130" y="290" font-size="16" fill="#7f1d1d" font-weight="700" text-anchor="end">F(net) = 0.75 N</text>
+  <path d="M 225 330 A 35 35 0 0 1 232 309" fill="none" stroke="#7f1d1d" stroke-width="2"/>
+  <text x="196" y="318" font-size="14" fill="#7f1d1d" font-weight="600">37°</text>
+
+  <!-- charges -->
+  <circle cx="260" cy="330" r="15" fill="#dc2626"/><text x="260" y="337" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <circle cx="440" cy="330" r="15" fill="#dc2626"/><text x="440" y="337" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <circle cx="260" cy="90" r="15" fill="#2563eb"/><text x="260" y="97" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">−</text>
+  <text x="276" y="316" font-size="14" fill="#111827" font-weight="600">O: q₀ = +2.0 μC</text>
+  <text x="440" y="366" font-size="14" fill="#111827" font-weight="600" text-anchor="middle">q₁ = +3.0 μC</text>
+  <text x="282" y="95" font-size="14" fill="#111827" font-weight="600">q₂ = −4.0 μC</text>
+
+  <text x="350" y="160" font-size="14" fill="#374151">F₁: q₁ repels q₀ (away from q₁)</text>
+  <text x="350" y="182" font-size="14" fill="#374151">F₂: q₂ attracts q₀ (towards q₂)</text>
+  <text x="350" y="204" font-size="14" fill="#374151">Add them as vectors,</text>
+  <text x="350" y="226" font-size="14" fill="#374151">not as plain numbers.</text>
+  <text x="320" y="400" font-size="13" fill="#6b7280" text-anchor="middle">Force arrows and distances are each drawn to scale.</text>
+</svg>

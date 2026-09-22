@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Three Gaussian surfaces chosen to match the symmetry. A cylinder of radius r and length l around a long charged wire, with the field radial through its curved side. A small box straddling an infinite charged sheet, with the field perpendicular to the sheet through both flat faces. Spheres concentric with a thin charged shell: one inside, enclosing no charge, and one outside, enclosing the whole charge Q.</title>
+  <defs>
+    <marker id="e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect width="960" height="400" fill="#ffffff"/>
+  <g stroke="#e5e7eb" stroke-width="2"><line x1="320" y1="20" x2="320" y2="300"/><line x1="640" y1="20" x2="640" y2="300"/></g>
+
+  <!-- (1) long straight wire, vertical, with a cylinder -->
+  <line x1="160" y1="30" x2="160" y2="270" stroke="#dc2626" stroke-width="5"/>
+  <text x="170" y="42" font-size="13" fill="#dc2626" font-weight="600">λ (C/m)</text>
+  <g fill="none" stroke="#0e7490" stroke-width="2.5">
+    <ellipse cx="160" cy="90" rx="60" ry="16"/>
+    <path d="M 100 210 A 60 16 0 0 0 220 210"/>
+    <path d="M 100 210 A 60 16 0 0 1 220 210" stroke-dasharray="5 5"/>
+    <line x1="100" y1="90" x2="100" y2="210"/><line x1="220" y1="90" x2="220" y2="210"/>
+  </g>
+  <g stroke="#ea580c" stroke-width="3" marker-end="url(#e)">
+    <line x1="220" y1="130" x2="275" y2="130"/><line x1="220" y1="175" x2="275" y2="175"/>
+    <line x1="100" y1="130" x2="45" y2="130"/><line x1="100" y1="175" x2="45" y2="175"/>
+  </g>
+  <line x1="160" y1="150" x2="220" y2="150" stroke="#111827" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="190" y="146" font-size="13" fill="#111827" text-anchor="middle">r</text>
+  <text x="232" y="232" font-size="13" fill="#0e7490">length l</text>
+
+  <!-- (2) infinite plane sheet (seen edge-on) with a pillbox -->
+  <rect x="474" y="30" width="12" height="240" fill="#fca5a5"/>
+  <text x="496" y="42" font-size="13" fill="#dc2626" font-weight="600">σ (C/m²)</text>
+  <rect x="420" y="120" width="120" height="60" fill="none" stroke="#0e7490" stroke-width="2.5" stroke-dasharray="7 4"/>
+  <text x="430" y="112" font-size="13" fill="#0e7490">face area A</text>
+  <g stroke="#ea580c" stroke-width="3" marker-end="url(#e)">
+    <line x1="540" y1="150" x2="600" y2="150"/><line x1="420" y1="150" x2="360" y2="150"/>
+    <line x1="540" y1="230" x2="600" y2="230"/><line x1="420" y1="230" x2="360" y2="230"/>
+    <line x1="540" y1="70" x2="600" y2="70"/><line x1="420" y1="70" x2="360" y2="70"/>
+  </g>
+
+  <!-- (3) thin spherical shell with two Gaussian spheres -->
+  <circle cx="800" cy="150" r="70" fill="none" stroke="#dc2626" stroke-width="5"/>
+  <circle cx="800" cy="150" r="38" fill="none" stroke="#0e7490" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <circle cx="800" cy="150" r="108" fill="none" stroke="#0e7490" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <text x="800" y="155" font-size="13" fill="#0e7490" text-anchor="middle" font-weight="600">E = 0</text>
+  <text x="862" y="92" font-size="13" fill="#dc2626" font-weight="600">Q</text>
+  <g stroke="#ea580c" stroke-width="3" marker-end="url(#e)">
+    <line x1="908" y1="150" x2="940" y2="150"/><line x1="800" y1="42" x2="800" y2="24"/>
+    <line x1="692" y1="150" x2="660" y2="150"/><line x1="800" y1="258" x2="800" y2="276"/>
+  </g>
+
+  <g font-size="15" font-weight="700" fill="#111827" text-anchor="middle">
+    <text x="160" y="310">Long straight wire</text><text x="480" y="310">Infinite plane sheet</text><text x="800" y="310">Thin spherical shell</text>
+  </g>
+  <g font-size="13.5" fill="#374151" text-anchor="middle">
+    <text x="160" y="334">cylinder: flux only through the side</text>
+    <text x="160" y="356">E(2πrl) = λl/ε₀ → E = λ/(2πε₀r)</text>
+    <text x="480" y="334">box: flux only through the two faces</text>
+    <text x="480" y="356">2EA = σA/ε₀ → E = σ/(2ε₀)</text>
+    <text x="800" y="334">outside: E(4πr²) = Q/ε₀ → E = Q/(4πε₀r²)</text>
+    <text x="800" y="356">inside: no charge enclosed → E = 0</text>
+  </g>
+  <text x="480" y="390" font-size="13" fill="#6b7280" text-anchor="middle">Charges shown positive. The dashed blue shapes are imaginary surfaces; the field's symmetry makes E the same everywhere the flux crosses them.</text>
+</svg>

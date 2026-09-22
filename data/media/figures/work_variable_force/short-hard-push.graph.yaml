@@ -1,0 +1,19 @@
+# A short, hard push along the displacement (for example a kick): force rises 0 -> 1350 N
+# over the first 0.02 m, stays at 1350 N until 0.10 m, falls back to 0 at 0.12 m.
+# Area = 0.5*0.02*1350 + 0.08*1350 + 0.5*0.02*1350 = 13.5 + 108 + 13.5 = 135 J.
+# Dashed strips 0.02 m wide at each strip's midpoint force (675, 1350 x4, 675 N):
+# sum = 0.02*(675 + 4*1350 + 675) = 0.02*6750 = 135 J.
+title: "A short, hard push: work = area under the graph"
+x: {label: "Displacement $x$ (m)", min: 0, max: 0.14}
+y: {label: "Force along the motion $F$ (N)", min: 0, max: 1600}
+series:
+  - label: "Force $F(x)$"
+    points: [[0, 0], [0.02, 1350], [0.10, 1350], [0.12, 0]]
+    color: red
+  - label: 'Strips of width $\Delta x$ = 0.02 m'
+    points: [[0, 0], [0, 675], [0.02, 675], [0.02, 0], [0.02, 1350], [0.04, 1350], [0.04, 0], [0.04, 1350], [0.06, 1350], [0.06, 0], [0.06, 1350], [0.08, 1350], [0.08, 0], [0.08, 1350], [0.10, 1350], [0.10, 0], [0.10, 675], [0.12, 675], [0.12, 0]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 0.06, y: 1350, text: "total area = 135 J", color: red, offset: [-50, 10]}
+legend: below

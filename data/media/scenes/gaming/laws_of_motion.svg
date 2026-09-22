@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A gaming desk at night: a monitor shows a top-down racing game where a kart rounds a circular curve with its velocity along the track and the friction force pointing towards the centre; beside it a tablet shows a zero-gravity game where an astronaut and a crate push apart with equal and opposite forces; a controller rests on the desk</title>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#2e1065"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#room)"/>
+  <ellipse cx="320" cy="170" rx="340" ry="170" fill="url(#glow)"/>
+
+  <!-- monitor -->
+  <rect x="80" y="40" width="440" height="252" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <rect x="92" y="52" width="416" height="228" fill="#15803d"/>
+  <!-- grass texture -->
+  <g fill="#166534">
+    <circle cx="130" cy="240" r="10"/><circle cx="470" cy="130" r="12"/><circle cx="455" cy="250" r="9"/><circle cx="140" cy="140" r="8"/>
+  </g>
+  <!-- circular track, centre (300,166), radius 80 -->
+  <circle cx="300" cy="166" r="80" fill="none" stroke="#475569" stroke-width="34"/>
+  <circle cx="300" cy="166" r="97" fill="none" stroke="#f8fafc" stroke-width="2" stroke-dasharray="8 6"/>
+  <circle cx="300" cy="166" r="63" fill="none" stroke="#f8fafc" stroke-width="2" stroke-dasharray="8 6"/>
+  <!-- centre of the curve -->
+  <circle cx="300" cy="166" r="4" fill="#f8fafc"/>
+  <text x="300" y="186" font-size="11" fill="#f0fdf4" text-anchor="middle" font-weight="600">centre</text>
+  <!-- straight-on path with no grip (dashed tangent) -->
+  <line x1="318" y1="246" x2="470" y2="246" stroke="#fde68a" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="400" y="272" font-size="11" fill="#fef9c3" text-anchor="middle" font-weight="600">with no grip: straight on</text>
+  <!-- kart at the bottom of the circle (300,246), moving right -->
+  <rect x="286" y="237" width="28" height="18" rx="4" fill="#dc2626" stroke="#fecaca" stroke-width="1.5"/>
+  <rect x="282" y="233" width="8" height="5" rx="1" fill="#0f172a"/><rect x="310" y="233" width="8" height="5" rx="1" fill="#0f172a"/>
+  <rect x="282" y="254" width="8" height="5" rx="1" fill="#0f172a"/><rect x="310" y="254" width="8" height="5" rx="1" fill="#0f172a"/>
+  <circle cx="298" cy="246" r="4" fill="#fde68a"/>
+  <!-- velocity arrow (blue), tangent -->
+  <line x1="318" y1="226" x2="358" y2="226" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="358,219 372,226 358,233" fill="#2563eb"/>
+  <text x="344" y="218" font-size="13" fill="#bfdbfe" font-weight="700" text-anchor="middle">v</text>
+  <!-- friction force (red), towards centre -->
+  <line x1="300" y1="232" x2="300" y2="200" stroke="#dc2626" stroke-width="4"/>
+  <polygon points="293,200 300,186 307,200" fill="#dc2626"/>
+  <rect x="236" y="198" width="56" height="18" rx="3" fill="#020617" opacity="0.8"/>
+  <text x="264" y="211" font-size="12" fill="#fecaca" font-weight="700" text-anchor="middle">friction</text>
+  <!-- HUD -->
+  <rect x="100" y="60" width="118" height="48" rx="5" fill="#020617" opacity="0.85"/>
+  <text x="110" y="80" font-size="14" fill="#fbbf24" font-weight="700" font-family="Consolas, monospace">LAP 2/3</text>
+  <text x="110" y="99" font-size="14" fill="#93c5fd" font-weight="700" font-family="Consolas, monospace">72 km/h</text>
+  <rect x="420" y="60" width="80" height="26" rx="4" fill="#020617" opacity="0.85"/>
+  <text x="428" y="79" font-size="14" fill="#4ade80" font-weight="700" font-family="Consolas, monospace">60 FPS</text>
+  <!-- stand -->
+  <rect x="285" y="292" width="30" height="34" fill="#334155"/>
+  <rect x="235" y="324" width="130" height="10" rx="4" fill="#334155"/>
+
+  <!-- tablet with a zero-gravity game -->
+  <rect x="560" y="96" width="210" height="160" rx="12" fill="#0f172a" stroke="#64748b" stroke-width="3"/>
+  <rect x="572" y="108" width="186" height="136" rx="4" fill="#020617"/>
+  <g fill="#e2e8f0">
+    <circle cx="590" cy="150" r="1.5"/><circle cx="740" cy="130" r="1.5"/><circle cx="700" cy="225" r="1.5"/><circle cx="615" cy="230" r="1.2"/><circle cx="660" cy="140" r="1.2"/>
+  </g>
+  <text x="582" y="126" font-size="12" fill="#c4b5fd" font-weight="700">ZERO-G</text>
+  <!-- astronaut -->
+  <circle cx="640" cy="170" r="11" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="634" y="165" width="12" height="8" rx="3" fill="#38bdf8"/>
+  <rect x="631" y="182" width="18" height="24" rx="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="647" y1="188" x2="662" y2="186" stroke="#f8fafc" stroke-width="5" stroke-linecap="round"/>
+  <line x1="634" y1="205" x2="630" y2="222" stroke="#f8fafc" stroke-width="5" stroke-linecap="round"/>
+  <line x1="645" y1="205" x2="649" y2="222" stroke="#f8fafc" stroke-width="5" stroke-linecap="round"/>
+  <!-- crate -->
+  <rect x="666" y="172" width="30" height="30" fill="#b45309" stroke="#fbbf24" stroke-width="2"/>
+  <line x1="666" y1="172" x2="696" y2="202" stroke="#fbbf24" stroke-width="1.5"/>
+  <line x1="696" y1="172" x2="666" y2="202" stroke="#fbbf24" stroke-width="1.5"/>
+  <!-- equal and opposite forces (red) -->
+  <line x1="698" y1="194" x2="726" y2="194" stroke="#dc2626" stroke-width="3"/>
+  <polygon points="726,189 736,194 726,199" fill="#dc2626"/>
+  <line x1="626" y1="194" x2="598" y2="194" stroke="#dc2626" stroke-width="3"/>
+  <polygon points="598,189 588,194 598,199" fill="#dc2626"/>
+  <text x="716" y="220" font-size="10" fill="#fecaca" text-anchor="middle">on crate</text>
+  <text x="575" y="210" font-size="9" fill="#fecaca">on astronaut</text>
+  <rect x="646" y="326" width="28" height="40" fill="#334155"/>
+  <path d="M 640 256 L 680 256 L 666 330 L 654 330 z" fill="#334155"/>
+
+  <!-- desk -->
+  <rect x="0" y="334" width="800" height="116" fill="#3f2a1d"/>
+  <rect x="0" y="334" width="800" height="8" fill="#5b3b28"/>
+
+  <!-- controller -->
+  <path d="M 90 406 Q 96 366 130 370 L 194 370 Q 228 366 234 406 Q 224 418 206 408 L 118 408 Q 100 418 90 406 z" fill="#1f2937"/>
+  <circle cx="130" cy="386" r="8" fill="#475569"/>
+  <circle cx="178" cy="394" r="8" fill="#475569"/>
+  <g fill="#38bdf8"><circle cx="206" cy="378" r="4"/><circle cx="215" cy="387" r="4"/><circle cx="197" cy="387" r="4"/><circle cx="206" cy="396" r="4"/></g>
+  <path d="M 234 396 Q 280 400 300 340" fill="none" stroke="#94a3b8" stroke-width="3"/>
+
+  <!-- mouse on a mouse pad -->
+  <rect x="420" y="360" width="150" height="72" rx="8" fill="#111827"/>
+  <ellipse cx="495" cy="394" rx="18" ry="25" fill="#e5e7eb"/>
+  <line x1="495" y1="371" x2="495" y2="386" stroke="#64748b" stroke-width="2"/>
+  <path d="M 495 369 Q 486 352 470 350" fill="none" stroke="#94a3b8" stroke-width="3"/>
+</svg>

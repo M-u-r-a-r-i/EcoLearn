@@ -1,0 +1,21 @@
+# Kinetic energy K = 0.5 m v^2 for m = 0.43 kg (K = 0.215 v^2) and a 10% heavier
+# m = 0.473 kg (K = 0.2365 v^2).
+# 0.43 kg: 20 m/s -> 86 J, 22 m/s -> 104 J, 40 m/s -> 344 J.
+# 0.473 kg: 20 m/s -> 94.6 J.
+title: "Kinetic energy: speed counts twice, mass once"
+x: {label: "Speed $v$ (m/s)", min: 0, max: 42}
+y: {label: "Kinetic energy $K$ (J)", min: 0, max: 400}
+series:
+  - label: "$m$ = 0.43 kg"
+    points: [[0, 0], [4, 3.44], [8, 13.76], [12, 30.96], [16, 55.04], [20, 86], [24, 123.84],
+             [28, 168.56], [32, 220.16], [36, 278.64], [40, 344]]
+    color: blue
+  - label: "$m$ = 0.473 kg (10% heavier)"
+    points: [[0, 0], [4, 3.784], [8, 15.136], [12, 34.056], [16, 60.544], [20, 94.6], [24, 136.224],
+             [28, 185.416], [32, 242.176], [36, 306.504], [40, 378.4]]
+    color: orange
+    style: dashed
+marks:
+  - {x: 20, y: 86, text: "20 m/s: 86 J", color: blue, offset: [8, -16]}
+  - {x: 40, y: 344, text: "40 m/s: 344 J (4 times)", color: red, offset: [-185, 8]}
+legend: below

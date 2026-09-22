@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A dielectric slab in a uniform external field pointing right: its molecules become tiny dipoles lined up with the field, leaving a layer of negative bound charge on the left face and positive bound charge on the right face, so the field inside the slab is weaker</title>
+  <defs>
+    <marker id="fa" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect width="640" height="380" fill="#ffffff"/>
+
+  <!-- external field outside the slab -->
+  <g stroke="#7c3aed" stroke-width="3" marker-end="url(#fa)">
+    <line x1="30" y1="110" x2="180" y2="110"/>
+    <line x1="30" y1="180" x2="180" y2="180"/>
+    <line x1="30" y1="250" x2="180" y2="250"/>
+    <line x1="460" y1="110" x2="610" y2="110"/>
+    <line x1="460" y1="180" x2="610" y2="180"/>
+    <line x1="460" y1="250" x2="610" y2="250"/>
+  </g>
+  <text x="100" y="92" font-size="16" text-anchor="middle" fill="#7c3aed" font-weight="700">E₀</text>
+  <text x="535" y="92" font-size="16" text-anchor="middle" fill="#7c3aed" font-weight="700">E₀</text>
+
+  <!-- slab -->
+  <rect x="200" y="60" width="240" height="240" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+
+  <!-- aligned molecular dipoles: - end left, + end right -->
+  <g id="row">
+    <g>
+      <ellipse cx="258" cy="90" rx="17" ry="9" fill="#e0e7ff" stroke="#6b7280"/>
+      <text x="250" y="95" font-size="12" text-anchor="middle" fill="#2563eb" font-weight="700">−</text>
+      <text x="266" y="95" font-size="12" text-anchor="middle" fill="#dc2626" font-weight="700">+</text>
+    </g>
+    <g>
+      <ellipse cx="305" cy="90" rx="17" ry="9" fill="#e0e7ff" stroke="#6b7280"/>
+      <text x="297" y="95" font-size="12" text-anchor="middle" fill="#2563eb" font-weight="700">−</text>
+      <text x="313" y="95" font-size="12" text-anchor="middle" fill="#dc2626" font-weight="700">+</text>
+    </g>
+    <g>
+      <ellipse cx="352" cy="90" rx="17" ry="9" fill="#e0e7ff" stroke="#6b7280"/>
+      <text x="344" y="95" font-size="12" text-anchor="middle" fill="#2563eb" font-weight="700">−</text>
+      <text x="360" y="95" font-size="12" text-anchor="middle" fill="#dc2626" font-weight="700">+</text>
+    </g>
+    <g>
+      <ellipse cx="399" cy="90" rx="17" ry="9" fill="#e0e7ff" stroke="#6b7280"/>
+      <text x="391" y="95" font-size="12" text-anchor="middle" fill="#2563eb" font-weight="700">−</text>
+      <text x="407" y="95" font-size="12" text-anchor="middle" fill="#dc2626" font-weight="700">+</text>
+    </g>
+  </g>
+  <use href="#row" y="60"/>
+  <use href="#row" y="120"/>
+  <use href="#row" y="180"/>
+
+  <!-- weaker field inside -->
+  <g stroke="#7c3aed" stroke-width="1.5" marker-end="url(#fa)">
+    <line x1="285" y1="120" x2="325" y2="120"/>
+    <line x1="285" y1="180" x2="325" y2="180"/>
+  </g>
+  <text x="340" y="130" font-size="14" fill="#7c3aed" font-weight="700">E = E₀/K</text>
+
+  <!-- bound surface charges -->
+  <g font-size="18" font-weight="700" text-anchor="middle" fill="#2563eb">
+    <text x="214" y="100">−</text><text x="214" y="140">−</text><text x="214" y="180">−</text><text x="214" y="220">−</text><text x="214" y="260">−</text><text x="214" y="295">−</text>
+  </g>
+  <g font-size="18" font-weight="700" text-anchor="middle" fill="#dc2626">
+    <text x="428" y="100">+</text><text x="428" y="140">+</text><text x="428" y="180">+</text><text x="428" y="220">+</text><text x="428" y="260">+</text><text x="428" y="295">+</text>
+  </g>
+  <text x="196" y="325" font-size="13" text-anchor="middle" fill="#2563eb" font-weight="700">bound −σ<tspan font-size="10" dy="4">p</tspan></text>
+  <text x="444" y="325" font-size="13" text-anchor="middle" fill="#dc2626" font-weight="700">bound +σ<tspan font-size="10" dy="4">p</tspan></text>
+  <text x="320" y="355" font-size="14" text-anchor="middle" fill="#374151">Inside, charges cancel pairwise; only the face layers are left over, and their field opposes E₀.</text>
+</svg>
