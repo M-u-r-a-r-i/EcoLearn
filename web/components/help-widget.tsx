@@ -14,20 +14,13 @@ import { Markdown } from "@/components/markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
   text: string;
 }
 
-export function HelpWidget({
-  studentId,
-  conceptId,
-}: {
-  studentId: string;
-  conceptId: string;
-}) {
+export function HelpWidget({ conceptId }: { conceptId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,7 +42,7 @@ export function HelpWidget({
     setLoading(true);
 
     try {
-      const res = await askHelp(studentId, conceptId, question);
+      const res = await askHelp(conceptId, question);
       setMessages((prev) => [...prev, { role: "assistant", text: res.answer }]);
     } catch {
       setMessages((prev) => [

@@ -1,70 +1,41 @@
-// Lesson page (/lesson) — the personalised lesson for the student's next concept.
+// Lesson page (/lesson?chapter=...&concept=...) — the personalised lesson for
+// the student's next concept, or for a specific concept when ?concept= is set.
 //
-// Client Component: like the roadmap, the data depends on the client-only
-// student_id (React Context), so we fetch in the browser with useEffect.
+// Client Component inside <RequireAuth>; the API knows the student from the
+// session cookie, and the chapter/concept come from the URL.
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, Lightbulb } from "lucide-react";
 
 import { getNextLesson, type NextLesson } from "@/lib/api";
-import { useStudent } from "@/components/student-provider";
+import { useFetch } from "@/lib/use-fetch";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Markdown } from "@/components/markdown";
 import { HelpWidget } from "@/components/help-widget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const CHAPTER_ID = "motion_straight_line";
+import { useChapter, withChapter } from "@/lib/use-chapter";
 
 export default function LessonPage() {
-  const { student } = useStudent();
+  return (
+    <Suspense fallback={<LessonSkeleton />}>
+      <LessonView />
+    </Suspense>
+  );
+}
 
-  const [data, setData] = useState<NextLesson | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function LessonView() {
+  const { chapterId } = useChapter();
+  const conceptParam = useSearchParams().get("concept") ?? undefined;
+  const roadmapHref = withChapter("/roadmap", chapterId);
 
-  useEffect(() => {
-    if (!student) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    getNextLesson(student.student_id, CHAPTER_ID)
-      .then((d) => !cancelled && setData(d))
-      .catch(
-        () =>
-          !cancelled &&
-          setError(
-            "Couldn't load the lesson. Make sure the backend is running on " +
-              (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000") +
-              ".",
-          ),
-      )
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [student]);
-
-  // ----- No student (e.g. page reloaded → context cleared) -----
-  if (!student) {
-    return (
-      <Centered>
-        <h1 className="text-2xl font-bold text-foreground">No student yet</h1>
-        <p className="text-muted-foreground">
-          Start at onboarding to create your learner profile.
-        </p>
-        <PrimaryButton asChild>
-          <Link href="/onboarding">Go to onboarding</Link>
-        </PrimaryButton>
-      </Centered>
-    );
-  }
+  const { data, loading, error } = useFetch<NextLesson>(`${chapterId}|${conceptParam ?? ""}`, () =>
+    getNextLesson(chapterId, conceptParam),
+  );
 
   if (loading) return <LessonSkeleton />;
 
@@ -75,7 +46,7 @@ export default function LessonPage() {
           {error}
         </p>
         <PrimaryButton asChild>
-          <Link href="/roadmap">← Back to roadmap</Link>
+          <Link href={roadmapHref}>← Back to roadmap</Link>
         </PrimaryButton>
       </Centered>
     );
@@ -92,7 +63,7 @@ export default function LessonPage() {
           {data?.reason ?? "Head back to your roadmap."}
         </p>
         <PrimaryButton asChild>
-          <Link href="/roadmap">← Back to roadmap</Link>
+          <Link href={roadmapHref}>← Back to roadmap</Link>
         </PrimaryButton>
       </Centered>
     );
@@ -107,7 +78,7 @@ export default function LessonPage() {
         {/* Title block */}
         <header className="flex flex-col gap-2">
           <Link
-            href="/roadmap"
+            href={roadmapHref}
             className="text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             ← Roadmap
@@ -152,7 +123,7 @@ export default function LessonPage() {
             <CardContent className="flex flex-col gap-5">
               <Markdown>{lesson.check_question}</Markdown>
               <PrimaryButton asChild className="self-start">
-                <Link href="/assessment">
+                <Link href={withChapter("/assessment", chapterId, { concept: lesson.concept_id })}>
                   Take the quick check <ArrowRight className="size-5" />
                 </Link>
               </PrimaryButton>
@@ -161,7 +132,7 @@ export default function LessonPage() {
         )}
 
         {/* "I'm stuck" help widget — live tutor, stays on the lesson. */}
-        <HelpWidget studentId={student.student_id} conceptId={lesson.concept_id} />
+        <HelpWidget conceptId={lesson.concept_id} />
       </PageContainer>
     </main>
   );

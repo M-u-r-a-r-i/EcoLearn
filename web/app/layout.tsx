@@ -3,7 +3,7 @@ import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
-import { StudentProvider } from "@/components/student-provider";
+import { AuthProvider } from "@/components/auth-provider";
 
 // next/font downloads & self-hosts the font at build time (fast, no layout shift)
 // and exposes it as a CSS variable. We name it --font-sans so Tailwind's
@@ -35,10 +35,10 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <StudentProvider>
+        <AuthProvider>
           <SiteNav />
           {children}
-        </StudentProvider>
+        </AuthProvider>
       </body>
     </html>
   );

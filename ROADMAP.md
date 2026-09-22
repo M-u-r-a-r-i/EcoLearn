@@ -446,7 +446,15 @@ regression net for everything below.
   a mobile Sheet. `app/(app)/settings/page.tsx` — change name/interest/level
   (`PATCH /api/profile`) + change password.
 
-### THE BREAKING FLIP — do in ONE commit, do not split
+> **Status 2026-09-22:** these items are done: `lib/api.ts` `request()` wrapper, auth provider,
+> `/login` + `/signup` (username, not email; onboarding absorbed), `(app)` route group + client
+> guard, chapter picker (`?chapter=`), interest picker from the API, nav with logout, and the
+> breaking flip below (`PROJECT_HISTORY.md` §9n).
+>
+> Still to do: shadcn additions + toasts, error/not-found pages, react-hook-form/zod, dark mode,
+> settings page, mobile nav Sheet.
+
+### THE BREAKING FLIP — do in ONE commit, do not split ✅ done 2026-09-22
 
 Add `Depends(get_current_student_id)` to `/api/roadmap`, `/api/next-lesson`, `/api/assessment`,
 `/api/help`; **drop `student_id` from their request contracts** (derive it from the token);

@@ -833,6 +833,57 @@ batch the same instructions, where hand-written prompts slowly diverge.
 - **Learned:** read a famous image's Commons description, not just its title. The filename said
   "replica", and three batches had captioned it as the real object.
 
+## 9n. Frontend auth + the breaking flip + chapter picker (2026-09-22)
+
+**Changed.**
+- *The breaking flip (one commit, as ROADMAP §5 requires):*
+  - `api/main.py`: `/api/roadmap`, `/api/next-lesson`, `/api/assessment` and `/api/help` now take
+    the student from `Depends(get_current_student_id)`. `student_id` is gone from their contracts,
+    and `POST /api/student` (unauthenticated, name-based) is deleted.
+  - `tests/test_api_auth.py` → 42 checks: 401 without a session on all four endpoints, a spoofed
+    `?student_id=` doesn't stand in for a session, `/api/student` is gone, and roadmap/next-lesson
+    return 200 with a session.
+  - Streamlit is unaffected: it calls `src/platform_api.py` directly.
+- `web/lib/api.ts` rewritten:
+  - One `request()` wrapper: `credentials: "include"`, `ApiError(status, detail)` parsed from
+    FastAPI's `{detail}`, and timeouts of 15 s (90 s for the live help/grade calls).
+  - A 401 hook `setUnauthorizedHandler` and `friendlyMessage()`, so users are never shown
+    `localhost:8000`.
+  - Functions `register`/`login`/`logout`/`getMe`/`updateProfile`/`changePassword`/
+    `getChapters`/`getInterests`. No function takes a student id any more.
+- `components/auth-provider.tsx` replaces `student-provider.tsx`: a `loading | authenticated |
+  unauthenticated` state, hydrated from `GET /api/auth/me`, so a refresh no longer logs anyone out.
+- `components/require-auth.tsx` + `app/(app)/layout.tsx`: roadmap, lesson and assessment moved into
+  the `(app)` route group (URLs unchanged). It is a client guard; the API's `Depends` is the real
+  boundary.
+- `/login` (safe `?next=` redirect) and `/signup` (2-step: account → interest + class; one
+  register call).
+  - Signup replaces `/onboarding`, which is deleted.
+  - `components/interest-level-fields.tsx` reads interests from `GET /api/interests` as a
+    wrapping grid, so it works at 20 interests.
+  - `components/auth-card.tsx` holds the shared form pieces.
+- Chapter picker:
+  - `lib/use-chapter.ts` keeps the chapter in `?chapter=`.
+  - `components/chapter-picker.tsx` is a native `<select>` grouped by class · unit over all 29
+    chapters.
+  - Lesson and assessment also accept `?concept=`, and links carry the chapter.
+- `lib/use-fetch.ts`: page loads are keyed by their inputs, so the loading state is derived, not
+  set inside an effect.
+- `components/site-nav.tsx`: a client component showing Log in / Get Started, or Roadmap, the
+  student's name and Log out.
+- Verified: `tsc --noEmit`, `npm run lint` and `npm run build` are clean; all deterministic tests
+  pass.
+- **Not yet verified in a browser.** Deferred because the 5-hour window was at 88%.
+
+**Why.** The next step on sprint day 3–5 is real accounts in the web app. Until the flip, anyone
+could read or change any student's progress by sending their id.
+
+**Learned.**
+- React's `react-hooks/set-state-in-effect` lint rule rejects the classic
+  `setLoading(true)`-then-fetch effect. Keying the result by its request and deriving `loading`
+  satisfies it, and also drops stale answers for free.
+- In PowerShell, `R` is an alias for `Invoke-History`. Never name a helper function `R`.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

@@ -127,8 +127,11 @@ and pushed.
   CORS with credentials — `tests/test_api_auth.py` (34 checks).
 
 **-> YOUR NEXT ACTION: run the next lesson batch** (procedure below). `scripts/batch_status.py`
-always knows which one is next. Between usage windows, continue the frontend: auth provider,
-login/signup, chapter picker, breaking flip (`ROADMAP.md` §5).
+always knows which one is next. Between usage windows, continue the frontend. Auth provider,
+login/signup, chapter picker and the breaking flip are **done** (2026-09-22, `PROJECT_HISTORY.md`
+§9n) but **not yet clicked through in a browser**. Do that first (signup → roadmap → switch chapter
+→ lesson → refresh stays logged in → logout), then the sprint day-6 items: format tabs, MCQ
+answer UI, clickable roadmap concepts (`/lesson?concept=` already works), settings page.
 
 ### How to run a lesson batch (the standard procedure)
 

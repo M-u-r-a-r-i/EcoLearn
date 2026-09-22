@@ -100,8 +100,8 @@ def test_error_codes() -> None:
     check(bad_interest.status_code == 400, "unknown interest → 400")
     missing = c.post("/api/auth/register", json={"username": "x"})
     check(missing.status_code == 422, "missing fields → 422 (FastAPI validation)")
-    legacy = c.post("/api/student", json={"name": "Chapter Test", "interest": "football"}).json()
-    nf = c.get("/api/roadmap", params={"student_id": legacy["student_id"], "chapter_id": "no_such_chapter"})
+    c.post("/api/auth/register", json={**ADA, "username": "chapter_test"})
+    nf = c.get("/api/roadmap", params={"chapter_id": "no_such_chapter"})
     check(nf.status_code == 404, f"unknown chapter → 404 (got {nf.status_code})")
 
 
@@ -165,6 +165,29 @@ def test_public_curriculum() -> None:
     check(evil.headers.get("access-control-allow-origin") is None, "a foreign origin is refused")
 
 
+def test_learning_needs_session() -> None:
+    print("\n[9] learning endpoints use the session, never a student_id from the request")
+    anon = new_client()
+    chapter = {"chapter_id": "motion_straight_line"}
+    check(anon.get("/api/roadmap", params=chapter).status_code == 401, "roadmap without session → 401")
+    check(anon.get("/api/next-lesson", params=chapter).status_code == 401, "next-lesson without session → 401")
+    body = {"concept_id": "position", "answer": "x"}
+    check(anon.post("/api/assessment", json=body).status_code == 401, "assessment without session → 401")
+    check(anon.post("/api/help", json={"concept_id": "position", "question": "?"}).status_code == 401,
+          "help without session → 401")
+    spoof = anon.get("/api/roadmap", params={**chapter, "student_id": "journey-student"})
+    check(spoof.status_code == 401, "a student_id in the query doesn't stand in for a session")
+    check(anon.post("/api/student", json={"name": "x", "interest": "football"}).status_code in (404, 405),
+          "the unauthenticated POST /api/student is gone")
+
+    c = new_client()
+    c.post("/api/auth/register", json={**ADA, "username": "flip_kid"})
+    roadmap = c.get("/api/roadmap", params=chapter)
+    check(roadmap.status_code == 200 and len(roadmap.json()) > 0, "roadmap with session → 200")
+    nxt = c.get("/api/next-lesson", params=chapter)
+    check(nxt.status_code == 200 and "status" in nxt.json(), "next-lesson with session → 200 (cached, no LLM)")
+
+
 def main() -> None:
     student_id = test_register_and_me()
     test_login()
@@ -172,6 +195,7 @@ def main() -> None:
     test_bad_tokens(student_id)
     test_session_actions()
     test_public_curriculum()
+    test_learning_needs_session()
     print(f"\nALL {_checks} CHECKS PASSED")
 
 

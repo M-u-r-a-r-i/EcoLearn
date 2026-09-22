@@ -100,14 +100,6 @@ app.mount("/media", StaticFiles(directory=_MEDIA_DIR), name="media")
 # get an automatic, descriptive 422 error, so your code only ever sees clean
 # data. (GET endpoints don't use these — their inputs come from the URL.)
 # ===========================================================================
-class StudentRequest(BaseModel):
-    """Body for POST /api/student."""
-
-    name: str
-    interest: str
-    level: str = "Class 11"  # sensible default if the caller omits it
-
-
 class RegisterRequest(BaseModel):
     """Body for POST /api/auth/register."""
 
@@ -141,17 +133,15 @@ class ProfilePatch(BaseModel):
 
 
 class AssessmentRequest(BaseModel):
-    """Body for POST /api/assessment."""
+    """Body for POST /api/assessment. The student comes from the session cookie."""
 
-    student_id: str
     concept_id: str
     answer: str
 
 
 class HelpRequest(BaseModel):
-    """Body for POST /api/help."""
+    """Body for POST /api/help. The student comes from the session cookie."""
 
-    student_id: str
     concept_id: str
     question: str
 
@@ -250,30 +240,20 @@ def interests() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Learning. These still take student_id explicitly so the current web app and
-# its tests keep working. The planned "breaking flip" (ROADMAP §5) will switch
-# them to Depends(get_current_student_id) in one commit, together with the web
-# client — until then they are unauthenticated, as before.
+# Learning. Every endpoint below needs a logged-in student: `Depends` reads the
+# session cookie and answers 401 before the handler runs if it is missing or
+# invalid. The student id is never taken from the request itself, so nobody can
+# read or change another student's progress by sending a different id.
+# (Streamlit is unaffected: it calls src/platform_api.py directly, not HTTP.)
 # ---------------------------------------------------------------------------
-@app.post("/api/student")
-def create_student(payload: StudentRequest) -> dict:
-    """Create a student (or load an existing one) and return their profile.
-
-    POST because it creates/updates data. Wraps `create_or_load_student`.
-    """
-    return api.create_or_load_student(
-        name=payload.name,
-        interest=payload.interest,
-        level=payload.level,
-    )
-
-
 @app.get("/api/roadmap")
-def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
+def get_roadmap(
+    chapter_id: str,
+    student_id: str = Depends(get_current_student_id),
+) -> list[dict]:
     """Return every concept in a chapter tagged mastered / available (nothing is locked).
 
-    GET because it only reads. `student_id` and `chapter_id` are query params,
-    e.g. /api/roadmap?student_id=ada&chapter_id=motion_straight_line.
+    GET because it only reads, e.g. /api/roadmap?chapter_id=motion_straight_line.
     Wraps `get_roadmap`.
     """
     return api.get_roadmap(student_id=student_id, chapter_id=chapter_id)
@@ -281,9 +261,9 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict]:
 
 @app.get("/api/next-lesson")
 def get_next_lesson(
-    student_id: str,
     chapter_id: str,
     concept_id: str | None = None,
+    student_id: str = Depends(get_current_student_id),
 ) -> dict:
     """Return the personalised lesson for the student's next concept.
 
@@ -299,28 +279,34 @@ def get_next_lesson(
 
 
 @app.post("/api/assessment")
-def submit_assessment(payload: AssessmentRequest) -> dict:
+def submit_assessment(
+    payload: AssessmentRequest,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
     """Grade a student's answer to a concept's self-check and update mastery.
 
     POST because submitting an answer changes stored mastery. Wraps
     `submit_assessment`.
     """
     return api.submit_assessment(
-        student_id=payload.student_id,
+        student_id=student_id,
         concept_id=payload.concept_id,
         answer=payload.answer,
     )
 
 
 @app.post("/api/help")
-def ask_help(payload: HelpRequest) -> dict:
+def ask_help(
+    payload: HelpRequest,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
     """Answer a free-form question via the live (expensive) tutor pipeline.
 
     POST because it sends a question payload and triggers real LLM work. Wraps
     `ask_help`.
     """
     return api.ask_help(
-        student_id=payload.student_id,
+        student_id=student_id,
         concept_id=payload.concept_id,
         question=payload.question,
     )

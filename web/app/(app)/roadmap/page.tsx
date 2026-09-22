@@ -1,27 +1,24 @@
-// Roadmap page (/roadmap) — the student's learning path for a chapter.
+// Roadmap page (/roadmap?chapter=...) — the student's learning path for a chapter.
 //
-// Client Component, because the data it needs depends on client-only state:
-// the student_id lives in React Context (set during onboarding, in the browser).
-// A Server Component renders on the server and can't read that context, so the
-// simplest correct approach here is to fetch in the browser with useEffect.
+// Client Component: it's rendered inside <RequireAuth> (app/(app)/layout.tsx),
+// which only shows it once the browser knows who is logged in, and the chapter
+// comes from the URL. The API identifies the student by the session cookie.
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Check, Play, ArrowRight, PartyPopper } from "lucide-react";
 
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
-import { useStudent } from "@/components/student-provider";
+import { useAuth } from "@/components/auth-provider";
+import { ChapterPicker } from "@/components/chapter-picker";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Progress } from "@/components/ui/progress";
+import { useChapter, withChapter } from "@/lib/use-chapter";
+import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
-
-// The platform currently ships one chapter; hardcode it for now (a chapter
-// picker comes later). This id matches data/curriculum/physics.yaml.
-const CHAPTER_ID = "motion_straight_line";
-const CHAPTER_NAME = "Motion in a Straight Line";
 
 // Per-status visual config: node colour + icon + badge styling.
 const STATUS: Record<
@@ -43,58 +40,24 @@ const STATUS: Record<
 };
 
 export default function RoadmapPage() {
-  const { student } = useStudent();
+  // useSearchParams (inside useChapter) needs a Suspense boundary to prerender.
+  return (
+    <Suspense>
+      <Roadmap />
+    </Suspense>
+  );
+}
 
-  // Three pieces of state model the request lifecycle.
-  const [concepts, setConcepts] = useState<RoadmapConcept[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function Roadmap() {
+  const { student } = useAuth();
+  const { chapterId, chapter, chapters, setChapter } = useChapter();
 
-  // Fetch on load. The effect re-runs if `student` changes (e.g. after onboarding).
-  useEffect(() => {
-    if (!student) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false; // guard against setting state after unmount
-    setLoading(true);
-    setError(null);
-    getRoadmap(student.student_id, CHAPTER_ID)
-      .then((data) => {
-        if (!cancelled) setConcepts(data);
-      })
-      .catch(() => {
-        if (!cancelled)
-          setError(
-            "Couldn't load your roadmap. Make sure the backend is running on " +
-              (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000") +
-              ".",
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [student]);
+  // Fetch on load, and again whenever the chapter changes.
+  const { data: concepts, loading, error } = useFetch<RoadmapConcept[]>(chapterId, () =>
+    getRoadmap(chapterId),
+  );
 
-  // ---- No student (e.g. page reloaded → context cleared) ----
-  if (!student) {
-    return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-          <h1 className="text-2xl font-bold text-foreground">No student yet</h1>
-          <p className="text-muted-foreground">
-            Start at onboarding to create your learner profile.
-          </p>
-          <PrimaryButton asChild>
-            <Link href="/onboarding">Go to onboarding</Link>
-          </PrimaryButton>
-        </PageContainer>
-      </main>
-    );
-  }
+  if (!student) return null; // RequireAuth guarantees a student; this satisfies TypeScript
 
   const total = concepts?.length ?? 0;
   const mastered = concepts?.filter((c) => c.status === "mastered").length ?? 0;
@@ -112,12 +75,14 @@ export default function RoadmapPage() {
               Your learning path
             </span>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {CHAPTER_NAME}
+              {chapter?.name ?? " "}
             </h1>
             <p className="text-muted-foreground">
               Personalised for {student.name} · through {student.interest}
             </p>
           </div>
+
+          <ChapterPicker chapters={chapters} value={chapterId} onChange={setChapter} />
 
           {/* Progress */}
           <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-soft">
@@ -133,7 +98,7 @@ export default function RoadmapPage() {
           {/* Continue Learning */}
           {!loading && !error && total > 0 && (
             <PrimaryButton asChild className="w-full sm:w-auto sm:self-start">
-              <Link href="/lesson">
+              <Link href={withChapter("/lesson", chapterId)}>
                 {allDone ? (
                   <>
                     <PartyPopper className="size-5" /> Review the chapter

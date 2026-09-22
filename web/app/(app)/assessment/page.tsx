@@ -1,5 +1,6 @@
 // Assessment page (/assessment) — answer the concept's check question and get
-// a live grade. Client Component (depends on the client-only student in Context).
+// a live grade. Client Component inside <RequireAuth>; ?chapter= and ?concept=
+// come from the URL, the student from the session cookie.
 //
 // Flow: fetch the current concept + its check_question (getNextLesson) → student
 // answers → submitAssessment (live grade, writes mastery to the backend store) →
@@ -7,24 +8,25 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2, AlertCircle, XCircle, ArrowRight, RotateCcw } from "lucide-react";
 
 import {
   getNextLesson,
   submitAssessment,
   type AssessmentResult,
+  type NextLesson,
 } from "@/lib/api";
-import { useStudent } from "@/components/student-provider";
+import { useFetch } from "@/lib/use-fetch";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useChapter, withChapter } from "@/lib/use-chapter";
 import { cn } from "@/lib/utils";
-
-const CHAPTER_ID = "motion_straight_line";
 
 // Result styling by tier. Green = mastered (pass), amber = partial, red = not yet.
 const RESULT = {
@@ -52,14 +54,30 @@ const RESULT = {
 } as const;
 
 export default function AssessmentPage() {
-  const { student } = useStudent();
+  return (
+    <Suspense>
+      <Assessment />
+    </Suspense>
+  );
+}
 
-  // Question state (loaded from getNextLesson).
-  const [conceptId, setConceptId] = useState<string | null>(null);
-  const [conceptName, setConceptName] = useState<string>("");
-  const [question, setQuestion] = useState<string>("");
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+function Assessment() {
+  const { chapterId } = useChapter();
+  const conceptParam = useSearchParams().get("concept") ?? undefined;
+  const roadmapHref = withChapter("/roadmap", chapterId);
+  const lessonHref = withChapter("/lesson", chapterId, conceptParam ? { concept: conceptParam } : {});
+
+  // The concept + its check question (loaded from getNextLesson).
+  const next = useFetch<NextLesson>(`${chapterId}|${conceptParam ?? ""}`, () =>
+    getNextLesson(chapterId, conceptParam),
+  );
+  const loading = next.loading;
+  const conceptId = next.data?.lesson ? next.data.concept_id : null;
+  const conceptName = next.data?.concept_name ?? "";
+  const question = next.data?.lesson?.check_question ?? "";
+  const loadError =
+    next.error ??
+    (next.data && !conceptId ? (next.data.reason ?? "No concept to assess right now.") : null);
 
   // Answer + grading state.
   const [answer, setAnswer] = useState("");
@@ -67,44 +85,12 @@ export default function AssessmentPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<AssessmentResult | null>(null);
 
-  // Load the current concept + its check question.
-  useEffect(() => {
-    if (!student) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    getNextLesson(student.student_id, CHAPTER_ID)
-      .then((d) => {
-        if (cancelled) return;
-        if (!d.lesson || !d.concept_id) {
-          setLoadError(d.reason ?? "No concept to assess right now.");
-          return;
-        }
-        setConceptId(d.concept_id);
-        setConceptName(d.concept_name ?? "");
-        setQuestion(d.lesson.check_question ?? "");
-      })
-      .catch(
-        () =>
-          !cancelled &&
-          setLoadError(
-            "Couldn't load the check question. Make sure the backend is running.",
-          ),
-      )
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [student]);
-
   async function handleSubmit() {
     if (!conceptId || !answer.trim() || grading) return;
     setGrading(true);
     setSubmitError(null);
     try {
-      const res = await submitAssessment(student!.student_id, conceptId, answer.trim());
+      const res = await submitAssessment(conceptId, answer.trim());
       setResult(res);
     } catch {
       setSubmitError(
@@ -123,16 +109,6 @@ export default function AssessmentPage() {
   }
 
   // ----- Guard states -----
-  if (!student) {
-    return (
-      <Centered>
-        <h1 className="text-2xl font-bold text-foreground">No student yet</h1>
-        <PrimaryButton asChild>
-          <Link href="/onboarding">Go to onboarding</Link>
-        </PrimaryButton>
-      </Centered>
-    );
-  }
   if (loading) {
     return (
       <Centered>
@@ -146,7 +122,7 @@ export default function AssessmentPage() {
       <Centered>
         <p className="max-w-md text-muted-foreground">{loadError}</p>
         <PrimaryButton asChild>
-          <Link href="/roadmap">← Back to roadmap</Link>
+          <Link href={roadmapHref}>← Back to roadmap</Link>
         </PrimaryButton>
       </Centered>
     );
@@ -199,7 +175,7 @@ export default function AssessmentPage() {
               <div className="flex flex-wrap gap-3">
                 {passed ? (
                   <PrimaryButton asChild>
-                    <Link href="/lesson">
+                    <Link href={withChapter("/lesson", chapterId)}>
                       Continue to next concept <ArrowRight className="size-5" />
                     </Link>
                   </PrimaryButton>
@@ -214,7 +190,7 @@ export default function AssessmentPage() {
                   </Button>
                 )}
                 <Button variant="outline" asChild>
-                  <Link href="/roadmap">See roadmap</Link>
+                  <Link href={roadmapHref}>See roadmap</Link>
                 </Button>
               </div>
             </CardContent>
@@ -230,7 +206,7 @@ export default function AssessmentPage() {
       <PageContainer className="flex max-w-2xl flex-col gap-6">
         <div className="flex flex-col gap-1">
           <Link
-            href="/lesson"
+            href={lessonHref}
             className="text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             ← Lesson
