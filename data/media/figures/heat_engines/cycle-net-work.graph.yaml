@@ -1,0 +1,26 @@
+# A simple rectangular engine cycle, run clockwise A -> B -> C -> D -> A.
+# A (1.0 L, 2.0e5 Pa), B (3.0 L, 2.0e5 Pa), C (3.0 L, 1.0e5 Pa), D (1.0 L, 1.0e5 Pa).
+# Work by gas on A->B = 2.0e5 * 2.0e-3 = 400 J; work on gas on C->D = 1.0e5 * 2.0e-3 = 200 J.
+# Net work per cycle = enclosed area = (2.0e5 - 1.0e5) * 2.0e-3 = 200 J.
+title: "One engine cycle: net work = enclosed area"
+x: {label: "Volume $V$ (L)", min: 0, max: 4}
+y: {label: "Pressure $p$ ($10^5$ Pa)", min: 0, max: 2.6}
+legend: below
+series:
+  - label: "Expansion at high pressure (A to B): gas does 400 J"
+    points: [[1.0, 2.0], [3.0, 2.0]]
+    color: red
+  - label: "Compression at low pressure (C to D): 200 J done on gas"
+    points: [[3.0, 1.0], [1.0, 1.0]]
+    color: blue
+  - label: "Constant-volume steps (B to C, D to A): no work"
+    points: [[3.0, 2.0], [3.0, 1.0]]
+    color: gray
+  - points: [[1.0, 1.0], [1.0, 2.0]]
+    color: gray
+marks:
+  - {x: 1.0, y: 2.0, text: "A", color: gray, offset: [-16, 4]}
+  - {x: 3.0, y: 2.0, text: "B", color: gray, offset: [8, 4]}
+  - {x: 3.0, y: 1.0, text: "C", color: gray, offset: [8, -12]}
+  - {x: 1.0, y: 1.0, text: "D", color: gray, offset: [-16, -12]}
+  - {x: 1.0, y: 1.5, text: "net work = 200 J", color: purple, offset: [14, -4]}

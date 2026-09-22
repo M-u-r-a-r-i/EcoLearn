@@ -1,0 +1,15 @@
+# Kinetic energy of a 0.16 kg ball, K = 0.5 * 0.16 * v^2 = 0.08 v^2.
+# v = 10 -> 8 J, 20 -> 32 J, 30 -> 72 J, 40 -> 128 J.
+title: 'Kinetic energy of a 0.16 kg ball: $K = \frac{1}{2}mv^2$'
+x: {label: "Speed $v$ (m/s)", min: 0, max: 42}
+y: {label: "Kinetic energy $K$ (J)", min: 0, max: 140}
+series:
+  - label: "$m$ = 0.16 kg"
+    points: [[0, 0], [2.5, 0.5], [5, 2], [7.5, 4.5], [10, 8], [12.5, 12.5], [15, 18], [17.5, 24.5],
+             [20, 32], [22.5, 40.5], [25, 50], [27.5, 60.5], [30, 72], [32.5, 84.5], [35, 98],
+             [37.5, 112.5], [40, 128]]
+    color: blue
+marks:
+  - {x: 20, y: 32, text: "20 m/s: 32 J", color: blue, offset: [-100, 8]}
+  - {x: 40, y: 128, text: "40 m/s: 128 J (4 times)", color: red, offset: [-170, -4]}
+legend: upper left

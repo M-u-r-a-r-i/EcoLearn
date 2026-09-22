@@ -1,0 +1,17 @@
+# Two players climb the same 12 m of stadium steps (g = 9.8 m/s^2).
+# 70 kg in 15 s: W = 70*9.8*12 = 8232 J, P = 548.8 W.
+# 60 kg in 10 s: W = 60*9.8*12 = 7056 J, P = 705.6 W.
+title: "Power is the slope of work against time"
+x: {label: "Time $t$ (s)", min: 0, max: 16}
+y: {label: "Work done against gravity $W$ (J)", min: 0, max: 9000}
+series:
+  - label: "70 kg, 15 s: 549 W"
+    points: [[0, 0], [15, 8232]]
+    color: blue
+  - label: "60 kg, 10 s: 706 W"
+    points: [[0, 0], [10, 7056]]
+    color: red
+marks:
+  - {x: 15, y: 8232, text: "8232 J", color: blue, offset: [-58, 6]}
+  - {x: 10, y: 7056, text: "7056 J", color: red, offset: [-58, 6]}
+legend: lower right

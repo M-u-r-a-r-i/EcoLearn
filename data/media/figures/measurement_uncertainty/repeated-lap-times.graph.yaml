@@ -1,0 +1,25 @@
+# Five hand-timed readings of the same lap: 41.2, 41.5, 41.3, 41.0, 41.5 s.
+# Mean = 206.5 / 5 = 41.30 s. Deviations 0.1, 0.2, 0.0, 0.3, 0.2 -> sum 0.8 -> mean absolute error 0.16 s.
+# The readings are plotted as marks (not a joined line: they are separate trials).
+title: "Five readings of one lap time"
+x: {label: "Reading number", min: 0.5, max: 5.5}
+y: {label: "Lap time measured $t$ (s)", min: 40.8, max: 41.8}
+legend: below
+series:
+  - label: "mean = 41.30 s"
+    points: [[0.5, 41.3], [5.5, 41.3]]
+    color: gray
+    style: dashed
+  - label: "mean ± mean absolute error (± 0.16 s)"
+    points: [[0.5, 41.46], [5.5, 41.46]]
+    color: orange
+    style: dotted
+  - points: [[0.5, 41.14], [5.5, 41.14]]
+    color: orange
+    style: dotted
+marks:
+  - {x: 1, y: 41.2, text: "41.2", color: blue, offset: [8, 5]}
+  - {x: 2, y: 41.5, text: "41.5", color: blue, offset: [8, -4]}
+  - {x: 3, y: 41.3, text: "41.3", color: blue, offset: [8, -14]}
+  - {x: 4, y: 41.0, text: "41.0", color: blue, offset: [8, -4]}
+  - {x: 5, y: 41.5, text: "41.5", color: blue, offset: [-40, -4]}

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two impossible machines: a perfect engine that turns all heat into work, and a perfect refrigerator that moves heat from cold to hot with no work</title>
+  <defs>
+    <marker id="ao" viewBox="0 0 10 10" refX="3" refY="5" markerWidth="1.9" markerHeight="1.9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="3" refY="5" markerWidth="1.9" markerHeight="1.9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <line x1="320" y1="15" x2="320" y2="385" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- left: perfect engine -->
+  <text x="160" y="32" font-size="15" font-weight="700" fill="#111827" text-anchor="middle">Forbidden by Kelvin–Planck</text>
+  <rect x="50" y="50" width="220" height="50" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"/>
+  <text x="160" y="81" font-size="15" font-weight="700" fill="#7f1d1d" text-anchor="middle">Hot reservoir T₁</text>
+  <circle cx="160" cy="195" r="45" fill="#f3f4f6" stroke="#374151" stroke-width="3"/>
+  <text x="160" y="200" font-size="14" font-weight="700" fill="#111827" text-anchor="middle">Engine</text>
+  <line x1="160" y1="102" x2="160" y2="138" stroke="#ea580c" stroke-width="18" marker-end="url(#ao)"/>
+  <text x="178" y="126" font-size="14" font-weight="700" fill="#ea580c">Q</text>
+  <line x1="207" y1="195" x2="270" y2="195" stroke="#16a34a" stroke-width="18" marker-end="url(#ag)"/>
+  <text x="216" y="172" font-size="14" font-weight="700" fill="#16a34a">W = Q</text>
+  <rect x="50" y="290" width="220" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="160" y="317" font-size="13" fill="#6b7280" text-anchor="middle">no heat rejected to cold</text>
+  <text x="160" y="362" font-size="13" fill="#111827" text-anchor="middle">All heat turned into work:</text>
+  <text x="160" y="380" font-size="13" fill="#111827" text-anchor="middle">efficiency 100%</text>
+  <g stroke="#dc2626" stroke-width="7" stroke-linecap="round" opacity="0.85">
+    <line x1="100" y1="140" x2="220" y2="250"/>
+    <line x1="220" y1="140" x2="100" y2="250"/>
+  </g>
+
+  <!-- right: perfect refrigerator -->
+  <text x="480" y="32" font-size="15" font-weight="700" fill="#111827" text-anchor="middle">Forbidden by Clausius</text>
+  <rect x="370" y="50" width="220" height="50" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"/>
+  <text x="480" y="81" font-size="15" font-weight="700" fill="#7f1d1d" text-anchor="middle">Hot reservoir T₁</text>
+  <circle cx="480" cy="195" r="45" fill="#f3f4f6" stroke="#374151" stroke-width="3"/>
+  <text x="480" y="200" font-size="14" font-weight="700" fill="#111827" text-anchor="middle">Fridge</text>
+  <rect x="370" y="290" width="220" height="50" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="480" y="321" font-size="15" font-weight="700" fill="#1e3a8a" text-anchor="middle">Cold reservoir T₂</text>
+  <line x1="480" y1="288" x2="480" y2="252" stroke="#ea580c" stroke-width="18" marker-end="url(#ao)"/>
+  <line x1="480" y1="138" x2="480" y2="110" stroke="#ea580c" stroke-width="18" marker-end="url(#ao)"/>
+  <text x="498" y="278" font-size="14" font-weight="700" fill="#ea580c">Q</text>
+  <text x="498" y="130" font-size="14" font-weight="700" fill="#ea580c">Q</text>
+  <text x="540" y="200" font-size="13" fill="#6b7280">W = 0</text>
+  <text x="480" y="362" font-size="13" fill="#111827" text-anchor="middle">Heat moved from cold to hot</text>
+  <text x="480" y="380" font-size="13" fill="#111827" text-anchor="middle">with nothing else happening</text>
+  <g stroke="#dc2626" stroke-width="7" stroke-linecap="round" opacity="0.85">
+    <line x1="420" y1="140" x2="540" y2="250"/>
+    <line x1="540" y1="140" x2="420" y2="250"/>
+  </g>
+</svg>

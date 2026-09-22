@@ -1,0 +1,23 @@
+# U = -GMm/r in units of mgR, i.e. -1/(r/R). Two launches straight up from the surface:
+#  total energy 0        -> K at surface = mgR, v = sqrt(2gR) (escape speed); never turns back.
+#  total energy -0.5 mgR -> K at surface = 0.5 mgR, v = sqrt(gR); stops where U = -0.5, i.e. r = 2R.
+title: "Escaping means total energy of at least zero"
+x: {label: "Distance from Earth's centre, $r/R$", min: 1, max: 8}
+y: {label: "Energy / ($mgR$)", min: -1.1, max: 0.2}
+legend: below
+series:
+  - label: 'potential energy $U = -GMm/r$'
+    points: [[1.0, -1.0], [1.25, -0.8], [1.5, -0.667], [2.0, -0.5], [2.5, -0.4], [3.0, -0.333],
+             [4.0, -0.25], [5.0, -0.2], [6.0, -0.167], [7.0, -0.143], [8.0, -0.125]]
+    color: red
+  - label: 'total energy $0$: launched at escape speed, never returns'
+    points: [[1.0, 0.0], [8.0, 0.0]]
+    color: green
+    style: dashed
+  - label: 'total energy $-0.5\,mgR$: slower launch, turns back'
+    points: [[1.0, -0.5], [2.0, -0.5]]
+    color: orange
+    style: dashed
+marks:
+  - {x: 2.0, y: -0.5, text: "K = 0 here: falls back from r = 2R", color: orange, offset: [10, -4]}
+  - {x: 1.0, y: 0.0, text: "K at launch = mgR", color: green, offset: [10, 8]}

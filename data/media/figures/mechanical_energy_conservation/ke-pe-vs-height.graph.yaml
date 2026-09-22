@@ -1,0 +1,21 @@
+# A 0.16 kg ball hit straight up at 24 m/s, no air drag, g = 9.8 m/s^2.
+# Total E = 0.5*0.16*24^2 = 46.08 J. U = mgh = 1.568 h. Top: h = 46.08/1.568 = 29.39 m.
+# At h = 20 m: U = 31.36 J, K = 14.72 J (v = 13.6 m/s).
+title: "Ball hit straight up at 24 m/s: energy vs height"
+x: {label: "Height above the bat $h$ (m)", min: 0, max: 31}
+y: {label: "Energy (J)", min: 0, max: 52}
+series:
+  - label: "Kinetic energy $K$"
+    points: [[0, 46.08], [29.39, 0]]
+    color: blue
+  - label: "Potential energy $U = mgh$"
+    points: [[0, 0], [29.39, 46.08]]
+    color: green
+  - label: "Total $K + U$ = 46 J"
+    points: [[0, 46.08], [29.39, 46.08]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 20, y: 31.36, text: "h = 20 m: U = 31.4 J", color: green, offset: [-80, 14]}
+  - {x: 20, y: 14.72, text: "K = 14.7 J", color: blue, offset: [8, -4]}
+legend: below

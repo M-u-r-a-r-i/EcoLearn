@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A gas in a cylinder pushes a piston of area A outward by a small distance delta x</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <!-- cylinder walls -->
+  <path d="M 380 80 L 60 80 L 60 260 L 380 260" fill="none" stroke="#1f2937" stroke-width="6"/>
+  <!-- gas -->
+  <rect x="63" y="83" width="277" height="174" fill="#dbeafe"/>
+  <g fill="#1d4ed8">
+    <circle cx="100" cy="120" r="4"/><circle cx="150" cy="200" r="4"/><circle cx="210" cy="140" r="4"/>
+    <circle cx="260" cy="220" r="4"/><circle cx="300" cy="110" r="4"/><circle cx="120" cy="235" r="4"/>
+    <circle cx="190" cy="100" r="4"/><circle cx="240" cy="175" r="4"/><circle cx="310" cy="190" r="4"/>
+  </g>
+  <text x="160" y="170" font-size="18" font-weight="700" fill="#1e3a8a">gas at pressure p</text>
+
+  <!-- old piston position (dashed) -->
+  <rect x="320" y="83" width="20" height="174" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4"/>
+  <!-- new piston -->
+  <rect x="352" y="83" width="20" height="174" fill="#9ca3af" stroke="#374151" stroke-width="2"/>
+  <rect x="372" y="160" width="120" height="20" fill="#9ca3af" stroke="#374151" stroke-width="2"/>
+  <text x="362" y="66" font-size="13" fill="#374151" text-anchor="middle">piston, area A</text>
+
+  <!-- force arrow -->
+  <line x1="500" y1="130" x2="600" y2="130" stroke="#dc2626" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="505" y="118" font-size="15" font-weight="700" fill="#dc2626">F = pA</text>
+
+  <!-- dx -->
+  <line x1="330" y1="290" x2="362" y2="290" stroke="#374151" stroke-width="2" marker-start="url(#ag)" marker-end="url(#ag)"/>
+  <line x1="330" y1="262" x2="330" y2="300" stroke="#6b7280" stroke-width="1"/>
+  <line x1="362" y1="262" x2="362" y2="300" stroke="#6b7280" stroke-width="1"/>
+  <text x="346" y="318" font-size="15" fill="#111827" text-anchor="middle">Δx</text>
+
+  <text x="60" y="352" font-size="17" font-weight="700" fill="#111827">ΔW = F Δx = pA Δx = p ΔV</text>
+  <text x="60" y="378" font-size="14" fill="#374151">The volume grows by ΔV = A Δx; the gas does work on the piston.</text>
+</svg>

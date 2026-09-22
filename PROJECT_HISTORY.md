@@ -884,6 +884,41 @@ could read or change any student's progress by sending their id.
   satisfies it, and also drops stale answers for free.
 - In PowerShell, `R` is an alias for `Invoke-History`. Never name a helper function `R`.
 
+## 9o. Seven explain batches in one window (2026-09-22)
+
+**Changed.**
+- 67 explain lessons from 7 parallel sub-sessions, each on a different chapter:
+  - Units and Measurement × motorsport (8). This finishes the chapter for all 5 interests.
+  - Motion in a Straight Line × gaming (11)
+  - Motion in a Plane × football (10)
+  - Laws of Motion × football (10)
+  - **Work, Energy and Power × cricket (11)**, **Gravitation × cricket (8)** and
+    **Thermodynamics × cricket (9)**: the first interest for each of these chapters.
+- The 3 new chapters drew about 40 interest-neutral figures and graphs between them. There are
+  also 7 new scenes, and two motorsport graphs (`repeated-lap-times`,
+  `stopping-distance-vs-speed`).
+- Review:
+  - Every new image was checked in PIL grids, and the answer keys and distractors of 6 numeric
+    lessons were re-derived.
+  - Fixes: `heat_work_internal_energy/two-routes-same-state.svg` (text crossed an arc and
+    overflowed its boxes); `thermodynamic_processes/four-processes-pv` (legend over the axis label
+    → shorter labels, upper right).
+  - Validator 184/184; phase 1 at **15/70 batches**.
+- Sub-sessions now receive a one-line prompt telling them to run
+  `batch_status.py --brief --batch …` and follow its output. The brief is the same text, but it no
+  longer passes through (and bloats) the main session.
+
+**Why.** The user asked for the next batches once the window reset.
+
+**Learned.**
+- **Cost:** 7 batches plus review took the 5-hour window from **1% to 85%** (about 12% per batch)
+  and the weekly limit from **4% to 14%** (about 1.4% per batch). So a fresh window holds about
+  **7 batches**, and the week about 60–65.
+- The remaining 55 phase-1 batches need about 8 windows. That's feasible by 2026-09-28 at two
+  windows a day.
+- Pending with the user: the Thermodynamics session suggests a Clausius or Kelvin portrait for the
+  second-law lesson, which needs download approval.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

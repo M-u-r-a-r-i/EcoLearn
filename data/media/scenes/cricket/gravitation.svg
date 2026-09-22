@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A night match: a ball skied high above a fielder, the Moon and a satellite in the sky, and a broadcast van's dish pointing up at the satellite</title>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="0.7" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fef08a" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#fef08a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#night)"/>
+  <!-- stars -->
+  <g fill="#e2e8f0">
+    <circle cx="240" cy="40" r="1.6"/><circle cx="330" cy="90" r="1.3"/><circle cx="420" cy="30" r="1.8"/>
+    <circle cx="470" cy="120" r="1.2"/><circle cx="560" cy="60" r="1.5"/><circle cx="700" cy="150" r="1.3"/>
+    <circle cx="760" cy="40" r="1.6"/><circle cx="190" cy="130" r="1.2"/><circle cx="380" cy="160" r="1.1"/>
+  </g>
+  <!-- Moon -->
+  <circle cx="640" cy="80" r="34" fill="#f1f5f9"/>
+  <circle cx="628" cy="72" r="6" fill="#cbd5e1"/><circle cx="652" cy="92" r="4" fill="#cbd5e1"/>
+  <!-- satellite on a dotted orbit arc -->
+  <path d="M430,25 Q560,5 800,70" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <g transform="translate(505,17)">
+    <rect x="-7" y="-6" width="14" height="12" fill="#e2e8f0"/>
+    <rect x="-29" y="-3" width="20" height="6" fill="#60a5fa"/><rect x="9" y="-3" width="20" height="6" fill="#60a5fa"/>
+  </g>
+  <!-- stands -->
+  <path d="M0,240 Q400,190 800,240 L800,285 L0,285 z" fill="#0f172a"/>
+  <!-- floodlight -->
+  <circle cx="90" cy="80" r="62" fill="url(#glow)"/>
+  <rect x="85" y="92" width="10" height="175" fill="#334155"/>
+  <rect x="58" y="62" width="64" height="32" rx="4" fill="#1e293b"/>
+  <g fill="#fef9c3"><circle cx="70" cy="72" r="5"/><circle cx="86" cy="72" r="5"/><circle cx="102" cy="72" r="5"/><circle cx="70" cy="85" r="5"/><circle cx="86" cy="85" r="5"/><circle cx="102" cy="85" r="5"/></g>
+  <!-- grass and pitch -->
+  <rect x="0" y="285" width="800" height="165" fill="#15803d"/>
+  <polygon points="180,345 520,345 550,385 150,385" fill="#d6c08f"/>
+  <g stroke="#f8fafc" stroke-width="4" stroke-linecap="round">
+    <line x1="200" y1="330" x2="200" y2="365"/><line x1="208" y1="330" x2="208" y2="365"/><line x1="216" y1="330" x2="216" y2="365"/>
+  </g>
+  <!-- batter who skied it -->
+  <g stroke-linecap="round">
+    <line x1="252" y1="330" x2="244" y2="375" stroke="#f8fafc" stroke-width="10"/>
+    <line x1="256" y1="330" x2="266" y2="375" stroke="#f8fafc" stroke-width="10"/>
+    <line x1="254" y1="332" x2="254" y2="296" stroke="#1d4ed8" stroke-width="20"/>
+    <line x1="254" y1="300" x2="280" y2="276" stroke="#f8fafc" stroke-width="6"/>
+    <line x1="280" y1="276" x2="296" y2="248" stroke="#a16207" stroke-width="7"/>
+  </g>
+  <circle cx="254" cy="280" r="11" fill="#c08457"/>
+  <!-- the skier: dotted path up and over -->
+  <path d="M290,262 Q360,40 430,280" fill="none" stroke="#fde68a" stroke-width="2" stroke-dasharray="3 7"/>
+  <circle cx="360" cy="152" r="7" fill="#dc2626" stroke="#fecaca" stroke-width="1.5"/>
+  <!-- fielder under the catch -->
+  <g stroke-linecap="round">
+    <line x1="440" y1="345" x2="432" y2="392" stroke="#f8fafc" stroke-width="10"/>
+    <line x1="444" y1="345" x2="454" y2="392" stroke="#f8fafc" stroke-width="10"/>
+    <line x1="442" y1="347" x2="442" y2="308" stroke="#1d4ed8" stroke-width="20"/>
+    <line x1="436" y1="312" x2="424" y2="284" stroke="#c08457" stroke-width="6"/>
+    <line x1="448" y1="312" x2="458" y2="284" stroke="#c08457" stroke-width="6"/>
+  </g>
+  <circle cx="442" cy="292" r="11" fill="#c08457"/>
+  <!-- broadcast van with dish -->
+  <rect x="610" y="330" width="130" height="60" rx="6" fill="#e2e8f0"/>
+  <rect x="712" y="340" width="22" height="20" fill="#64748b"/>
+  <circle cx="635" cy="392" r="11" fill="#1e293b"/><circle cx="715" cy="392" r="11" fill="#1e293b"/>
+  <line x1="668" y1="330" x2="668" y2="312" stroke="#64748b" stroke-width="5"/>
+  <path d="M646,318 Q672,272 698,300 z" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="674" y1="298" x2="518" y2="28" stroke="#fde68a" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.8"/>
+  <text x="600" y="420" font-size="14" fill="#f0fdf4" font-weight="600">live TV dish aimed at a satellite</text>
+</svg>

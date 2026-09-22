@@ -1,0 +1,20 @@
+# Gravitational potential energy U = -GMm/r, in units of mgR (since GM = gR^2, U/(mgR) = -1/(r/R)).
+# The near-surface formula, measured from the surface value: U ~ -mgR + mgh -> -1 + (x - 1).
+# Check: at x = 2 (h = R) the exact value is -0.5 (a rise of 0.5 mgR); the straight line gives 0 (a rise of 1.0 mgR).
+title: "Exact potential energy vs the mgh line"
+x: {label: "Distance from Earth's centre, $r/R$", min: 1, max: 5}
+y: {label: "$U$ / ($mgR$)", min: -1.1, max: 0.25}
+legend: below
+series:
+  - label: 'exact: $U = -GMm/r$'
+    points: [[1.0, -1.0], [1.1, -0.909], [1.2, -0.833], [1.3, -0.769], [1.4, -0.714], [1.5, -0.667],
+             [1.75, -0.571], [2.0, -0.5], [2.5, -0.4], [3.0, -0.333], [3.5, -0.286], [4.0, -0.25],
+             [4.5, -0.222], [5.0, -0.2]]
+    color: red
+  - label: 'near-surface approximation: $U_\text{surface} + mgh$'
+    points: [[1.0, -1.0], [2.0, 0.0], [2.2, 0.2]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 2.0, y: -0.5, text: "exact rise to h = R: 0.5 mgR", color: red, offset: [10, -4]}
+  - {x: 2.0, y: 0.0, text: "mgh says 1.0 mgR", color: gray, offset: [10, -4]}

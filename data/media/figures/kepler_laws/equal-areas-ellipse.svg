@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">An elliptical orbit with the Sun at one focus; a short wide shaded sector near the Sun and a long thin one far away have equal areas</title>
+  <defs><marker id="hblue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker></defs>
+  <rect width="640" height="460" fill="#ffffff"/>
+  <text x="20" y="30" font-size="17" fill="#111827" font-weight="700">Kepler's laws: an ellipse, equal areas in equal times</text>
+  <text x="20" y="52" font-size="13" fill="#6b7280">(eccentricity exaggerated for clarity; real planetary orbits are nearly circular)</text>
+  <!-- equal-area sectors, computed from Kepler's equation with e = 0.635 -->
+  <path d="M180.4,240 L140.6,141.7 A220,170 0 0,0 140.6,338.3 Z" fill="#fed7aa" stroke="#ea580c" stroke-width="1.5"/>
+  <path d="M180.4,240 L537.4,214.1 A220,170 0 0,1 537.4,265.9 Z" fill="#fed7aa" stroke="#ea580c" stroke-width="1.5"/>
+  <ellipse cx="320" cy="240" rx="220" ry="170" fill="none" stroke="#6b7280" stroke-width="2.5"/>
+  <!-- Sun at the focus, empty focus -->
+  <circle cx="180.4" cy="240" r="13" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
+  <text x="196" y="226" font-size="13" fill="#111827" font-weight="600">Sun (at a focus)</text>
+  <line x1="453.6" y1="234" x2="465.6" y2="246" stroke="#9ca3af" stroke-width="2"/>
+  <line x1="465.6" y1="234" x2="453.6" y2="246" stroke="#9ca3af" stroke-width="2"/>
+  <text x="459.6" y="296" font-size="12" fill="#6b7280" text-anchor="middle">other focus</text>
+  <text x="459.6" y="310" font-size="12" fill="#6b7280" text-anchor="middle">(empty)</text>
+  <!-- area labels -->
+  <text x="138" y="246" font-size="15" fill="#9a3412" font-weight="700" text-anchor="middle">A</text>
+  <text x="380" y="236" font-size="15" fill="#9a3412" font-weight="700" text-anchor="middle">B</text>
+  <!-- planet and velocity at perihelion (fast) and aphelion (slow); speed ratio (1+e)/(1-e) = 4.5 -->
+  <circle cx="100" cy="240" r="7" fill="#1d4ed8"/>
+  <line x1="100" y1="240" x2="100" y2="312" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <circle cx="540" cy="240" r="7" fill="#1d4ed8"/>
+  <line x1="540" y1="240" x2="540" y2="220" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <text x="92" y="200" font-size="13" fill="#111827" font-weight="600" text-anchor="end">perihelion</text>
+  <text x="92" y="216" font-size="12" fill="#2563eb" text-anchor="end">closest,</text>
+  <text x="92" y="230" font-size="12" fill="#2563eb" text-anchor="end">fastest</text>
+  <text x="550" y="200" font-size="13" fill="#111827" font-weight="600">aphelion</text>
+  <text x="550" y="216" font-size="12" fill="#2563eb">farthest,</text>
+  <text x="550" y="230" font-size="12" fill="#2563eb">slowest</text>
+  <text x="320" y="428" font-size="14" fill="#111827" text-anchor="middle">Area A = area B: the planet takes the same time to cover the long arc</text><text x="320" y="446" font-size="14" fill="#111827" text-anchor="middle">near the Sun as the short arc far away.</text>
+</svg>

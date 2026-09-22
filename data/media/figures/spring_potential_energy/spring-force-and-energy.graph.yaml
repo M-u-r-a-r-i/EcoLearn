@@ -1,0 +1,26 @@
+# An ideal spring with k = 200 N/m.
+# Left: restoring-force magnitude F = kx: 0.10 m -> 20 N, 0.20 m -> 40 N.
+# Right: U = 0.5*k*x^2 = 100 x^2: 0.10 m -> 1.0 J, 0.20 m -> 4.0 J.
+title: "An ideal spring ($k$ = 200 N/m)"
+panels:
+  - title: "Force grows in step with $x$"
+    x: {label: "Compression or extension $x$ (m)", min: 0, max: 0.22}
+    y: {label: "Force magnitude $F = kx$ (N)", min: 0, max: 45}
+    series:
+      - label: "$F = kx$"
+        points: [[0, 0], [0.20, 40]]
+        color: red
+    marks:
+      - {x: 0.10, y: 20, text: "0.10 m: 20 N", color: red, offset: [8, -14]}
+      - {x: 0.20, y: 40, text: 'area = $\frac{1}{2}kx^2$ = 4.0 J', color: red, offset: [-150, 4]}
+  - title: "Stored energy grows as $x^2$"
+    x: {label: "Compression or extension $x$ (m)", min: 0, max: 0.22}
+    y: {label: "Potential energy $U$ (J)", min: 0, max: 4.5}
+    series:
+      - label: '$U = \frac{1}{2}kx^2$'
+        points: [[0, 0], [0.02, 0.04], [0.04, 0.16], [0.06, 0.36], [0.08, 0.64], [0.10, 1.0],
+                 [0.12, 1.44], [0.14, 1.96], [0.16, 2.56], [0.18, 3.24], [0.20, 4.0]]
+        color: purple
+    marks:
+      - {x: 0.10, y: 1.0, text: "0.10 m: 1.0 J", color: purple, offset: [8, -4]}
+      - {x: 0.20, y: 4.0, text: "double $x$: 4.0 J", color: purple, offset: [-110, -4]}
