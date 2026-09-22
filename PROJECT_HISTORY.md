@@ -752,6 +752,37 @@ tests how much a second interest saves.
 - Measure, don't estimate: the first estimate was off by a factor of 2–5 because usage was only
   read after the first batch, never before it.
 
+## 9l. Scope decided + a self-running batch workflow for the next session (2026-09-22)
+
+**Changed.**
+- *User decision:* **14 chapters × 5 interests, "explain" first (target 2026-09-28), then
+  "challenge" + "misconception" (target 2026-10-06).** Chapters: the "most important" set (A).
+  Interests: the user asked for the best fit; for set A that is **cricket, football, gaming,
+  smartphones, motorsport** — motorsport replaces music, whose strength (waves) has no chapter in
+  the set. The other 15 chapters and 5 interests come after the finals.
+- `data/content_scope.yaml` — the decision as data (chapters, interests, phases with targets).
+- `scripts/batch_status.py` — reads the scope, counts lesson files on disk, prints per-phase
+  progress and the next batch (`--all` lists every batch); `--brief` fills in
+  `content/BATCH_BRIEF.md` for that batch: model lessons from the same chapter, the chapter's
+  reusable figures, whether the scene exists, the interest's facts, matching famous images, and a
+  fit note when the chapter's domain isn't one of the interest's strong domains.
+- `content/BATCH_BRIEF.md` — the standard sub-session prompt (generalised from the two batches).
+- `src/curriculum/interests.py` + `data/interests.yaml` — optional `facts:` per interest; filled for
+  the 5 in scope (Laws of Cricket / IFAB Laws of the Game figures, standard voltages and bands).
+- `tests/test_content_spine.py` → 47 checks (the scope file: 7 + 7 chapters, 5 registered
+  interests with facts, the two phases).
+- `AGENTS.md` — the scope decision, a 7-step "How to run a lesson batch" procedure (usage check →
+  `batch_status.py` → brief → background sub-session → review → commit/push → promote interests),
+  and the new commands in §6. `ROADMAP.md` §0 decision rows updated.
+
+**Why.** The user will continue in a new session. Everything the next session needs — what to write,
+in what order, how to brief a writer, how to review and when to stop for usage — is now in the repo,
+and progress is derived from the disk, so there is no checklist to fall out of date.
+
+**Learned.** Progress that is *computed* (files on disk vs the scope) can't drift; progress that is
+*written down* (a checklist) always does. Same for briefs: a template filled from data gives every
+batch the same instructions, where hand-written prompts slowly diverge.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

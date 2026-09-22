@@ -43,6 +43,11 @@ class Interest(BaseModel):
     description: str
     strong_domains: list[Domain] = Field(..., min_length=1)
     status: InterestStatus
+    # General, checkable facts lesson authors may use (rules, standard sizes,
+    # specifications) — so every batch draws on the same verified numbers
+    # instead of each session recalling its own. Never statistics about real
+    # people, teams or products.
+    facts: list[str] = Field(default_factory=list)
 
 
 def load_interests(path: str | Path | None = None) -> list[Interest]:

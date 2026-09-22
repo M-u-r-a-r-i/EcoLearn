@@ -30,14 +30,14 @@
 | Topic | Decision |
 |---|---|
 | Accounts | **Username + password, no email** (minors — minimal PII). Teacher/admin password reset + bulk class account creation |
-| Content scope | **All Class 11 + 12 concepts × 10 interests × 3 formats** — 249 × 10 × 3 = **7,470 lessons** |
+| Content scope | ~~All Class 11 + 12 concepts × 10 interests × 3 formats (7,470 lessons)~~ — **replaced 2026-09-22** (Pro plan can't carry it): **14 chapters × 5 interests** per `data/content_scope.yaml`. Chapters ("most important" set): Units & Measurement, Motion in a Straight Line, Motion in a Plane, Laws of Motion, Work Energy & Power, Gravitation, Thermodynamics; Electric Charges & Fields, Potential & Capacitance, Current Electricity, Moving Charges & Magnetism, EM Induction, Ray Optics, Dual Nature. Interests: cricket, football, gaming, smartphones, motorsport. **Phase 1 `explain` only** (70 batches, 680 lessons, target 2026-09-28); **phase 2 `challenge` + `misconception`** (target 2026-10-06). Progress and the next batch: `scripts/batch_status.py`; each batch's brief: `--brief` |
 | Boards | **CBSE and ISC students.** Every concept carries `boards` (default both); ISC-only topics are included and tagged `[isc]`; two enrichment topics kept at the user's request are tagged `[]` |
 | Syllabus source | Verified against the **official CBSE 2025-26 syllabus**; topics it specifies are included. ISC-only topics come from a third-party summary — verify against the official CISCE PDF |
 | Locking | **Nothing is ever locked.** Prerequisites are "brush up first" hints; the engine recommends the first uncleared concept in teaching order |
 | Writing order | Lessons are written in the standard school teaching order — Class 11 chapter 1 through Class 12 chapter 14 |
 | Who writes lessons | **Claude Code sessions (Opus 5), written straight to files.** No LLM API, no GPU for static content |
 | Critic | **No LLM critic.** Deterministic validator (format only) + **random 2% review sample** (~145 lessons) + human read of the first chapters students will use |
-| Interests | Chosen by physics fit (every domain covered at least 3×): football, gaming, cricket, music, motorsport, space, smartphones, cooking, photography, amusement_parks — `data/interests.yaml` |
+| Interests (registry) | All 10 stay in the registry; the 5 in scope get `facts:` for authors. Chosen by physics fit (every domain covered at least 3×): football, gaming, cricket, music, motorsport, space, smartphones, cooking, photography, amusement_parks — `data/interests.yaml` |
 | Formats | **Explain** (today's shape) · **Challenge-first** · **Misconception-buster**. Shown as tabs; default: first visit → Explain, after a score < 2 → Misconception-buster, review → Challenge |
 | Lesson opening | **Every lesson opens with `## The story`** — a short narrative with a named character that sparks curiosity before any explanation (user, 2026-09-21) |
 | Images | **At least one image per lesson.** Scene illustrations: **one per chapter × interest** (~290 SVGs, user's choice). Graphs (rendered from data specs) and diagrams: per concept, shared by all interests (~250–400). Famous images: public domain / CC only, from Wikimedia Commons, **each download approved by the user**, recorded in `data/media/famous/manifest.yaml` |

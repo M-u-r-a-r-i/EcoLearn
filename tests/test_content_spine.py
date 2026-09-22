@@ -229,11 +229,30 @@ def test_interest_registry() -> None:
                     "unknown domain", loader=load_interests)
 
 
+def test_content_scope() -> None:
+    print("\n[5] content scope (data/content_scope.yaml)")
+    import yaml
+    scope = yaml.safe_load((_ROOT / "data" / "content_scope.yaml").read_text(encoding="utf-8"))
+    subject = load_subject(PHYSICS)
+    chapters = {ch.id: ch for u in subject.units for ch in u.chapters}
+    registry = {i.id: i for i in load_interests()}
+    check(all(c in chapters for c in scope["chapters"]), "every scoped chapter exists")
+    grades = [chapters[c].grade for c in scope["chapters"]]
+    check(grades.count(11) == 7 and grades.count(12) == 7, "7 Class 11 + 7 Class 12 chapters")
+    check(len(scope["interests"]) == 5 and all(i in registry for i in scope["interests"]),
+          "5 interests, all in the registry")
+    check(all(registry[i].facts for i in scope["interests"]),
+          "every scoped interest has checkable facts for authors")
+    check([p["formats"] for p in scope["phases"]] == [["explain"], ["challenge", "misconception"]],
+          "explain first, then the other two formats")
+
+
 def main() -> None:
     test_full_curriculum()
     test_legacy_ids_preserved()
     test_bad_curricula_rejected()
     test_interest_registry()
+    test_content_scope()
     print(f"\nALL {_checks} CHECKS PASSED")
 
 

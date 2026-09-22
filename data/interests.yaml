@@ -13,6 +13,8 @@
 #                   where this interest grounds analogies naturally. Lessons are
 #                   still written for EVERY chapter; outside these domains the
 #                   author may teach directly rather than force an analogy.
+#   facts           general, checkable numbers authors may use (rules, standard
+#                   sizes, specifications) — never stats about real people/teams.
 #   status          active = offered to students; draft = lessons still being
 #                   written. Promote to active only when its lessons exist.
 #
@@ -36,6 +38,13 @@ interests:
       floodlights and goal-line technology.
     strong_domains: [mechanics, thermal]
     status: active
+    facts:
+      - "Pitch length 90–120 m and width 45–90 m; international matches 100–110 m × 64–75 m (IFAB Laws of the Game)."
+      - "The goal is 7.32 m wide and 2.44 m high; the penalty mark is 11 m from the goal line."
+      - "The centre circle has a radius of 9.15 m."
+      - "The ball's circumference is 68–70 cm and its mass 410–450 g at the start of the match."
+      - "Ball pressure is 0.6–1.1 atmospheres above atmospheric at sea level."
+      - "A match is two halves of 45 minutes."
 
   - id: gaming
     label: Gaming
@@ -46,6 +55,11 @@ interests:
       batteries, GPUs and cooling fans, VR headsets.
     strong_domains: [mechanics, optics, electricity, modern]
     status: active
+    facts:
+      - "Common display refresh rates are 60, 120 and 144 Hz; at 60 frames per second each frame lasts about 16.7 ms."
+      - "A standard USB port supplies 5 V."
+      - "A lithium-ion cell, as in wireless controllers, has a nominal voltage of about 3.6–3.7 V."
+      - "Game physics engines update motion in small time steps, commonly 1/60 s."
 
   - id: cricket
     label: Cricket
@@ -56,6 +70,12 @@ interests:
       Snickometer microphones and speed guns.
     strong_domains: [mechanics, waves, general]
     status: draft
+    facts:
+      - "The pitch is 22 yards (20.12 m) from stumps to stumps (Laws of Cricket)."
+      - "A men's ball has a mass of 155.9–163 g and a circumference of 22.4–22.9 cm."
+      - "The stumps are 71.1 cm tall; the wicket is 22.86 cm wide."
+      - "A bat may be at most 96.52 cm long and 10.8 cm wide."
+      - "Speed guns report ball speed in km/h; divide by 3.6 for m/s."
 
   - id: music
     label: Music
@@ -76,6 +96,12 @@ interests:
       motors and regenerative braking, lap timing.
     strong_domains: [mechanics, thermal, electricity, magnetism, general]
     status: draft
+    facts:
+      - "To convert km/h to m/s divide by 3.6; the fastest race cars exceed 300 km/h."
+      - "An ordinary car's starter battery is a 12 V lead-acid battery."
+      - "Electric-car battery packs typically run at a few hundred volts (about 400–800 V)."
+      - "Racing brake discs can glow red hot, exceeding roughly 1000 °C under heavy braking."
+      - "Electric motors in EVs can run as generators when braking (regenerative braking), charging the battery."
 
   - id: space
     label: Space & Astronomy
@@ -96,6 +122,12 @@ interests:
       Wi-Fi and mobile signals, chips, LEDs and displays.
     strong_domains: [electricity, magnetism, optics, modern, waves]
     status: draft
+    facts:
+      - "A phone's lithium-ion battery cell has a nominal voltage of about 3.7 V and is charged to about 4.2 V."
+      - "A standard USB port supplies 5 V; fast-charging standards negotiate higher voltages such as 9 V."
+      - "Qi wireless chargers transfer energy by magnetic induction between two coils at roughly 100–200 kHz."
+      - "Wi-Fi uses radio bands near 2.4 GHz and 5 GHz; mobile networks use frequencies from hundreds of MHz to a few GHz."
+      - "Phone camera lenses have focal lengths of only a few millimetres."
 
   - id: cooking
     label: Cooking & Kitchen
