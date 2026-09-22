@@ -70,6 +70,13 @@ export function InterestLevelFields({
                 >
                   <div className="text-3xl">{opt.emoji}</div>
                   <div className="mt-2 text-sm font-semibold text-foreground">{opt.label}</div>
+                  {/* Say how much is written, rather than hiding half-done
+                      interests: a student can pick one and see the rest arrive. */}
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {opt.chapters_ready === opt.chapters_total
+                      ? "All chapters ready"
+                      : `${opt.chapters_ready} of ${opt.chapters_total} chapters ready`}
+                  </div>
                 </button>
               ))}
         </div>

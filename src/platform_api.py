@@ -42,6 +42,7 @@ from src.agents.polisher import polish_explanation
 from src.auth import passwords
 from src.content import lesson_service
 from src.curriculum.interests import load_interests
+from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
 from src.path import engine
 from src.pipeline import explain_with_review
@@ -359,25 +360,44 @@ def list_chapters() -> list[dict[str, Any]]:
 
 
 def list_interests(active_only: bool = True) -> list[dict[str, Any]]:
-    """Return the interests a student can choose, from data/interests.yaml.
+    """Return the interests a student can choose.
 
-    `active_only=True` (the default) returns only interests whose lessons are
-    ready — offering a draft interest would mean "coming soon" on every screen.
+    `active_only=True` (the default) offers the interests in
+    `data/content_scope.yaml` — the set we are actually writing lessons for —
+    in the order the scope lists them. Each one says how much of the syllabus it
+    covers so far (`chapters_ready` of `chapters_total`), so the UI can be honest
+    instead of hiding a half-written interest.
+
+    Why not the registry's `active` flag: it marks an interest ready only once
+    every chapter is written, which hid cricket (the largest set) while offering
+    football and gaming, which were no more complete. Coverage is a number, not
+    a yes/no, so we now show the number. `active_only=False` still returns the
+    whole registry.
 
     Returns:
-        [{id, label, emoji, description, status}, ...] in registry order.
+        [{id, label, emoji, description, status, chapters_ready, chapters_total}, ...]
     """
-    return [
-        {
-            "id": i.id,
-            "label": i.label,
-            "emoji": i.emoji,
-            "description": i.description,
-            "status": i.status.value,
-        }
-        for i in load_interests()
-        if not active_only or i.status.value == "active"
-    ]
+    registry = {i.id: i for i in load_interests()}
+    scope_ids = [i for i in scope_interest_ids() if i in registry]
+    chosen = scope_ids if (active_only and scope_ids) else list(registry)
+    chapters_total = len(scope_chapter_ids())
+
+    out: list[dict[str, Any]] = []
+    for interest_id in chosen:
+        i = registry[interest_id]
+        ready = lesson_service.chapters_with_lessons(i.id) & set(scope_chapter_ids())
+        out.append(
+            {
+                "id": i.id,
+                "label": i.label,
+                "emoji": i.emoji,
+                "description": i.description,
+                "status": i.status.value,
+                "chapters_ready": len(ready),
+                "chapters_total": chapters_total,
+            }
+        )
+    return out
 
 
 def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:

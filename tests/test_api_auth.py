@@ -153,7 +153,20 @@ def test_public_curriculum() -> None:
           "chapters carry unit, grade, domain, concept_count")
     check(first["grade"] == 11 and chapters[-1]["grade"] == 12, "Class 11 first, Class 12 last")
     interests = c.get("/api/interests").json()
-    check({i["id"] for i in interests} == {"football", "gaming"}, "only active interests offered")
+    check(
+        {i["id"] for i in interests}
+        == {"cricket", "football", "gaming", "smartphones", "motorsport"},
+        "the five in-scope interests are offered",
+    )
+    check(
+        all({"chapters_ready", "chapters_total"} <= set(i) for i in interests),
+        "each interest says how many chapters are written",
+    )
+    cricket = next(i for i in interests if i["id"] == "cricket")
+    check(
+        0 < cricket["chapters_ready"] <= cricket["chapters_total"] == 14,
+        f"coverage is a real count (cricket {cricket['chapters_ready']}/14)",
+    )
 
     print("\n[8] CORS with credentials")
     pre = {"Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}

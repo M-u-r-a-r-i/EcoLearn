@@ -1020,6 +1020,34 @@ written into the lesson files but never wired up, so the site still used the old
   tab ready for input"). Driving the page with `javascript_tool` works, and reading
   `document.querySelector('main').innerText` is a cheap way to verify a flow without screenshots.
 
+## 9r. All five in-scope interests are offered, with real coverage (2026-09-23)
+
+**Changed.** The user saw only football and gaming at signup, while cricket — the largest set — was
+hidden because `data/interests.yaml` still calls it a draft.
+
+- `src/curriculum/scope.py` (new): a tiny reader for `data/content_scope.yaml`, so the boundary can
+  use the agreed scope that only `scripts/batch_status.py` read before.
+- `src/content/lesson_service.py`: `chapters_with_lessons(interest)` — one glob, returns the chapter
+  ids that have lessons for an interest.
+- `src/platform_api.py`: `list_interests()` now offers the **five in-scope interests** in scope
+  order, each with `chapters_ready` / `chapters_total`. `active_only=False` still returns the whole
+  registry. Registration already accepted any registered interest, so nothing else had to change.
+- `web`: `Interest` carries the two counts, and each card shows "10 of 14 chapters ready" (or
+  "All chapters ready").
+- `tests/test_api_auth.py` → 44 checks (five interests offered, coverage counts present and real).
+
+**Verified in the browser:** the picker lists cricket 10/14, football 6/14, gaming 4/14,
+smartphones 2/14, motorsport 1/14; switching the demo student to cricket in settings saved, and
+`/api/next-lesson` for Thermodynamics then served the cricket lesson with its sections and options.
+
+**Why.** The registry's active flag is a yes/no for "every chapter written", which is the wrong
+question at this stage: it hid the best content and offered two interests that were no more
+complete. Coverage is a number, so the UI now shows the number and lets the student choose.
+
+**Learned.** A flag that encodes a *policy* ("only offer finished interests") ages badly while the
+content is still being written. Publishing the underlying measurement instead — how many chapters
+are ready — let the same data serve both the student's choice and our own progress tracking.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

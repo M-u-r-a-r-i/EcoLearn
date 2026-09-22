@@ -96,6 +96,17 @@ def get_lesson(concept_id: str, interest: str) -> Lesson | None:
     return Lesson.model_validate_json(path.read_text(encoding="utf-8"))
 
 
+def chapters_with_lessons(interest: str) -> set[str]:
+    """Which chapter ids have at least one authored lesson for this interest.
+
+    One glob over `data/lessons/{grade}/{chapter}/{concept}/{interest}__*.md`,
+    so it stays cheap as the corpus grows. Used to tell a student how much of
+    the syllabus their interest covers before they pick it.
+    """
+    pattern = f"*/*/*/{interest.lower()}__*.md"
+    return {path.parents[1].name for path in lessons_dir().glob(pattern)}
+
+
 def has_lesson(concept_id: str, interest: str) -> bool:
     """True if any servable lesson exists for this concept + interest."""
     return (

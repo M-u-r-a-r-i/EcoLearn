@@ -177,6 +177,8 @@ export interface Interest {
   emoji: string;
   description: string;
   status: string;
+  chapters_ready: number; // chapters with lessons written so far
+  chapters_total: number; // chapters in the agreed scope
 }
 
 export function getInterests(): Promise<Interest[]> {
