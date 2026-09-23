@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A football ground in the afternoon: a goal with a thin wire coil traced around its frame, a pop-up sprinkler fed by a solenoid valve, an electric line-marking machine being pushed by a groundsman, and a horn speaker on a pole whose supply cable runs across the grass past a compass whose needle has swung sideways</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfdbfe"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+
+  <!-- stand -->
+  <path d="M0,196 Q400,176 800,196 L800,262 L0,262 z" fill="#1e293b"/>
+  <path d="M0,214 Q400,194 800,214 L800,262 L0,262 z" fill="#334155"/>
+  <g fill="#e2e8f0" opacity="0.35">
+    <circle cx="90" cy="230" r="3"/><circle cx="160" cy="226" r="3"/><circle cx="230" cy="222" r="3"/>
+    <circle cx="300" cy="220" r="3"/><circle cx="520" cy="220" r="3"/><circle cx="590" cy="222" r="3"/>
+    <circle cx="660" cy="226" r="3"/>
+  </g>
+
+  <!-- pitch -->
+  <rect x="0" y="262" width="800" height="188" fill="#15803d"/>
+  <rect x="0" y="288" width="800" height="26" fill="#166534"/>
+  <rect x="0" y="348" width="800" height="30" fill="#166534"/>
+  <rect x="0" y="414" width="800" height="36" fill="#166534"/>
+  <line x1="0" y1="274" x2="800" y2="274" stroke="#f8fafc" stroke-width="2" opacity="0.5"/>
+
+  <!-- goal, seen three-quarters, with the net -->
+  <g stroke="#e2e8f0" stroke-width="1" opacity="0.55">
+    <line x1="72" y1="292" x2="112" y2="278"/>
+    <line x1="72" y1="316" x2="112" y2="302"/>
+    <line x1="72" y1="340" x2="112" y2="326"/>
+    <line x1="176" y1="292" x2="216" y2="278"/>
+    <line x1="176" y1="316" x2="216" y2="302"/>
+    <line x1="176" y1="340" x2="216" y2="326"/>
+    <line x1="112" y1="278" x2="216" y2="278"/>
+    <line x1="112" y1="326" x2="216" y2="326"/>
+  </g>
+  <path d="M72,348 L72,286 L176,286 L176,348" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M176,286 L216,272 M72,286 L112,272 M112,272 L216,272 M112,272 L112,334 M216,272 L216,334" fill="none" stroke="#f8fafc" stroke-width="3" opacity="0.8"/>
+
+  <!-- the coil traced around the goal frame, with current arrows -->
+  <path d="M66,348 L66,280 L182,280 L182,348" fill="none" stroke="#f97316" stroke-width="3"/>
+  <g fill="#f97316">
+    <polygon points="66,312 61,324 71,324"/>
+    <polygon points="124,280 112,275 112,285"/>
+    <polygon points="182,316 177,304 187,304"/>
+  </g>
+  <text x="124" y="374" font-size="13" fill="#fde68a" text-anchor="middle">coil in the goal frame</text>
+
+  <!-- pop-up sprinkler and its buried valve -->
+  <g>
+    <rect x="240" y="396" width="14" height="22" rx="3" fill="#475569" stroke="#1e293b" stroke-width="2"/>
+    <path d="M247,394 C 268,372 286,374 300,390" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.8"/>
+    <path d="M247,394 C 262,368 282,364 298,374" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.6"/>
+    <rect x="222" y="420" width="44" height="16" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+    <line x1="266" y1="428" x2="300" y2="428" stroke="#0f172a" stroke-width="3"/>
+  </g>
+  <text x="222" y="412" font-size="13" fill="#fde68a" text-anchor="start">solenoid valve</text>
+
+  <!-- electric line-marking machine -->
+  <g>
+    <rect x="336" y="344" width="78" height="36" rx="5" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+    <rect x="346" y="352" width="24" height="20" rx="3" fill="#334155"/>
+    <text x="358" y="367" font-size="13" fill="#fbbf24" text-anchor="middle">M</text>
+    <circle cx="350" cy="386" r="11" fill="#1f2937" stroke="#0f172a" stroke-width="2"/>
+    <circle cx="402" cy="386" r="11" fill="#1f2937" stroke="#0f172a" stroke-width="2"/>
+    <line x1="414" y1="348" x2="452" y2="318" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+    <rect x="336" y="394" width="70" height="5" fill="#f8fafc"/>
+  </g>
+  <text x="372" y="424" font-size="13" fill="#fde68a" text-anchor="middle">line marker: motor inside</text>
+
+  <!-- groundsman pushing it -->
+  <g stroke-linecap="round">
+    <line x1="474" y1="330" x2="466" y2="384" stroke="#1e293b" stroke-width="9"/>
+    <line x1="474" y1="330" x2="486" y2="384" stroke="#1e293b" stroke-width="9"/>
+    <line x1="474" y1="332" x2="474" y2="294" stroke="#0f172a" stroke-width="18"/>
+    <line x1="468" y1="300" x2="452" y2="318" stroke="#78350f" stroke-width="6"/>
+  </g>
+  <circle cx="474" cy="280" r="11" fill="#78350f" stroke="#0f172a" stroke-width="2"/>
+  <rect x="458" y="382" width="18" height="6" rx="3" fill="#0f172a"/>
+  <rect x="480" y="382" width="18" height="6" rx="3" fill="#0f172a"/>
+
+  <!-- supply cable from the speaker pole, across the grass -->
+  <path d="M700,340 C 660,368 600,384 520,386 L470,404" fill="none" stroke="#0f172a" stroke-width="5" opacity="0.85"/>
+  <path d="M700,340 C 660,368 600,384 520,386 L470,404" fill="none" stroke="#334155" stroke-width="2"/>
+
+  <!-- compass lying on the cable, needle swung across it -->
+  <circle cx="556" cy="386" r="17" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <text x="556" y="375" font-size="9" fill="#64748b" text-anchor="middle">N</text>
+  <line x1="544" y1="394" x2="568" y2="378" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+  <text x="592" y="420" font-size="13" fill="#fde68a" text-anchor="middle">compass on the cable</text>
+
+  <!-- horn speaker on its pole, with the supply box at the base -->
+  <rect x="694" y="150" width="10" height="190" fill="#64748b"/>
+  <path d="M708,176 L748,158 L748,206 L708,188 z" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+  <rect x="694" y="176" width="16" height="12" rx="2" fill="#475569"/>
+  <rect x="668" y="296" width="42" height="46" rx="4" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+  <circle cx="679" cy="312" r="5" fill="#16a34a"/>
+  <circle cx="697" cy="312" r="5" fill="#dc2626"/>
+  <rect x="676" y="326" width="28" height="8" rx="2" fill="#475569"/>
+  <text x="686" y="168" font-size="13" fill="#0f172a" text-anchor="end">horn speaker</text>
+  <text x="689" y="362" font-size="13" fill="#fde68a" text-anchor="middle">supply</text>
+</svg>

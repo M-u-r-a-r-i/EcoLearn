@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A gaming desk set up for a repair evening: the monitor shows a potential view, in which orange dashed rings of equal potential surround a positive charge and purple field arrows point outwards, crossing every ring at right angles; a phone lies on the desk with a fingertip touching its screen, the finger and the screen acting as the two plates of a capacitor; behind them an old arcade picture tube rests on the bench, labelled as two conducting coatings with glass between them and warned to hold its charge for days; on the right an opened computer power supply shows two tall capacitors marked 300 V beside its fan</title>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#818cf8" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#room)"/>
+  <ellipse cx="190" cy="140" rx="300" ry="160" fill="url(#glow)"/>
+
+  <!-- monitor showing a potential view -->
+  <rect x="28" y="30" width="324" height="220" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <rect x="40" y="42" width="300" height="196" fill="#050914"/>
+  <text x="50" y="62" font-size="12" fill="#fbbf24" font-weight="700" font-family="Consolas, monospace">POTENTIAL VIEW</text>
+
+  <!-- equipotential rings: equal steps of V, so they spread out as 1/r -->
+  <g fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="7 5">
+    <circle cx="130" cy="145" r="28"/>
+    <circle cx="130" cy="145" r="42"/>
+    <circle cx="130" cy="145" r="84"/>
+  </g>
+  <text x="158" y="126" font-size="10" fill="#fcd34d">30 V</text>
+  <text x="205" y="106" font-size="10" fill="#fcd34d">10 V</text>
+
+  <!-- field arrows, radially outward, crossing every ring at right angles -->
+  <g stroke="#c084fc" stroke-width="2.5" fill="#c084fc">
+    <line x1="148" y1="145" x2="200" y2="145"/><polygon points="200,145 191,149.5 191,140.5"/>
+    <line x1="139" y1="160.6" x2="165" y2="205.6"/><polygon points="165,205.6 156.6,200.05 164.4,195.55"/>
+    <line x1="121" y1="160.6" x2="95" y2="205.6"/><polygon points="95,205.6 95.6,195.55 103.4,200.05"/>
+    <line x1="112" y1="145" x2="60" y2="145"/><polygon points="60,145 69,140.5 69,149.5"/>
+    <line x1="121" y1="129.4" x2="95" y2="84.4"/><polygon points="95,84.4 103.4,89.95 95.6,94.45"/>
+    <line x1="139" y1="129.4" x2="165" y2="84.4"/><polygon points="165,84.4 164.4,94.45 156.6,89.95"/>
+  </g>
+  <circle cx="130" cy="145" r="13" fill="#dc2626" stroke="#fecaca" stroke-width="1.5"/>
+  <text x="130" y="151" font-size="16" fill="#fff5f5" text-anchor="middle" font-weight="700">+</text>
+
+  <text x="248" y="150" font-size="11" fill="#fcd34d">dashed rings:</text>
+  <text x="248" y="165" font-size="11" fill="#fcd34d">equal potential</text>
+  <text x="248" y="188" font-size="11" fill="#e9d5ff">arrows: the field,</text>
+  <text x="248" y="203" font-size="11" fill="#e9d5ff">square to the rings</text>
+
+  <!-- monitor stand -->
+  <rect x="176" y="250" width="28" height="76" fill="#334155"/>
+  <rect x="140" y="326" width="100" height="10" rx="4" fill="#334155"/>
+
+  <!-- desk -->
+  <rect x="0" y="336" width="800" height="114" fill="#3f2a1d"/>
+  <rect x="0" y="336" width="800" height="8" fill="#5b3b28"/>
+
+  <!-- old arcade picture tube on the bench -->
+  <text x="440" y="196" font-size="10" fill="#fde68a" text-anchor="middle">unplugged for a year — still charged</text>
+  <path d="M 370 210 L 455 245 L 455 290 L 370 330 z" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="362" y="206" width="10" height="128" rx="3" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="455" y="258" width="52" height="20" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="1.5"/>
+  <circle cx="428" cy="232" r="7" fill="#475569" stroke="#cbd5e1" stroke-width="1.5"/>
+  <path d="M 428 232 L 470 214 L 500 214" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="440" y="352" font-size="11" fill="#e5e7eb" text-anchor="middle">picture tube: two coatings, glass between</text>
+
+  <!-- opened power supply with two big capacitors -->
+  <rect x="560" y="196" width="220" height="140" rx="6" fill="#0f172a" stroke="#475569" stroke-width="3"/>
+  <rect x="570" y="206" width="200" height="120" fill="#111827"/>
+  <rect x="596" y="226" width="34" height="92" rx="6" fill="#1e40af" stroke="#93c5fd" stroke-width="1.5"/>
+  <rect x="646" y="226" width="34" height="92" rx="6" fill="#1e40af" stroke="#93c5fd" stroke-width="1.5"/>
+  <ellipse cx="613" cy="226" rx="17" ry="6" fill="#3b82f6"/>
+  <ellipse cx="663" cy="226" rx="17" ry="6" fill="#3b82f6"/>
+  <text x="613" y="247" font-size="13" fill="#eff6ff" text-anchor="middle" font-weight="700">+</text>
+  <text x="663" y="247" font-size="13" fill="#eff6ff" text-anchor="middle" font-weight="700">+</text>
+  <text x="638" y="300" font-size="11" fill="#bfdbfe" text-anchor="middle">300 V</text>
+  <circle cx="722" cy="266" r="34" fill="none" stroke="#475569" stroke-width="3"/>
+  <g stroke="#64748b" stroke-width="3" fill="none">
+    <path d="M 722 266 L 722 236"/><path d="M 722 266 L 748 281"/><path d="M 722 266 L 696 281"/>
+  </g>
+  <text x="670" y="352" font-size="11" fill="#e5e7eb" text-anchor="middle">power supply, opened up</text>
+
+  <!-- phone on the desk, a fingertip on the screen -->
+  <text x="150" y="366" font-size="10" fill="#e5e7eb" text-anchor="middle">fingertip and screen: two plates that never touch</text>
+  <rect x="40" y="372" width="150" height="66" rx="10" fill="#111827" stroke="#64748b" stroke-width="2"/>
+  <rect x="48" y="378" width="134" height="54" rx="4" fill="#052e16"/>
+  <circle cx="72" cy="392" r="6" fill="#f59e0b"/>
+  <rect x="60" y="414" width="44" height="7" rx="3" fill="#34d399"/>
+  <path d="M 134 392 L 184 366 L 192 380 L 142 408 z" fill="#d9a066" stroke="#a16207" stroke-width="1.5"/>
+  <ellipse cx="124" cy="400" rx="17" ry="11" fill="#d9a066" stroke="#a16207" stroke-width="1.5"/>
+</svg>
