@@ -1079,6 +1079,34 @@ all 11 lessons but stalled before reporting, which `batch_status.py` revealed as
 Poggendorff (potentiometer), de Broglie and Davisson–Germer (dual nature), Ørsted and Ampère
 (moving charges).
 
+## 9t. Football and gaming batches, and the first physics error caught (2026-09-23)
+
+**Changed.** 39 lessons across four batches, all reusing existing figures (one new scene each):
+Thermodynamics × football (9), Work Energy and Power × gaming (11), Gravitation × gaming (8),
+Electric Charges and Fields × football (11). Coverage is now cricket 14/14, football 8, gaming 6.
+Validator 341/341; phase 1 at 31/70 batches.
+
+**The first real physics error since batching began.** The Gravitation × gaming session was killed
+by the usage limit moments after reporting "found an arithmetic slip, fixing it" — so the fix may
+never have landed. A dedicated audit sub-session recomputed every number in all 8 lessons with
+Python and found it: an escape-speed option read $5.6$ km/s ($11.2/2$) while its misconception
+describes $11.2/\sqrt{2} = 7.9$ km/s, breaking the mirror with the $15.8$ option. Fixed, and
+`escape_speed`'s "Delhi to Mumbai in under two minutes" corrected to "about two minutes" (125 s).
+
+**Interruptions, again.** Five parallel sub-sessions all stalled with *nothing* written (600 s
+watchdog), burning ~50% of a 5-hour window for no output; two later runs died on the session limit.
+Two or three at a time has been reliable.
+
+**Learned.**
+- **Cap parallel sub-sessions at 2–3.** Five stalled outright. The failure is expensive because the
+  usage is spent whether or not anything is written.
+- **A session that reports a problem and then dies leaves the problem behind.** "Found a slip,
+  fixing it" plus a rate-limit death equals a wrong answer key on disk that the validator cannot
+  see (it checks format, not arithmetic). Any batch cut off mid-thought now gets an audit pass,
+  not just a completion pass.
+- Sub-sessions are now told to write each lesson to disk as it is finished, so a kill leaves
+  complete lessons rather than none.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

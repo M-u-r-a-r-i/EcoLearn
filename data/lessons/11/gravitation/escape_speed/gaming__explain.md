@@ -14,7 +14,7 @@ check:
     C: |-
       $15.8\,\text{km/s}$
     D: |-
-      $5.6\,\text{km/s}$
+      $7.9\,\text{km/s}$
   answer: B
   explanation: |-
     $v_e = \sqrt{2GM/R}$ depends on the ratio $M/R$. Doubling both leaves that ratio unchanged, so the escape speed is the same $11.2\,\text{km/s}$.
@@ -24,7 +24,7 @@ check:
     C: |-
       Accounts for the doubled mass ($\sqrt{2} \times 11.2 \approx 15.8$) but ignores the doubled radius, which pulls the answer back down by the same factor.
     D: |-
-      Accounts for the doubled radius but ignores the doubled mass; both changes matter, and here they cancel exactly.
+      Accounts for the doubled radius ($11.2/\sqrt{2} \approx 7.9$) but ignores the doubled mass; both changes matter, and here they cancel exactly.
 author: claude-code/opus-5
 written: 2026-09-23
 ---
@@ -76,7 +76,7 @@ using $GM = gR^2$. Three things are worth noticing.
 
 $$v_e = \sqrt{2gR} = \sqrt{2 \times 9.8 \times 6.4 \times 10^{6}} = \sqrt{1.25 \times 10^{8}} \approx 1.12 \times 10^{4}\,\text{m/s} = 11.2\,\text{km/s}$$
 
-That is roughly the distance from Delhi to Mumbai covered in under two minutes.
+That is roughly the distance from Delhi to Mumbai covered in about two minutes.
 
 **The moon.** Both $g$ and $R$ are divided by $4$, so their product is divided by $16$, and the square root divides $v_e$ by $4$:
 
