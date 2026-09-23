@@ -1048,6 +1048,37 @@ complete. Coverage is a number, so the UI now shows the number and lets the stud
 content is still being written. Publishing the underlying measurement instead — how many chapters
 are ready — let the same data serve both the student's choice and our own progress tracking.
 
+## 9s. The last five chapters get their cricket lessons (2026-09-23)
+
+**Changed.** Cricket now has lessons in **all 14 chapters in scope**, so every chapter has its
+interest-neutral figures and the remaining four interests can reuse them.
+
+- Current Electricity 12/12, Moving Charges and Magnetism 12/12, Electromagnetic Induction 7/7,
+  Ray Optics 11/11, Dual Nature 6/6 — 48 lessons, about 45 new figures.
+- These are the first batches written under the new §7 worked-example rules, and the difference is
+  visible: the thin-lens example runs 20 cm → 30 cm → 60 cm in three steps, each with a physical
+  comparison ("a little less than the width of the wicket", "catch it on a sheet of paper").
+- Review: all 21 newly drawn images checked in grids (no fixes needed), answer keys re-derived for
+  thin lenses, the cyclotron and de Broglie, plus the potentiometer and mutual-inductance numbers.
+  Validator 302/302.
+
+**Interrupted twice.** The first five sub-sessions all died on the Pro session limit mid-run
+(commit `4275f33` preserved 25 lessons of partial work); the relaunched Ray Optics session wrote
+all 11 lessons but stalled before reporting, which `batch_status.py` revealed as `[done]`.
+
+**Learned.**
+- **Check the disk, not the agent's exit status.** A sub-session that fails or stalls may already
+  have finished its work; `batch_status.py --all` is the truth. Treating a failure as "nothing
+  happened" would have rewritten 11 good lessons.
+- **The weekly limit is now the binding constraint**, not the 5-hour window: these batches took it
+  from 31% to 43%. At ~1.4% a batch, the ~45 remaining phase-1 batches need ~63% — more than one
+  week holds alongside the frontend. A scope decision is with the user (drop the two thinnest
+  interests, or accept slipping past 2026-09-28).
+
+**Famous images the sessions asked for** (none downloaded; each needs the user's approval):
+Poggendorff (potentiometer), de Broglie and Davisson–Germer (dual nature), Ørsted and Ampère
+(moving charges).
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

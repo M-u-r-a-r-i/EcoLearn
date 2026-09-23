@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="ti">
+  <title id="ti">Three schematic side views of a driving coil and a pick-up coil: aligned and close, lifted apart, and slid to one side. Fewer field lines pass through the pick-up coil in each case, so the mutual inductance falls.</title>
+  <defs>
+    <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">Same two coils, three positions: M is set by how much flux is shared</text>
+
+  <!-- ============ PANEL A: aligned and close ============ -->
+  <rect x="18" y="40" width="200" height="316" rx="8" fill="#faf5ff" stroke="#e9d5ff"/>
+  <!-- field arrows, tallest on the axis -->
+  <g stroke="#7c3aed" stroke-width="2.5">
+    <line x1="60"  y1="282" x2="60"  y2="252" marker-end="url(#fa)"/>
+    <line x1="80"  y1="282" x2="80"  y2="232" marker-end="url(#fa)"/>
+    <line x1="100" y1="282" x2="100" y2="212" marker-end="url(#fa)"/>
+    <line x1="120" y1="282" x2="120" y2="202" marker-end="url(#fa)"/>
+    <line x1="140" y1="282" x2="140" y2="212" marker-end="url(#fa)"/>
+    <line x1="160" y1="282" x2="160" y2="232" marker-end="url(#fa)"/>
+    <line x1="180" y1="282" x2="180" y2="252" marker-end="url(#fa)"/>
+  </g>
+  <!-- pick-up coil -->
+  <line x1="75" y1="245" x2="165" y2="245" stroke="#0f172a" stroke-width="5"/>
+  <g fill="#0f172a">
+    <circle cx="75" cy="245" r="5"/><circle cx="165" cy="245" r="5"/>
+  </g>
+  <rect x="78" y="220" width="84" height="18" rx="3" fill="#ffffff" opacity="0.93"/>
+  <text x="120" y="234" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="700">pick-up coil</text>
+  <!-- driving coil on its pad -->
+  <rect x="52" y="288" width="136" height="16" rx="4" fill="#fef3c7" stroke="#b45309"/>
+  <line x1="60" y1="286" x2="180" y2="286" stroke="#b45309" stroke-width="5"/>
+  <text x="120" y="320" font-size="12" fill="#b45309" text-anchor="middle" font-weight="700">driving coil</text>
+  <text x="118" y="344" font-size="13" fill="#15803d" text-anchor="middle" font-weight="700">aligned and close</text>
+  <text x="118" y="362" font-size="12" fill="#15803d" text-anchor="middle">5 lines linked &#8212; largest M</text>
+
+  <!-- ============ PANEL B: lifted apart ============ -->
+  <rect x="223" y="40" width="200" height="316" rx="8" fill="#faf5ff" stroke="#e9d5ff"/>
+  <g stroke="#7c3aed" stroke-width="2.5">
+    <line x1="262" y1="282" x2="262" y2="252" marker-end="url(#fa)"/>
+    <line x1="282" y1="282" x2="282" y2="232" marker-end="url(#fa)"/>
+    <line x1="302" y1="282" x2="302" y2="212" marker-end="url(#fa)"/>
+    <line x1="322" y1="282" x2="322" y2="202" marker-end="url(#fa)"/>
+    <line x1="342" y1="282" x2="342" y2="212" marker-end="url(#fa)"/>
+    <line x1="362" y1="282" x2="362" y2="232" marker-end="url(#fa)"/>
+    <line x1="382" y1="282" x2="382" y2="252" marker-end="url(#fa)"/>
+  </g>
+  <line x1="277" y1="215" x2="367" y2="215" stroke="#0f172a" stroke-width="5"/>
+  <g fill="#0f172a">
+    <circle cx="277" cy="215" r="5"/><circle cx="367" cy="215" r="5"/>
+  </g>
+  <rect x="280" y="160" width="84" height="18" rx="3" fill="#ffffff" opacity="0.93"/>
+  <text x="322" y="174" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="700">pick-up coil</text>
+  <line x1="238" y1="215" x2="277" y2="215" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="238" y1="286" x2="262" y2="286" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="238" y1="215" x2="238" y2="286" stroke="#64748b" stroke-width="1.5"/>
+  <text x="238" y="206" font-size="12" fill="#64748b" text-anchor="middle" font-weight="700">gap</text>
+  <rect x="254" y="288" width="136" height="16" rx="4" fill="#fef3c7" stroke="#b45309"/>
+  <line x1="262" y1="286" x2="382" y2="286" stroke="#b45309" stroke-width="5"/>
+  <text x="322" y="320" font-size="12" fill="#b45309" text-anchor="middle" font-weight="700">driving coil</text>
+  <text x="322" y="344" font-size="13" fill="#b45309" text-anchor="middle" font-weight="700">lifted away</text>
+  <text x="322" y="362" font-size="12" fill="#b45309" text-anchor="middle">3 lines linked &#8212; smaller M</text>
+
+  <!-- ============ PANEL C: slid to one side ============ -->
+  <rect x="428" y="40" width="200" height="316" rx="8" fill="#faf5ff" stroke="#e9d5ff"/>
+  <g stroke="#7c3aed" stroke-width="2.5">
+    <line x1="465" y1="282" x2="465" y2="252" marker-end="url(#fa)"/>
+    <line x1="485" y1="282" x2="485" y2="232" marker-end="url(#fa)"/>
+    <line x1="505" y1="282" x2="505" y2="212" marker-end="url(#fa)"/>
+    <line x1="525" y1="282" x2="525" y2="202" marker-end="url(#fa)"/>
+    <line x1="545" y1="282" x2="545" y2="212" marker-end="url(#fa)"/>
+    <line x1="565" y1="282" x2="565" y2="232" marker-end="url(#fa)"/>
+    <line x1="585" y1="282" x2="585" y2="252" marker-end="url(#fa)"/>
+  </g>
+  <line x1="530" y1="245" x2="612" y2="245" stroke="#0f172a" stroke-width="5"/>
+  <g fill="#0f172a">
+    <circle cx="530" cy="245" r="5"/><circle cx="612" cy="245" r="5"/>
+  </g>
+  <rect x="529" y="220" width="84" height="18" rx="3" fill="#ffffff" opacity="0.93"/>
+  <text x="571" y="234" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="700">pick-up coil</text>
+  <rect x="457" y="288" width="136" height="16" rx="4" fill="#fef3c7" stroke="#b45309"/>
+  <line x1="465" y1="286" x2="585" y2="286" stroke="#b45309" stroke-width="5"/>
+  <text x="525" y="320" font-size="12" fill="#b45309" text-anchor="middle" font-weight="700">driving coil</text>
+  <text x="528" y="344" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">slid to one side</text>
+  <text x="528" y="362" font-size="12" fill="#dc2626" text-anchor="middle">2 lines linked &#8212; smallest M</text>
+
+  <text x="320" y="386" font-size="13" fill="#475569" text-anchor="middle">Schematic side view: arrow height stands for field strength, not a measured value.</text>
+</svg>

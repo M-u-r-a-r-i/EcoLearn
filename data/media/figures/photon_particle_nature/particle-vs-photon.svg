@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A side-by-side comparison of a particle with mass and a photon: the particle has mass m, speed less than c, momentum mv and kinetic energy half m v squared, while the photon has zero rest mass, always travels at c, and has energy hc over lambda and momentum h over lambda</title>
+  <defs>
+    <marker id="bl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="ae" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M10,0 L0,5 L10,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+  <rect width="720" height="420" fill="#ffffff"/>
+
+  <text x="360" y="30" font-size="16" text-anchor="middle" fill="#111827" font-weight="700">Both carry energy and momentum &#8212; by different rules.</text>
+
+  <line x1="360" y1="52" x2="360" y2="400" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- LEFT: a particle with mass -->
+  <text x="180" y="76" font-size="15" text-anchor="middle" fill="#1e3a8a" font-weight="700">A particle with mass</text>
+
+  <circle cx="110" cy="150" r="26" fill="#94a3b8" stroke="#475569" stroke-width="2.5"/>
+  <text x="110" y="156" font-size="15" text-anchor="middle" fill="#1f2937" font-weight="700">m</text>
+  <line x1="146" y1="150" x2="250" y2="150" stroke="#2563eb" stroke-width="3" marker-end="url(#bl)"/>
+  <text x="196" y="138" font-size="15" text-anchor="middle" fill="#2563eb" font-weight="700">v</text>
+
+  <text x="40" y="226" font-size="14" fill="#374151">rest mass is not zero</text>
+  <text x="40" y="256" font-size="14" fill="#374151">speed v can be anything below c</text>
+  <text x="40" y="292" font-size="16" fill="#111827" font-weight="700">momentum p = mv</text>
+  <text x="40" y="322" font-size="16" fill="#111827" font-weight="700">kinetic energy = &#189;mv&#178;</text>
+  <text x="40" y="352" font-size="13" fill="#6b7280">slow it to rest and both go to zero</text>
+
+  <!-- RIGHT: a photon -->
+  <text x="540" y="76" font-size="15" text-anchor="middle" fill="#b45309" font-weight="700">A photon</text>
+
+  <path d="M410 150 q 12 -26 24 0 t 24 0 t 24 0 t 24 0 t 24 0" fill="none" stroke="#b45309" stroke-width="3"/>
+  <line x1="546" y1="150" x2="620" y2="150" stroke="#b45309" stroke-width="3" marker-end="url(#am)"/>
+  <text x="586" y="138" font-size="15" text-anchor="middle" fill="#b45309" font-weight="700">c</text>
+
+  <line x1="422" y1="112" x2="470" y2="112" stroke="#374151" stroke-width="2" marker-start="url(#ae)" marker-end="url(#as)"/>
+  <text x="446" y="103" font-size="14" text-anchor="middle" fill="#374151" font-weight="700">&#955;</text>
+
+  <text x="400" y="226" font-size="14" fill="#374151">rest mass is exactly zero</text>
+  <text x="400" y="256" font-size="14" fill="#374151">speed is always c, never less</text>
+  <text x="400" y="292" font-size="16" fill="#111827" font-weight="700">energy E = h&#957; = hc/&#955;</text>
+  <text x="400" y="322" font-size="16" fill="#111827" font-weight="700">momentum p = h/&#955; = E/c</text>
+  <text x="400" y="352" font-size="13" fill="#6b7280">it cannot be slowed down, only absorbed</text>
+
+  <text x="360" y="396" font-size="13" text-anchor="middle" fill="#6b7280">Brighter light means more photons per second &#8212; never a more energetic photon.</text>
+</svg>

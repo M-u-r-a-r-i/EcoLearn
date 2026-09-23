@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A point object on the axis in air sends two rays to the curved end of a glass rod. Each ray bends towards the normal, which is drawn through the centre of curvature, and the two rays cross again on the axis inside the glass at the image point. The object distance u, the image distance v and the radius of curvature R are all measured from the pole of the surface.</title>
+  <defs>
+    <marker id="ray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <!-- glass body: a rod with a convex end -->
+  <path d="M 370 160 A 50 50 0 0 0 370 260 L 620 260 L 620 160 Z" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2.5"/>
+  <text x="120" y="120" font-size="15" fill="#334155" font-weight="700">air (n₁)</text>
+  <text x="560" y="288" font-size="15" fill="#1e40af" text-anchor="middle" font-weight="700">glass (n₂ &gt; n₁)</text>
+
+  <!-- principal axis -->
+  <line x1="30" y1="210" x2="620" y2="210" stroke="#374151" stroke-width="1.6" stroke-dasharray="9 5"/>
+
+  <!-- normal through the centre of curvature -->
+  <line x1="290" y1="164" x2="430" y2="245" stroke="#6b7280" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <text x="440" y="252" font-size="13" fill="#6b7280" font-weight="700">normal</text>
+
+  <!-- rays -->
+  <line x1="60" y1="210" x2="326.7" y2="185" stroke="#2563eb" stroke-width="3" marker-end="url(#ray)"/>
+  <line x1="326.7" y1="185" x2="600" y2="220" stroke="#2563eb" stroke-width="3" marker-end="url(#ray)"/>
+  <line x1="60" y1="210" x2="326.7" y2="235" stroke="#2563eb" stroke-width="2.4" marker-end="url(#ray)"/>
+  <line x1="326.7" y1="235" x2="600" y2="200" stroke="#2563eb" stroke-width="2.4" marker-end="url(#ray)"/>
+
+  <!-- angle arcs -->
+  <path d="M 281.9 180.8 A 45 45 0 0 1 287.7 162.5" fill="none" stroke="#dc2626" stroke-width="2.4"/>
+  <text x="268" y="166" font-size="16" fill="#dc2626" text-anchor="middle" font-weight="700">i</text>
+  <path d="M 386.2 192.6 A 60 60 0 0 1 378.7 215" fill="none" stroke="#059669" stroke-width="2.4"/>
+  <text x="400" y="196" font-size="16" fill="#059669" font-weight="700">r</text>
+
+  <!-- key points -->
+  <circle cx="60" cy="210" r="5" fill="#111827"/>
+  <text x="60" y="198" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">O</text>
+  <circle cx="320" cy="210" r="5" fill="#111827"/>
+  <text x="312" y="304" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">P</text>
+  <circle cx="370" cy="210" r="5" fill="#111827"/>
+  <text x="376" y="304" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">C</text>
+  <circle cx="521.6" cy="210" r="5.5" fill="#dc2626"/>
+  <text x="521.6" y="198" font-size="15" fill="#dc2626" text-anchor="middle" font-weight="700">I</text>
+
+  <!-- dimension lines -->
+  <line x1="320" y1="286" x2="370" y2="286" stroke="#6b7280" stroke-width="1.4"/>
+  <text x="345" y="278" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="700">R</text>
+  <line x1="60" y1="336" x2="320" y2="336" stroke="#6b7280" stroke-width="1.6" marker-start="url(#dim)" marker-end="url(#dim)"/>
+  <text x="190" y="356" font-size="14" fill="#6b7280" text-anchor="middle" font-weight="700">u (negative)</text>
+  <line x1="320" y1="368" x2="521.6" y2="368" stroke="#6b7280" stroke-width="1.6" marker-start="url(#dim)" marker-end="url(#dim)"/>
+  <text x="420" y="388" font-size="14" fill="#6b7280" text-anchor="middle" font-weight="700">v (positive)</text>
+
+  <rect x="352" y="44" width="266" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#cbd5e1"/>
+  <text x="485" y="74" font-size="16" fill="#111827" text-anchor="middle" font-weight="700">n₂/v − n₁/u = (n₂ − n₁)/R</text>
+  <text x="485" y="98" font-size="12.5" fill="#334155" text-anchor="middle">every distance measured from P,</text>
+  <text x="485" y="114" font-size="12.5" fill="#334155" text-anchor="middle">light travelling left to right</text>
+
+  <text x="180" y="44" font-size="13" fill="#6b7280" text-anchor="middle">One surface, one refraction.</text>
+  <text x="180" y="62" font-size="13" fill="#6b7280" text-anchor="middle">Each ray bends towards the normal</text>
+  <text x="180" y="80" font-size="13" fill="#6b7280" text-anchor="middle">as it enters the denser glass.</text>
+</svg>

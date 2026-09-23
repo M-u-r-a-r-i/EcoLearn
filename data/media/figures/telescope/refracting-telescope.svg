@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Ray diagram of a refracting telescope in normal adjustment. Parallel rays from a distant object arrive tilted at a small angle alpha to the axis and the long-focus objective brings them to a point in its focal plane. The short-focus eyepiece has its focal point at that same place, so the light leaves it parallel again, but tilted at a much larger angle beta. The tube length is the sum of the two focal lengths.</title>
+  <defs>
+    <marker id="t1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="td" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <text x="320" y="24" font-size="13" fill="#6b7280" text-anchor="middle">A telescope does not make a distant object bigger — it makes the angle it covers bigger.</text>
+
+  <line x1="20" y1="210" x2="620" y2="210" stroke="#374151" stroke-width="1.5" stroke-dasharray="9 5"/>
+
+  <!-- objective -->
+  <path d="M 140 130 Q 160 210 140 290 Q 120 210 140 130 Z" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2.4"/>
+  <text x="140" y="120" font-size="13.5" fill="#1e40af" text-anchor="middle" font-weight="700">objective (long f<tspan font-size="10" dy="4">o</tspan>)</text>
+
+  <!-- eyepiece -->
+  <path d="M 460 160 Q 476 210 460 260 Q 444 210 460 160 Z" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2.4"/>
+  <text x="470" y="150" font-size="13.5" fill="#1e40af" text-anchor="middle" font-weight="700">eyepiece (short f<tspan font-size="10" dy="4">e</tspan>)</text>
+
+  <!-- common focal plane -->
+  <line x1="400" y1="168" x2="400" y2="258" stroke="#9ca3af" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <circle cx="400" cy="236" r="4.5" fill="#dc2626"/>
+  <text x="386" y="296" font-size="13" fill="#dc2626" text-anchor="end" font-weight="700">real image, in the focal plane of both lenses</text>
+
+  <!-- incoming parallel rays, tilted by alpha -->
+  <line x1="30" y1="139" x2="140" y2="150" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="30" y1="199" x2="140" y2="210" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="30" y1="259" x2="140" y2="270" stroke="#2563eb" stroke-width="2.4"/>
+  <text x="32" y="238" font-size="13" fill="#2563eb" font-weight="700">parallel light</text>
+  <text x="32" y="254" font-size="13" fill="#2563eb" font-weight="700">from far away</text>
+
+  <!-- objective to focal point -->
+  <line x1="140" y1="150" x2="400" y2="236" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="140" y1="210" x2="400" y2="236" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="140" y1="270" x2="400" y2="236" stroke="#2563eb" stroke-width="2.4"/>
+
+  <!-- focal point to eyepiece, then out parallel -->
+  <line x1="400" y1="236" x2="460" y2="255.8" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="460" y1="255.8" x2="600" y2="195.1" stroke="#2563eb" stroke-width="2.4" marker-end="url(#t1)"/>
+  <line x1="400" y1="236" x2="460" y2="210" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="460" y1="210" x2="600" y2="149.3" stroke="#2563eb" stroke-width="2.4" marker-end="url(#t1)"/>
+  <line x1="400" y1="236" x2="460" y2="228.2" stroke="#2563eb" stroke-width="2.4"/>
+  <line x1="460" y1="228.2" x2="600" y2="167.5" stroke="#2563eb" stroke-width="2.4" marker-end="url(#t1)"/>
+  <text x="612" y="270" font-size="13" fill="#2563eb" text-anchor="end" font-weight="700">to the eye — parallel again,</text>
+  <text x="612" y="286" font-size="13" fill="#2563eb" text-anchor="end" font-weight="700">but at a much steeper angle</text>
+
+  <!-- angles -->
+  <path d="M 240 210 A 100 100 0 0 1 239.5 220" fill="none" stroke="#dc2626" stroke-width="2.4"/>
+  <text x="250" y="204" font-size="15" fill="#dc2626" font-weight="700">α</text>
+  <path d="M 530 210 A 70 70 0 0 0 524.2 182.2" fill="none" stroke="#ea580c" stroke-width="2.4"/>
+  <text x="540" y="192" font-size="15" fill="#ea580c" font-weight="700">β</text>
+
+  <!-- dimensions -->
+  <line x1="140" y1="340" x2="400" y2="340" stroke="#6b7280" stroke-width="1.5" marker-start="url(#td)" marker-end="url(#td)"/>
+  <text x="270" y="362" font-size="13.5" fill="#6b7280" text-anchor="middle" font-weight="700">f<tspan font-size="10" dy="3">o</tspan></text>
+  <line x1="400" y1="340" x2="460" y2="340" stroke="#6b7280" stroke-width="1.5" marker-start="url(#td)" marker-end="url(#td)"/>
+  <text x="430" y="362" font-size="13.5" fill="#6b7280" text-anchor="middle" font-weight="700">f<tspan font-size="10" dy="3">e</tspan></text>
+
+  <rect x="386" y="42" width="232" height="74" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#cbd5e1"/>
+  <text x="502" y="70" font-size="15.5" fill="#111827" text-anchor="middle" font-weight="700">m = β/α = f<tspan font-size="11" dy="4">o</tspan><tspan font-size="15.5" dy="-4"> / f</tspan><tspan font-size="11" dy="4">e</tspan></text>
+  <text x="502" y="94" font-size="14" fill="#111827" text-anchor="middle" font-weight="700">tube length = f<tspan font-size="10" dy="3">o</tspan><tspan font-size="14" dy="-3"> + f</tspan><tspan font-size="10" dy="3">e</tspan></text>
+  <text x="502" y="110" font-size="12" fill="#334155" text-anchor="middle">normal adjustment, small angles</text>
+</svg>
