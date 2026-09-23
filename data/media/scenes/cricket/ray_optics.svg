@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A sunlit cricket ground: the sun sends rays down, a broadcast camera with a long lens watches the pitch, a fielder wears curved sunglasses, a stump camera looks along the pitch, and a fine spray from the sprinkler makes a small rainbow.</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#93c5fd"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff7cc" stop-opacity="1"/>
+      <stop offset="1" stop-color="#fde047" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#dc2626"/>
+      <stop offset="0.35" stop-color="#facc15"/>
+      <stop offset="0.7" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+
+  <!-- sun and its rays -->
+  <circle cx="660" cy="70" r="80" fill="url(#sun)"/>
+  <circle cx="660" cy="70" r="30" fill="#fde047"/>
+  <g stroke="#fde047" stroke-width="3" stroke-linecap="round" opacity="0.85">
+    <line x1="640" y1="106" x2="560" y2="230"/>
+    <line x1="664" y1="108" x2="618" y2="236"/>
+    <line x1="686" y1="102" x2="690" y2="228"/>
+    <line x1="620" y1="96" x2="500" y2="212"/>
+  </g>
+  <text x="600" y="34" font-size="14" fill="#fef9c3" font-weight="700">light travels in straight lines</text>
+
+  <!-- stand / far boundary -->
+  <rect x="0" y="212" width="800" height="48" fill="#1e293b"/>
+  <g fill="#334155">
+    <rect x="20" y="222" width="120" height="30" rx="4"/>
+    <rect x="160" y="222" width="120" height="30" rx="4"/>
+    <rect x="300" y="222" width="120" height="30" rx="4"/>
+  </g>
+  <!-- sightscreen -->
+  <rect x="452" y="188" width="128" height="72" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+  <text x="516" y="232" font-size="13" fill="#475569" text-anchor="middle" font-weight="700">sightscreen</text>
+
+  <!-- ground and pitch -->
+  <rect x="0" y="260" width="800" height="190" fill="#15803d"/>
+  <polygon points="250,300 600,300 660,400 180,400" fill="#d6c08f"/>
+
+  <!-- stumps far end -->
+  <g stroke="#f1f5f9" stroke-width="5" stroke-linecap="round">
+    <line x1="404" y1="278" x2="404" y2="308"/>
+    <line x1="416" y1="278" x2="416" y2="308"/>
+    <line x1="428" y1="278" x2="428" y2="308"/>
+  </g>
+  <!-- stump camera lens -->
+  <circle cx="416" cy="292" r="7" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+  <text x="446" y="288" font-size="13" fill="#f8fafc" font-weight="700">stump camera</text>
+  <text x="446" y="304" font-size="13" fill="#1f2937" font-weight="600">a tiny lens behind glass</text>
+
+  <!-- broadcast camera on a tripod, left -->
+  <g>
+    <line x1="92" y1="352" x2="70" y2="418" stroke="#0f172a" stroke-width="6"/>
+    <line x1="92" y1="352" x2="114" y2="418" stroke="#0f172a" stroke-width="6"/>
+    <line x1="92" y1="352" x2="92" y2="418" stroke="#0f172a" stroke-width="6"/>
+    <rect x="58" y="312" width="70" height="42" rx="6" fill="#1e293b"/>
+    <rect x="126" y="322" width="56" height="24" rx="4" fill="#334155"/>
+    <ellipse cx="184" cy="334" rx="8" ry="15" fill="#0ea5e9" stroke="#e2e8f0" stroke-width="2"/>
+  </g>
+  <text x="58" y="304" font-size="13" fill="#f8fafc" font-weight="700">long camera lens</text>
+  <!-- rays converging into the camera lens -->
+  <g stroke="#f8fafc" stroke-width="2" opacity="0.9">
+    <line x1="300" y1="300" x2="190" y2="329"/>
+    <line x1="300" y1="330" x2="190" y2="334"/>
+    <line x1="300" y1="360" x2="190" y2="339"/>
+  </g>
+
+  <!-- fielder with sunglasses, right -->
+  <g>
+    <line x1="700" y1="330" x2="688" y2="392" stroke="#1e3a8a" stroke-width="13" stroke-linecap="round"/>
+    <line x1="704" y1="330" x2="720" y2="392" stroke="#1e3a8a" stroke-width="13" stroke-linecap="round"/>
+    <line x1="702" y1="332" x2="702" y2="286" stroke="#f1f5f9" stroke-width="26" stroke-linecap="round"/>
+    <circle cx="702" cy="268" r="15" fill="#c08457"/>
+    <path d="M 689 264 q 13 -9 26 0 q -13 7 -26 0 z" fill="#0f172a"/>
+  </g>
+  <text x="640" y="418" font-size="13" fill="#f0fdf4" font-weight="700">curved sunglasses</text>
+
+  <!-- sprinkler spray with a small rainbow -->
+  <path d="M 250 430 A 70 70 0 0 1 390 430" fill="none" stroke="url(#bow)" stroke-width="10" opacity="0.9"/>
+  <text x="320" y="446" font-size="13" fill="#f0fdf4" text-anchor="middle" font-weight="700">spray from the sprinkler splits sunlight</text>
+</svg>

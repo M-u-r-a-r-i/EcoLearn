@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A cricket ground on a practice morning: an electric heavy roller on the pitch, a bowling machine firing a ball, a loudspeaker on a pole, and a groundsman's compass swinging near a thick power cable. Every machine on the ground has a coil and a magnet inside.</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bae6fd"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <rect x="0" y="250" width="800" height="200" fill="#16a34a"/>
+  <polygon points="150,300 660,300 720,360 90,360" fill="#d6c08f"/>
+  <path d="M0,250 Q400,214 800,250 L800,258 L0,258 z" fill="#0f172a" opacity="0.25"/>
+
+  <!-- electric heavy roller -->
+  <g>
+    <rect x="72" y="196" width="118" height="54" rx="8" fill="#334155"/>
+    <rect x="86" y="172" width="60" height="26" rx="5" fill="#475569"/>
+    <text x="131" y="228" font-size="13" fill="#e2e8f0" font-weight="700" text-anchor="middle">MOTOR</text>
+    <circle cx="100" cy="266" r="26" fill="#1e293b" stroke="#64748b" stroke-width="4"/>
+    <circle cx="168" cy="266" r="26" fill="#1e293b" stroke="#64748b" stroke-width="4"/>
+    <text x="131" y="312" font-size="13.5" fill="#052e16" font-weight="700" text-anchor="middle">electric roller</text>
+  </g>
+
+  <!-- thick power cable along the ground with a compass on it -->
+  <path d="M 200 288 Q 320 302 430 288" fill="none" stroke="#1f2937" stroke-width="9" stroke-linecap="round"/>
+  <path d="M 200 288 Q 320 302 430 288" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="14 10"/>
+  <text x="256" y="326" font-size="13" fill="#052e16" font-weight="700">current-carrying cable</text>
+
+  <circle cx="318" cy="268" r="21" fill="#f8fafc" stroke="#0f172a" stroke-width="3"/>
+  <line x1="318" y1="252" x2="318" y2="284" stroke="#cbd5e1" stroke-width="1.5"/>
+  <line x1="302" y1="268" x2="334" y2="268" stroke="#cbd5e1" stroke-width="1.5"/>
+  <polygon points="304,256 312,262 318,268" fill="#dc2626"/>
+  <polygon points="304,256 318,268 310,272" fill="#dc2626"/>
+  <polygon points="332,280 326,274 318,268" fill="#1e293b"/>
+  <polygon points="332,280 318,268 326,264" fill="#1e293b"/>
+  <text x="318" y="242" font-size="12.5" fill="#052e16" font-weight="700" text-anchor="middle">compass</text>
+
+  <!-- bowling machine firing a ball -->
+  <g>
+    <rect x="556" y="206" width="26" height="76" rx="4" fill="#334155"/>
+    <rect x="516" y="176" width="106" height="44" rx="8" fill="#475569"/>
+    <circle cx="540" cy="198" r="15" fill="#0f172a" stroke="#94a3b8" stroke-width="3"/>
+    <circle cx="600" cy="198" r="15" fill="#0f172a" stroke="#94a3b8" stroke-width="3"/>
+    <text x="569" y="300" font-size="13.5" fill="#052e16" font-weight="700" text-anchor="middle">bowling machine</text>
+    <circle cx="470" cy="196" r="9" fill="#b91c1c" stroke="#fff" stroke-width="1.5"/>
+    <path d="M 512 197 L 486 196" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- batter facing it -->
+  <g stroke-linecap="round">
+    <line x1="410" y1="196" x2="402" y2="248" stroke="#1e293b" stroke-width="12"/>
+    <line x1="412" y1="196" x2="424" y2="248" stroke="#1e293b" stroke-width="12"/>
+    <line x1="411" y1="198" x2="411" y2="158" stroke="#f1f5f9" stroke-width="24"/>
+    <line x1="411" y1="166" x2="440" y2="180" stroke="#c08457" stroke-width="6"/>
+    <line x1="440" y1="180" x2="452" y2="228" stroke="#a16207" stroke-width="8"/>
+    <circle cx="411" cy="144" r="12" fill="#c08457"/>
+    <path d="M 398 140 A 13 13 0 0 1 424 140 L 426 136 L 396 136 z" fill="#1d4ed8"/>
+  </g>
+
+  <!-- loudspeaker on a pole -->
+  <g>
+    <rect x="706" y="120" width="8" height="150" fill="#334155"/>
+    <rect x="678" y="80" width="64" height="52" rx="6" fill="#1e293b"/>
+    <circle cx="710" cy="106" r="17" fill="#0f172a" stroke="#94a3b8" stroke-width="3"/>
+    <circle cx="710" cy="106" r="6" fill="#94a3b8"/>
+    <text x="710" y="292" font-size="13" fill="#052e16" font-weight="700" text-anchor="middle">loudspeaker</text>
+  </g>
+
+  <text x="400" y="404" font-size="15.5" fill="#052e16" font-weight="700" text-anchor="middle">Roller, bowling machine, loudspeaker: a coil, a magnet and a current in every one.</text>
+</svg>

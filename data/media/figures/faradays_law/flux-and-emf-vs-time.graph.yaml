@@ -1,0 +1,17 @@
+# Illustrative single-turn loop. Flux rises steadily 0 -> 0.20 Wb in 2.0 s,
+# stays at 0.20 Wb for 2.0 s, then falls back to 0 in 1.0 s.
+# Induced emf = -dPhi/dt: -0.10 V, then 0, then +0.20 V.
+x: {label: "Time $t$ (s)", min: 0, max: 5}
+y: {label: "Flux $\\Phi$ (Wb)  and  emf $\\varepsilon$ (V)", min: -0.15, max: 0.25}
+title: "The emf follows the slope of the flux, not the flux"
+legend: below
+series:
+  - label: "Magnetic flux (Wb)"
+    points: [[0, 0], [2, 0.20], [4, 0.20], [5, 0]]
+    color: purple
+  - label: "Induced emf (V)"
+    points: [[0, -0.10], [2, -0.10], [2, 0], [4, 0], [4, 0.20], [5, 0.20]]
+    color: red
+marks:
+  - {x: 3, y: 0.20, text: "flux large but steady: emf is zero", color: purple, offset: [-118, -52]}
+  - {x: 4.5, y: 0.20, text: "steepest fall: biggest emf", color: red, offset: [-176, 14]}

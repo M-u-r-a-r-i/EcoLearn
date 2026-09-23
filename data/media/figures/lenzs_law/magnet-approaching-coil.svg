@@ -1,0 +1,54 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two panels: a magnet's north pole approaching a coil, which is repelled because the induced current makes a north pole facing it; and the magnet being pulled away, which is attracted because the induced current reverses</title>
+  <defs>
+    <marker id="vb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="fr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">The induced current always opposes the change</text>
+
+  <!-- panel A -->
+  <g>
+    <rect x="14" y="40" width="612" height="152" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <rect x="90" y="101" width="55" height="30" fill="#dc2626"/>
+    <rect x="145" y="101" width="55" height="30" fill="#1e40af"/>
+    <text x="117" y="122" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">S</text>
+    <text x="172" y="122" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">N</text>
+    <line x1="206" y1="116" x2="250" y2="116" stroke="#2563eb" stroke-width="4" marker-end="url(#vb)"/>
+    <text x="228" y="105" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">v</text>
+    <!-- coil -->
+    <ellipse cx="330" cy="116" rx="16" ry="52" fill="none" stroke="#b45309" stroke-width="5"/>
+    <text x="330" y="60" font-size="13" fill="#b45309" text-anchor="middle" font-weight="700">coil (closed loop)</text>
+    <!-- induced pole label -->
+    <text x="300" y="122" font-size="18" fill="#1e40af" text-anchor="middle" font-weight="700">N</text>
+    <line x1="290" y1="150" x2="250" y2="150" stroke="#dc2626" stroke-width="4" marker-end="url(#fr)"/>
+    <text x="272" y="171" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">push back</text>
+    <text x="400" y="100" font-size="14" fill="#0f172a" font-weight="600">Flux through the coil is rising.</text>
+    <text x="400" y="122" font-size="14" fill="#0f172a">The coil makes a N pole facing</text>
+    <text x="400" y="142" font-size="14" fill="#0f172a">the magnet, so it is pushed back.</text>
+  </g>
+
+  <!-- panel B -->
+  <g>
+    <rect x="14" y="208" width="612" height="152" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <rect x="90" y="269" width="55" height="30" fill="#dc2626"/>
+    <rect x="145" y="269" width="55" height="30" fill="#1e40af"/>
+    <text x="117" y="290" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">S</text>
+    <text x="172" y="290" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">N</text>
+    <line x1="84" y1="284" x2="44" y2="284" stroke="#2563eb" stroke-width="4" marker-end="url(#vb)"/>
+    <text x="64" y="273" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">v</text>
+    <ellipse cx="330" cy="284" rx="16" ry="52" fill="none" stroke="#b45309" stroke-width="5"/>
+    <text x="300" y="290" font-size="18" fill="#dc2626" text-anchor="middle" font-weight="700">S</text>
+    <line x1="214" y1="318" x2="254" y2="318" stroke="#dc2626" stroke-width="4" marker-end="url(#fr)"/>
+    <text x="232" y="339" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">hold back</text>
+    <text x="400" y="268" font-size="14" fill="#0f172a" font-weight="600">Flux through the coil is falling.</text>
+    <text x="400" y="290" font-size="14" fill="#0f172a">The coil makes a S pole facing</text>
+    <text x="400" y="310" font-size="14" fill="#0f172a">the magnet, so it is held back.</text>
+  </g>
+
+  <text x="320" y="384" font-size="13" fill="#475569" text-anchor="middle">Either way the coil resists the motion, so you must do work &#8212; that work becomes the electrical energy.</text>
+</svg>

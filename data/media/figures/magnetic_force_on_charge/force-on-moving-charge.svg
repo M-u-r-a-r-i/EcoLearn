@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A uniform magnetic field into the page. A positive charge moving to the right feels an upward force; a negative charge moving the same way feels a downward force. Below, a charge moving along the field direction feels no force at all.</title>
+  <defs>
+    <marker id="v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <rect x="24" y="52" width="592" height="200" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <g fill="#7c3aed" font-size="15" text-anchor="middle">
+    <text x="60" y="80">×</text><text x="140" y="80">×</text><text x="220" y="80">×</text><text x="300" y="80">×</text><text x="380" y="80">×</text><text x="460" y="80">×</text><text x="540" y="80">×</text>
+    <text x="60" y="160">×</text><text x="140" y="160">×</text><text x="220" y="160">×</text><text x="300" y="160">×</text><text x="380" y="160">×</text><text x="460" y="160">×</text><text x="540" y="160">×</text>
+    <text x="60" y="240">×</text><text x="140" y="240">×</text><text x="220" y="240">×</text><text x="300" y="240">×</text><text x="380" y="240">×</text><text x="460" y="240">×</text><text x="540" y="240">×</text>
+  </g>
+  <text x="24" y="44" font-size="13.5" fill="#7c3aed" font-weight="700">B into the page (×)</text>
+
+  <!-- positive charge -->
+  <circle cx="150" cy="200" r="15" fill="#dc2626"/>
+  <text x="150" y="207" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <line x1="168" y1="200" x2="256" y2="200" stroke="#2563eb" stroke-width="4" marker-end="url(#v)"/>
+  <text x="212" y="222" font-size="14" fill="#2563eb" font-weight="700" text-anchor="middle">v</text>
+  <line x1="150" y1="182" x2="150" y2="106" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <text x="128" y="132" font-size="14" fill="#dc2626" font-weight="700" text-anchor="end">F = qvB (up)</text>
+
+  <!-- negative charge -->
+  <circle cx="420" cy="140" r="15" fill="#1d4ed8"/>
+  <text x="420" y="147" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">−</text>
+  <line x1="438" y1="140" x2="526" y2="140" stroke="#2563eb" stroke-width="4" marker-end="url(#v)"/>
+  <text x="482" y="130" font-size="14" fill="#2563eb" font-weight="700" text-anchor="middle">v</text>
+  <line x1="420" y1="158" x2="420" y2="232" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <text x="440" y="206" font-size="14" fill="#dc2626" font-weight="700">F (down)</text>
+
+  <!-- third case: v parallel to B -->
+  <rect x="24" y="276" width="592" height="100" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="40" y="300" font-size="13.5" fill="#111827" font-weight="700">If v is along B, the force is zero</text>
+  <circle cx="300" cy="336" r="14" fill="#dc2626"/>
+  <text x="300" y="343" font-size="17" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <line x1="220" y1="336" x2="286" y2="336" stroke="#7c3aed" stroke-width="4"/>
+  <line x1="316" y1="336" x2="400" y2="336" stroke="#2563eb" stroke-width="4" marker-end="url(#v)"/>
+  <text x="240" y="326" font-size="13" fill="#7c3aed" font-weight="700">B</text>
+  <text x="352" y="326" font-size="13" fill="#2563eb" font-weight="700">v</text>
+  <text x="430" y="342" font-size="14" fill="#111827" font-weight="700">F = 0  (sin 0° = 0)</text>
+</svg>

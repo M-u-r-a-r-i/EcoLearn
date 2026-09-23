@@ -1,0 +1,22 @@
+# Stopping potential against frequency for two metals.
+# From eV0 = h(nu - nu0), the slope is h/e = 4.14e-15 V s = 0.414 V per 1e14 Hz
+# -- the same for every metal, which is what makes the lines parallel.
+# Metal A: phi = 2.1 eV -> nu0 = 2.1 / 4.14e-15 = 5.1e14 Hz; at 12e14 Hz,
+#   V0 = 0.414 * (12 - 5.1) = 2.86 V.
+# Metal B: phi = 3.1 eV -> nu0 = 3.1 / 4.14e-15 = 7.5e14 Hz; at 12e14 Hz,
+#   V0 = 0.414 * (12 - 7.5) = 1.86 V.
+title: "Stopping potential rises in step with frequency"
+x: {label: "Frequency $\\nu$ ($\\times 10^{14}$ Hz)", min: 4, max: 12.6}
+y: {label: "Stopping potential $V_0$ (V)", min: 0, max: 3.4}
+legend: below
+series:
+  - label: "Metal A, $\\varphi = 2.1$ eV"
+    points: [[5.1, 0], [12.0, 2.86]]
+    color: blue
+  - label: "Metal B, $\\varphi = 3.1$ eV"
+    points: [[7.5, 0], [12.0, 1.86]]
+    color: purple
+marks:
+  - {x: 5.1, y: 0, text: "$\\nu_0 = 5.1$", color: blue, offset: [-52, 10]}
+  - {x: 7.5, y: 0, text: "$\\nu_0 = 7.5$", color: purple, offset: [-52, 10]}
+  - {x: 10.0, y: 2.03, text: "same slope $h/e$ for every metal", color: gray, offset: [-230, 30]}

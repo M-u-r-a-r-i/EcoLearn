@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Three panels showing a flat loop seen edge-on in a uniform magnetic field, tilted by 0, 60 and 90 degrees, with the flux falling from BA to half of BA to zero</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/>
+    </marker>
+  </defs>
+  <rect width="720" height="320" fill="#ffffff"/>
+  <text x="360" y="26" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">Same loop, same field — only the tilt changes</text>
+
+  <!-- panel 1 -->
+  <g>
+    <rect x="16" y="40" width="216" height="230" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <g stroke="#7c3aed" stroke-width="2.5" marker-end="url(#ar)">
+      <line x1="30" y1="90" x2="216" y2="90"/>
+      <line x1="30" y1="130" x2="216" y2="130"/>
+      <line x1="30" y1="170" x2="216" y2="170"/>
+      <line x1="30" y1="210" x2="216" y2="210"/>
+    </g>
+    <line x1="124" y1="86" x2="124" y2="214" stroke="#0f172a" stroke-width="7" stroke-linecap="round"/>
+    <line x1="124" y1="150" x2="188" y2="150" stroke="#0f172a" stroke-width="3" marker-end="url(#an)"/>
+    <text x="150" y="142" font-size="14" fill="#0f172a" font-weight="700">n</text>
+    <text x="124" y="240" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="600">angle = 0</text>
+    <text x="124" y="260" font-size="15" fill="#15803d" text-anchor="middle" font-weight="700">flux = BA (largest)</text>
+  </g>
+
+  <!-- panel 2 : normal 60 degrees from B -->
+  <g>
+    <rect x="252" y="40" width="216" height="230" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <g stroke="#7c3aed" stroke-width="2.5" marker-end="url(#ar)">
+      <line x1="266" y1="90" x2="452" y2="90"/>
+      <line x1="266" y1="130" x2="452" y2="130"/>
+      <line x1="266" y1="170" x2="452" y2="170"/>
+      <line x1="266" y1="210" x2="452" y2="210"/>
+    </g>
+    <!-- loop edge-on, tilted 60 deg from vertical -->
+    <line x1="305" y1="182" x2="415" y2="118" stroke="#0f172a" stroke-width="7" stroke-linecap="round"/>
+    <!-- normal: 60 deg above the field direction -->
+    <line x1="360" y1="150" x2="392" y2="95" stroke="#0f172a" stroke-width="3" marker-end="url(#an)"/>
+    <path d="M 400 150 A 40 40 0 0 0 380 116" fill="none" stroke="#0f172a" stroke-width="1.6"/>
+    <text x="404" y="132" font-size="13" fill="#0f172a" font-weight="700">60&#176;</text>
+    <text x="374" y="88" font-size="14" fill="#0f172a" font-weight="700">n</text>
+    <text x="360" y="240" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="600">angle = 60&#176;</text>
+    <text x="360" y="260" font-size="15" fill="#b45309" text-anchor="middle" font-weight="700">flux = BA cos60&#176; = BA/2</text>
+  </g>
+
+  <!-- panel 3 -->
+  <g>
+    <rect x="488" y="40" width="216" height="230" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <g stroke="#7c3aed" stroke-width="2.5" marker-end="url(#ar)">
+      <line x1="502" y1="90" x2="688" y2="90"/>
+      <line x1="502" y1="130" x2="688" y2="130"/>
+      <line x1="502" y1="170" x2="688" y2="170"/>
+      <line x1="502" y1="210" x2="688" y2="210"/>
+    </g>
+    <line x1="532" y1="150" x2="660" y2="150" stroke="#0f172a" stroke-width="7" stroke-linecap="round"/>
+    <line x1="596" y1="150" x2="596" y2="92" stroke="#0f172a" stroke-width="3" marker-end="url(#an)"/>
+    <text x="606" y="106" font-size="14" fill="#0f172a" font-weight="700">n</text>
+    <text x="596" y="240" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="600">angle = 90&#176;</text>
+    <text x="596" y="260" font-size="15" fill="#b91c1c" text-anchor="middle" font-weight="700">flux = 0</text>
+  </g>
+
+  <text x="360" y="296" font-size="13" fill="#475569" text-anchor="middle">The loop is drawn edge-on (as a bar). Purple arrows: the uniform field B. Black arrow: the normal to the loop.</text>
+</svg>

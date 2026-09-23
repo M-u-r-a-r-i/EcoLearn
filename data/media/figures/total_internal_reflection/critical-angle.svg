@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Three rays leave the same point inside water and strike the surface at increasing angles. The first, below the critical angle, refracts out into the air. The second, exactly at the critical angle, leaves grazing along the surface at ninety degrees to the normal. The third, beyond the critical angle, does not escape at all: it is totally internally reflected back into the water.</title>
+  <defs>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="780" height="400" fill="#ffffff"/>
+
+  <rect x="30" y="40" width="720" height="140" fill="#f8fafc"/>
+  <rect x="30" y="180" width="720" height="180" fill="#dbeafe"/>
+  <line x1="30" y1="180" x2="750" y2="180" stroke="#1d4ed8" stroke-width="3"/>
+  <text x="44" y="64" font-size="14.5" fill="#334155" font-weight="700">air (n = 1.00)</text>
+  <text x="44" y="348" font-size="14.5" fill="#1e40af" font-weight="700">water (n = 1.33), the denser medium</text>
+
+  <!-- normals -->
+  <g stroke="#9ca3af" stroke-width="1.6" stroke-dasharray="6 4">
+    <line x1="340.8" y1="110" x2="340.8" y2="250"/>
+    <line x1="418.9" y1="110" x2="418.9" y2="250"/>
+    <line x1="502.5" y1="110" x2="502.5" y2="250"/>
+  </g>
+
+  <!-- source -->
+  <circle cx="260" cy="320" r="6" fill="#111827"/>
+  <text x="250" y="306" font-size="13" fill="#111827" text-anchor="end" font-weight="700">a lamp under water</text>
+
+  <!-- ray 1: below the critical angle -->
+  <line x1="260" y1="320" x2="340.8" y2="180" stroke="#2563eb" stroke-width="2.5"/>
+  <line x1="340.8" y1="180" x2="420.7" y2="90.6" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <text x="300" y="250" font-size="14" fill="#2563eb" font-weight="700" text-anchor="end">i &lt; C</text>
+  <text x="352" y="76" font-size="13" fill="#2563eb" font-weight="700">escapes, bent away from the normal</text>
+
+  <!-- ray 2: exactly at the critical angle -->
+  <line x1="260" y1="320" x2="418.9" y2="180" stroke="#2563eb" stroke-width="2.5"/>
+  <line x1="418.9" y1="180" x2="540" y2="180" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ab)"/>
+  <text x="392" y="268" font-size="14" fill="#2563eb" font-weight="700" text-anchor="end">i = C</text>
+  <text x="550" y="172" font-size="13" fill="#2563eb" font-weight="700">grazes the surface: r = 90°</text>
+
+  <!-- ray 3: beyond the critical angle -->
+  <line x1="260" y1="320" x2="502.5" y2="180" stroke="#dc2626" stroke-width="2.5"/>
+  <line x1="502.5" y1="180" x2="620" y2="248" stroke="#dc2626" stroke-width="2.5" marker-end="url(#ag)"/>
+  <text x="470" y="300" font-size="14" fill="#dc2626" font-weight="700">i &gt; C</text>
+  <text x="548" y="286" font-size="13" fill="#dc2626" font-weight="700">nothing escapes:</text>
+  <text x="548" y="304" font-size="13" fill="#dc2626" font-weight="700">total internal reflection</text>
+
+  <rect x="40" y="200" width="196" height="76" rx="8" fill="#ffffff" fill-opacity="0.94"/>
+  <text x="138" y="226" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">sin C = n₂ / n₁</text>
+  <text x="138" y="250" font-size="13" fill="#111827" text-anchor="middle">light must start in the</text>
+  <text x="138" y="268" font-size="13" fill="#111827" text-anchor="middle">denser medium (n₁ &gt; n₂)</text>
+</svg>

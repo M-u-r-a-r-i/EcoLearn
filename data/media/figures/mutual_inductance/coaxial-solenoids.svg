@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A long outer solenoid carrying a changing current, with a shorter inner coil wound coaxially inside it and connected to a galvanometer; the field of the outer solenoid threads the inner coil, so a changing current in one induces an emf in the other</title>
+  <defs>
+    <marker id="mc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0ea5e9"/>
+    </marker>
+    <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">Two coaxial solenoids: no contact, no wire between them</text>
+
+  <text x="320" y="84" font-size="14" fill="#b45309" text-anchor="middle" font-weight="700">outer solenoid: N&#8321; turns, length l, cross-section A, current I&#8321;</text>
+
+  <rect x="80" y="96" width="470" height="168" rx="6" fill="#faf5ff" stroke="#e9d5ff"/>
+
+  <!-- field inside -->
+  <g stroke="#7c3aed" stroke-width="2.5">
+    <line x1="112" y1="128" x2="178" y2="128" marker-end="url(#mb)"/>
+    <line x1="400" y1="128" x2="466" y2="128" marker-end="url(#mb)"/>
+    <line x1="112" y1="232" x2="178" y2="232" marker-end="url(#mb)"/>
+    <line x1="400" y1="232" x2="466" y2="232" marker-end="url(#mb)"/>
+  </g>
+
+  <!-- outer windings -->
+  <g stroke="#b45309" stroke-width="5" fill="none">
+    <ellipse cx="100" cy="180" rx="10" ry="76"/>
+    <ellipse cx="145" cy="180" rx="10" ry="76"/>
+    <ellipse cx="190" cy="180" rx="10" ry="76"/>
+    <ellipse cx="235" cy="180" rx="10" ry="76"/>
+    <ellipse cx="280" cy="180" rx="10" ry="76"/>
+    <ellipse cx="325" cy="180" rx="10" ry="76"/>
+    <ellipse cx="370" cy="180" rx="10" ry="76"/>
+    <ellipse cx="415" cy="180" rx="10" ry="76"/>
+    <ellipse cx="460" cy="180" rx="10" ry="76"/>
+    <ellipse cx="505" cy="180" rx="10" ry="76"/>
+  </g>
+
+  <!-- inner coil -->
+  <g stroke="#0f172a" stroke-width="4" fill="none">
+    <ellipse cx="250" cy="180" rx="6" ry="28"/>
+    <ellipse cx="278" cy="180" rx="6" ry="28"/>
+    <ellipse cx="306" cy="180" rx="6" ry="28"/>
+    <ellipse cx="334" cy="180" rx="6" ry="28"/>
+  </g>
+
+  <!-- labels with white backing so they stay readable over the windings -->
+  <rect x="222" y="104" width="196" height="22" rx="4" fill="#ffffff" opacity="0.92"/>
+  <text x="320" y="120" font-size="13" fill="#7c3aed" text-anchor="middle" font-weight="700">uniform field B inside</text>
+  <rect x="222" y="232" width="150" height="22" rx="4" fill="#ffffff" opacity="0.92"/>
+  <text x="297" y="248" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="700">inner coil: N&#8322; turns</text>
+
+  <!-- outer leads and the changing current -->
+  <path d="M 100 256 L 100 300 L 60 300" fill="none" stroke="#334155" stroke-width="3"/>
+  <path d="M 505 256 L 505 300 L 560 300" fill="none" stroke="#334155" stroke-width="3"/>
+  <line x1="110" y1="336" x2="170" y2="336" stroke="#0ea5e9" stroke-width="3.5" marker-end="url(#mc)"/>
+  <text x="180" y="341" font-size="13" fill="#0ea5e9" font-weight="700">I&#8321; changing</text>
+
+  <!-- inner leads to a galvanometer -->
+  <path d="M 250 208 L 250 300 L 440 300" fill="none" stroke="#0f172a" stroke-width="2.5"/>
+  <path d="M 334 208 L 334 330 L 460 330 L 460 320" fill="none" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="460" cy="300" r="20" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+  <line x1="460" y1="300" x2="447" y2="286" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="460" y="305" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="700">G</text>
+  <text x="486" y="346" font-size="13" fill="#15803d" font-weight="700">emf induced here</text>
+
+  <text x="320" y="374" font-size="15" fill="#15803d" text-anchor="middle" font-weight="700">M = &#956;&#8320; N&#8321; N&#8322; A / l  &#8212;  the same M whichever coil you drive</text>
+  <text x="320" y="394" font-size="13" fill="#475569" text-anchor="middle">M depends only on the geometry: the turns, the shared area and the length.</text>
+</svg>

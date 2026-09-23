@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A solenoid in a circuit with a battery and a switch: while the current is growing, the coil's own changing flux drives a back emf that opposes the growth; a small graph shows the current rising gradually instead of jumping</title>
+  <defs>
+    <marker id="si" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0ea5e9"/>
+    </marker>
+    <marker id="sb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">A coil fights any change in its own current</text>
+
+  <!-- circuit -->
+  <rect x="14" y="44" width="352" height="246" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <!-- solenoid -->
+  <g stroke="#b45309" stroke-width="4" fill="none">
+    <ellipse cx="130" cy="120" rx="9" ry="34"/>
+    <ellipse cx="152" cy="120" rx="9" ry="34"/>
+    <ellipse cx="174" cy="120" rx="9" ry="34"/>
+    <ellipse cx="196" cy="120" rx="9" ry="34"/>
+    <ellipse cx="218" cy="120" rx="9" ry="34"/>
+  </g>
+  <text x="174" y="72" font-size="14" fill="#b45309" text-anchor="middle" font-weight="700">coil, self-inductance L</text>
+  <!-- wires -->
+  <path d="M 130 154 L 130 240 L 60 240 L 60 120 L 121 120" fill="none" stroke="#334155" stroke-width="3"/>
+  <path d="M 227 120 L 300 120 L 300 240 L 250 240" fill="none" stroke="#334155" stroke-width="3"/>
+  <!-- battery -->
+  <g stroke="#334155" stroke-width="3">
+    <line x1="196" y1="228" x2="196" y2="252"/>
+    <line x1="184" y1="234" x2="184" y2="246"/>
+  </g>
+  <line x1="184" y1="240" x2="130" y2="240" stroke="#334155" stroke-width="3"/>
+  <line x1="196" y1="240" x2="212" y2="240" stroke="#334155" stroke-width="3"/>
+  <text x="192" y="272" font-size="13" fill="#334155" text-anchor="middle">battery</text>
+  <!-- switch -->
+  <line x1="212" y1="240" x2="250" y2="240" stroke="#334155" stroke-width="3" opacity="0.25"/>
+  <line x1="212" y1="240" x2="244" y2="224" stroke="#334155" stroke-width="3"/>
+  <circle cx="212" cy="240" r="3.5" fill="#334155"/>
+  <circle cx="250" cy="240" r="3.5" fill="#334155"/>
+  <text x="248" y="212" font-size="13" fill="#334155" text-anchor="middle">switch just closed</text>
+  <!-- growing current -->
+  <line x1="248" y1="108" x2="292" y2="108" stroke="#0ea5e9" stroke-width="3.5" marker-end="url(#si)"/>
+  <text x="272" y="94" font-size="13" fill="#0ea5e9" text-anchor="middle" font-weight="700">I growing</text>
+  <!-- back emf -->
+  <line x1="196" y1="172" x2="142" y2="172" stroke="#dc2626" stroke-width="3.5" marker-end="url(#sb)"/>
+  <text x="142" y="196" font-size="13" fill="#dc2626" font-weight="700">back emf opposes it</text>
+
+  <!-- graph panel -->
+  <rect x="380" y="44" width="246" height="246" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <line x1="412" y1="256" x2="600" y2="256" stroke="#0f172a" stroke-width="2"/>
+  <line x1="412" y1="256" x2="412" y2="76" stroke="#0f172a" stroke-width="2"/>
+  <text x="506" y="282" font-size="13" fill="#0f172a" text-anchor="middle">time after closing the switch</text>
+  <text x="398" y="166" font-size="13" fill="#0f172a" text-anchor="middle" transform="rotate(-90 398 166)">current</text>
+  <line x1="412" y1="112" x2="600" y2="112" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="598" y="104" font-size="12" fill="#64748b" text-anchor="end">final steady current</text>
+  <path d="M 412 256 C 448 168 500 116 600 113" fill="none" stroke="#0ea5e9" stroke-width="3.5"/>
+  <path d="M 417 256 L 417 112" fill="none" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5 5"/>
+  <text x="432" y="150" font-size="12" fill="#b91c1c">without L: an instant jump</text>
+  <text x="470" y="238" font-size="12" fill="#0ea5e9" font-weight="700">with L: a gradual rise</text>
+
+  <text x="320" y="326" font-size="15" fill="#15803d" text-anchor="middle" font-weight="700">back emf = &#8722;L &#215; (rate of change of current)</text>
+  <text x="320" y="352" font-size="13" fill="#475569" text-anchor="middle">Closing the switch: the coil holds the current back. Opening it: the coil tries to keep the current going,</text>
+  <text x="320" y="372" font-size="13" fill="#475569" text-anchor="middle">which is why a spark can jump across the contacts.</text>
+</svg>

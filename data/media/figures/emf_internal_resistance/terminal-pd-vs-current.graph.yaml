@@ -1,0 +1,15 @@
+# Terminal potential difference against current drawn, for a cell of
+# emf 12 V and internal resistance 0.5 ohm:  V = 12 - 0.5 I.
+# Illustrative values; the point of the graph is the shape:
+# intercept on the V axis = emf, slope = -r.
+title: "Terminal pd against current for one cell"
+x: {label: 'Current drawn $I$ (A)', min: 0, max: 8}
+y: {label: 'Terminal pd $V$ (V)', min: 6, max: 13}
+series:
+  - label: '$V = \varepsilon - Ir$ (straight line, slope $-r$)'
+    points: [[0, 12], [8, 8]]
+    color: blue
+legend: below
+marks:
+  - {x: 0, y: 12, text: "intercept = emf", color: red, offset: [12, 6]}
+  - {x: 8, y: 8, text: "heavy load: terminal pd sags", color: red, offset: [-190, 4]}

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A Wheatstone bridge drawn as a diamond: four resistors P, Q, R and S, a galvanometer across the middle reading zero, and a cell with a key across the other diagonal</title>
+  <defs>
+    <marker id="w-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect width="640" height="420" fill="#ffffff"/>
+
+  <text x="320" y="30" font-size="17" text-anchor="middle" fill="#111827" font-weight="700">At balance the galvanometer reads zero &#8212; B and D are at the same potential</text>
+
+  <!-- diamond wires -->
+  <g stroke="#111827" stroke-width="3" fill="none" stroke-linecap="round">
+    <!-- A(left) to B(top) : arm P -->
+    <line x1="120" y1="210" x2="176" y2="154"/>
+    <polyline points="176,154 186,140 200,160 214,132 228,160 242,132 252,150 262,140"/>
+    <line x1="262" y1="140" x2="320" y2="82"/>
+    <!-- B(top) to C(right) : arm Q -->
+    <line x1="320" y1="82" x2="378" y2="140"/>
+    <polyline points="378,140 388,130 402,158 416,130 430,158 444,130 454,152 464,142"/>
+    <line x1="464" y1="142" x2="520" y2="210"/>
+    <!-- A to D(bottom) : arm R -->
+    <line x1="120" y1="210" x2="176" y2="266"/>
+    <polyline points="176,266 186,280 200,260 214,288 228,260 242,288 252,270 262,280"/>
+    <line x1="262" y1="280" x2="320" y2="338"/>
+    <!-- D to C : arm S -->
+    <line x1="320" y1="338" x2="378" y2="280"/>
+    <polyline points="378,280 388,290 402,262 416,290 430,262 444,290 454,268 464,278"/>
+    <line x1="464" y1="278" x2="520" y2="210"/>
+    <!-- bridge diagonal B-D through the galvanometer -->
+    <line x1="320" y1="82" x2="320" y2="182"/>
+    <line x1="320" y1="238" x2="320" y2="338"/>
+  </g>
+
+  <!-- galvanometer -->
+  <circle cx="320" cy="210" r="28" fill="#f5f3ff" stroke="#111827" stroke-width="3"/>
+  <text x="320" y="217" font-size="19" text-anchor="middle" fill="#4c1d95" font-weight="700">G</text>
+  <text x="358" y="206" font-size="15" fill="#7c3aed" font-weight="700">reads 0</text>
+  <text x="358" y="226" font-size="13" fill="#6b7280">no current through G</text>
+
+  <!-- nodes -->
+  <g fill="#111827">
+    <circle cx="120" cy="210" r="6"/><circle cx="520" cy="210" r="6"/>
+    <circle cx="320" cy="82" r="6"/><circle cx="320" cy="338" r="6"/>
+  </g>
+  <text x="104" y="234" font-size="14" fill="#374151" font-weight="700">A</text>
+  <text x="530" y="234" font-size="14" fill="#374151" font-weight="700">C</text>
+  <text x="330" y="74" font-size="14" fill="#374151" font-weight="700">B</text>
+  <text x="330" y="358" font-size="14" fill="#374151" font-weight="700">D</text>
+
+  <!-- arm labels -->
+  <text x="196" y="112" font-size="17" fill="#111827" font-weight="700">P</text>
+  <text x="440" y="112" font-size="17" fill="#111827" font-weight="700">Q</text>
+  <text x="196" y="318" font-size="17" fill="#111827" font-weight="700">R</text>
+  <text x="440" y="318" font-size="17" fill="#111827" font-weight="700">S</text>
+  <text x="176" y="336" font-size="12" fill="#6b7280">known</text>
+  <text x="440" y="336" font-size="12" fill="#6b7280">unknown</text>
+
+  <!-- cell branch across A-C, drawn below -->
+  <g stroke="#111827" stroke-width="3" fill="none" stroke-linecap="round">
+    <line x1="120" y1="210" x2="60" y2="210"/>
+    <line x1="60" y1="210" x2="60" y2="392"/>
+    <line x1="60" y1="392" x2="296" y2="392"/>
+    <line x1="324" y1="392" x2="580" y2="392"/>
+    <line x1="580" y1="392" x2="580" y2="210"/>
+    <line x1="580" y1="210" x2="520" y2="210"/>
+  </g>
+  <line x1="296" y1="380" x2="296" y2="404" stroke="#111827" stroke-width="7"/>
+  <line x1="324" y1="370" x2="324" y2="414" stroke="#111827" stroke-width="3"/>
+  <text x="332" y="366" font-size="14" fill="#111827" font-weight="700">+</text>
+  <line x1="150" y1="392" x2="200" y2="392" stroke="#2563eb" stroke-width="3" marker-end="url(#w-blue)"/>
+
+  <text x="60" y="122" font-size="15" fill="#111827" font-weight="700">Balance condition:</text>
+  <text x="60" y="146" font-size="19" fill="#1e3a8a" font-weight="700">P / Q = R / S</text>
+  <text x="60" y="168" font-size="13" fill="#6b7280">so S = Q R / P</text>
+</svg>

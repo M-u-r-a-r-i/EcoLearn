@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two energy bars. In the first, a photon's energy is larger than the work function, so it splits into the work function plus leftover kinetic energy. In the second, the photon's energy is smaller than the work function, so no electron escapes.</title>
+  <rect width="700" height="380" fill="#ffffff"/>
+  <text x="350" y="28" font-size="16" text-anchor="middle" fill="#111827" font-weight="700">One photon, one electron, one energy bill</text>
+
+  <!-- case 1: above threshold -->
+  <text x="40" y="70" font-size="14" fill="#111827" font-weight="700">Above the threshold: the photon can pay, with change left over</text>
+
+  <rect x="40" y="84" width="420" height="40" fill="#fde68a" stroke="#a16207" stroke-width="2"/>
+  <text x="250" y="110" font-size="15" text-anchor="middle" fill="#78350f" font-weight="700">energy of one photon = h&#957;</text>
+
+  <line x1="40" y1="130" x2="40" y2="200" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="300" y1="130" x2="300" y2="200" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="460" y1="130" x2="460" y2="200" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <rect x="40" y="156" width="260" height="40" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+  <text x="170" y="182" font-size="15" text-anchor="middle" fill="#14532d" font-weight="700">work function &#966;</text>
+  <text x="170" y="220" font-size="12.5" text-anchor="middle" fill="#166534">the cost of getting out</text>
+
+  <rect x="300" y="156" width="160" height="40" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="380" y="182" font-size="15" text-anchor="middle" fill="#1e3a8a" font-weight="700">K(max)</text>
+  <text x="380" y="220" font-size="12.5" text-anchor="middle" fill="#1e40af">what is left as speed</text>
+
+  <text x="486" y="176" font-size="15" fill="#111827" font-weight="700">h&#957; = &#966; + K(max)</text>
+
+  <!-- case 2: below threshold -->
+  <text x="40" y="276" font-size="14" fill="#111827" font-weight="700">Below the threshold: the photon cannot pay, so nothing happens</text>
+
+  <rect x="40" y="290" width="180" height="36" fill="#fde68a" stroke="#a16207" stroke-width="2"/>
+  <text x="130" y="314" font-size="14" text-anchor="middle" fill="#78350f" font-weight="700">h&#957;</text>
+
+  <rect x="240" y="290" width="260" height="36" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+  <text x="370" y="314" font-size="14" text-anchor="middle" fill="#14532d" font-weight="700">work function &#966;</text>
+
+  <text x="512" y="314" font-size="13" fill="#b91c1c" font-weight="700">h&#957; &lt; &#966;: no emission,</text>
+  <text x="512" y="332" font-size="13" fill="#b91c1c" font-weight="700">however bright the light</text>
+  <text x="40" y="354" font-size="12.5" fill="#374151">a second photon cannot be saved up and added on</text>
+</svg>

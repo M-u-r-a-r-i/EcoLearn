@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Left: a solid metal plate swinging between magnet poles, with large circulating eddy currents and strong braking. Right: the same plate cut into slots, so only small loops can form and the plate swings almost freely.</title>
+  <defs>
+    <marker id="ei" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0ea5e9"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">Why a slotted plate swings freely and a solid one does not</text>
+
+  <!-- LEFT -->
+  <g>
+    <rect x="14" y="40" width="300" height="300" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="164" y="66" font-size="15" fill="#0f172a" text-anchor="middle" font-weight="700">Solid plate</text>
+    <!-- pivot and arm -->
+    <circle cx="164" cy="84" r="5" fill="#0f172a"/>
+    <line x1="164" y1="84" x2="164" y2="130" stroke="#0f172a" stroke-width="3"/>
+    <!-- plate -->
+    <rect x="104" y="130" width="120" height="140" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+    <!-- field region marked -->
+    <g stroke="#7c3aed" stroke-width="2">
+      <g transform="translate(126,152)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+      <g transform="translate(202,152)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+      <g transform="translate(126,248)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+      <g transform="translate(202,248)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+    </g>
+    <!-- big eddy loops -->
+    <g fill="none" stroke="#0ea5e9" stroke-width="3">
+      <circle cx="146" cy="200" r="30"/>
+      <circle cx="194" cy="200" r="22"/>
+      <path d="M 146 170 L 150 170" marker-end="url(#ei)"/>
+      <path d="M 194 178 L 190 178" marker-end="url(#ei)"/>
+    </g>
+    <text x="164" y="294" font-size="13" fill="#0ea5e9" text-anchor="middle" font-weight="700">large eddy current loops</text>
+    <text x="164" y="318" font-size="14" fill="#b91c1c" text-anchor="middle" font-weight="700">swing dies away in a few passes</text>
+  </g>
+
+  <!-- RIGHT -->
+  <g>
+    <rect x="326" y="40" width="300" height="300" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="476" y="66" font-size="15" fill="#0f172a" text-anchor="middle" font-weight="700">Slotted plate</text>
+    <circle cx="476" cy="84" r="5" fill="#0f172a"/>
+    <line x1="476" y1="84" x2="476" y2="130" stroke="#0f172a" stroke-width="3"/>
+    <rect x="416" y="130" width="120" height="140" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+    <!-- slots -->
+    <g fill="#ffffff" stroke="#64748b" stroke-width="1.5">
+      <rect x="432" y="142" width="10" height="112"/>
+      <rect x="462" y="142" width="10" height="112"/>
+      <rect x="492" y="142" width="10" height="112"/>
+    </g>
+    <g stroke="#7c3aed" stroke-width="2">
+      <g transform="translate(424,152)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+      <g transform="translate(526,152)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+      <g transform="translate(424,248)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+      <g transform="translate(526,248)"><line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/></g>
+    </g>
+    <!-- small eddy loops confined between slots -->
+    <g fill="none" stroke="#0ea5e9" stroke-width="2.5">
+      <ellipse cx="452" cy="200" rx="7" ry="22"/>
+      <ellipse cx="482" cy="200" rx="7" ry="22"/>
+      <ellipse cx="514" cy="200" rx="9" ry="22"/>
+    </g>
+    <text x="476" y="294" font-size="13" fill="#0ea5e9" text-anchor="middle" font-weight="700">only small loops fit</text>
+    <text x="476" y="318" font-size="14" fill="#15803d" text-anchor="middle" font-weight="700">swing carries on for much longer</text>
+  </g>
+
+  <text x="320" y="368" font-size="13" fill="#475569" text-anchor="middle">Crosses: the magnetic field region the plate swings through. Blue: currents induced inside the metal itself.</text>
+  <text x="320" y="388" font-size="13" fill="#475569" text-anchor="middle">Cutting slots forces the current into narrow paths of high resistance, so far less energy turns into heat.</text>
+</svg>

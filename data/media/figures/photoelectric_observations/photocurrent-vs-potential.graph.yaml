@@ -1,0 +1,38 @@
+# Photocurrent vs collector-plate potential, the two classic photoelectric graphs.
+# Illustrative but internally consistent numbers.
+#
+# Left panel: one frequency, two brightnesses. Doubling the number of photons per
+# second doubles the saturation current (10 -> 20 uA) but leaves the stopping
+# potential unchanged at -1.0 V.
+# Right panel: same number of photons per second, two frequencies. Saturation
+# current is the same (10 uA); the higher frequency needs a larger retarding
+# voltage to stop the fastest electrons (-2.0 V instead of -1.0 V).
+title: "Photocurrent against collector potential"
+panels:
+  - title: "Same colour, one twice as bright"
+    x: {label: "Collector plate potential (V)", min: -1.8, max: 6}
+    y: {label: "Photocurrent ($\\mu$A)", min: 0, max: 23}
+    legend: below
+    series:
+      - label: "brightness $I$"
+        points: [[-1.0, 0], [-0.7, 0.9], [-0.4, 2.2], [0.0, 4.2], [0.5, 6.4], [1.0, 8.2], [1.5, 9.3], [2.0, 9.8], [2.5, 10.0], [6.0, 10.0]]
+        color: blue
+      - label: "brightness $2I$"
+        points: [[-1.0, 0], [-0.7, 1.8], [-0.4, 4.4], [0.0, 8.4], [0.5, 12.8], [1.0, 16.4], [1.5, 18.6], [2.0, 19.6], [2.5, 20.0], [6.0, 20.0]]
+        color: red
+    marks:
+      - {x: -1.0, y: 0, text: "same stopping potential", color: gray, offset: [0, 138]}
+  - title: "Same photons per second, two colours"
+    x: {label: "Collector plate potential (V)", min: -2.8, max: 6}
+    y: {label: "Photocurrent ($\\mu$A)", min: 0, max: 23}
+    legend: below
+    series:
+      - label: "lower frequency"
+        points: [[-1.0, 0], [-0.7, 0.9], [-0.4, 2.2], [0.0, 4.2], [0.5, 6.4], [1.0, 8.2], [1.5, 9.3], [2.0, 9.8], [2.5, 10.0], [6.0, 10.0]]
+        color: blue
+      - label: "higher frequency"
+        points: [[-2.0, 0], [-1.6, 0.9], [-1.2, 2.2], [-0.7, 4.2], [-0.1, 6.4], [0.5, 8.2], [1.1, 9.3], [1.7, 9.8], [2.3, 10.0], [6.0, 10.0]]
+        color: purple
+    marks:
+      - {x: -1.0, y: 0, text: "$-1.0$ V", color: blue, offset: [4, 100]}
+      - {x: -2.0, y: 0, text: "$-2.0$ V", color: purple, offset: [-4, 132]}
