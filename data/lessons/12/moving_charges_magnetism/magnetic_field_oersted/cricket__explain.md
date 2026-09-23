@@ -61,6 +61,8 @@ Two consequences worth fixing in your head:
 
 A compass needle is just a small bar magnet free to turn. It lines up with the **total** field at its position — the Earth's field plus whatever the cable adds. That is why Aarti's needle behaves everywhere except on that one line across the outfield.
 
+![Portrait photograph of a man in a dark coat with a high collar](famous/hans-christian-oersted.jpg "Hans Christian Ørsted (1777–1851). In 1820 he noticed a compass needle twitch when he switched a current on — the first link found between electricity and magnetism. Public domain, via Wikimedia Commons.")
+
 ## Worked example
 
 **Given:** a cable lies along the ground running south to north, with the current flowing towards the north. A compass rests directly on top of it. At the compass, the cable's own field turns out to be exactly as strong as the Earth's horizontal field.

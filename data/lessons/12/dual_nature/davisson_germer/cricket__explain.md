@@ -60,6 +60,8 @@ $$\lambda = 2d\sin\theta = 2 \times 0.091 \times \sin 65^\circ = 0.165\,\text{nm
 
 That number came entirely from angles and crystal spacing. Not one part of it used de Broglie's formula. So it can be used to test it.
 
+![Two men in suits standing beside laboratory apparatus](famous/davisson-and-germer.jpg "Clinton Davisson (left) and Lester Germer with their apparatus, 1927. Their electron beam scattered off a nickel crystal into a pattern only waves can make. Public domain, via Wikimedia Commons.")
+
 ## Worked example
 
 **Given:** electrons accelerated from rest through $V = 54\,\text{V}$.

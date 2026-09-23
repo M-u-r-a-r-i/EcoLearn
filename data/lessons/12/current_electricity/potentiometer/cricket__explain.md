@@ -74,6 +74,8 @@ For example, with $R = 4.0\,\Omega$, $l_1 = 60\,\text{cm}$ and $l_2 = 48\,\text{
 
 Conditions: the wire must be uniform, the driver current must stay steady between readings (don't nudge the rheostat), and the driver's pd across AB must be **larger** than any emf you measure — otherwise there is no balance point anywhere and the galvanometer deflects the same way all along.
 
+![Portrait photograph of an elderly bearded man](famous/johann-christian-poggendorff.jpg "Johann Christian Poggendorff (1796–1877), who devised this method: balanced against a length of wire, the cell delivers no current. Public domain, via Wikimedia Commons.")
+
 ## Worked example
 
 **Given:** a standard cell of emf $\varepsilon_1 = 1.0\,\text{V}$ balances at $l_1 = 50\,\text{cm}$. The club's cell, measured immediately afterwards with the same driver circuit, balances at $l_2 = 60\,\text{cm}$.

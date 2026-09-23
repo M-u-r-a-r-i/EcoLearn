@@ -48,3 +48,35 @@ images:
     credit: "Rudolf Clausius (1822-1888), who stated the second law of thermodynamics in terms of heat flow and coined the word entropy. Photographer unknown, before 1888. Via Wikimedia Commons (from the MacTutor archive, University of St Andrews). Public domain."
     concepts: [second_law_thermodynamics]
     downloaded: 2026-09-22
+
+  - file: hans-christian-oersted.jpg
+    title: Hans Christian Orsted, daguerreotype (before 1851)
+    source: https://commons.wikimedia.org/wiki/File:Hans_Christian_%C3%98rsted_daguerreotype.jpg
+    license: Public domain
+    credit: "Hans Christian Orsted (1777-1851), who found in 1820 that a current deflects a compass needle. Daguerreotype, photographer unknown, before 1851. Via Wikimedia Commons. Public domain."
+    concepts: [magnetic_field_oersted]
+    downloaded: 2026-09-23
+
+  - file: andre-marie-ampere-1825.jpg
+    title: Andre-Marie Ampere, engraving by Ambroise Tardieu (1825)
+    source: https://commons.wikimedia.org/wiki/File:Ampere_Andre_1825.jpg
+    license: Public domain
+    credit: "Andre-Marie Ampere (1775-1836), who turned Orsted's discovery into a law relating current and magnetic field. Engraving by Ambroise Tardieu, 1825. Via Wikimedia Commons. Public domain."
+    concepts: [amperes_circuital_law, parallel_currents_force]
+    downloaded: 2026-09-23
+
+  - file: johann-christian-poggendorff.jpg
+    title: Johann Christian Poggendorff, portrait photograph
+    source: https://commons.wikimedia.org/wiki/File:Johann_Christian_Poggendorff.jpg
+    license: Public domain
+    credit: "Johann Christian Poggendorff (1796-1877), who devised the potentiometer method of comparing emfs without drawing current. Photographer unknown. Via Wikimedia Commons. Public domain."
+    concepts: [potentiometer]
+    downloaded: 2026-09-23
+
+  - file: davisson-and-germer.jpg
+    title: Clinton Davisson and Lester Germer with their apparatus (1927)
+    source: https://commons.wikimedia.org/wiki/File:Davisson_and_Germer.jpg
+    license: Public domain
+    credit: "Clinton Davisson (left) and Lester Germer, whose 1927 experiment at Bell Labs showed electrons diffracting like waves. Photographer unknown; published in Electronics, 1935, without a copyright notice. Via Wikimedia Commons. Public domain."
+    concepts: [davisson_germer]
+    downloaded: 2026-09-23

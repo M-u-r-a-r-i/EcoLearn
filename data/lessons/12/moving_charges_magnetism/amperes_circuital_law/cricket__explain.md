@@ -60,6 +60,8 @@ That is the result the last two lessons kept borrowing, and it took one line ins
 
 The law holds for steady currents, and the shortcut only works where the symmetry lets you pull $B$ out of the integral.
 
+![Engraved portrait of a man in early nineteenth-century dress](famous/andre-marie-ampere-1825.jpg "André-Marie Ampère (1775–1836), engraved in 1825. Within weeks of hearing of Ørsted's discovery he had turned it into the law that carries his name. Public domain, via Wikimedia Commons.")
+
 ## Worked example
 
 **Given:** a floodlight feeder cable carries $100\,\text{A}$.
