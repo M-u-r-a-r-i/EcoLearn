@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A night-time gaming desk: a monitor showing a game HUD with a frame-rate counter and a controller battery bar; on the desk a wireless controller charges from a USB cable whose blue current arrows point from the PC towards the controller; beside it a small USB power meter reads 5 V and 1.5 A; on the right an open PC case shows a fan, a graphics card and a power supply, with a glowing LED strip along its floor</title>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#818cf8" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#room)"/>
+  <ellipse cx="215" cy="150" rx="310" ry="165" fill="url(#glow)"/>
+
+  <!-- monitor -->
+  <rect x="34" y="28" width="356" height="236" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <rect x="46" y="40" width="332" height="212" fill="#060c1c"/>
+
+  <!-- HUD: frame rate and frame time -->
+  <text x="58" y="62" font-size="13" fill="#4ade80" font-weight="700" font-family="Consolas, monospace">60 FPS</text>
+  <text x="58" y="80" font-size="11" fill="#86efac" font-family="Consolas, monospace">16.7 ms / frame</text>
+
+  <!-- HUD: controller battery bar -->
+  <rect x="284" y="52" width="66" height="20" rx="3" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="352" y="58" width="5" height="8" rx="1" fill="#e2e8f0"/>
+  <rect x="288" y="56" width="26" height="12" fill="#f59e0b"/>
+  <text x="317" y="90" font-size="10" fill="#fcd34d" text-anchor="middle">controller low</text>
+
+  <!-- simple game view inside the screen: a track and a car -->
+  <path d="M 60 236 L 170 132 L 262 132 L 366 236 z" fill="#111c33"/>
+  <path d="M 128 236 L 196 158 L 236 158 L 300 236" fill="none" stroke="#334155" stroke-width="3"/>
+  <g stroke="#e2e8f0" stroke-width="3" stroke-dasharray="10 12">
+    <line x1="214" y1="236" x2="214" y2="158"/>
+  </g>
+  <rect x="196" y="196" width="36" height="22" rx="5" fill="#2563eb"/>
+  <rect x="204" y="188" width="20" height="12" rx="3" fill="#93c5fd"/>
+  <circle cx="204" cy="220" r="5" fill="#0f172a"/>
+  <circle cx="224" cy="220" r="5" fill="#0f172a"/>
+
+  <!-- monitor stand -->
+  <rect x="197" y="264" width="30" height="58" fill="#334155"/>
+  <rect x="152" y="322" width="120" height="10" rx="4" fill="#334155"/>
+
+  <!-- desk -->
+  <rect x="0" y="332" width="800" height="118" fill="#3b2a1f"/>
+  <rect x="0" y="332" width="800" height="8" fill="#5b3f2c"/>
+
+  <!-- USB power meter on the desk -->
+  <rect x="44" y="352" width="104" height="60" rx="6" fill="#0f172a" stroke="#64748b" stroke-width="2"/>
+  <rect x="54" y="362" width="84" height="40" rx="3" fill="#052e2b"/>
+  <text x="96" y="380" font-size="15" fill="#34d399" text-anchor="middle" font-family="Consolas, monospace">5.0 V</text>
+  <text x="96" y="397" font-size="15" fill="#34d399" text-anchor="middle" font-family="Consolas, monospace">1.5 A</text>
+  <text x="96" y="430" font-size="11" fill="#cbd5e1" text-anchor="middle">USB power meter</text>
+
+  <!-- wireless controller on the desk -->
+  <path d="M 214 368 q 40 -18 92 0 q 26 8 22 34 q -4 22 -26 16 q -20 -6 -42 -6 q -22 0 -42 6 q -22 6 -26 -16 q -4 -26 22 -34 z" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="242" cy="386" r="9" fill="#374151" stroke="#9ca3af" stroke-width="1.5"/>
+  <circle cx="242" cy="386" r="3" fill="#cbd5e1"/>
+  <circle cx="300" cy="386" r="9" fill="#374151" stroke="#9ca3af" stroke-width="1.5"/>
+  <circle cx="300" cy="386" r="3" fill="#cbd5e1"/>
+  <circle cx="274" cy="404" r="6" fill="#4b5563"/>
+  <text x="272" y="437" font-size="11" fill="#e2e8f0" text-anchor="middle">Li-ion cell inside, about 3.7 V</text>
+
+  <!-- charging cable from a USB port on the PC to the controller -->
+  <path d="M 592 292 q -90 20 -168 44 q -60 18 -140 28" fill="none" stroke="#94a3b8" stroke-width="5"/>
+  <rect x="274" y="357" width="14" height="10" rx="2" fill="#cbd5e1"/>
+
+  <!-- conventional current arrows along the cable, running from the USB port into the controller -->
+  <g fill="#2563eb" stroke="#2563eb" stroke-width="3">
+    <line x1="552" y1="306" x2="522" y2="313"/><polygon points="524,307 508,316 524,322"/>
+    <line x1="452" y1="332" x2="422" y2="337"/><polygon points="424,331 408,338 424,343"/>
+    <line x1="374" y1="350" x2="344" y2="355"/><polygon points="346,349 330,356 346,361"/>
+  </g>
+  <text x="430" y="284" font-size="12" fill="#bfdbfe" text-anchor="middle" font-weight="600">conventional current I</text>
+  <text x="430" y="301" font-size="10" fill="#93c5fd" text-anchor="middle">charge flowing into the controller</text>
+
+  <!-- PC case, side panel off -->
+  <rect x="596" y="86" width="180" height="250" rx="6" fill="#0f172a" stroke="#475569" stroke-width="3"/>
+  <rect x="608" y="98" width="156" height="226" fill="#101828"/>
+
+  <!-- USB port on the side of the case -->
+  <rect x="586" y="284" width="12" height="16" rx="2" fill="#94a3b8"/>
+  <text x="686" y="78" font-size="11" fill="#bfdbfe" text-anchor="middle" font-weight="600">every part draws its own current</text>
+
+  <!-- fan -->
+  <circle cx="650" cy="140" r="30" fill="#111827" stroke="#475569" stroke-width="2"/>
+  <g fill="#38bdf8" opacity="0.85">
+    <path d="M 650 140 L 650 114 q 14 6 10 20 z"/>
+    <path d="M 650 140 L 676 140 q -6 14 -20 10 z"/>
+    <path d="M 650 140 L 650 166 q -14 -6 -10 -20 z"/>
+    <path d="M 650 140 L 624 140 q 6 -14 20 -10 z"/>
+  </g>
+  <circle cx="650" cy="140" r="5" fill="#94a3b8"/>
+  <text x="650" y="184" font-size="10" fill="#cbd5e1" text-anchor="middle">fan</text>
+
+  <!-- graphics card -->
+  <rect x="614" y="200" width="142" height="30" rx="3" fill="#1f2937" stroke="#64748b" stroke-width="1.5"/>
+  <circle cx="646" cy="215" r="9" fill="#334155" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="694" cy="215" r="9" fill="#334155" stroke="#94a3b8" stroke-width="1"/>
+  <text x="726" y="219" font-size="10" fill="#cbd5e1" text-anchor="middle">GPU</text>
+
+  <!-- power supply -->
+  <rect x="614" y="252" width="142" height="44" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="685" y="279" font-size="12" fill="#e2e8f0" text-anchor="middle">power supply</text>
+
+  <!-- LED strip along the case floor -->
+  <rect x="614" y="306" width="142" height="7" rx="3" fill="#a855f7" opacity="0.85"/>
+  <text x="685" y="328" font-size="10" fill="#e9d5ff" text-anchor="middle">LED strip</text>
+</svg>
