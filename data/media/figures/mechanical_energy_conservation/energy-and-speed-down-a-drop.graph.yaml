@@ -1,0 +1,37 @@
+# Interest-neutral: a body released from rest at the top of a smooth drop, no friction or drag.
+# Everything is plotted as a fraction, so the figure carries no mass, height or speed from any
+# one story and every interest can reuse it.
+# Left panel:  U/E = h (fraction of the drop still below... i.e. still to fall), K/E = 1 - h,
+#              total = 1.  At h = 0.5: K/E = U/E = 0.5.
+# Right panel: v/v_bottom = sqrt(1 - h).  At h = 0.5: sqrt(0.5) = 0.707, i.e. 71%.
+#              At h = 0.75 (a quarter of the way down): sqrt(0.25) = 0.50, i.e. half the final speed.
+title: "Sliding down a smooth drop, released from rest"
+panels:
+  - title: "Energy just changes form"
+    x: {label: "Height still to fall, as a fraction of the drop", min: 0, max: 1.0}
+    y: {label: "Energy, as a fraction of the total", min: 0, max: 1.2}
+    series:
+      - label: "Kinetic energy $K$"
+        points: [[0, 1.0], [1.0, 0]]
+        color: blue
+      - label: "Potential energy $U$"
+        points: [[0, 0], [1.0, 1.0]]
+        color: green
+      - label: "Total $K + U$"
+        points: [[0, 1.0], [1.0, 1.0]]
+        color: gray
+        style: dashed
+    legend: below
+  - title: "But speed does not"
+    x: {label: "Height still to fall, as a fraction of the drop", min: 0, max: 1.0}
+    y: {label: "Speed, as a fraction of the final speed", min: 0, max: 1.2}
+    series:
+      - label: "$v/v_\\text{bottom} = \\sqrt{1-h}$"
+        points: [[1.0, 0], [0.95, 0.2236], [0.9, 0.3162], [0.8, 0.4472], [0.75, 0.5],
+                 [0.7, 0.5477], [0.6, 0.6325], [0.5, 0.7071], [0.4, 0.7746], [0.3, 0.8367],
+                 [0.2, 0.8944], [0.1, 0.9487], [0, 1.0]]
+        color: red
+    marks:
+      - {x: 0.5, y: 0.7071, text: "halfway: 71% of final speed", color: red, offset: [16, 26]}
+      - {x: 0.75, y: 0.5, text: "quarter down: half speed", color: red, offset: [-150, -30]}
+    legend: lower left
