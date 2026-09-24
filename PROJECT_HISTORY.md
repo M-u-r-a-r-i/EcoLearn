@@ -1107,6 +1107,47 @@ Two or three at a time has been reliable.
 - Sub-sessions are now told to write each lesson to disk as it is finished, so a kill leaves
   complete lessons rather than none.
 
+## 9u. Gaming finished at 14/14, on a fresh clone (2026-09-24)
+
+**Changed.** 56 explain lessons across five batches, completing the **gaming** interest:
+Electrostatic Potential and Capacitance (8, finishing the batch left partial in `9t`), Current
+Electricity (12), Moving Charges and Magnetism (12), Electromagnetic Induction (7), Ray Optics (11),
+Dual Nature (6). Five new chapter scenes and **no new figures** — every chapter in scope already had
+its interest-neutral set, exactly as `9l` predicted, so the batches only added a scene each. Two
+existing famous portraits (Ohm, Poggendorff, Ørsted, Ampère, Davisson–Germer) were reused; nothing
+was downloaded and the manifest is untouched. Coverage is now cricket 14/14, **football 14/14,
+gaming 14/14**, smartphones 2, motorsport 1. Validator 477/477; phase 1 at 45/70 batches,
+435/680 lessons. Commits `7acd816`, `ed8e163`, `b9556d5`, `834adf0`.
+
+**Why the partial batch came first.** `batch_status.py` pointed at motorsport as "next", but
+`potential_capacitance:gaming` was sitting at `[part] 2/10` from a run that died mid-batch. Under
+§4a that is *unverified*, not merely unfinished, so it was audited before anything new was written:
+every worked-example number and answer key in both lessons recomputed in Python, every distractor
+checked against the misconception it names. **Both were correct; nothing changed.** This is the
+first audit to find nothing — worth recording, because it shows the procedure's cost is sometimes
+zero while still being the only thing that could catch the `9t` class of error.
+
+**Weak-domain handling, recorded because it worked.** Magnetism and induction are not strong gaming
+domains. Rather than forcing analogies, those lessons teach through *real devices from that world* —
+Hall-effect thumbsticks, haptic coils, flipper solenoids, fan motors, wireless charging pads, panel
+meters — and each *Where the picture breaks* says plainly that gaming is the setting, not the
+analogy. Two limits were stated rather than glossed: a real claw solenoid has an iron plunger, so
+its back-emf exceeds the 20 V the air-core formula gives; and the moiré fence used for the
+"two comparable spacings" rule is a sampling beat, not wave interference.
+
+**Learned.**
+- **A fresh clone validates lessons but silently skips the maths.** `validate_lessons.py` shells out
+  to KaTeX through `web/package.json`, so before `npm install` it prints a *warning* that KaTeX
+  could not run and still reports every lesson valid. The line "421/421 lessons valid" means
+  format only until `web/node_modules` exists. Run `npm install` in `web/` before trusting a clean
+  validator on a new machine.
+- **Push access is per-account, not per-clone.** The clone succeeded and every local commit worked,
+  but `git push` returned 403 — the machine's stored credential was a different GitHub account
+  without write access. Test `git push` early on a new machine, not after a window's work is
+  already committed; a clone that reads fine can still be unable to write.
+- Three parallel sub-sessions on different chapters ran to completion again (~35% of a 5-hour
+  window for three batches), confirming the 2–3 cap from `9t`.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma
