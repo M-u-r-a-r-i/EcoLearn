@@ -1148,6 +1148,47 @@ its back-emf exceeds the 20 V the air-core formula gives; and the moiré fence u
 - Three parallel sub-sessions on different chapters ran to completion again (~35% of a 5-hour
   window for three batches), confirming the 2–3 cap from `9t`.
 
+## 9v. Five motorsport chapters, on a teammate's machine (2026-09-24)
+
+*Logged after the fact on 2026-09-25 from the commit messages; the batches were run and pushed by
+a teammate (GitHub `M-u-r-a-r-i`) and carry their own review notes.*
+
+**Changed.** 50 explain lessons across five motorsport batches: Motion in a Straight Line (11),
+Motion in a Plane (10), Laws of Motion (10), Gravitation (8), Work, Energy and Power (11), each
+with its chapter scene in `data/media/scenes/motorsport/`. Every existing figure was reused; the
+approved Principia title page was reused in the two Newton lessons. **Two new interest-neutral
+figures** in Work, Energy and Power: `kinetic_energy/ke-ratio-vs-speed-ratio` and
+`mechanical_energy_conservation/energy-and-speed-down-a-drop`. Motorsport is now 6/14 chapters;
+phase 1 at 50/70 batches, 485/680 lessons. Commits `9e183be`, `c9c22b3`, `1b18d5a`, `dbfbe12`,
+`809294a`.
+
+**Why two new figures.** The old ones broke `AUTHORING_GUIDE.md` §7a (shared figures must not carry
+batch-specific numbers): `ke-vs-speed` is titled "0.16 kg ball" and `ke-pe-vs-height` labels
+"Height above the bat". The replacements plot pure ratios (K/K₀ vs v/v₀; energy and speed as
+fractions of a drop), so any interest can reuse them. The old figures were *not* removed — the
+cricket, football and gaming lessons still point at them — so the §7a breach remains there until
+those lessons are repointed.
+
+**Weak-domain handling, again.** Gravitation has no native racing story, so, as with gaming
+magnetism in `9u`, it teaches through real things in that world (satellite passes over a hill
+climb, a weighbridge at altitude, an uplink dish) and each *Where the picture breaks* says
+motorsport is the setting, not the analogy. Projectile range vs angle runs as a radio-controlled
+long-jump contest, because no real car is launched near 45°. Where the school model is genuinely
+incomplete (tyre friction isn't a clean `μN`; downforce raises N without raising m) the lessons say
+so rather than gloss it. "Jeep" became "tow vehicle" — no trademarks.
+
+**Figures that disagree with their examples.** In Motion in a Straight Line, three shared figures
+carry illustrative numbers that differ from the worked example beside them. Instead of redrawing a
+figure other interests depend on, the text says the figure teaches the shape and the example
+carries the arithmetic.
+
+**Learned.**
+- **Two machines can work the same batch list.** The teammate pushed ten commits while this
+  machine still held stale drafts of two of those files, untracked. `git pull` refuses to overwrite
+  untracked files, so the drafts had to be compared with the pushed versions (they were earlier,
+  unfinished drafts) and removed before fast-forwarding. **Fetch before starting a batch**, and
+  agree who runs which batches, or two sessions will write the same lesson.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma
