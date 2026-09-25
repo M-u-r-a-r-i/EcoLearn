@@ -1,4 +1,4 @@
-# EcoLearn — Project History
+﻿# EcoLearn — Project History
 
 > **What this file is.** The single record of everything EcoLearn is and how it got here:
 > current state, architecture as actually built, every commit explained, the decisions behind
@@ -1188,6 +1188,37 @@ carries the arithmetic.
   untracked files, so the drafts had to be compared with the pushed versions (they were earlier,
   unfinished drafts) and removed before fast-forwarding. **Fetch before starting a batch**, and
   agree who runs which batches, or two sessions will write the same lesson.
+
+## 9w. Three more explain batches: smartphones mechanics, motorsport thermodynamics (2026-09-25)
+
+**Changed.** 29 explain lessons in three parallel batches, each on a different chapter:
+Thermodynamics × motorsport (9, `41e8db3`), Motion in a Plane × smartphones (10, `a651589`), Laws
+of Motion × smartphones (10). Three chapter scenes and **one new interest-neutral figure**,
+`free_body_diagrams/body-on-incline-against-stop.svg` (a body held on a smooth slope by a stop,
+with its free-body diagram; no numbers printed). Coverage: motorsport 7/14, smartphones 4/14.
+Phase 1 at 53/70 batches, 514/680 lessons. Validator 556/556.
+
+**Review.** Every new image was rendered and read. Nine lessons were re-derived by hand, three per
+batch (the most numeric ones): gas work, engine efficiency, AC coefficient of performance;
+projectile off a desk, centripetal acceleration, 2-D relative velocity; connected bodies, static
+friction, maximum speed on a level curve. All answer keys and all distractor→misconception
+mappings were correct. **Nothing needed fixing.**
+
+**Weak-domain handling** (mechanics is a weak fit for smartphones) followed the `9u`/`9v` pattern:
+real phone features and gadgets as the setting (auto-rotate, sensor apps, GPS speed, a robot
+vacuum, a power bank dangling by its cable, a maps-app curve warning), with the model's limits
+stated. For example, an accelerometer senses the support force, not gravity, and some g-meter apps
+draw the arrow outward.
+
+**Learned.**
+- **The §7a workaround is spreading.** Shared figures that print another batch's numbers
+  (trajectories-by-angle at 28 m/s, resultant-vs-angle 3/4, the momentum, impulse and friction
+  figures, the thermodynamics engine and fridge bars) are now being handled batch by batch with
+  "divide by 16" / "drawn for a different impact" captions. It works, but each new interest adds
+  another caption to explain. Redrawing those figures number-free, as `9v` did for kinetic energy,
+  and repointing the existing lessons would remove the problem at the source. That's a post-Phase-1
+  cleanup.
+- Three parallel batches took 9–11 minutes each and about 150k sub-session tokens apiece.
 
 ## 10. Key decisions and why
 
