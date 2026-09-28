@@ -1226,7 +1226,7 @@ draw the arrow outward.
 `ccc71a9`, 2026-09-25), then one parallel round on 2026-09-28: Gravitation (8, `6daeec1`),
 Electric Charges and Fields (11, `931cff3`) and Thermodynamics (9). A chapter scene each; no new
 figures; no famous images requested. Coverage: smartphones 8/14, motorsport 7/14. Phase 1 at
-58/70 batches. Validator 595/595.
+57/70 batches, 553/680 lessons. Validator 595/595.
 
 **Review.** Every new scene was rendered and read. Three lessons per batch were re-derived by hand:
 the vertical circle on a lanyard, 2-D sticking collision, power (`Fv`); orbital speed ∝ 1/√r,
