@@ -1220,6 +1220,38 @@ draw the arrow outward.
   cleanup.
 - Three parallel batches took 9–11 minutes each and about 150k sub-session tokens apiece.
 
+## 9x. Smartphones reaches 8/14: four more explain batches (2026-09-25 → 2026-09-28)
+
+**Changed.** 39 explain lessons for smartphones in four batches: Work, Energy and Power (11,
+`ccc71a9`, 2026-09-25), then one parallel round on 2026-09-28: Gravitation (8, `6daeec1`),
+Electric Charges and Fields (11, `931cff3`) and Thermodynamics (9). A chapter scene each; no new
+figures; no famous images requested. Coverage: smartphones 8/14, motorsport 7/14. Phase 1 at
+58/70 batches. Validator 595/595.
+
+**Review.** Every new scene was rendered and read. Three lessons per batch were re-derived by hand:
+the vertical circle on a lanyard, 2-D sticking collision, power (`Fv`); orbital speed ∝ 1/√r,
+satellite energy (U = 2E), g at height vs depth (d = 2h); Coulomb's-law scaling, perpendicular
+superposition (40/30/50 µN at 37°), a line charge's 1/r field; the first-law signs (−50 J), p ΔV
+with mL (20 J), and heat-engine efficiency. **All answer keys and distractor mappings were
+correct; nothing needed fixing.** The sub-sessions' own write-then-recheck step caught and fixed
+several slips before review. The gravitation batch had first claimed phones never use
+geostationary-height satellites for positioning, which is false for some systems, and corrected it
+itself.
+
+**The §7a problem now changes content, not just captions.** The electrostatics batch left out
+`point-charge-e-vs-r` and `shell-e-vs-r` altogether because they print another batch's charges
+(5 nC, 40 nC). So students in that interest now see *fewer* figures. With 9w's list, that makes a
+redraw pass (number-free versions, as `9v` did for kinetic energy) the most valuable content
+cleanup after Phase 1.
+
+**Learned.**
+- **The weekly limit, not the 5-hour window, set the pace here.** On 2026-09-28 the window was at
+  2% but the weekly limit was already at 92% before any batch ran (it had been 75% at the end of
+  09-25, so other use of the account in between counts too). Read *both* numbers before planning a
+  round.
+- Parallel round timings: 8–13 minutes and about 130–150k sub-session tokens per batch. This is
+  consistent with `9w`.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma
