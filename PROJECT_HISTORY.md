@@ -1252,6 +1252,37 @@ cleanup after Phase 1.
 - Parallel round timings: 8–13 minutes and about 130–150k sub-session tokens per batch. This is
   consistent with `9w`.
 
+## 9y. Smartphones reaches 12/14, run to the weekly limit (2026-09-28)
+
+**Changed.** 40 explain lessons for smartphones in four batches, run on the user's instruction to
+use the weekly limit up to 100%: Electrostatic Potential and Capacitance (10, `8d30e9e`), Current
+Electricity (12, `87cb2c0`), Moving Charges and Magnetism (12, `b5c7a3d`) and Dual Nature (6). A
+scene each; no new figures. Portraits reused: Poggendorff, Ørsted, Ampère, Davisson–Germer.
+Smartphones 12/14, motorsport 7/14. Phase 1 at 61/70 batches. Left: smartphones ×
+{electromagnetic_induction, ray_optics}, and motorsport × the seven Class 12 chapters.
+
+**Review.** Scenes read, three or four lessons per batch re-derived (capacitor networks and energy,
+qEd; the Kirchhoff two-cell circuit, the Wheatstone bridge, drift velocity, parallel cells; the
+cyclotron, forces between parallel wires, the loop field on its axis; the photoelectric equation,
+de Broglie scaling). **No errors found.** The sub-sessions' own write-then-recheck caught six
+slips before review: a rice grain swapped for a 1 g paper clip, phone-signal wavelengths, "15 MHz a
+little below FM" (it is shortwave), a story/example distance mismatch, a doubtful claim about
+pulsing cable currents, and a floating fitness band in a scene.
+
+**Safety wording checked by hand.** The swollen power bank (current electricity) is opened by an
+adult, with gloves, on a fire-proof mat, for disposal only, with "nobody should try it at home".
+The laser-on-a-pixel-grid story (Davisson–Germer) says never to point a laser at eyes.
+
+**Learned.**
+- **Parallel batches can make the full validator fail for a while, and that's harmless.** A
+  batch writes its lessons first and its scene last, so a *sibling* batch that finishes earlier sees
+  "missing scene" errors in the full run. Validate with `--chapter` when committing one batch while
+  others are still running, and run the full validator once they have all landed.
+- **A scene preview can be older than the SVG.** The magnetism preview still showed a stray disc
+  that the final SVG no longer had. Compare timestamps, or re-render, before flagging a scene.
+- The existing `galvanometer-construction.svg` caption calls its field arrows "straight across the
+  gap" instead of radial. It predates this batch and is left for the figure cleanup pass.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma
