@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A charging corner: a phone on a wall charger, a power bank charging an earbuds case through a small USB meter, and a smartwatch on its charging puck, with current arrows on the cables</title>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#60a5fa"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#wall)"/>
+
+  <!-- wall socket with plugged-in charger -->
+  <rect x="70" y="110" width="90" height="70" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="88" y="120" width="54" height="50" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+  <rect x="104" y="170" width="22" height="10" fill="#cbd5e1"/>
+  <text x="115" y="100" font-size="13" fill="#e2e8f0" font-weight="600" text-anchor="middle">wall charger</text>
+
+  <!-- cable from charger down to phone on the table -->
+  <path d="M 115 180 C 115 250, 150 280, 210 292" fill="none" stroke="#f1f5f9" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 128 222 C 138 252, 158 268, 186 278" fill="none" stroke="#60a5fa" stroke-width="2.5" marker-end="url(#arr)"/>
+  <text x="160" y="240" font-size="14" fill="#93c5fd" font-weight="700">I</text>
+
+  <!-- table -->
+  <rect x="30" y="310" width="740" height="14" rx="3" fill="#b45309"/>
+  <rect x="50" y="324" width="12" height="96" fill="#78350f"/>
+  <rect x="738" y="324" width="12" height="96" fill="#78350f"/>
+  <!-- floor -->
+  <rect x="0" y="420" width="800" height="30" fill="#57534e"/>
+
+  <!-- phone lying on table, charging -->
+  <rect x="206" y="286" width="120" height="24" rx="6" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="214" y="291" width="104" height="14" rx="3" fill="#1e3a8a"/>
+  <!-- battery icon with bolt -->
+  <rect x="250" y="294" width="26" height="9" rx="1.5" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+  <rect x="276" y="296" width="3" height="5" fill="#e2e8f0"/>
+  <rect x="252" y="296" width="12" height="5" fill="#4ade80"/>
+  <polyline points="270,293 266,299 270,299 266,305" fill="none" stroke="#fde047" stroke-width="1.5"/>
+  <text x="266" y="345" font-size="13" fill="#fef3c7" font-weight="600" text-anchor="middle">phone charging</text>
+
+  <!-- power bank -->
+  <rect x="380" y="270" width="120" height="40" rx="8" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
+  <g fill="#4ade80"><circle cx="400" cy="290" r="3"/><circle cx="412" cy="290" r="3"/><circle cx="424" cy="290" r="3"/></g>
+  <circle cx="436" cy="290" r="3" fill="#64748b"/>
+  <text x="440" y="345" font-size="13" fill="#fef3c7" font-weight="600" text-anchor="middle">power bank</text>
+
+  <!-- cable: power bank to USB meter -->
+  <path d="M 500 292 C 520 292, 520 262, 540 262" fill="none" stroke="#f1f5f9" stroke-width="4" stroke-linecap="round"/>
+  <!-- USB meter dongle -->
+  <rect x="540" y="246" width="56" height="32" rx="4" fill="#111827" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="546" y="251" width="44" height="22" rx="2" fill="#052e16"/>
+  <text x="568" y="261" font-size="8.5" fill="#4ade80" text-anchor="middle" font-family="Consolas, monospace">5.0 V</text>
+  <text x="568" y="271" font-size="8.5" fill="#4ade80" text-anchor="middle" font-family="Consolas, monospace">0.5 A</text>
+  <text x="568" y="236" font-size="13" fill="#e2e8f0" font-weight="600" text-anchor="middle">USB meter</text>
+  <!-- cable: meter to earbuds case -->
+  <path d="M 596 262 C 616 262, 612 292, 628 294" fill="none" stroke="#f1f5f9" stroke-width="4" stroke-linecap="round"/>
+  <line x1="602" y1="252" x2="622" y2="252" stroke="#60a5fa" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- earbuds case -->
+  <rect x="628" y="280" width="54" height="30" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="630" y1="292" x2="680" y2="292" stroke="#cbd5e1" stroke-width="1.5"/>
+  <circle cx="655" cy="302" r="2.5" fill="#f59e0b"/>
+  <text x="655" y="345" font-size="13" fill="#fef3c7" font-weight="600" text-anchor="middle">earbuds</text>
+
+  <!-- smartwatch on charging puck -->
+  <ellipse cx="730" cy="306" rx="24" ry="5" fill="#cbd5e1"/>
+  <rect x="712" y="266" width="36" height="38" rx="9" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="719" y="252" width="22" height="14" rx="3" fill="#334155"/>
+  <circle cx="730" cy="285" r="9" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-dasharray="40 17"/>
+  <text x="730" y="345" font-size="13" fill="#fef3c7" font-weight="600" text-anchor="middle">watch</text>
+
+  <!-- caption strip -->
+  <text x="400" y="400" font-size="15" fill="#e2e8f0" text-anchor="middle">Same idea in every cable: charge flowing, energy delivered</text>
+</svg>
