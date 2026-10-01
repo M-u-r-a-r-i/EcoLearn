@@ -34,7 +34,13 @@ from pydantic import BaseModel
 from src import platform_api as api
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
 
-from api.security import clear_session_cookie, get_current_student_id, set_session_cookie
+from api.security import (
+    clear_session_cookie,
+    get_current_account,
+    get_current_student_id,
+    get_current_teacher_id,
+    set_session_cookie,
+)
 
 # ---------------------------------------------------------------------------
 # The FastAPI application object. `app` IS the web application: you attach
@@ -146,6 +152,23 @@ class HelpRequest(BaseModel):
     question: str
 
 
+class CreateClassRequest(BaseModel):
+    """Body for POST /api/teacher/classes. `roster`: one student name per line,
+    optionally "Name, interest"."""
+
+    name: str
+    level: str = "Class 11"
+    interest: str
+    roster: str
+
+
+class AddStudentsRequest(BaseModel):
+    """Body for POST /api/teacher/classes/{class_id}/students."""
+
+    interest: str
+    roster: str
+
+
 # ===========================================================================
 # Endpoints
 # ===========================================================================
@@ -203,6 +226,17 @@ def me(student_id: str = Depends(get_current_student_id)) -> dict:
     return api.get_student_profile(student_id)
 
 
+@app.get("/api/auth/session")
+def session(account: tuple[str, dict] = Depends(get_current_account)) -> dict:
+    """Who is logged in, and as what: {"role": "student"|"teacher", "profile": {...}}.
+
+    The web app calls this once on load to decide which home to show. 401 when
+    nobody is logged in. (/api/auth/me stays as it was, for students only.)
+    """
+    role, profile = account
+    return {"role": role, "profile": profile}
+
+
 @app.post("/api/auth/change-password")
 def change_password(
     payload: ChangePasswordRequest,
@@ -221,6 +255,88 @@ def update_profile(
     return api.update_student_profile(
         student_id, name=payload.name, interest=payload.interest, level=payload.level
     )
+
+
+# ---------------------------------------------------------------------------
+# Teachers. Teacher accounts are made on the server (scripts/create_teacher.py),
+# never over HTTP. Every endpoint below needs a teacher's session; a student's
+# session gets 401. Responses that carry freshly generated passwords are marked
+# no-store, so no browser or proxy cache keeps a copy.
+# ---------------------------------------------------------------------------
+def _no_store(response: Response) -> None:
+    response.headers["Cache-Control"] = "no-store"
+
+
+@app.post("/api/teacher/login")
+def teacher_login(payload: LoginRequest, response: Response) -> dict:
+    """Teacher login. Same generic 401 as student login on any failure."""
+    profile = api.authenticate_teacher(payload.username, payload.password)
+    set_session_cookie(response, profile["teacher_id"])
+    return profile
+
+
+@app.get("/api/teacher/me")
+def teacher_me(teacher_id: str = Depends(get_current_teacher_id)) -> dict:
+    return api.get_teacher_profile(teacher_id)
+
+
+@app.post("/api/teacher/change-password")
+def teacher_change_password(
+    payload: ChangePasswordRequest,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    return api.change_teacher_password(
+        teacher_id, payload.current_password, payload.new_password
+    )
+
+
+@app.get("/api/teacher/classes")
+def teacher_classes(teacher_id: str = Depends(get_current_teacher_id)) -> list[dict]:
+    return api.list_teacher_classes(teacher_id)
+
+
+@app.post("/api/teacher/classes", status_code=status.HTTP_201_CREATED)
+def teacher_create_class(
+    payload: CreateClassRequest,
+    response: Response,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Create a class from a roster. The response holds every new student's
+    password — the only time they exist in plaintext."""
+    _no_store(response)
+    return api.create_class(
+        teacher_id, payload.name, payload.level, payload.interest, payload.roster
+    )
+
+
+@app.get("/api/teacher/classes/{class_id}")
+def teacher_class_detail(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    return api.get_class_detail(teacher_id, class_id)
+
+
+@app.post("/api/teacher/classes/{class_id}/students", status_code=status.HTTP_201_CREATED)
+def teacher_add_students(
+    class_id: str,
+    payload: AddStudentsRequest,
+    response: Response,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Add latecomers to an existing class; same response shape as creating one."""
+    _no_store(response)
+    return api.add_students_to_class(teacher_id, class_id, payload.roster, payload.interest)
+
+
+@app.post("/api/teacher/students/{student_id}/reset-password")
+def teacher_reset_password(
+    student_id: str,
+    response: Response,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Give a student in one of this teacher's classes a new password."""
+    _no_store(response)
+    return api.reset_student_password(teacher_id, student_id)
 
 
 # ---------------------------------------------------------------------------

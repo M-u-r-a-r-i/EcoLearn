@@ -155,6 +155,131 @@ export function changePassword(currentPassword: string, newPassword: string): Pr
 }
 
 // ---------------------------------------------------------------------------
+// Who is logged in, and as what. One question on page load instead of probing
+// the student and teacher endpoints separately.
+// ---------------------------------------------------------------------------
+export type Session =
+  | { role: "student"; profile: StudentProfile }
+  | { role: "teacher"; profile: TeacherProfile };
+
+export function getSession(): Promise<Session> {
+  return request("/api/auth/session", { expectAuthFailure: true });
+}
+
+// ---------------------------------------------------------------------------
+// Teachers. Teacher accounts are created on the server (scripts/create_teacher.py),
+// never from the website. A teacher sees only their own classes.
+// ---------------------------------------------------------------------------
+export interface TeacherProfile {
+  teacher_id: string;
+  name: string;
+  username: string;
+  created_at: string;
+}
+
+export interface ClassSummary {
+  class_id: string;
+  teacher_id: string;
+  name: string;
+  level: string;
+  created_at: string;
+  student_count: number;
+}
+
+// A freshly created (or reset) student login. The password exists in plaintext
+// only in this one response — the server keeps just its hash.
+export interface StudentCredential {
+  student_id: string;
+  name: string;
+  username: string;
+  password: string;
+  interest?: string;
+}
+
+export interface CredentialsResult {
+  class: ClassSummary;
+  credentials: StudentCredential[];
+}
+
+export interface ClassStudent {
+  student_id: string;
+  name: string;
+  username: string;
+  interest: string;
+  level: string;
+  created_at: string;
+  attempted: number; // concepts tried at least once
+  mastered: number;
+  last_active: string | null; // ISO time of the latest attempt, null if none yet
+}
+
+export interface ClassDetail {
+  class: ClassSummary;
+  students: ClassStudent[];
+}
+
+// Creating accounts hashes every password (deliberately slow) — a full class
+// takes several seconds, so these calls get the long timeout.
+const ACCOUNTS_TIMEOUT_MS = LIVE_TIMEOUT_MS;
+
+export function teacherLogin(username: string, password: string): Promise<TeacherProfile> {
+  return request("/api/teacher/login", {
+    method: "POST",
+    body: { username, password },
+    expectAuthFailure: true,
+  });
+}
+
+export function changeTeacherPassword(currentPassword: string, newPassword: string): Promise<unknown> {
+  return request("/api/teacher/change-password", {
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+    expectAuthFailure: true,
+  });
+}
+
+export function getClasses(): Promise<ClassSummary[]> {
+  return request("/api/teacher/classes");
+}
+
+export interface CreateClassInput {
+  name: string;
+  level: string;
+  interest: string;
+  roster: string; // one name per line, optionally "Name, interest"
+}
+
+export function createClass(input: CreateClassInput): Promise<CredentialsResult> {
+  return request("/api/teacher/classes", {
+    method: "POST",
+    body: input,
+    timeoutMs: ACCOUNTS_TIMEOUT_MS,
+  });
+}
+
+export function getClassDetail(classId: string): Promise<ClassDetail> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}`);
+}
+
+export function addStudents(
+  classId: string,
+  roster: string,
+  interest: string,
+): Promise<CredentialsResult> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/students`, {
+    method: "POST",
+    body: { roster, interest },
+    timeoutMs: ACCOUNTS_TIMEOUT_MS,
+  });
+}
+
+export function resetStudentPassword(studentId: string): Promise<StudentCredential> {
+  return request(`/api/teacher/students/${encodeURIComponent(studentId)}/reset-password`, {
+    method: "POST",
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Curriculum (public — the signup page needs interests before anyone logs in)
 // ---------------------------------------------------------------------------
 export interface Chapter {

@@ -35,18 +35,20 @@ from __future__ import annotations
 import re
 import sqlite3
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from src.agents.assessor import grade_answer
 from src.agents.polisher import polish_explanation
-from src.auth import passwords
+from src.auth import credentials, passwords
 from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
 from src.path import engine
-from src.pipeline import explain_with_review
 from src.progress import store
+# src.pipeline (the doubt chat's generate→critic loop and its RAG index) is
+# imported lazily inside ask_help — see the note there.
 
 # Live help runs the full multi-agent pipeline; cap regeneration so a help
 # request stays reasonably responsive (one critic-driven retry at most).
@@ -203,7 +205,8 @@ def register_student(
 
     # Friendly pre-check, then rely on the unique index as the real guarantee —
     # between this SELECT and the INSERT another request could claim the name.
-    if store.get_student_by_username(username) is not None:
+    # Teachers share the namespace, so a student can't take a teacher's username.
+    if store.username_exists(username):
         raise ConflictError("That username is taken. Try another, or log in instead.")
 
     try:
@@ -343,6 +346,304 @@ def change_password(
 
     store.update_student_password(student_id, passwords.hash_password(new_password))
     return {"student_id": student_id, "changed": True}
+
+
+# ---------------------------------------------------------------------------
+# 1b. Teachers and classes (2026-10-02)
+#
+# The pilot's students have no email, so "forgot password" can't be a reset
+# link. Instead the teacher who created a student's account can reset it. A
+# teacher can also create a whole class from a list of names in one go and print
+# the sign-in slips.
+#
+# The rules, all enforced here and nowhere else:
+#   * Teacher accounts are created only by `create_teacher`, run from the
+#     server's command line (scripts/create_teacher.py). There is no HTTP
+#     endpoint for it, so nobody can make themselves a teacher from a browser.
+#   * A teacher sees and changes only their own classes and the students in
+#     them. Someone else's class answers NotFoundError, not "forbidden", so a
+#     guessed id reveals nothing about whether it exists.
+#   * Generated passwords are returned ONCE, in the response that created them,
+#     and only their hash is stored. A lost slip means a reset, not a lookup.
+# ---------------------------------------------------------------------------
+
+# Limits that keep one request sane. A school class is ~30–45 students.
+_MAX_ROSTER = 60
+_MAX_NAME_LENGTH = 60
+
+
+def _new_teacher_id() -> str:
+    return f"tch_{uuid.uuid4().hex}"
+
+
+def _new_class_id() -> str:
+    return f"cls_{uuid.uuid4().hex}"
+
+
+def create_teacher(name: str, username: str, password: str) -> dict[str, Any]:
+    """Create a teacher account. Server-side only — see the section comment.
+
+    Raises:
+        EcoLearnError: blank name, invalid username, or a password that fails
+                       the length rules.
+        ConflictError: the username is taken (by a student or another teacher).
+    """
+    name = _require_name(name)
+    username = _normalise_username(username)
+    password_hash = passwords.hash_password(password)
+    if store.username_exists(username):
+        raise ConflictError("That username is taken.")
+    try:
+        return store.save_teacher(_new_teacher_id(), name, username, password_hash)
+    except sqlite3.IntegrityError as exc:
+        raise ConflictError("That username is taken.") from exc
+
+
+def authenticate_teacher(username: str, password: str) -> dict[str, Any]:
+    """Verify a teacher's credentials. Same constant-ish timing and single
+    message as `authenticate_student`, for the same reasons."""
+    try:
+        username = _normalise_username(username)
+    except EcoLearnError:
+        passwords.dummy_verify()
+        raise AuthError(_INVALID_CREDENTIALS) from None
+
+    record = store.get_teacher_by_username(username)
+    if record is None:
+        passwords.dummy_verify()
+        raise AuthError(_INVALID_CREDENTIALS)
+    if not passwords.verify_password(password, record.get("password_hash")):
+        raise AuthError(_INVALID_CREDENTIALS)
+    return {k: v for k, v in record.items() if k != "password_hash"}
+
+
+def get_teacher_profile(teacher_id: str) -> dict[str, Any]:
+    """Raises NotFoundError for an unknown id (including any student id)."""
+    profile = store.get_teacher(teacher_id)
+    if profile is None:
+        raise NotFoundError(f"Unknown teacher_id {teacher_id!r}.")
+    return profile
+
+
+def change_teacher_password(
+    teacher_id: str, current_password: str, new_password: str
+) -> dict[str, Any]:
+    """Same rules as a student's `change_password`."""
+    get_teacher_profile(teacher_id)
+    if not passwords.verify_password(current_password, store.get_teacher_password_hash(teacher_id)):
+        raise AuthError("Your current password is incorrect.")
+    if new_password == current_password:
+        raise EcoLearnError("Your new password must be different from the current one.")
+    store.update_teacher_password(teacher_id, passwords.hash_password(new_password))
+    return {"teacher_id": teacher_id, "changed": True}
+
+
+def _own_class(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """The class, if it exists AND belongs to this teacher; otherwise NotFoundError."""
+    klass = store.get_class(class_id) if class_id else None
+    if klass is None or klass["teacher_id"] != teacher_id:
+        raise NotFoundError("Class not found.")
+    return klass
+
+
+def _parse_roster(
+    roster: str | list[str], default_interest: str
+) -> list[tuple[str, str]]:
+    """Turn pasted roster text into [(name, interest), ...].
+
+    One student per line. A line may end with ", <interest>" to give that
+    student a different interest from the class default ("Aarav Kumar, cricket").
+    Blank lines are skipped, so a list pasted from a spreadsheet just works.
+
+    Raises:
+        EcoLearnError: no names, too many, a name that is too long, or an
+                       unknown interest — naming the offending line.
+    """
+    lines = roster.splitlines() if isinstance(roster, str) else list(roster)
+    entries: list[tuple[str, str]] = []
+    for number, raw in enumerate(lines, start=1):
+        line = (raw or "").strip()
+        if not line:
+            continue
+        name, interest = line, default_interest
+        if "," in line:
+            name, _, maybe_interest = line.rpartition(",")
+            name = name.strip()
+            try:
+                interest = _validate_interest(maybe_interest)
+            except EcoLearnError as exc:
+                raise EcoLearnError(f"Line {number} ({line!r}): {exc}") from None
+        if not name:
+            raise EcoLearnError(f"Line {number} has no name.")
+        if len(name) > _MAX_NAME_LENGTH:
+            raise EcoLearnError(
+                f"Line {number}: names can be at most {_MAX_NAME_LENGTH} characters."
+            )
+        entries.append((name, interest))
+
+    if not entries:
+        raise EcoLearnError("Add at least one student name, one per line.")
+    if len(entries) > _MAX_ROSTER:
+        raise EcoLearnError(
+            f"At most {_MAX_ROSTER} students at a time ({len(entries)} given). "
+            "Split the list and add the rest to the same class."
+        )
+    return entries
+
+
+def add_students_to_class(
+    teacher_id: str,
+    class_id: str,
+    roster: str | list[str],
+    interest: str,
+) -> dict[str, Any]:
+    """Create an account for every name in `roster`, inside one of the teacher's classes.
+
+    Usernames come from the names ("Aarav Kumar" → "aarav.k", or "aarav.k2" if
+    taken); each student gets a fresh typeable password. Everything is saved in
+    one transaction — all students or none.
+
+    Returns:
+        {"class": {...}, "credentials": [{student_id, name, username, password,
+        interest}, ...]} — the ONLY time these passwords exist in plaintext.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+        EcoLearnError: a bad roster or interest.
+        ConflictError: a username was claimed by someone else mid-request
+                       (nothing was saved; trying again picks fresh names).
+    """
+    get_teacher_profile(teacher_id)
+    klass = _own_class(teacher_id, class_id)
+    default_interest = _validate_interest(interest)
+    entries = _parse_roster(roster, default_interest)
+
+    chosen: set[str] = set()
+
+    def is_taken(candidate: str) -> bool:
+        return candidate in chosen or store.username_exists(candidate)
+
+    rows: list[dict[str, Any]] = []
+    plaintext: dict[str, str] = {}
+    for name, student_interest in entries:
+        username = credentials.unique_username(name, is_taken)
+        chosen.add(username)
+        student_id = _new_student_id()
+        plaintext[student_id] = credentials.generate_password()
+        rows.append({
+            "student_id": student_id,
+            "name": name,
+            "interest": student_interest,
+            "level": klass["level"],
+            "username": username,
+        })
+
+    # bcrypt is slow on purpose (~0.35 s a hash here), so 45 hashes one after
+    # another kept the teacher waiting ~16 s. bcrypt releases Python's GIL while
+    # it works, so a thread pool really does hash in parallel: measured 2026-10-02
+    # on a 16-core machine, 4 threads took 5.5 s and 8 or 16 were no faster. Four
+    # also leaves CPU for the students using the app at the same moment.
+    with ThreadPoolExecutor(max_workers=min(4, len(rows))) as pool:
+        hashes = pool.map(passwords.hash_password, [plaintext[r["student_id"]] for r in rows])
+        for row, password_hash in zip(rows, hashes):
+            row["password_hash"] = password_hash
+
+    try:
+        saved = store.save_students_bulk(class_id, rows)
+    except sqlite3.IntegrityError as exc:
+        raise ConflictError(
+            "Another account took one of these usernames just now. Nothing was "
+            "saved — please try again."
+        ) from exc
+
+    return {
+        "class": store.get_class(class_id),
+        "credentials": [
+            {"student_id": s["student_id"], "name": s["name"], "username": s["username"],
+             "password": plaintext[s["student_id"]], "interest": s["interest"]}
+            for s in saved
+        ],
+    }
+
+
+def create_class(
+    teacher_id: str,
+    name: str,
+    level: str,
+    interest: str,
+    roster: str | list[str],
+) -> dict[str, Any]:
+    """Create a class and its students' accounts in one step.
+
+    The roster is checked *before* the class row is written, so a typo in the
+    list doesn't leave an empty class behind.
+
+    Returns:
+        Same shape as `add_students_to_class`.
+    """
+    get_teacher_profile(teacher_id)
+    name = (name or "").strip()
+    if not name:
+        raise EcoLearnError("Class name is required.")
+    if len(name) > _MAX_NAME_LENGTH:
+        raise EcoLearnError(f"Class names can be at most {_MAX_NAME_LENGTH} characters.")
+    level = (level or "").strip()
+    if not level:
+        raise EcoLearnError("Level is required.")
+    _parse_roster(roster, _validate_interest(interest))  # fail early, write nothing
+
+    klass = store.create_class(_new_class_id(), teacher_id, name, level)
+    return add_students_to_class(teacher_id, klass["class_id"], roster, interest)
+
+
+def list_teacher_classes(teacher_id: str) -> list[dict[str, Any]]:
+    """The teacher's classes, newest first, with student counts."""
+    get_teacher_profile(teacher_id)
+    return store.list_classes(teacher_id)
+
+
+def get_class_detail(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """One of the teacher's classes with every student's progress summary.
+
+    Returns:
+        {"class": {...}, "students": [{student_id, name, username, interest,
+        level, created_at, attempted, mastered, last_active}, ...]}
+    """
+    get_teacher_profile(teacher_id)
+    klass = _own_class(teacher_id, class_id)
+    return {"class": klass, "students": store.list_class_students(class_id)}
+
+
+def reset_student_password(teacher_id: str, student_id: str) -> dict[str, Any]:
+    """Give a student in one of the teacher's classes a new password.
+
+    Returns the new password once, for the teacher to hand over. The student's
+    existing sessions stay valid — the cookie proves who they are, not their
+    password — which is what a classroom wants: resetting a forgotten password
+    shouldn't throw anyone else out.
+
+    Raises:
+        NotFoundError: the student doesn't exist or isn't in this teacher's
+                       classes (one answer for both).
+    """
+    get_teacher_profile(teacher_id)
+    class_id = store.get_student_class_id(student_id)
+    if class_id is None:
+        raise NotFoundError("Student not found in your classes.")
+    try:
+        _own_class(teacher_id, class_id)
+    except NotFoundError:
+        raise NotFoundError("Student not found in your classes.") from None
+
+    password = credentials.generate_password()
+    store.update_student_password(student_id, passwords.hash_password(password))
+    profile = store.get_student(student_id) or {}
+    return {
+        "student_id": student_id,
+        "name": profile.get("name"),
+        "username": profile.get("username"),
+        "password": password,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -689,6 +990,19 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
     concept = engine.find_concept(concept_id)
     concept_label = concept.name if concept is not None else concept_id
     framed_query = f"{concept_label} — student asks: {question}"
+
+    # Imported here, not at the top of the module: the pipeline pulls in the RAG
+    # index (chromadb → grpc → native DLLs). If any of that can't load — a missing
+    # package, or Windows Application Control blocking a DLL, as happened on
+    # 2026-10-02 — only the doubt chat should go down. A top-level import took
+    # the whole API with it: login, lessons and grading included.
+    try:
+        from src.pipeline import explain_with_review
+    except (ImportError, OSError) as exc:
+        raise RuntimeError(
+            "The doubt chat isn't available right now. Your lesson and progress are "
+            "fine — ask your teacher, or try the chat again later."
+        ) from exc
 
     result = explain_with_review(
         concept=framed_query,

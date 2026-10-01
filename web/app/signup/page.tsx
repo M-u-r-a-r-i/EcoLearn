@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { AuthCard, Field, FormError } from "@/components/auth-card";
-import { useAuth } from "@/components/auth-provider";
+import { HOME, useAuth } from "@/components/auth-provider";
 import { InterestLevelFields } from "@/components/interest-level-fields";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ function accountErrors(name: string, username: string, password: string) {
 }
 
 export default function SignupPage() {
-  const { register, status } = useAuth();
+  const { register, status, role } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -55,8 +55,8 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "authenticated" && !loading) router.replace("/roadmap");
-  }, [status, loading, router]);
+    if (status === "authenticated" && !loading) router.replace(role ? HOME[role] : "/roadmap");
+  }, [status, role, loading, router]);
 
   const errors = accountErrors(name, username, password);
   const shown = showErrors ? errors : { name: null, username: null, password: null };

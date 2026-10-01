@@ -1,32 +1,41 @@
-// Client-side route guard for the pages under app/(app)/.
+// Client-side route guard for the logged-in pages: app/(app)/ for students,
+// app/teacher/(dashboard)/ for teachers.
 //
 // This is a convenience, NOT the security boundary: the real check is the API's
-// Depends(get_current_student_id), which refuses every learning request without
-// a valid cookie. The guard only spares a logged-out student a page of errors.
-// It can't be done in proxy.ts (Next's middleware): the cookie belongs to the
-// API's origin (localhost:8000), so the web origin never sees it.
+// Depends(get_current_student_id) / Depends(get_current_teacher_id), which
+// refuse every request from the wrong kind of account. The guard only spares
+// someone a page of errors. It can't be done in proxy.ts (Next's middleware):
+// the cookie belongs to the API's origin (localhost:8000), so the web origin
+// never sees it.
 
 "use client";
 
 import { useEffect, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { useAuth } from "@/components/auth-provider";
+import { HOME, useAuth, type Role } from "@/components/auth-provider";
 import { PageContainer } from "@/components/page-container";
 
-export function RequireAuth({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
+const LOGIN: Record<Role, string> = { student: "/login", teacher: "/teacher/login" };
+
+export function RequireAuth({ role = "student", children }: { role?: Role; children: ReactNode }) {
+  const { status, role: current } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      // Remember where they were going, so login can send them back.
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      // Remember where they were going — query string included, so
+      // /teacher/class?id=… or /lesson?concept=… survives the round trip.
+      const here = pathname + window.location.search;
+      router.replace(`${LOGIN[role]}?next=${encodeURIComponent(here)}`);
+    } else if (status === "authenticated" && current && current !== role) {
+      // Logged in, but as the other kind of account: go to their own home.
+      router.replace(HOME[current]);
     }
-  }, [status, router, pathname]);
+  }, [status, current, role, router, pathname]);
 
-  if (status !== "authenticated") {
+  if (status !== "authenticated" || current !== role) {
     return (
       <main className="flex flex-1 flex-col">
         <PageContainer className="flex flex-col gap-4">

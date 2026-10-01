@@ -129,13 +129,8 @@ def clear_session_cookie(response: Response) -> None:
 # The dependency
 # ---------------------------------------------------------------------------
 
-def get_current_student_id(request: Request) -> str:
-    """FastAPI dependency: the logged-in student's id, or a 401.
-
-    Reads the session cookie (or an `Authorization: Bearer` header, handy for
-    curl and tests), verifies it, and confirms the account still exists — a
-    valid token for a deleted account must not keep working.
-    """
+def _read_token(request: Request) -> str:
+    """The session token from the cookie or a Bearer header, or a 401."""
     token = request.cookies.get(COOKIE_NAME)
     header = request.headers.get("authorization", "")
     if not token and header.lower().startswith("bearer "):
@@ -146,6 +141,65 @@ def get_current_student_id(request: Request) -> str:
             detail="You need to log in.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    return token
+
+
+def get_current_teacher_id(request: Request) -> str:
+    """FastAPI dependency: the logged-in teacher's id, or a 401.
+
+    The mirror of `get_current_student_id`. A student's token fails here and a
+    teacher's token fails there, because each looks the id up in its own table:
+    the two roles can't reach each other's endpoints even by accident.
+    """
+    token = _read_token(request)
+    try:
+        teacher_id = decode_token(token)
+        api.get_teacher_profile(teacher_id)
+    except (AuthError, NotFoundError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Please log in with a teacher account.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+    return teacher_id
+
+
+def get_current_account(request: Request) -> tuple[str, dict]:
+    """FastAPI dependency: ("student" | "teacher", profile) for whoever is logged in.
+
+    Lets the web app ask one question on page load — who is this, and which
+    kind of account — instead of probing two endpoints.
+    """
+    token = _read_token(request)
+    try:
+        account_id = decode_token(token)
+    except AuthError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your session has expired or is invalid. Please log in again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+    for role, lookup in (("student", api.get_student_profile),
+                         ("teacher", api.get_teacher_profile)):
+        try:
+            return role, lookup(account_id)
+        except NotFoundError:
+            continue
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Your session has expired or is invalid. Please log in again.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def get_current_student_id(request: Request) -> str:
+    """FastAPI dependency: the logged-in student's id, or a 401.
+
+    Reads the session cookie (or an `Authorization: Bearer` header, handy for
+    curl and tests), verifies it, and confirms the account still exists — a
+    valid token for a deleted account must not keep working.
+    """
+    token = _read_token(request)
     try:
         student_id = decode_token(token)
         api.get_student_profile(student_id)

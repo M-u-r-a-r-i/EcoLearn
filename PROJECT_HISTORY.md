@@ -1283,6 +1283,92 @@ The laser-on-a-pixel-grid story (Davisson–Germer) says never to point a laser 
 - The existing `galvanometer-construction.svg` caption calls its field arrows "straight across the
   gap" instead of radial. It predates this batch and is left for the figure cleanup pass.
 
+*Addendum:* the last batch of that run, Electromagnetic Induction × smartphones (7 lessons,
+`f8a9cfe`), landed just before the weekly limit hit 100%. It was reviewed the same way (Faraday
+2 V, self-inductance ×4 for ×2 turns, a coin warming 20 K on a pad) with no errors. Smartphones
+13/14; phase 1 at 62/70.
+
+## 9z. Teacher tools, and the API no longer dies with the doubt chat (2026-10-02)
+
+The user paused lesson writing ("continue later, now improve the project") and chose the order:
+**teacher tools → pilot metrics → robustness & polish.** This entry is the first of the three.
+
+**Changed.**
+- `src/progress/store.py`: new `teachers` and `classes` tables, plus a nullable `students.class_id`
+  column. All additive: CREATE TABLE IF NOT EXISTS, and ADD COLUMN behind `PRAGMA table_info`.
+  New functions: `username_exists` (checks both tables), teacher CRUD, `create_class`,
+  `list_classes` / `get_class` (with student counts), `save_students_bulk` (one transaction, all or
+  nothing), and `list_class_students`, which aggregates the progress table in SQL into
+  mastered / attempted / last active.
+- `src/auth/credentials.py` (new): usernames from names ("Aarav Kumar" → `aarav.k`, then
+  `aarav.k2`; accents folded; "Li" → `li.student`; Devanagari-only → `student`), and typeable
+  passwords "word-word-NN" from 256 words, about 5.9 M combinations, using `secrets`.
+- `src/platform_api.py` §1b: `create_teacher` (server-only), `authenticate_teacher`,
+  `change_teacher_password`, `create_class`, `add_students_to_class`, `list_teacher_classes`,
+  `get_class_detail` and `reset_student_password`. Rosters are one name per line, with an optional
+  ", interest"; 60 at most; errors name the line. `register_student` now also refuses a teacher's
+  username.
+- `api/security.py`: `get_current_teacher_id` and `get_current_account`. `api/main.py`:
+  `GET /api/auth/session` (role + profile) and `/api/teacher/{login, me, change-password, classes,
+  classes/{id}, classes/{id}/students, students/{id}/reset-password}`. Every response that carries
+  a generated password is `Cache-Control: no-store`.
+- `scripts/create_teacher.py` (new): asks for the password with getpass, never takes it as an
+  argument.
+- Web: `lib/api.ts` (session and teacher calls). `auth-provider` is now role-aware (`role`,
+  `teacher`, `teacherLogin`, `HOME`). `RequireAuth role=…` sends the wrong role to its own home
+  and keeps the query string in `?next=`. The site nav has teacher links and is `print:hidden`.
+  The login page links to the teacher login. New pages: `/teacher/login`, and behind the
+  `(dashboard)` route group `/teacher` (classes + create class), `/teacher/class?id=` (students,
+  progress, two-step password reset, add students) and `/teacher/account`.
+  `components/teacher-ui.tsx` holds the shared controls and the **credentials sheet**: a
+  show-once warning, a table, and print-only cut-out slips, two per row.
+- **`ask_help` imports `src.pipeline` lazily** (see Learned).
+- `tests/test_teacher.py` (new): **60 checks**. Namespace, login, roster parsing, nothing written
+  on a bad roster, progress summary, ownership (another teacher's class or student → NotFound for
+  view / add / reset; self-registered students can't be reset), reset invalidates the old
+  password, HTTP role separation, no-store, and a 45-student class in under 8 s.
+
+**Why these shapes.**
+- **A separate `teachers` table, not a role flag on students.** A teacher id (`tch_…`) fails
+  `get_student_profile`, so every existing student endpoint refuses a teacher's session with no new
+  check anywhere. A role column would have needed an `if` on every endpoint, now and in the
+  future.
+- **No teacher signup over HTTP.** A teacher can reset students' passwords, so becoming one must
+  need access to the server, not a button.
+- **Passwords exist in plaintext only in the response that made them.** The store keeps bcrypt
+  hashes, as for self-registered students. A lost slip means a reset, never a lookup, and the UI
+  says so before the teacher leaves the screen.
+- **Another teacher's class answers 404, not 403**, so a guessed id reveals nothing.
+- **A reset doesn't end the student's existing sessions.** In a classroom, the student who forgot
+  their password is usually logged out anyway. Revoking sessions would need a token version per
+  account, which is noted as a later hardening step.
+
+**Verified in the browser** (local dev DB, a demo teacher created with the new script's function):
+teacher login → empty dashboard with real coverage counts → a three-name class (usernames
+`aarav.k`, `meera.i`, `kabir.s`; the per-line interest honoured) → the credentials sheet; print
+rules present (`print:grid` slips, `print:hidden` nav) → class page → two-step reset → the
+student logs in with the new password and lands on `/roadmap` → that student opening `/teacher`
+is sent back to `/roadmap`. `tsc`, lint, build and all 12 test scripts are clean.
+
+**Learned.**
+- **Windows Application Control blocked `grpc`'s native DLL** (`cygrpc…pyd`, dated 2026-09-21),
+  and because `platform_api` imported the doubt-chat pipeline at module load (chromadb → grpc),
+  **the whole API failed to import**: login, lessons and grading, plus `tests/test_api_auth.py`.
+  Nothing in our code had changed; a Windows security policy had. Fixed in code by importing
+  `src.pipeline` inside `ask_help`, which now turns an import failure into a friendly 503. Only the
+  chat goes down. **The chat itself is still broken on this machine** until the policy allows the
+  DLL, or `grpcio` is reinstalled from a wheel the policy trusts. That's a machine setting for the
+  user, not something to change from code. *Rule: a live-LLM feature's dependencies must never be
+  imported on the path every request takes.*
+- **bcrypt in threads gives about 3×, not 16×.** One hash is about 0.36 s here, so a 45-student
+  roster took ~16 s serially and ~5.5 s on 4 threads; 8 or 16 threads were no faster. The web
+  call uses the long timeout and the button says "a few seconds".
+- **A freshly added route folder can 404 in `next dev`** even though `npm run build` lists it.
+  Restarting the dev server fixed it. Don't run `npm run build` while `next dev` is up: both write
+  `.next`, and that is the likely cause.
+- JSX dropped the space in `</strong> For` inside a wrapped paragraph. An explicit `{" "}` is the
+  reliable fix.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

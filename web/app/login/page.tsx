@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { AuthCard, Field, FormError } from "@/components/auth-card";
-import { useAuth } from "@/components/auth-provider";
+import { HOME, useAuth } from "@/components/auth-provider";
 import { PrimaryButton } from "@/components/primary-button";
 import { friendlyMessage } from "@/lib/api";
 
@@ -20,7 +20,7 @@ function safeNext(next: string | null): string {
 }
 
 function LoginForm() {
-  const { login, status } = useAuth();
+  const { login, status, role } = useAuth();
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
 
@@ -29,10 +29,11 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Already logged in (e.g. opened /login in a second tab)? Skip the form.
+  // Already logged in (e.g. opened /login in a second tab)? Skip the form —
+  // a teacher goes to their own pages, not the student's ?next.
   useEffect(() => {
-    if (status === "authenticated") router.replace(next);
-  }, [status, router, next]);
+    if (status === "authenticated") router.replace(role === "teacher" ? HOME.teacher : next);
+  }, [status, role, router, next]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault(); // stop the browser's own full-page form submit
@@ -92,6 +93,12 @@ export default function LoginPage() {
           New here?{" "}
           <Link href="/signup" className="font-semibold text-primary hover:underline">
             Create an account
+          </Link>
+          <span className="mx-2" aria-hidden>
+            ·
+          </span>
+          <Link href="/teacher/login" className="font-semibold text-primary hover:underline">
+            Teacher login
           </Link>
         </>
       }

@@ -59,7 +59,7 @@
 | 3–7 | **Bulk writing** in waves: one batch = one chapter × one interest (~27 lessons), several Claude Code sessions in parallel, validator after each wave. In teaching order: Class 11 ch. 1 first | |
 | 3–5 | `api/security.py` (JWT cookie), auth endpoints, exception handlers; frontend `request()` wrapper, auth provider, login/signup, route guard, **breaking flip**; chapter picker (class → unit), class overview | |
 | 6 | Format tabs + format rule, MCQ answer/feedback UI, "coming soon" state, 👍/👎 + format-view logging for pilot metrics, **clickable roadmap concepts** (`/lesson?concept=`, same URL mechanism as the chapter picker) so students can open any concept | |
-| 7 | Dark mode, toasts, error pages, skeletons, settings, teacher tools (reset password, create a class from a roster) | |
+| 7 | Dark mode, toasts, error pages, skeletons, settings, teacher tools (reset password, create a class from a roster) | **Teacher tools ✅ 2026-10-02** (`PROJECT_HISTORY.md` §9z: classes from a roster, printable slips, password reset, progress view, server-only teacher accounts; 60 checks). Settings ✅ earlier. Next, in the user's order: pilot metrics, then error pages / skeletons / toasts / dark mode |
 | 8 | Chatbot on Gemini with a self-hosted placeholder, local run end-to-end, 30-student load test, coverage report | |
 | 9 — Tue 30 | 2% sample review, human read of pilot chapters, fixes, trial run, demo account, docs | |
 

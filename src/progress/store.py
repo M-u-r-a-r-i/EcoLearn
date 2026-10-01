@@ -80,6 +80,34 @@ def _connect() -> sqlite3.Connection:
         """
     )
     _migrate_students(conn)
+    # Teachers and their classes (2026-10-02). New tables, so plain CREATE IF NOT
+    # EXISTS is the whole migration; UNIQUE is allowed in a CREATE, just not in an
+    # ALTER. Teachers live apart from students on purpose: a teacher's id
+    # ("tch_...") is not a student id, so a teacher's session is refused by every
+    # student endpoint without anyone having to remember an extra role check.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS teachers (
+            teacher_id     TEXT PRIMARY KEY,
+            name           TEXT NOT NULL,
+            username       TEXT NOT NULL UNIQUE,
+            password_hash  TEXT NOT NULL,
+            created_at     TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS classes (
+            class_id    TEXT PRIMARY KEY,
+            teacher_id  TEXT NOT NULL,
+            name        TEXT NOT NULL,
+            level       TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id)")
     return conn
 
 
@@ -112,11 +140,16 @@ def _migrate_students(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE students ADD COLUMN username TEXT")
     if "password_hash" not in existing:
         conn.execute("ALTER TABLE students ADD COLUMN password_hash TEXT")
+    # The class a teacher created this account in; NULL for self-registered and
+    # legacy students. A teacher may reset a password only within their own classes.
+    if "class_id" not in existing:
+        conn.execute("ALTER TABLE students ADD COLUMN class_id TEXT")
 
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username "
         "ON students(username)"
     )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_students_class ON students(class_id)")
     conn.commit()
 
 
@@ -503,3 +536,255 @@ def get_password_hash(student_id: str) -> str | None:
     finally:
         conn.close()
     return row["password_hash"] if row is not None else None
+
+
+# ---------------------------------------------------------------------------
+# Teachers and classes (2026-10-02)
+#
+# The pilot accounts belong to minors and carry no email, so a forgotten
+# password can only be fixed by an adult with authority over the account: the
+# teacher who created it. These functions are the storage half of that; the
+# rules (who may do what) live in the boundary, src/platform_api.py.
+# ---------------------------------------------------------------------------
+
+def _teacher_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    """Public teacher profile. Whitelisted for the same reason as students."""
+    return {
+        "teacher_id": row["teacher_id"],
+        "name": row["name"],
+        "username": row["username"],
+        "created_at": row["created_at"],
+    }
+
+
+def _class_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    out = {
+        "class_id": row["class_id"],
+        "teacher_id": row["teacher_id"],
+        "name": row["name"],
+        "level": row["level"],
+        "created_at": row["created_at"],
+    }
+    if "student_count" in row.keys():
+        out["student_count"] = row["student_count"]
+    return out
+
+
+def username_exists(username: str) -> bool:
+    """True if a student OR a teacher already has this username.
+
+    One login namespace for both: a username on a printed slip must point at
+    exactly one account, whichever login page it is typed into.
+    """
+    normalised = username.strip().lower()
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM students WHERE username = ? "
+            "UNION ALL SELECT 1 FROM teachers WHERE username = ? LIMIT 1",
+            (normalised, normalised),
+        ).fetchone()
+    finally:
+        conn.close()
+    return row is not None
+
+
+def save_teacher(
+    teacher_id: str, name: str, username: str, password_hash: str
+) -> dict[str, Any]:
+    """Insert a teacher. Strict INSERT: raises sqlite3.IntegrityError on a duplicate."""
+    created_at = _now_iso()
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO teachers (teacher_id, name, username, password_hash, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (teacher_id, name, username.strip().lower(), password_hash, created_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"teacher_id": teacher_id, "name": name,
+            "username": username.strip().lower(), "created_at": created_at}
+
+
+def get_teacher(teacher_id: str) -> dict[str, Any] | None:
+    """Public profile of a teacher (no hash), or None."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM teachers WHERE teacher_id = ?", (teacher_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return _teacher_to_dict(row) if row is not None else None
+
+
+def get_teacher_by_username(username: str) -> dict[str, Any] | None:
+    """Teacher row **including `password_hash`** — for authentication only."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM teachers WHERE username = ?", (username.strip().lower(),)
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    profile = _teacher_to_dict(row)
+    profile["password_hash"] = row["password_hash"]
+    return profile
+
+
+def get_teacher_password_hash(teacher_id: str) -> str | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT password_hash FROM teachers WHERE teacher_id = ?", (teacher_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return row["password_hash"] if row is not None else None
+
+
+def update_teacher_password(teacher_id: str, password_hash: str) -> bool:
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "UPDATE teachers SET password_hash = ? WHERE teacher_id = ?",
+            (password_hash, teacher_id),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def create_class(class_id: str, teacher_id: str, name: str, level: str) -> dict[str, Any]:
+    created_at = _now_iso()
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO classes (class_id, teacher_id, name, level, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (class_id, teacher_id, name, level, created_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"class_id": class_id, "teacher_id": teacher_id, "name": name,
+            "level": level, "created_at": created_at, "student_count": 0}
+
+
+_CLASS_WITH_COUNT = """
+    SELECT c.*, (SELECT COUNT(*) FROM students s WHERE s.class_id = c.class_id)
+               AS student_count
+    FROM classes c
+"""
+
+
+def get_class(class_id: str) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            _CLASS_WITH_COUNT + " WHERE c.class_id = ?", (class_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return _class_to_dict(row) if row is not None else None
+
+
+def list_classes(teacher_id: str) -> list[dict[str, Any]]:
+    """A teacher's classes, newest first, each with its student count."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            _CLASS_WITH_COUNT + " WHERE c.teacher_id = ? ORDER BY c.created_at DESC",
+            (teacher_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [_class_to_dict(r) for r in rows]
+
+
+def save_students_bulk(class_id: str, students: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Insert several credentialed students into a class in ONE transaction.
+
+    Each item: {student_id, name, interest, level, username, password_hash}.
+    All or nothing: if any row fails (a username claimed a moment ago by someone
+    else), the whole roster is rolled back, so a teacher never ends up with half
+    a class and a slip sheet that doesn't match the database.
+
+    Raises:
+        sqlite3.IntegrityError: a duplicate username or id; nothing was saved.
+    """
+    created_at = _now_iso()
+    conn = _connect()
+    try:
+        with conn:  # commits on success, rolls back on any exception
+            conn.executemany(
+                """
+                INSERT INTO students (student_id, name, interest, level, created_at,
+                                      username, password_hash, class_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (s["student_id"], s["name"], s["interest"], s["level"], created_at,
+                     s["username"].strip().lower(), s["password_hash"], class_id)
+                    for s in students
+                ],
+            )
+    finally:
+        conn.close()
+    return [
+        {"student_id": s["student_id"], "name": s["name"], "interest": s["interest"],
+         "level": s["level"], "created_at": created_at,
+         "username": s["username"].strip().lower()}
+        for s in students
+    ]
+
+
+def get_student_class_id(student_id: str) -> str | None:
+    """The class a student was created in, or None (self-registered / legacy / unknown)."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT class_id FROM students WHERE student_id = ?", (student_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return row["class_id"] if row is not None else None
+
+
+def list_class_students(class_id: str) -> list[dict[str, Any]]:
+    """Students in a class, by name, each with a progress summary.
+
+    The summary is aggregated in SQL from the `progress` table: how many concepts
+    the student has mastered, how many they have attempted at all, and when they
+    last did anything. Enough for a teacher to spot who hasn't started.
+    """
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            """
+            SELECT s.student_id, s.name, s.username, s.interest, s.level, s.created_at,
+                   COUNT(p.concept_id)                                   AS attempted,
+                   COALESCE(SUM(CASE WHEN p.status = ? THEN 1 END), 0)   AS mastered,
+                   MAX(p.last_seen)                                      AS last_active
+            FROM students s
+            LEFT JOIN progress p ON p.student_id = s.student_id
+            WHERE s.class_id = ?
+            GROUP BY s.student_id
+            ORDER BY s.name COLLATE NOCASE, s.username
+            """,
+            (STATUS_MASTERED, class_id),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [
+        {"student_id": r["student_id"], "name": r["name"], "username": r["username"],
+         "interest": r["interest"], "level": r["level"], "created_at": r["created_at"],
+         "attempted": r["attempted"], "mastered": r["mastered"],
+         "last_active": r["last_active"]}
+        for r in rows
+    ]

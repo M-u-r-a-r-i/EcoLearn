@@ -108,14 +108,23 @@ the roadmap shows it mastered → refresh keeps you logged in → settings → l
 - `get_next_lesson` also returns `lesson.sections` and `lesson.check` (options, no answer).
 - `list_interests()` offers the **five in-scope interests** with `chapters_ready` /
   `chapters_total` (§9r), read from `data/content_scope.yaml` via `src/curriculum/scope.py`.
+- **Teacher tools** (§9z): separate `teachers` / `classes` tables, a `tch_…` id that every
+  student endpoint refuses. A teacher creates a class from pasted names (generated usernames and
+  passwords, shown **once**, printable slips), adds latecomers, sees progress, and resets passwords
+  **only in their own classes** (anything else → 404). Teacher accounts are created **only on the
+  server**: `venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`.
+  `GET /api/auth/session` returns `{role, profile}`. `tests/test_teacher.py` (60 checks).
+- **`ask_help` imports the chat pipeline lazily** (§9z): a broken chat dependency now means a
+  503 from the chat only, never a dead API.
 
 **Content**
 - `data/curriculum/physics.yaml`: 29 chapters / 249 concepts, CBSE 2025-26 + ISC, global sparse
   ordering, `grade` + `domain` + `boards`. Never rename an id.
-- **372 authored lessons, all valid** (`scripts/validate_lessons.py`). Phase 1 (`explain`) is at
-  **34/70 batches**. Coverage by interest: **cricket 14/14 chapters, football 10, gaming 7,
-  smartphones 2, motorsport 1**. Every chapter in scope has its interest-neutral figures, so all
-  remaining batches reuse figures and only add a scene.
+- **642 authored lessons, all valid** (`scripts/validate_lessons.py`). Phase 1 (`explain`) is at
+  **62/70 batches**. Coverage by interest: **cricket, football, gaming 14/14 chapters,
+  smartphones 13, motorsport 7**. Left: `ray_optics:smartphones` and motorsport × the seven
+  Class 12 chapters. Every chapter in scope has its interest-neutral figures, so all remaining
+  batches reuse figures and only add a scene.
 - `content/AUTHORING_GUIDE.md` is the contract for writing lessons. **§7 changed on 2026-09-23**
   (user feedback: worked examples were "hard to visualize") — few, round, picturable numbers, one
   quantity per step, a plain-sentence sanity check. §7a: shared figures must not print
@@ -126,19 +135,28 @@ the roadmap shows it mastered → refresh keeps you logged in → settings → l
 **Frontend (`web/`)**
 - `lib/api.ts`: one `request()` wrapper (cookie credentials, `ApiError`, timeouts, 401 hook,
   friendly messages). No function takes a student id.
-- `components/auth-provider.tsx` (loading | authenticated | unauthenticated, hydrated from
-  `/api/auth/me`), `require-auth.tsx` + the `app/(app)/` route group.
+- `components/auth-provider.tsx` (loading | authenticated | unauthenticated, plus `role`:
+  student | teacher, hydrated from `/api/auth/session`), `require-auth.tsx` (`role` prop) + the
+  `app/(app)/` route group for students, `app/teacher/(dashboard)/` for teachers.
 - `/login`, two-step `/signup` (replaces the deleted `/onboarding`), `/settings`.
+- `/teacher/login`, `/teacher` (classes + create a class), `/teacher/class?id=` (students,
+  progress, password reset, add students), `/teacher/account`. Shared bits in
+  `components/teacher-ui.tsx` (the show-once credentials sheet with print-only slips).
 - Roadmap with a chapter picker over all 29 chapters (`?chapter=`); every concept card opens its
   lesson (`?concept=`).
 - The lesson page renders section by section and **collapses the worked example and "Where the
   picture breaks" behind a click** (user feedback, §9q). The check page is a radio group.
 
-**-> YOUR NEXT ACTION: run the next lesson batch** (procedure below). `scripts/batch_status.py`
-always knows which one is next; `--all` shows `[done] / [part] / [todo]` for every batch. Between
-usage windows, continue the frontend: format tabs (`challenge` / `misconception` once those
-lessons exist), dark mode, toasts and error pages, and the teacher tools (reset a password, create
-a class from a roster).
+**-> YOUR NEXT ACTION (user, 2026-10-02): improve the project; lessons resume later.** The
+user's order: ~~teacher tools~~ (done, §9z) → **pilot metrics** (log lesson opens, time spent,
+check answers and a 👍/👎 per lesson, and show them on a teacher/admin page; this is the evidence
+for the finals pitch) → **robustness & polish** (error and not-found pages, skeletons, toasts,
+dark mode, login rate-limiting, a 30-student load test). When lessons resume,
+`scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
+
+**Machine issue to raise with the user:** Windows Application Control blocks `grpc`'s DLL on the
+dev machine, so the doubt chat answers 503 there (§9z). It's a security setting or a reinstall of
+`grpcio`, so it's the user's call; don't change it from code.
 
 **Open with the user, don't decide alone:**
 1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
@@ -368,6 +386,7 @@ venv\Scripts\python.exe tests\test_content_spine.py
 venv\Scripts\python.exe tests\test_authored_lessons.py
 venv\Scripts\python.exe tests\test_api_auth.py
 venv\Scripts\python.exe tests\test_mcq_grading.py         # MCQ grading, no API key needed
+venv\Scripts\python.exe tests\test_teacher.py             # teacher tools: classes, resets, roles
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 
@@ -399,6 +418,11 @@ quota. Run it deliberately, not routinely.
   `[WinError 10013]`, not "address in use".
 - **Run uvicorn from the project root** (`api.main:app`) so the `src` package resolves.
 - **Docstrings have drifted from the code** in a few places. The code is the source of truth.
+- **Never import a live-LLM feature's dependencies at module top level** in `platform_api.py`.
+  chromadb → grpc native DLLs were once blocked by Windows Application Control, and the top-level
+  import took the whole API down (§9z).
+- **A new route folder can 404 in `next dev`** while `npm run build` lists it. Restart the dev
+  server, and don't run `npm run build` while `next dev` is running (both write `.next`).
 
 Full list: `PROJECT_HISTORY.md` §13.
 
