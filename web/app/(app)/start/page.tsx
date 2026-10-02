@@ -191,7 +191,7 @@ function StartingCheck({
                 aria-hidden
                 className={cn(
                   "flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
-                  picked === letter ? "border-primary bg-primary text-white" : "border-border text-muted-foreground",
+                  picked === letter ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground",
                 )}
               >
                 {letter}
@@ -311,7 +311,7 @@ function HobbyPicker({
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
                 on
-                  ? "border-primary bg-primary text-white"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-foreground hover:border-primary/50",
               )}
             >
@@ -327,7 +327,7 @@ function HobbyPicker({
             type="button"
             aria-pressed
             onClick={() => toggle(h)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary px-3.5 py-2 text-sm font-medium capitalize text-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary px-3.5 py-2 text-sm font-medium capitalize text-primary-foreground"
           >
             {h} <Check className="size-3.5" aria-hidden />
           </button>

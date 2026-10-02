@@ -1978,3 +1978,36 @@ showed in single-user testing.
 - An empty environment variable must mean "off", or switching a feature off in one place quietly
   switches it back on from another.
 - Caching "not found" is the dangerous part of a file cache. Cache hits, re-check misses.
+
+## 9zi. Robustness, part 3: dark mode, toasts, accessible colours (2026-10-02)
+
+**Changed.**
+- `web/app/globals.css`: a real dark palette, slate with the brand colours. Indigo `#818CF8` with
+  dark button text (`--primary-foreground`), because no single indigo passes both "white text on
+  it" and "as text on a dark card". Components now use `text-primary-foreground` /
+  `text-success-foreground`, never `text-white`.
+- **Light mode accessibility fix:** amber `#F59E0B` and green `#10B981` were 2.2:1 and 2.5:1 on
+  white, below WCAG AA for the small labels that use them. They are now `#B45309` / `#047857`
+  (4.8–5.5:1).
+- `components/theme-toggle.tsx`: device → light → dark in the nav, saved in localStorage (in a
+  try/catch); `THEME_BOOT_SCRIPT` in `<head>` applies the choice before first paint (no flash);
+  `suppressHydrationWarning` on `<html>`. Markdown gains `dark:prose-invert`. Lesson figures stay
+  on white cards on purpose, because they were drawn for white.
+- `components/toast.tsx`: a small toast system with no dependency and a polite live region. Used
+  where an action had no visible confirmation: a teacher hiding or restoring a story, and the
+  teaching assistant returning a plan (new, reused, or rules-made).
+- Nav at 375 px overflowed by 15 px once the toggle was added: the wordmark text now hides below
+  400 px (still read by screen readers) and the gaps are tighter.
+
+**Verified in the browser** (computed styles):
+- dark: Continue button 6.0:1, amber labels 8.3:1;
+- light: labels 4.8:1, button 6.3:1;
+- the theme is applied before React loads, with no hydration warnings;
+- the toast appeared on hide;
+- no horizontal scroll at 375 px on the roadmap, lesson and teacher class pages.
+
+All test scripts, `tsc`, lint and `npm run build` are clean.
+
+*Session paused here:* the Pro 5-hour window reached 100% (weekly 24%). Robustness list done:
+rate limiting, error pages, logout, load test, dark mode, toasts. Skeletons were already present on
+every data page.

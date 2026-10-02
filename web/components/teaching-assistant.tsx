@@ -14,6 +14,7 @@ import { useState } from "react";
 import { Bot, CheckCircle2, ListChecks, RefreshCw, ShieldCheck, Sparkles, XCircle } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { useToast } from "@/components/toast";
 import { Markdown } from "@/components/markdown";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   const [working, setWorking] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const plan = fresh ?? saved.data;
 
@@ -53,7 +55,16 @@ export function TeachingAssistant({ classId }: { classId: string }) {
       2500,
     );
     try {
-      setFresh(await generateClassPlan(classId));
+      const made = await generateClassPlan(classId);
+      setFresh(made);
+      toast(
+        made.reused
+          ? "A plan was made less than a minute ago, so here it is again."
+          : made.source === "agent"
+            ? "Your plan is ready."
+            : "Plan ready (made by rules: the AI isn't available).",
+        made.reused || made.source !== "agent" ? "info" : "success",
+      );
     } catch (err) {
       setError(friendlyMessage(err));
     } finally {

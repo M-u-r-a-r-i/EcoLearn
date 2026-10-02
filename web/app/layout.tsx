@@ -4,6 +4,8 @@ import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
 import { AuthProvider } from "@/components/auth-provider";
+import { THEME_BOOT_SCRIPT } from "@/components/theme-toggle";
+import { Toaster } from "@/components/toast";
 
 // next/font downloads & self-hosts the font at build time (fast, no layout shift)
 // and exposes it as a CSS variable. We name it --font-sans so Tailwind's
@@ -33,11 +35,19 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      // The theme script below may add class="dark" before React hydrates.
+      suppressHydrationWarning
     >
+      <head>
+        {/* Applies the saved light/dark choice before the first paint (no flash). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <SiteNav />
-          {children}
+          <Toaster>
+            <SiteNav />
+            {children}
+          </Toaster>
         </AuthProvider>
       </body>
     </html>

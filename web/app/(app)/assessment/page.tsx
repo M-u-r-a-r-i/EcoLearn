@@ -270,7 +270,7 @@ function Assessment() {
                       className={cn(
                         "flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
                         answer === letter
-                          ? "border-primary bg-primary text-white"
+                          ? "border-primary bg-primary text-primary-foreground"
                           : "border-border text-muted-foreground",
                       )}
                       aria-hidden

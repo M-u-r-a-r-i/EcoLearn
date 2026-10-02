@@ -29,13 +29,13 @@ const STATUS: Record<
   mastered: {
     label: "Mastered",
     Icon: Check,
-    node: "bg-success text-white border-success",
+    node: "bg-success text-success-foreground border-success",
     badge: "bg-success/10 text-success",
   },
   available: {
     label: "Available",
     Icon: Play,
-    node: "bg-primary text-white border-primary",
+    node: "bg-primary text-primary-foreground border-primary",
     badge: "bg-primary/10 text-primary",
   },
 };

@@ -72,8 +72,11 @@
   --popover-foreground: #1E293B;
   --primary: #4F46E5;             /* indigo — primary buttons & actions */
   --primary-foreground: #FFFFFF;  /* text on indigo */
-  --brand-accent: #F59E0B;        /* amber — highlights (see --color-brand-accent) */
-  --success: #10B981;             /* green — mastered / passed states */
+  /* Amber and green are the -700 shades: the -500s (#F59E0B, #10B981) are only
+     2.2:1 and 2.5:1 on white, below WCAG AA (4.5:1) for the small labels that
+     use them. Measured 2026-10-02; these are 5.0:1 and 5.5:1. */
+  --brand-accent: #B45309;        /* amber — highlights (see --color-brand-accent) */
+  --success: #047857;             /* green — mastered / passed states */
   --success-foreground: #FFFFFF;
   --ring: #4F46E5;                /* indigo focus ring */
   --secondary: #F1F5F9;           /* light slate surface */
@@ -101,38 +104,46 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Dark mode: the EcoLearn palette on slate, not shadcn's grey default.
+   Contrast measured (WCAG): text #E2E8F0 on card 11.9:1, muted text 5.7:1,
+   indigo #818CF8 as text on card 4.9:1. That indigo is too light for white
+   text, so buttons use dark text on it (--primary-foreground), which is why
+   components say text-primary-foreground, never text-white. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #0F172A;          /* slate-900 page */
+  --foreground: #E2E8F0;
+  --card: #1E293B;                /* slate-800 cards */
+  --card-foreground: #E2E8F0;
+  --popover: #1E293B;
+  --popover-foreground: #E2E8F0;
+  --primary: #818CF8;             /* indigo-400: readable as text on dark */
+  --primary-foreground: #0F172A;  /* dark text on indigo buttons */
+  --brand-accent: #F59E0B;        /* the bright amber passes on dark (6.8:1 on card) */
+  --success: #34D399;             /* emerald-400, 7.6:1 on card */
+  --success-foreground: #0F172A;
+  --ring: #818CF8;
+  --secondary: #1E293B;
+  --secondary-foreground: #E2E8F0;
+  --muted: #334155;               /* slate-700: skeletons and chips stand out from cards */
+  --muted-foreground: #A3B2C7;
+  --accent: #334155;
+  --accent-foreground: #E2E8F0;
+  --destructive: #F87171;
+  --border: #334155;
+  --input: #334155;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #1E293B;
+  --sidebar-foreground: #E2E8F0;
+  --sidebar-primary: #818CF8;
+  --sidebar-primary-foreground: #0F172A;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: #334155;
+  --sidebar-ring: #818CF8;
 }
 
 @layer base {

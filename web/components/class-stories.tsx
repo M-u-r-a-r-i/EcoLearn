@@ -13,6 +13,7 @@ import { useState } from "react";
 import { EyeOff, Eye, Flag, Sparkles } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { useToast } from "@/components/toast";
 import { Markdown } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { friendlyMessage, getClassStories, setStoryHidden, type ClassStory } from "@/lib/api";
@@ -85,12 +86,19 @@ export function ClassStoriesPanel({ classId }: { classId: string }) {
 function StoryRow({ story: s, onChanged }: { story: ClassStory; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   async function toggle() {
     setBusy(true);
     setError(null);
     try {
       await setStoryHidden(s.student_id, s.concept_id, !s.hidden);
+      // The list re-sorts after this, so the row may move: say what happened.
+      toast(
+        s.hidden
+          ? `${s.name} will see this story again.`
+          : `Story hidden. ${s.name} now sees the lesson's own story.`,
+      );
       onChanged();
     } catch (err) {
       setError(friendlyMessage(err));

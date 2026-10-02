@@ -167,7 +167,8 @@ user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception
 fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → ~~layer 3,
 personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** and set `LLM_*` in
 `.env`, then verify a live story) → **robustness & polish** (§9zg: rate limiting, error pages,
-logout fix; §9zh: the 30-student load test passes — p95 1.2 s; next: toasts, dark mode) (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+logout fix; §9zh: the 30-student load test passes — p95 1.2 s; §9zi: dark mode, toasts, AA
+colours — the robustness list is done) (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
 30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 

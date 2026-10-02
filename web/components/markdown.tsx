@@ -67,7 +67,7 @@ export function Markdown({
     // prose-* overrides tune headings/links/strong to our brand + spacing.
     <div
       className={cn(
-        "prose prose-slate max-w-none",
+        "prose prose-slate max-w-none dark:prose-invert",
         "prose-headings:font-semibold prose-headings:text-foreground",
         "prose-p:leading-relaxed prose-p:text-foreground/90",
         "prose-strong:text-foreground prose-li:text-foreground/90",
