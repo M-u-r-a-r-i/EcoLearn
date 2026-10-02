@@ -1369,6 +1369,12 @@ is sent back to `/roadmap`. `tsc`, lint, build and all 12 test scripts are clean
 - JSX dropped the space in `</strong> For` inside a wrapped paragraph. An explicit `{" "}` is the
   reliable fix.
 
+*End of session, same day:* the user reported being unable to log in as a student. The API was
+checked directly and works: login 200 with a cookie, CORS allowed, `/session` correct. The cause
+is still open, waiting for the message the user sees. The likely causes are listed under "Open
+threads" in `AGENTS.md` §2. The user asked for everything to be stored so a new session can pick
+up from the folder alone. That's `AGENTS.md` §2 (open threads) plus this file.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

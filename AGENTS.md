@@ -158,6 +158,27 @@ dark mode, login rate-limiting, a 30-student load test). When lessons resume,
 dev machine, so the doubt chat answers 503 there (§9z). It's a security setting or a reinstall of
 `grpcio`, so it's the user's call; don't change it from code.
 
+**Open threads at the end of the 2026-10-02 session (check these first):**
+1. **"I am unable to log in to the student account": unresolved, waiting on the user.** The
+   server was verified healthy: `POST /api/auth/login` for a known student gave 200 with a
+   `Set-Cookie`, the CORS headers allow `http://localhost:3000`, and `/api/auth/session` returned
+   the student. The user hasn't yet said which message the login page shows. Likely causes, in
+   order: a wrong password or username (accounts in the local DB: `niranjan_207` and
+   `demo_student`, self-signup; `aarav.k`, `meera.i` and `kabir.s` in the demo teacher's class);
+   opening `127.0.0.1:3000` instead of `localhost:3000` (CORS and cookies fail → "Can't reach
+   EcoLearn"); using `/teacher/login` for a student. A self-signup student can't be reset by a
+   teacher. If the user has forgotten `niranjan_207`'s password, offer a one-off local reset
+   through `store.update_student_password` + `passwords.hash_password`, with their go-ahead.
+2. **The user's API was running on the system Python** (`WindowsApps\…\Python 3.12`), not
+   `venv`. It worked, but tell them to start it with
+   `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`.
+3. **Local test data in `data/progress.db`** (gitignored, never pushed): teacher `demo.teacher`
+   and the class "Demo 11-B" with three students, made while verifying §9z. Their passwords were
+   shown once in that session and are gone. Use `scripts/create_teacher.py` for a fresh teacher,
+   and a teacher's "Reset password" for the demo students.
+4. **Work happens on two machines.** A teammate (GitHub `M-u-r-a-r-i`) also runs lesson batches
+   (§9v). `git pull --ff-only` before starting anything, and agree who takes which batches.
+
 **Open with the user, don't decide alone:**
 1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
    finish cricket, football and gaming first and leave smartphones and motorsport until after the
