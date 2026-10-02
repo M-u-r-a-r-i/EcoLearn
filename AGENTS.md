@@ -16,20 +16,23 @@
 
 ## 1. What this is, in one paragraph
 
-**EcoLearn is a personalised AI tutor for CBSE/ISC Class 11 Physics (Kinematics).** A student
-picks an interest — today football or gaming — and every concept is taught through analogies
-grounded in that interest, with the physics kept correct by an automated critic. It is full-stack:
-**FastAPI + Next.js** (primary) with **Streamlit** kept as a legacy UI over the same backend.
-The curriculum spans the full Class 11 + 12 syllabus for CBSE and ISC (29 chapters, 249 concepts).
-Lessons are being written for an agreed subset — **14 chapters × 5 interests**, "explain" format
-first — batch by batch (§2, `data/content_scope.yaml`).
+**EcoLearn is a personalised AI tutor for CBSE/ISC Class 11 and 12 Physics.** A student picks an
+interest (cricket, football, gaming, smartphones, motorsport) and their hobbies, and takes a
+five-minute **starting check**. Every concept is taught through a **pre-written, reviewed lesson**
+in their interest. The check's answers reveal **misconceptions**, so the roadmap skips what they
+know and points at what to fix. **AI agents** add a short **personal story** around one of their
+hobbies on top of the reviewed lesson, and help **teachers** plan the next class from the data.
+It is full-stack: **FastAPI + Next.js** (primary), with **Streamlit** kept as a legacy UI over the
+same backend. The curriculum is the full Class 11 + 12 syllabus for both boards (29 chapters, 249
+concepts); lessons exist for an agreed subset, **14 chapters × 5 interests** (`data/content_scope.yaml`).
 
 The one architectural fact everything depends on:
 
 > **All logic lives behind `src/platform_api.py`, which returns plain JSON-serializable dicts.
 > Every frontend calls only that boundary.**
 
-*(The project is a physics tutor despite the "EcoLearn" name — a holdover. Don't rename it.)*
+*(The project is a physics tutor despite the "EcoLearn" name, a holdover. Don't rename ids or the
+repo; whether to change the display name for the finals is an open question for the user.)*
 
 ---
 
@@ -37,191 +40,168 @@ The one architectural fact everything depends on:
 
 ### Your first session — do these in order, before writing any code
 
-1. **Read `PROJECT_HISTORY.md` and `ROADMAP.md` in full.** This file is the summary; those two
-   are the substance.
-2. **Check the handoff state:** `git status` and `git log --oneline -5`. **If there are
-   uncommitted changes you didn't make, they are the handoff — never `reset`, `checkout .`,
-   `stash drop` or `clean` them.** Work is normally committed and pushed at the end of each chunk
-   (§5), but the latest work may still exist only in the working tree.
+1. **Read `PROJECT_HISTORY.md` §9 onwards (newest last) and `ROADMAP.md` §0.** This file is the
+   summary; those are the substance. (`PROJECT_HISTORY.md` §1–§7 describe the project as of
+   2026-09-21 and are partly out of date; trust §9+ and this file.)
+2. **Check the handoff state:** `git pull --ff-only`, then `git status` and `git log --oneline -5`.
+   **If there are uncommitted changes you didn't make, they are the handoff — never `reset`,
+   `checkout .`, `stash drop` or `clean` them.**
 3. **Run the deterministic suite (§6).** All of it should pass. If anything fails, stop and tell
-   the user before building on top — something changed since the handoff.
-4. **Tell the user, in a few sentences, what you understood** — where the project is, the next
-   action, and anything that looked inconsistent. Let them correct you before you start.
-5. Then begin the next action below.
+   the user before building on top.
+4. **Remind the user about the OmniRoute setup** (they asked to be reminded; see "Machine issues").
+5. **Tell the user, in a few sentences, what you understood** — where the project is, the choices
+   for the next step (below), anything inconsistent — and let them pick before you start.
 
-### The goal — a 10-day sprint (set by the user, 2026-09-21)
+### The goal
 
-**Hackathon finals (HackAStone, Amsterdam): 2026-10-29. The build must be finished by
-2026-09-30** so it can be pilot-tested on real school students in October. The sprint plan of
-record is **`ROADMAP.md` §0** — it supersedes the milestone order below wherever they conflict.
+**HackAStone 2026 finals: 2026-10-29**, at the *AI for Education Holland* conference (VU
+Amsterdam, 29–30 Oct; NTU Singapore is on the organising committee; conference theme "Research
+meets Practice": evidence, responsible AI, classroom adoption). **Contest theme: "Agentic AI for
+Education". The final is a 15-minute presentation**; judging criteria are not published. Before
+that, a **pilot with real school students in October**, whose numbers go in the pitch. (The original
+build deadline, 2026-09-30, has passed; work continues toward the pilot and the finals.)
 
-User decisions (2026-09-21) — don't re-litigate them:
+### User decisions — don't re-litigate them
 
-- **Accounts: username + password, no email** (the pilot is on minors — minimal PII). The
-  auth backend was switched from email to username on 2026-09-21. No email means password
-  resets go through a teacher/admin tool.
-- **Content scope (decided 2026-09-22, replaces "all 7,470 lessons"):** the full matrix doesn't fit
-  the user's **Claude Pro** plan before the finals. The agreed subset lives in
-  **`data/content_scope.yaml`**: **14 chapters** (7 Class 11 + 7 Class 12, the "most important" set)
-  × **5 interests** (cricket, football, gaming, smartphones, motorsport). **Phase 1: the `explain`
-  format only** — 70 batches, 680 lessons, target **2026-09-28**. **Phase 2: `challenge` +
-  `misconception`** for the same set, target **2026-10-06**. The other 15 chapters and 5 interests
-  come after the finals. Students are on **CBSE and ISC** — every concept carries `boards`.
-- **Nothing is ever locked.** Prerequisites are "brush up first" hints, never gates.
-- **Every lesson opens with a story and has images** — scene illustration per chapter × interest,
-  graphs/diagrams per concept, famous images (public domain / CC only). **Never download an image
-  without the user's approval**; every famous image needs a manifest entry. See
-  `content/AUTHORING_GUIDE.md` §4a and §7a.
-- **Lessons are written by Claude Code sessions (Opus 5) straight to files — no LLM API, no GPU,
-  and no LLM critic** for static content. Quality comes from a shared authoring guide + approved
-  gold examples, a deterministic validator (format only), a random 2% review sample, and full
-  human reading of the pilot chapters.
-- **Check questions are multiple-choice** with each wrong option mapped to a misconception, so
-  grading needs **no live LLM call**.
-- **The doubt chatbot is the only live LLM feature: Gemini only.** The RTX 3090 backend is a
-  later feature — leave a placeholder, don't build it.
-- **Run locally first**; cloud hosting comes after the sprint.
+- **Accounts: username + password, no email** (the pilot is on minors — minimal PII). Password
+  resets go through the student's teacher.
+- **Content scope (2026-09-22):** **14 chapters** (7 Class 11 + 7 Class 12) × **5 interests**
+  (cricket, football, gaming, smartphones, motorsport), in `data/content_scope.yaml`. Phase 1 the
+  `explain` format; phase 2 `challenge` + `misconception`. The rest comes after the finals.
+  Students are on **CBSE and ISC** — every concept carries `boards`.
+- **Nothing is ever locked.** Prerequisites and recommendations are hints, never gates.
+- **Every lesson opens with a story and has images.** **Never download an image without the
+  user's approval**; every famous image needs a manifest entry (`content/AUTHORING_GUIDE.md` §4a, §7a).
+- **Static lessons are written by Claude Code sessions straight to files** — no LLM API for them.
+  Quality: the authoring guide + gold examples, a deterministic validator, audits of interrupted
+  batches, human reading of pilot chapters.
+- **Check questions are multiple choice**, each wrong option mapped to a misconception, graded with
+  **no LLM call**.
+- **Live AI is allowed in exactly three places** (2026-10-02): the doubt chat (`ask_help`), the
+  **teacher agent** (`generate_class_plan`) and **personal stories** (background only). Each has a
+  non-AI fallback. Anything else stays pre-generated (non-negotiable 3).
+- **New agents call models through `src/llm/`**, an OpenAI-compatible client. **For now: OmniRoute
+  and free models; the user will buy a Gemini API key once it works as planned** (then it's a
+  config change: Gemini's OpenAI-compatible URL).
+- **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
+- **Run locally first**; cloud hosting later.
 
-### Current state
+### Current state (everything committed and pushed; last commit `70850c8` or later)
 
-**Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`** (a fresh history: the user
-re-initialised it with one "Initial Commit" on 2026-09-21; the older 44-commit history described
-in `PROJECT_HISTORY.md` §8 lives in the teammate's repo). Everything below is committed and
-pushed; the working tree is normally clean.
+**Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`**. A teammate (GitHub `M-u-r-a-r-i`)
+also pushes lesson batches — always `git pull --ff-only` first.
 
-**The app works end to end, and has been clicked through in a browser** (2026-09-23): sign up →
-roadmap → pick a chapter → open any concept → read the lesson → answer the multiple-choice check →
-the roadmap shows it mastered → refresh keeps you logged in → settings → log out.
+**What a student does today** (all verified in a browser):
+sign up (2 steps) → **`/start`: the starting check** (hobbies + 8 questions with "not sure", taken
+once, its result a learning plan) → **roadmap** (chapter picker marks "coming soon" chapters;
+concepts tagged "Know it?" / "Focus"; "Next up" follows the personal recommendation) → **lesson**
+("Your story" for their hobby when one exists, the original story in a box, a "Something wrong with
+this story?" report button, 👍/👎, active reading time recorded) → **multiple-choice check**
+(misconception feedback) → progress. Plus settings, a dark/light/device theme toggle, error and 404
+pages.
 
-**Backend / boundary**
-- Accounts are **username + password** (no email): `register_student`, `authenticate_student`,
-  `get_student_profile`, `update_student_profile`, `change_password` in `src/platform_api.py`,
-  over `src/auth/passwords.py` (bcrypt) and the `students` table in `src/progress/store.py`.
-- **The breaking flip is done** (`PROJECT_HISTORY.md` §9n): `/api/roadmap`, `/api/next-lesson`,
-  `/api/assessment` and `/api/help` take the student from the session cookie
-  (`Depends(get_current_student_id)`); `student_id` is gone from their contracts and
-  `POST /api/student` is deleted. Streamlit is unaffected — it calls the boundary directly.
-- **Grading is multiple choice with no LLM** (§9q): `submit_assessment` takes the option letter
-  and checks it against the answer key in the lesson file. Correct → 3, wrong → 0; feedback is the
-  lesson's own explanation plus that option's misconception. The key never reaches the browser.
-  Legacy JSON lessons still use the Assessor. `tests/test_mcq_grading.py` (24 checks) pins this.
-- `get_next_lesson` also returns `lesson.sections` and `lesson.check` (options, no answer).
-- **Pilot metrics** (§9za): `lesson_views` (active reading time), `answers` (every pick, with
-  attempt number and misconception) and `lesson_ratings` (👍/👎) tables; the teacher's class page
-  shows first-try accuracy, the most common misconceptions and per-interest numbers.
-  `scripts/pilot_report.py [--csv DIR]` covers every class, pseudonymised. `tests/test_pilot_metrics.py`.
-- **Personalisation** (§9zd): the starting check (`data/diagnostic.yaml`, `src/learner/`, `/start`
-  right after signup, taken once) and the learning plan (focus mix-ups, likely-known concepts, a
-  suggested start). Recommendations go through `_recommend` in the boundary, on top of the
-  unchanged engine; no check taken = the old behaviour exactly. The curriculum is now parsed once
-  and cached (`engine._load_subject`).
-- `list_interests()` offers the **five in-scope interests** with `chapters_ready` /
-  `chapters_total` (§9r), read from `data/content_scope.yaml` via `src/curriculum/scope.py`.
-- **Teacher tools** (§9z): separate `teachers` / `classes` tables, a `tch_…` id that every
-  student endpoint refuses. A teacher creates a class from pasted names (generated usernames and
-  passwords, shown **once**, printable slips), adds latecomers, sees progress, and resets passwords
-  **only in their own classes** (anything else → 404). Teacher accounts are created **only on the
-  server**: `venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`.
-  `GET /api/auth/session` returns `{role, profile}`. `tests/test_teacher.py` (60 checks).
-- **`ask_help` imports the chat pipeline lazily** (§9z): a broken chat dependency now means a
-  503 from the chat only, never a dead API.
+**What a teacher does today:** accounts are created on the server only
+(`venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`). A teacher creates a
+class from pasted names (printable login slips, passwords shown once) and resets passwords (which
+also lifts a login lockout). **`/teacher/class`** has:
+- the **Teaching assistant**, a tool-calling agent that plans the next lesson; it sees students
+  only as S1, S2…, and falls back to a labelled rules plan;
+- **insights**: first-try accuracy, the most common misconceptions (counted per student), concepts
+  hardest-first, and results by interest;
+- **personal stories**: read, hide or restore them, with students' reports first;
+- the students table.
 
-**Content**
-- `data/curriculum/physics.yaml`: 29 chapters / 249 concepts, CBSE 2025-26 + ISC, global sparse
-  ordering, `grade` + `domain` + `boards`. Never rename an id.
-- **642 authored lessons, all valid** (`scripts/validate_lessons.py`). Phase 1 (`explain`) is at
-  **62/70 batches**. Coverage by interest: **cricket, football, gaming 14/14 chapters,
-  smartphones 13, motorsport 7**. Left: `ray_optics:smartphones` and motorsport × the seven
-  Class 12 chapters. Every chapter in scope has its interest-neutral figures, so all remaining
-  batches reuse figures and only add a scene.
-- `content/AUTHORING_GUIDE.md` is the contract for writing lessons. **§7 changed on 2026-09-23**
-  (user feedback: worked examples were "hard to visualize") — few, round, picturable numbers, one
-  quantity per step, a plain-sentence sanity check. §7a: shared figures must not print
-  batch-specific numbers.
-- Famous images live in `data/media/famous/` with a manifest entry each; 8 approved so far.
-  **Never download one without asking the user.**
+**Where things live** (each with its `PROJECT_HISTORY.md` entry):
 
-**Frontend (`web/`)**
-- `lib/api.ts`: one `request()` wrapper (cookie credentials, `ApiError`, timeouts, 401 hook,
-  friendly messages). No function takes a student id.
-- `components/auth-provider.tsx` (loading | authenticated | unauthenticated, plus `role`:
-  student | teacher, hydrated from `/api/auth/session`), `require-auth.tsx` (`role` prop) + the
-  `app/(app)/` route group for students, `app/teacher/(dashboard)/` for teachers.
-- `/login`, two-step `/signup` (replaces the deleted `/onboarding`), `/settings`.
-- `/teacher/login`, `/teacher` (classes + create a class), `/teacher/class?id=` (students,
-  progress, password reset, add students), `/teacher/account`. Shared bits in
-  `components/teacher-ui.tsx` (the show-once credentials sheet with print-only slips).
-- Roadmap with a chapter picker over all 29 chapters (`?chapter=`); every concept card opens its
-  lesson (`?concept=`).
-- The lesson page renders section by section and **collapses the worked example and "Where the
-  picture breaks" behind a click** (user feedback, §9q). The check page is a radio group.
+| Area | Files | § |
+|---|---|---|
+| Boundary (all logic) | `src/platform_api.py` | — |
+| Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
+| Personal stories (writer + critic agents) | `src/learner/personal_story.py`, `prompts/personal_story_*.txt` | 9ze, 9zf |
+| LLM client (OpenAI-compatible, OmniRoute) | `src/llm/client.py`, `.env.example` (LLM_* vars) | 9ze |
+| Teacher agent | `src/agents/teacher_agent.py`, `prompts/teacher_agent.txt` | 9zc |
+| Pilot metrics + dashboards | `src/progress/metrics.py`, `scripts/pilot_report.py` | 9za |
+| Chapter coverage / coming soon | `lesson_service.concepts_with_lessons` | 9zb |
+| Login rate limiting | `api/ratelimit.py` | 9zg |
+| Caches (parsed files, scans, schema) | `src/file_cache.py`, `lesson_service`, `store._connect` | 9zh |
+| Load test (30 students at once) | `scripts/load_test.py` (p95 ≈ 1.2 s, 0 errors) | 9zh |
+| Theme, toasts, error pages | `web/components/{theme-toggle,toast}.tsx`, `web/app/{error,not-found,global-error}.tsx` | 9zg, 9zi |
+| 127.0.0.1 vs localhost fix | `web/next.config.ts`, `web/lib/api.ts` (API_URL) | 9zj |
 
-**The finals (researched 2026-10-02):** HackAStone 2026, theme **"Agentic AI for Education"**,
-final at the *AI for Education Holland* conference (VU Amsterdam, 29–30 Oct 2026; NTU Singapore is
-on the organising committee; conference theme "Research meets Practice": evidence, responsible AI,
-classroom adoption). **15-minute presentation.** Judging criteria are not published.
+**Content:** `data/curriculum/physics.yaml` (29 chapters / 249 concepts; never rename an id).
+**642 authored lessons, all valid.** Phase 1 (`explain`) is at **62/70 batches**: cricket,
+football, gaming 14/14 chapters; smartphones 13; motorsport 7. `scripts/batch_status.py` names the
+next batch (the batch procedure is below). Famous images: `data/media/famous/`, 8 approved.
 
-**-> YOUR NEXT ACTION (user, 2026-10-02): improve the project; lessons resume later.** The
-user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception dashboard~~ (done,
-§9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → ~~chapter picker
-fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → ~~layer 3,
-personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** and set `LLM_*` in
-`.env`, then verify a live story) → **robustness & polish** (§9zg: rate limiting, error pages,
-logout fix; §9zh: the 30-student load test passes — p95 1.2 s; §9zi: dark mode, toasts, AA
-colours — the robustness list is done) (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
-30-student load test). When lessons resume,
-`scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
+**Not built or not verified yet** (honest list):
+- **No live AI run has happened.** Personal stories and the teacher agent are tested against mocks
+  only. The "being written…" polling state is unverified in a browser.
+- The doubt chat is broken on this machine (see below), and takes ~2 min when it works.
+- "Mastered" after one multiple-choice answer overclaims; the teacher dashboard uses first-try
+  accuracy to compensate. The starting-check results (the pilot's "before" picture) are in
+  `pilot_report` but not on the teacher dashboard.
+- The landing page (`web/app/page.tsx`) is generic and says nothing about physics. `README.md` is
+  out of date. Streamlit doesn't have any of the October features.
+- Phase 2 lesson formats (`challenge`, `misconception`): 2 of 70 batches.
 
-**Machine issues to raise with the user:**
-- **OmniRoute is not installed** (checked 2026-10-02: nothing on `localhost:20128`). Installing a
-  global npm package is the user's step. Until then `LLM_MODEL` is unset and no story is written.
-  **The user asked to be reminded to set it up later** (2026-10-02): raise it at the start of the
-  next session and before any demo or pilot prep.
-- Windows Application Control blocks `grpc`'s DLL on the dev machine, so the doubt chat answers 503
-  there (§9z). It's a security setting or a reinstall of `grpcio`, so it's the user's call; don't
-  change it from code.
-- **The `GEMINI_API_KEY` in `.env` is rejected (401)**, both as an AI Studio key and as a Vertex
-  express key (it starts `AQ.`; AI Studio keys start `AIza`). Checked 2026-10-02. Until the user
-  puts a working key in `.env`, the teacher agent serves its rules-based fallback and the doubt
-  chat can't answer. Never print or commit the key.
+### -> YOUR NEXT ACTION: ask the user which of these to do (they choose the order)
 
-**Open threads at the end of the 2026-10-02 session (check these first):**
-1. **"I am unable to log in" — FIXED 2026-10-02 (§9zj):** the cause was opening `127.0.0.1:3000`; both hosts now work. Notes kept below for history. The
-   server was verified healthy: `POST /api/auth/login` for a known student gave 200 with a
-   `Set-Cookie`, the CORS headers allow `http://localhost:3000`, and `/api/auth/session` returned
-   the student. The user hasn't yet said which message the login page shows. Likely causes, in
-   order: a wrong password or username (accounts in the local DB: `niranjan_207` and
-   `demo_student`, self-signup; `aarav.k`, `meera.i` and `kabir.s` in the demo teacher's class);
-   opening `127.0.0.1:3000` instead of `localhost:3000` (CORS and cookies fail → "Can't reach
-   EcoLearn"); using `/teacher/login` for a student. A self-signup student can't be reset by a
-   teacher. If the user has forgotten `niranjan_207`'s password, offer a one-off local reset
-   through `store.update_student_password` + `passwords.hash_password`, with their go-ahead.
-2. **The user's API was running on the system Python** (`WindowsApps\…\Python 3.12`), not
-   `venv`. It worked, but tell them to start it with
-   `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`.
-3. **Local test data in `data/progress.db`** (gitignored, never pushed): teacher `demo.teacher`
-   and the class "Demo 11-B" with three students, made while verifying §9z; teacher
-   `metrics.check` and "Metrics check 11-A" (`test.o`, `test.t`, `test.t2`), made while verifying
-   §9za; student `start.check` (§9zd) — exclude them from real pilot numbers, or delete them
-   before the pilot. Their passwords were
-   shown once in that session and are gone. Use `scripts/create_teacher.py` for a fresh teacher,
-   and a teacher's "Reset password" for the demo students.
-4. **Work happens on two machines.** A teammate (GitHub `M-u-r-a-r-i`) also runs lesson batches
-   (§9v). `git pull --ff-only` before starting anything, and agree who takes which batches.
+The user's improvement list from 2026-10-02 is **done** (teacher tools → pilot metrics → chapter
+picker → teacher agent → personalisation layers 1–3 → story review → robustness & polish).
+Candidates for next, roughly by value for the finals:
+1. **OmniRoute setup + the first live run** (with the user): install it, pick a tool-calling
+   model from `/v1/models`, set `LLM_BASE_URL` / `LLM_MODEL` in `.env`, then read the first real
+   personal stories and a real teacher plan for quality before any student sees them.
+2. **Finals prep:** a 15-minute demo script, a seeded demo class with realistic data (so the
+   dashboards aren't empty on stage), the pitch's "agentic" story (writer + critic + teacher
+   assistant, with their guardrails), a landing page that says what EcoLearn is.
+3. **Pre-pilot cleanup:** delete the local test accounts (below), set `ECOLEARN_JWT_SECRET`,
+   parental consent forms and a one-page data policy (minors; India's DPDP Act), the teacher
+   accounts for the school.
+4. **Lessons:** the 8 phase-1 batches left (motorsport × 7 Class 12 chapters,
+   `ray_optics:smartphones`) — first settle the scope question below.
 
-**Open with the user, don't decide alone:**
-0. **The product vision (user, 2026-10-02):** "during signup the student takes an assessment that
-   tells us their knowledge, interests and hobbies; we then generate specialised content for them,
-   and personalise the chapters based on their interaction with the app." Three layers (§9zc).
-   **All three layers are built** (§9zd: starting check, learning plan, recommendations; §9ze:
-   personal stories via `src/llm/` and OmniRoute, the original story in a collapsible box; §9zf:
-   students report a story with fixed reasons, teachers read/hide/restore them on `/teacher/class`).
-1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
-   finish cricket, football and gaming first and leave smartphones and motorsport until after the
-   finals; the user has not ruled either way.
-2. **Famous images requested but not yet approved:** Volta (electric_potential), Faraday
-   (capacitance / dielectrics), Joule (kinetic_energy / power), de Broglie — de Broglie was
-   **rejected** on licence grounds (unknown author, 1929, source only "believes" it is PD).
+### Machine issues to raise with the user
+
+- **OmniRoute is not installed** (nothing on `localhost:20128`, checked 2026-10-02). **The user
+  asked to be reminded to set it up.** Installing a global npm package is their step. Until then
+  `LLM_MODEL` is unset and no story is written. Advise connecting real free tiers inside OmniRoute
+  (AI Studio key, Groq, OpenRouter free) rather than its keyless web-scraping pools.
+- **The `GEMINI_API_KEY` in `.env` is rejected (401)** both as an AI Studio key and as a Vertex
+  express key (it starts `AQ.`; AI Studio keys start `AIza`). Never print or commit it.
+- **Windows Application Control blocks `grpc`'s DLL**, so the doubt chat answers 503 here (§9z).
+  A machine setting or a `grpcio` reinstall: the user's call.
+- **The user often starts the API with the system Python** (`WindowsApps\…\Python 3.12`). It works;
+  recommend `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`. The web app works
+  at both `localhost:3000` and `127.0.0.1:3000` since §9zj.
+
+### Open threads
+
+1. **Local test data in `data/progress.db`** (gitignored, never pushed) — delete before the
+   pilot or exclude from its numbers:
+   - teachers `demo.teacher` ("Demo 11-B": `aarav.k`, `meera.i`, `kabir.s`) and `metrics.check`
+     ("Metrics check 11-A": `test.o`, `test.t`, `test.t2`);
+   - self-signup students `start.check` and `loop.check`;
+   - two hand-seeded personal stories (model "ui-check (seeded by hand)").
+
+   Passwords were never written to the repo. Use `scripts/create_teacher.py` for a fresh teacher,
+   and a teacher's "Reset password" for class students. The user's own accounts are `niranjan_207`
+   and `demo_student` (self-signup; only a local reset via `store.update_student_password`, with
+   their go-ahead).
+2. **Two machines:** pull first, and agree with the teammate who takes which lesson batches.
+
+### Open with the user, don't decide alone
+
+1. **Scope:** finish all five interests (~36 more batches incl. phase 2), or finish cricket,
+   football and gaming first and leave smartphones and motorsport until after the finals? Not yet
+   ruled on.
+2. **Famous images requested, not yet approved:** Volta (electric_potential), Faraday
+   (capacitance / dielectrics), Joule (kinetic_energy / power). De Broglie was **rejected** on
+   licence grounds.
+3. **The display name** "EcoLearn" (reads as sustainability) for the finals: their call.
+4. **Agentic features in the demo:** which live AI pieces to show on stage, given the free-model
+   setup's reliability.
+
 ### How to run a lesson batch (the standard procedure)
 
 1. **Check the plan limits** with the `get_usage` tool (ccd session management). One batch costs
@@ -408,8 +388,8 @@ for any of it.
 
 **You do NOT need a Gemini API key** to write lessons, serve them, or answer check questions:
 grading is multiple choice against the lesson file, and lessons are written by Claude Code sessions
-straight to disk. The key is only for the doubt chat (`ask_help`), which is the one live LLM
-feature. Without it, every other part of the app still works.
+straight to disk. Live AI (doubt chat, teacher agent, personal stories) needs a model: `LLM_*` for OmniRoute
+(see `.env.example`) or a Gemini key. Without one, every feature falls back and the app still works.
 
 **Everything is in git except local, regenerable things.** A fresh clone gives you all lessons,
 images, curriculum, code and docs. `venv/`, `chroma_db/`, `data/progress.db` (your local accounts

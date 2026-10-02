@@ -9,8 +9,14 @@
 > **Companion file:** [`ROADMAP.md`](ROADMAP.md) — everything still to be done (the v2 plan).
 > **Evaluator-facing overview:** [`README.md`](README.md).
 >
-> History closes at: **2026-09-21**. Repo: github.com/Niranjan-207/EcoLearn, branch `main` (fresh
-> history from 2026-09-21; the original 44 commits in §8 live in the teammate's repo).
+> Repo: github.com/Niranjan-207/EcoLearn, branch `main` (fresh history from 2026-09-21; the
+> original 44 commits in §8 live in the teammate's repo).
+>
+> **How to read this file.** §1–§8 describe the project as it stood on **2026-09-21** and are partly
+> out of date (e.g. "football or gaming", "auth in progress", "34 lessons"). **§9 onwards is a
+> dated log, newest last, through 2026-10-02 (§9zj)** — that, plus `AGENTS.md` §2 (current state,
+> next steps, open threads), is the truth. §10–§14 (decisions, lessons, gotchas, conventions) still
+> hold.
 
 ---
 
@@ -2040,3 +2046,21 @@ Test account `loop.check` was added to the local DB.
 
 **Learned.** "The page just refreshes" on a form means the client JavaScript never ran. Check
 whether React is attached to the form (`__react*` keys) before suspecting the API.
+
+## 9zk. Handoff: everything a new session needs, in the folder (2026-10-02)
+
+The user is continuing in another session. **Changed:**
+- `AGENTS.md` §1–§2 rewritten from the actual state, replacing a pile of crossed-out steps:
+  - what a student and a teacher can do today;
+  - a "where things live" table (file → history entry);
+  - the decisions as they now stand (three live-AI exceptions, OmniRoute now / Gemini key later,
+    personal story first with the original in a collapsible box);
+  - an honest "not built or not verified" list and four candidate next steps for the user to
+    choose from;
+  - machine issues, including the OmniRoute reminder the user asked for;
+  - local test accounts (no passwords in the repo) and the questions still open with the user.
+- `PROJECT_HISTORY.md` header: how to read it (§1–§8 are the 2026-09-21 snapshot; §9+ is the
+  dated log).
+
+Nothing needed for the next session lives outside the folder, apart from the gitignored local
+pieces listed in AGENTS.md §6 (`.env`, `data/progress.db`, `venv/`, `.claude/launch.json`).
