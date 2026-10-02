@@ -9,10 +9,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, ChevronRight, Lightbulb } from "lucide-react";
+import { ArrowRight, ChevronRight, Lightbulb, ThumbsDown, ThumbsUp } from "lucide-react";
 
-import { getNextLesson, type NextLesson } from "@/lib/api";
+import { getNextLesson, type LessonRating, type NextLesson } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
+import { useLessonView } from "@/lib/use-lesson-view";
+import { useAuth } from "@/components/auth-provider";
+import { cn } from "@/lib/utils";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Markdown } from "@/components/markdown";
@@ -36,6 +39,10 @@ function LessonView() {
   const { data, loading, error } = useFetch<NextLesson>(`${chapterId}|${conceptParam ?? ""}`, () =>
     getNextLesson(chapterId, conceptParam),
   );
+  // Pilot metrics: the open, the reading time and the 👍/👎. Called before any
+  // early return (hooks must run in the same order every render).
+  const lessonView = useLessonView(loading || !data?.lesson ? null : data.lesson.concept_id);
+  const { student } = useAuth();
 
   if (loading) return <LessonSkeleton />;
 
@@ -143,6 +150,14 @@ function LessonView() {
           </details>
         ))}
 
+        {/* Did the interest-based explanation work? The pilot's core question. */}
+        <RateLesson
+          interest={student?.interest}
+          rating={lessonView.rating}
+          onRate={lessonView.rate}
+          failed={lessonView.ratingError}
+        />
+
         {/* Check question — the multiple-choice check lives on its own page */}
         {(lesson.check || lesson.check_question?.trim()) && (
           <Card className="border-primary/20 bg-card shadow-card">
@@ -164,6 +179,63 @@ function LessonView() {
         <HelpWidget conceptId={lesson.concept_id} />
       </PageContainer>
     </main>
+  );
+}
+
+// 👍 / 👎 for the lesson. Two toggle buttons (aria-pressed), so a screen reader
+// says "Helpful, toggle button, pressed". Pressing the active one clears it.
+function RateLesson({
+  interest,
+  rating,
+  onRate,
+  failed,
+}: {
+  interest?: string;
+  rating: LessonRating;
+  onRate: (rating: LessonRating) => void;
+  failed: boolean;
+}) {
+  const choices = [
+    { value: 1 as const, label: "Yes, it helped", Icon: ThumbsUp, on: "border-success bg-success/10 text-success" },
+    { value: -1 as const, label: "Not really", Icon: ThumbsDown, on: "border-destructive bg-destructive/10 text-destructive" },
+  ];
+  return (
+    <section
+      aria-label="Rate this lesson"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="font-medium text-foreground">
+        Did the {interest ? <span className="capitalize">{interest}</span> : "story"} explanation
+        work for you?
+      </p>
+      <div className="flex gap-2">
+        {choices.map(({ value, label, Icon, on }) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={rating === value}
+            onClick={() => onRate(value)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              rating === value ? on : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            )}
+          >
+            <Icon className="size-4" aria-hidden />
+            {label}
+          </button>
+        ))}
+      </div>
+      {failed && (
+        <p role="status" className="text-sm text-destructive sm:basis-full">
+          Couldn&apos;t save that — try again.
+        </p>
+      )}
+      {!failed && rating !== 0 && (
+        <p role="status" className="sr-only">
+          Thanks, saved.
+        </p>
+      )}
+    </section>
   );
 }
 

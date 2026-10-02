@@ -21,6 +21,7 @@ GET vs POST (the rule of thumb used below)
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request, Response, status
@@ -150,6 +151,19 @@ class HelpRequest(BaseModel):
 
     concept_id: str
     question: str
+
+
+class LessonViewRequest(BaseModel):
+    """Body for POST /api/lesson-views."""
+
+    concept_id: str
+
+
+class RatingRequest(BaseModel):
+    """Body for POST /api/lesson-ratings: 1 = 👍, -1 = 👎, 0 = clear."""
+
+    concept_id: str
+    rating: int
 
 
 class CreateClassRequest(BaseModel):
@@ -328,6 +342,14 @@ def teacher_add_students(
     return api.add_students_to_class(teacher_id, class_id, payload.roster, payload.interest)
 
 
+@app.get("/api/teacher/classes/{class_id}/insights")
+def teacher_class_insights(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """Pilot metrics and the misconception view for one of this teacher's classes."""
+    return api.get_class_insights(teacher_id, class_id)
+
+
 @app.post("/api/teacher/students/{student_id}/reset-password")
 def teacher_reset_password(
     student_id: str,
@@ -409,6 +431,50 @@ def submit_assessment(
         concept_id=payload.concept_id,
         answer=payload.answer,
     )
+
+
+# ---------------------------------------------------------------------------
+# Pilot metrics: lesson opens, reading time, 👍/👎. (Answers are logged by
+# /api/assessment.) All tied to the session's student, like everything above.
+# ---------------------------------------------------------------------------
+@app.post("/api/lesson-views", status_code=status.HTTP_201_CREATED)
+def start_lesson_view(
+    payload: LessonViewRequest,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
+    """The student opened a lesson. Returns a view id to report reading time against."""
+    return api.start_lesson_view(student_id, payload.concept_id)
+
+
+@app.post("/api/lesson-views/{view_id}/time")
+async def record_lesson_time(
+    view_id: str,
+    request: Request,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
+    """Report the running total of active seconds on a lesson view.
+
+    The body is JSON, {"active_seconds": 42}, but deliberately accepted with any
+    content type: the browser sends it with `fetch(..., {keepalive: true})` as
+    text/plain while the page is closing, and text/plain is the only way to do a
+    cross-origin request without a CORS preflight, which a closing page has no
+    time for.
+    """
+    try:
+        body = json.loads(await request.body() or b"{}")
+        seconds = body["active_seconds"]
+    except (ValueError, KeyError, TypeError):
+        raise EcoLearnError('Send {"active_seconds": <number>}.') from None
+    return api.record_lesson_time(student_id, view_id, seconds)
+
+
+@app.post("/api/lesson-ratings")
+def rate_lesson(
+    payload: RatingRequest,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
+    """👍 (1) / 👎 (-1) for the lesson in the student's interest; 0 clears it."""
+    return api.rate_lesson(student_id, payload.concept_id, payload.rating)
 
 
 @app.post("/api/help")

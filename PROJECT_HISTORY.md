@@ -1375,6 +1375,73 @@ is still open, waiting for the message the user sees. The likely causes are list
 threads" in `AGENTS.md` §2. The user asked for everything to be stored so a new session can pick
 up from the folder alone. That's `AGENTS.md` §2 (open threads) plus this file.
 
+## 9za. Pilot metrics and the misconception dashboard (2026-10-02)
+
+Second of the user's three improvement steps (teacher tools → **pilot metrics** → polish). The
+user also set the finals context: **HackAStone 2026, theme "Agentic AI for Education"**, final at
+the *AI for Education Holland* conference (VU Amsterdam, 29–30 Oct 2026; organising committee
+includes NTU Singapore; conference theme "Research meets Practice"), **15-minute presentation**.
+
+**Changed.**
+- `src/progress/store.py`: three new tables, created in `_connect()` (additive):
+  `lesson_views` (open time + active seconds), `answers` (every MCQ pick, attempt number, the
+  misconception its option names), `lesson_ratings` (one 👍/👎 per student × concept × interest).
+  Each row records the student's interest *at the time*. Functions: `create_lesson_view`,
+  `set_lesson_view_seconds` (MAX, never lowers), `record_answer`, `set/get_lesson_rating`,
+  `get_activity`, `list_all_students`.
+- `src/progress/metrics.py` (new): `class_insights()`, a pure function over rows → summary,
+  misconceptions (grouped by concept × interest × option, counted in *students*, share out of
+  those who answered), concepts hardest-first, per interest, per student.
+- `src/platform_api.py` §4b: `start_lesson_view`, `record_lesson_time` (clamped to time since
+  opening and 30 min), `rate_lesson`, `get_class_insights` (own classes only; includes question,
+  chosen and right option text), `pilot_report` (all classes, students → S001…, classes → C01…).
+  `_grade_multiple_choice` logs every pick and returns `attempt_no`.
+- `api/main.py`: `POST /api/lesson-views`, `POST /api/lesson-views/{id}/time`,
+  `POST /api/lesson-ratings` (student session), `GET /api/teacher/classes/{id}/insights`.
+- `scripts/pilot_report.py` (new): the cross-class "admin" view — prints the headline numbers,
+  top misconceptions, hardest concepts and per-interest table; `--csv DIR` exports pseudonymised
+  rows for analysis. Read-only, server-only.
+- Web: `lib/use-lesson-view.ts` (active-time tracker), a "Did the cricket explanation work for
+  you?" 👍/👎 on the lesson page, `components/class-insights.tsx` (tiles, "What your class is
+  getting wrong", concepts hardest first, by interest) on `/teacher/class`, and *Reading* and
+  *Right first time* columns in the student table.
+- `tests/test_pilot_metrics.py` (new): **56 checks**.
+
+**Why these shapes.**
+- **First-try accuracy is the headline, not "mastered".** After a wrong pick the app reveals the
+  right answer, so a retry is nearly free; `progress.best_score` would make every class look
+  brilliant. `answers.attempt_no == 1` is the honest measure.
+- **Active time, not open time.** The tracker counts 5-second ticks only while the tab is visible
+  and the student has scrolled/typed/touched in the last 2 minutes; the server clamps every view to
+  the time since it opened and to 30 minutes. A tab left open over lunch can't become "an hour of
+  reading" — the number has to survive a sceptical judge.
+- **The time report is `fetch(keepalive)` with `text/plain`**, a CORS "simple request": no
+  preflight, which a closing page wouldn't wait for. The endpoint parses the JSON itself.
+- **The view starts after 2 s on screen.** Skips accidental opens and makes React's dev
+  double-mount harmless (verified: one `POST /api/lesson-views` per open).
+- **Insights load separately from the class list**, so a failing query never hides the password
+  reset button a teacher may urgently need.
+- **The export is pseudonymised at the boundary**, because the pilot is on minors and the data
+  will be analysed by people outside the school.
+
+**Verified in the browser** against the running dev servers with a throwaway teacher
+(`metrics.check`) and class ("Metrics check 11-A", three students) in the local DB: one view per
+lesson open, heartbeat and leave-page time reports (no OPTIONS preflight), 👍 saved, wrong then
+right answers logged with attempt numbers, and the class page showing 3/3 active, 33% right first
+time, 67% helpful, the cricket misconception "2 of 2 students" with the question in KaTeX, and the
+per-interest split. Student login on `localhost:3000` worked with a class account. `tsc`, lint and
+all 13 test scripts are clean; `npm run build` was skipped because the user's `next dev` was
+running.
+
+**Learned.**
+- The `answers` table should have existed from the day MCQ grading landed (§9q): `progress` keeps
+  only the best score, so every wrong pick made before today is gone. Metrics that matter for the
+  pitch need raw events, not just the current state.
+- `form_input` on a visually hidden (`sr-only`) radio sets the DOM value but not React's state;
+  clicking the visible option label is the reliable way to drive it.
+- `tests/test_auth.py` crashes with `UnicodeEncodeError` when stdout is redirected on Windows (it
+  prints `→` in cp1252). Not a test failure; run with `PYTHONIOENCODING=utf-8`.
+
 ## 10. Key decisions and why
 
 1. **Google Gemini/Gemma via `google-genai`** (not the deprecated `google-generativeai`). Gemma

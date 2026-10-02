@@ -19,6 +19,11 @@ to the platform through exactly these five functions and nothing else:
     submit_assessment(student_id, concept_id, answer) -> grade + new mastery
     ask_help(student_id, concept_id, question)    -> live tutor answer
 
+    PILOT METRICS (no model calls)
+    start_lesson_view / record_lesson_time / rate_lesson  -> student-side logging
+    get_class_insights(teacher_id, class_id)      -> a teacher's dashboard data
+    pilot_report()                                -> every class, pseudonymised
+
 These functions orchestrate the internal subsystems — the path engine
 (src/path), the lesson read-service (src/content), the progress store
 (src/progress), the assessor, and the live generate→critic→polish pipeline.
@@ -36,6 +41,7 @@ import re
 import sqlite3
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 from typing import Any
 
 from src.agents.assessor import grade_answer
@@ -46,7 +52,7 @@ from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
 from src.path import engine
-from src.progress import store
+from src.progress import metrics, store
 # src.pipeline (the doubt chat's generate→critic loop and its RAG index) is
 # imported lazily inside ask_help — see the note there.
 
@@ -814,6 +820,7 @@ def _grade_multiple_choice(
     concept_id: str,
     answer: str,
     authored: Any,
+    interest: str,
 ) -> dict[str, Any]:
     """Grade one multiple-choice pick against an authored lesson's answer key.
 
@@ -821,6 +828,10 @@ def _grade_multiple_choice(
     into the lesson file, so this is pure lookup. `answer` is the option letter;
     anything else is the student's mistake to fix, not a server error, so it
     raises EcoLearnError (→ 400) without touching their progress.
+
+    Every valid pick is also logged (store.record_answer) with the misconception
+    it reveals, for the teacher's misconception view. `progress` keeps only the
+    best score, which would hide what the student first got wrong.
     """
     check = authored.check
     picked = (answer or "").strip().upper()
@@ -844,9 +855,14 @@ def _grade_multiple_choice(
         ).strip()
 
     updated = store.update_progress(student_id, concept_id, score)
+    logged = store.record_answer(
+        student_id, concept_id, interest, picked, correct,
+        None if correct else (check.misconceptions.get(picked) or "").strip() or None,
+    )
     return {
         "concept_id": concept_id,
         "score": score,
+        "attempt_no": logged["attempt_no"],
         "mastery_signal": "mastered" if correct else "not_yet",
         "feedback": feedback,
         "missing_concepts": [],
@@ -911,7 +927,9 @@ def submit_assessment(
 
     authored = lesson_service.get_authored_lesson(concept_id, profile["interest"])
     if authored is not None:
-        return _grade_multiple_choice(student_id, concept_id, answer, authored)
+        return _grade_multiple_choice(
+            student_id, concept_id, answer, authored, profile["interest"]
+        )
 
     # Anchor the grader with the concept's name and learning objective so it
     # knows what a correct answer should demonstrate.
@@ -947,6 +965,237 @@ def submit_assessment(
         "missing_concepts": grade.get("missing_concepts", []),
         "graded_question": lesson.check_question,
         "mastery": updated,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 4b. Pilot metrics (2026-10-02)
+#
+# The evidence for the pilot: which lessons students open, how long they
+# actually read, what they get wrong first time (and which misconception that
+# reveals), and whether the interest-based explanation worked for them (👍/👎).
+#
+#   start_lesson_view(student_id, concept_id)            -> {view_id, rating, ...}
+#   record_lesson_time(student_id, view_id, seconds)     -> {view_id, active_seconds}
+#   rate_lesson(student_id, concept_id, rating)          -> {concept_id, rating, ...}
+#   get_class_insights(teacher_id, class_id)             -> dashboard data
+#   pilot_report()                                       -> everything, pseudonymised
+#
+# Multiple-choice answers are logged by _grade_multiple_choice, not here.
+# Nothing in this section calls a model.
+# ---------------------------------------------------------------------------
+
+# A view can't honestly hold more reading time than this. A tab left open over
+# lunch shouldn't turn into an hour of "reading" in the pilot numbers.
+_MAX_VIEW_SECONDS = 30 * 60
+# Reported time may run slightly ahead of the server's clock (network delay).
+_CLOCK_SLACK_SECONDS = 30
+
+
+def _new_view_id() -> str:
+    return f"view_{uuid.uuid4().hex}"
+
+
+def _require_student(student_id: str) -> dict[str, Any]:
+    profile = store.get_student(student_id)
+    if profile is None:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    return profile
+
+
+def start_lesson_view(student_id: str, concept_id: str) -> dict[str, Any]:
+    """Record that a student opened a lesson; return its view id and their rating.
+
+    The web app calls this once when a lesson appears, then reports reading
+    time against the view id. The student's current 👍/👎 for the lesson comes
+    back too, so the page can show it without a second request.
+
+    Raises:
+        NotFoundError: unknown student or concept, or no lesson in their interest.
+    """
+    profile = _require_student(student_id)
+    if engine.find_concept(concept_id) is None:
+        raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
+    interest = profile["interest"]
+    if not lesson_service.has_lesson(concept_id, interest):
+        raise NotFoundError(f"No lesson for {concept_id!r} in {interest!r}.")
+    view = store.create_lesson_view(_new_view_id(), student_id, concept_id, interest)
+    return {
+        "view_id": view["view_id"],
+        "concept_id": concept_id,
+        "interest": interest,
+        "rating": store.get_lesson_rating(student_id, concept_id, interest),
+    }
+
+
+def record_lesson_time(student_id: str, view_id: str, active_seconds: int) -> dict[str, Any]:
+    """Update how long a student has actively spent on one lesson view.
+
+    `active_seconds` is the running total the browser measured: time with the
+    tab visible and the student not idle. It is clamped to what is physically
+    possible — never more than the time since the view opened, never more than
+    30 minutes — and only ever raised, so repeated or late reports are harmless.
+
+    Raises:
+        NotFoundError: the view doesn't exist or isn't this student's (one
+                       answer for both, so view ids can't be probed).
+    """
+    view = store.get_lesson_view(view_id) if view_id else None
+    if view is None or view["student_id"] != student_id:
+        raise NotFoundError("Lesson view not found.")
+    try:
+        seconds = int(active_seconds)
+    except (TypeError, ValueError):
+        raise EcoLearnError("active_seconds must be a whole number.") from None
+
+    opened = datetime.fromisoformat(view["opened_at"])
+    elapsed = (datetime.now(tz=timezone.utc) - opened).total_seconds()
+    ceiling = min(_MAX_VIEW_SECONDS, int(elapsed) + _CLOCK_SLACK_SECONDS)
+    seconds = max(0, min(seconds, ceiling))
+
+    store.set_lesson_view_seconds(view_id, seconds)
+    updated = store.get_lesson_view(view_id) or view
+    return {"view_id": view_id, "active_seconds": updated["active_seconds"]}
+
+
+def rate_lesson(student_id: str, concept_id: str, rating: int) -> dict[str, Any]:
+    """Save a student's 👍 (1) or 👎 (-1) for a lesson in their interest; 0 clears it.
+
+    Raises:
+        EcoLearnError: a rating other than 1, -1 or 0.
+        NotFoundError: unknown student or concept, or no lesson to rate.
+    """
+    if rating not in (1, -1, 0):
+        raise EcoLearnError("Rating must be 1 (helpful), -1 (not helpful) or 0 (clear).")
+    profile = _require_student(student_id)
+    if engine.find_concept(concept_id) is None:
+        raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
+    interest = profile["interest"]
+    if not lesson_service.has_lesson(concept_id, interest):
+        raise NotFoundError(f"No lesson for {concept_id!r} in {interest!r}.")
+    store.set_lesson_rating(student_id, concept_id, interest, rating)
+    return {"concept_id": concept_id, "interest": interest, "rating": rating}
+
+
+def _insight_lookups():
+    """The two lookups metrics.class_insights needs, memoised for one call.
+
+    Reading a lesson file per misconception would re-parse the same file many
+    times for a busy class; a dict per call is enough.
+    """
+    chapter_names = {c["id"]: c["name"] for c in engine.list_chapters()}
+    concepts: dict[str, dict[str, Any]] = {}
+    checks: dict[tuple[str, str], dict[str, Any] | None] = {}
+
+    def concept_info(concept_id: str) -> dict[str, Any]:
+        if concept_id not in concepts:
+            concept = engine.find_concept(concept_id)
+            concepts[concept_id] = (
+                {"name": concept.name, "chapter_id": concept.chapter_id,
+                 "chapter_name": chapter_names.get(concept.chapter_id)}
+                if concept is not None else {"name": concept_id}
+            )
+        return concepts[concept_id]
+
+    def check_info(concept_id: str, interest: str) -> dict[str, Any] | None:
+        key = (concept_id, interest)
+        if key not in checks:
+            authored = lesson_service.get_authored_lesson(concept_id, interest)
+            checks[key] = (
+                {"question": authored.check.question, "options": dict(authored.check.options),
+                 "answer": authored.check.answer}
+                if authored is not None else None
+            )
+        return checks[key]
+
+    return concept_info, check_info
+
+
+def get_class_insights(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """Pilot metrics and the misconception view for one of the teacher's classes.
+
+    Returns:
+        {
+          "class":          the class summary,
+          "summary":        headline numbers (lessons opened, active minutes,
+                            first-try accuracy, 👍/👎 ...),
+          "misconceptions": wrong answers grouped by the misconception they
+                            reveal, most common first, with the question and
+                            option text so a teacher can discuss it in class,
+          "concepts":       per concept, hardest (lowest first-try accuracy) first,
+          "interests":      the same numbers per interest,
+          "students":       per student, with name and username,
+        }
+        The answer key appears here (correct_option) — this is a teacher view.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    klass = _own_class(teacher_id, class_id)
+    students = store.list_class_students(class_id)
+    activity = store.get_activity([s["student_id"] for s in students])
+    concept_info, check_info = _insight_lookups()
+    insights = metrics.class_insights(students, activity, concept_info, check_info)
+
+    by_id = {s["student_id"]: s for s in students}
+    for row in insights["students"]:
+        student = by_id[row["student_id"]]
+        row.update(name=student["name"], username=student["username"],
+                   interest=student["interest"], mastered=student["mastered"],
+                   last_active=student["last_active"])
+    insights["students"].sort(key=lambda r: (r["name"].lower(), r["username"] or ""))
+    return {"class": klass, **insights}
+
+
+def pilot_report() -> dict[str, Any]:
+    """Everything the pilot recorded, across all classes, with no names in it.
+
+    For the server-side report (scripts/pilot_report.py) — the evidence for the
+    pitch and for the school. Students and classes are replaced by stable
+    pseudonyms (S001…, C01…) in order of creation, so the export can be shared
+    for analysis without identifying a child. Never exposed over HTTP.
+
+    Returns:
+        {"insights": class_insights over every student,
+         "students": [{student, class, interest, level, created_at}],
+         "views": [...], "answers": [...], "ratings": [...]}  — pseudonymised rows.
+    """
+    students = store.list_all_students()
+    class_alias: dict[str | None, str | None] = {None: None}
+    student_alias: dict[str, str] = {}
+    for n, s in enumerate(students, start=1):
+        student_alias[s["student_id"]] = f"S{n:03d}"
+        if s["class_id"] not in class_alias:
+            class_alias[s["class_id"]] = f"C{len(class_alias):02d}"
+
+    activity = store.get_activity(None)
+    concept_info, check_info = _insight_lookups()
+    insights = metrics.class_insights(students, activity, concept_info, check_info)
+    for row in insights["students"]:
+        row["student_id"] = student_alias[row["student_id"]]
+    insights["students"].sort(key=lambda r: r["student_id"])
+
+    def alias(rows: list[dict[str, Any]], drop: tuple[str, ...] = ()) -> list[dict[str, Any]]:
+        out = []
+        for row in rows:
+            if row["student_id"] not in student_alias:
+                continue  # a deleted or legacy account
+            clean = {k: v for k, v in row.items() if k not in drop}
+            clean["student_id"] = student_alias[row["student_id"]]
+            out.append(clean)
+        return out
+
+    return {
+        "insights": insights,
+        "students": [
+            {"student_id": student_alias[s["student_id"]], "class_id": class_alias[s["class_id"]],
+             "interest": s["interest"], "level": s["level"], "created_at": s["created_at"]}
+            for s in students
+        ],
+        "views": alias(activity["views"], drop=("view_id",)),
+        "answers": alias(activity["answers"], drop=("answer_id",)),
+        "ratings": alias(activity["ratings"]),
     }
 
 

@@ -15,15 +15,18 @@ import { FormError } from "@/components/auth-card";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { SectionHeading } from "@/components/section-heading";
+import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { CredentialsSheet, InterestSelect, RosterField } from "@/components/teacher-ui";
 import { Button } from "@/components/ui/button";
 import {
   addStudents,
   friendlyMessage,
   getClassDetail,
+  getClassInsights,
   resetStudentPassword,
   type ClassStudent,
   type StudentCredential,
+  type StudentInsight,
 } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 
@@ -45,6 +48,9 @@ function ClassView() {
   const classId = useSearchParams().get("id") ?? "";
   const [version, setVersion] = useState(0);
   const detail = useFetch(`class:${classId}:${version}`, () => getClassDetail(classId));
+  // Loaded separately so a slow or failed insights query never hides the
+  // student list (and the password resets a teacher may urgently need).
+  const insights = useFetch(`insights:${classId}:${version}`, () => getClassInsights(classId));
   // Logins to show once: from a reset or from adding students.
   const [sheet, setSheet] = useState<{ title: string; credentials: StudentCredential[] } | null>(
     null,
@@ -102,8 +108,16 @@ function ClassView() {
           />
         ) : (
           <>
+            {insights.data ? (
+              <ClassInsightsPanel insights={insights.data} />
+            ) : insights.loading ? (
+              <div className="h-40 animate-pulse rounded-xl bg-muted" aria-label="Loading class insights" />
+            ) : (
+              <FormError message={insights.error ?? "Couldn't load the class insights."} />
+            )}
             <StudentTable
               students={students}
+              insights={insights.data?.students ?? []}
               onReset={(credential) =>
                 setSheet({ title: `New password for ${credential.name}`, credentials: [credential] })
               }
@@ -127,11 +141,14 @@ function ClassView() {
 
 function StudentTable({
   students,
+  insights,
   onReset,
 }: {
   students: ClassStudent[];
+  insights: StudentInsight[];
   onReset: (credential: StudentCredential) => void;
 }) {
+  const metricsFor = new Map(insights.map((row) => [row.student_id, row]));
   // Two-step reset: the first click asks, the second does it. A reset makes the
   // student's old password stop working, so it shouldn't happen on a misclick.
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -167,6 +184,8 @@ function StudentTable({
               <th className="py-2 pr-4 font-semibold">Username</th>
               <th className="py-2 pr-4 font-semibold">Interest</th>
               <th className="py-2 pr-4 font-semibold">Mastered</th>
+              <th className="py-2 pr-4 font-semibold">Reading</th>
+              <th className="py-2 pr-4 font-semibold">Right first time</th>
               <th className="py-2 pr-4 font-semibold">Last active</th>
               <th className="py-2 font-semibold">
                 <span className="sr-only">Actions</span>
@@ -174,49 +193,66 @@ function StudentTable({
             </tr>
           </thead>
           <tbody>
-            {students.map((s) => (
-              <tr key={s.student_id} className="border-t border-border align-middle">
-                <td className="py-2 pr-4 font-medium text-foreground">{s.name}</td>
-                <td className="py-2 pr-4 font-mono">{s.username}</td>
-                <td className="py-2 pr-4 capitalize">{s.interest}</td>
-                <td className="py-2 pr-4">
-                  {s.mastered}
-                  <span className="text-muted-foreground"> of {s.attempted} tried</span>
-                </td>
-                <td className="py-2 pr-4 text-muted-foreground">{lastActive(s.last_active)}</td>
-                <td className="py-2 text-right">
-                  {confirming === s.student_id ? (
-                    <span className="inline-flex gap-2">
+            {students.map((s) => {
+              const m = metricsFor.get(s.student_id);
+              return (
+                <tr key={s.student_id} className="border-t border-border align-middle">
+                  <td className="py-2 pr-4 font-medium text-foreground">{s.name}</td>
+                  <td className="py-2 pr-4 font-mono">{s.username}</td>
+                  <td className="py-2 pr-4 capitalize">{s.interest}</td>
+                  <td className="py-2 pr-4">
+                    {s.mastered}
+                    <span className="text-muted-foreground"> of {s.attempted} tried</span>
+                  </td>
+                  <td className="py-2 pr-4">{m ? `${m.active_minutes} min` : "—"}</td>
+                  <td className="py-2 pr-4">
+                    {m && m.answered > 0 ? (
+                      <>
+                        {pct(m.first_try_accuracy)}
+                        <span className="text-muted-foreground">
+                          {" "}
+                          ({m.first_try_correct} of {m.answered})
+                        </span>
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="py-2 pr-4 text-muted-foreground">{lastActive(s.last_active)}</td>
+                  <td className="py-2 text-right">
+                    {confirming === s.student_id ? (
+                      <span className="inline-flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={busy !== null}
+                          onClick={() => reset(s.student_id)}
+                        >
+                          {busy === s.student_id ? "Resetting…" : "Yes, reset"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={busy !== null}
+                          onClick={() => setConfirming(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </span>
+                    ) : (
                       <Button
                         size="sm"
-                        variant="destructive"
+                        variant="outline"
                         disabled={busy !== null}
-                        onClick={() => reset(s.student_id)}
+                        onClick={() => setConfirming(s.student_id)}
                       >
-                        {busy === s.student_id ? "Resetting…" : "Yes, reset"}
+                        Reset password
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={busy !== null}
-                        onClick={() => setConfirming(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </span>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={busy !== null}
-                      onClick={() => setConfirming(s.student_id)}
-                    >
-                      Reset password
-                    </Button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

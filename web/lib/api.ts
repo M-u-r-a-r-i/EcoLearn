@@ -280,6 +280,93 @@ export function resetStudentPassword(studentId: string): Promise<StudentCredenti
 }
 
 // ---------------------------------------------------------------------------
+// Class insights: the pilot metrics and the misconception view for a teacher.
+// Fractions (accuracy, share, approval) are 0–1, or null when nothing to divide.
+// ---------------------------------------------------------------------------
+export interface InsightSummary {
+  students: number;
+  active_students: number;
+  lessons_opened: number;
+  distinct_lessons: number;
+  active_minutes: number;
+  median_minutes_per_lesson: number | null;
+  answers: number;
+  first_try_answers: number;
+  first_try_correct: number;
+  first_try_accuracy: number | null;
+  thumbs_up: number;
+  thumbs_down: number;
+  approval: number | null;
+}
+
+// One wrong option and the misconception it reveals, counted in students.
+export interface MisconceptionInsight {
+  concept_id: string;
+  concept_name: string;
+  interest: string;
+  question: string | null; // markdown
+  option: string;
+  option_text: string | null; // markdown
+  correct_option: string | null;
+  correct_text: string | null; // markdown
+  misconception: string | null;
+  students: number; // students who chose this option
+  students_answered: number; // students who answered this question
+  share: number | null;
+}
+
+export interface ConceptInsight {
+  concept_id: string;
+  concept_name: string;
+  chapter_id: string | null;
+  chapter_name: string | null;
+  students_opened: number;
+  students_answered: number;
+  first_try_correct: number;
+  first_try_accuracy: number | null;
+  median_minutes: number | null;
+  thumbs_up: number;
+  thumbs_down: number;
+}
+
+export interface InterestInsight {
+  interest: string;
+  students: number;
+  lessons_opened: number;
+  first_try_accuracy: number | null;
+  thumbs_up: number;
+  thumbs_down: number;
+  approval: number | null;
+}
+
+export interface StudentInsight {
+  student_id: string;
+  name: string;
+  username: string;
+  interest: string;
+  lessons_opened: number;
+  active_minutes: number;
+  answered: number; // first tries
+  first_try_correct: number;
+  first_try_accuracy: number | null;
+  thumbs_up: number;
+  thumbs_down: number;
+}
+
+export interface ClassInsights {
+  class: ClassSummary;
+  summary: InsightSummary;
+  misconceptions: MisconceptionInsight[];
+  concepts: ConceptInsight[];
+  interests: InterestInsight[];
+  students: StudentInsight[];
+}
+
+export function getClassInsights(classId: string): Promise<ClassInsights> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/insights`);
+}
+
+// ---------------------------------------------------------------------------
 // Curriculum (public — the signup page needs interests before anyone logs in)
 // ---------------------------------------------------------------------------
 export interface Chapter {
@@ -385,6 +472,44 @@ export function getNextLesson(chapterId: string, conceptId?: string): Promise<Ne
 }
 
 // ---------------------------------------------------------------------------
+// Pilot metrics: a lesson view (opened, then reading time) and a 👍/👎.
+// ---------------------------------------------------------------------------
+export type LessonRating = 1 | -1 | 0; // helpful, not helpful, none
+
+export interface LessonView {
+  view_id: string;
+  concept_id: string;
+  interest: string;
+  rating: LessonRating; // the student's current rating of this lesson
+}
+
+export function startLessonView(conceptId: string): Promise<LessonView> {
+  return request("/api/lesson-views", { method: "POST", body: { concept_id: conceptId } });
+}
+
+// Fire-and-forget: report the running total of active seconds on a view.
+// Not routed through request(): it must still be delivered while the page is
+// closing (keepalive), and a failure here is never worth showing anyone.
+// text/plain keeps it a "simple" cross-origin request — no CORS preflight,
+// which a closing page wouldn't wait for. The API parses the JSON itself.
+export function reportLessonTime(viewId: string, activeSeconds: number): void {
+  fetch(`${API_URL}/api/lesson-views/${encodeURIComponent(viewId)}/time`, {
+    method: "POST",
+    credentials: "include",
+    keepalive: true,
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ active_seconds: activeSeconds }),
+  }).catch(() => {});
+}
+
+export function rateLesson(conceptId: string, rating: LessonRating): Promise<unknown> {
+  return request("/api/lesson-ratings", {
+    method: "POST",
+    body: { concept_id: conceptId, rating },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/help — a live, grounded answer. The ONE expensive call: it runs real
 // LLM work on the server, so the UI must show a "thinking" state.
 // ---------------------------------------------------------------------------
@@ -424,6 +549,7 @@ export interface AssessmentResult {
   graded_question: string;
   mastery: MasteryRow;
   // Multiple-choice grading only (authored lessons); absent for legacy lessons.
+  attempt_no?: number; // 1 = the student's first pick on this concept
   correct?: boolean;
   selected_option?: string;
   correct_option?: string;

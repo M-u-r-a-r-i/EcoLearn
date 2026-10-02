@@ -108,7 +108,66 @@ def _connect() -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id)")
+    _create_metrics_tables(conn)
     return conn
+
+
+def _create_metrics_tables(conn: sqlite3.Connection) -> None:
+    """Pilot metrics (2026-10-02): new tables only, so the migration is additive.
+
+    * lesson_views   — one row per time a student opens a lesson, with the
+                       seconds they actively spent on it (updated as they read).
+    * answers        — every multiple-choice pick, kept forever. `progress` only
+                       keeps the best score, which hides *what* a student got
+                       wrong; this table is what the misconception view reads.
+    * lesson_ratings — one 👍/👎 per student per lesson (re-rating replaces it).
+
+    Each row records the interest the student had at the time, because a
+    student can switch interest and the pilot compares interests.
+    """
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS lesson_views (
+            view_id         TEXT PRIMARY KEY,
+            student_id      TEXT NOT NULL,
+            concept_id      TEXT NOT NULL,
+            interest        TEXT NOT NULL,
+            opened_at       TEXT NOT NULL,
+            active_seconds  INTEGER NOT NULL DEFAULT 0
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS answers (
+            answer_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id     TEXT NOT NULL,
+            concept_id     TEXT NOT NULL,
+            interest       TEXT NOT NULL,
+            selected       TEXT NOT NULL,
+            correct        INTEGER NOT NULL,
+            attempt_no     INTEGER NOT NULL,
+            misconception  TEXT,
+            answered_at    TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS lesson_ratings (
+            student_id  TEXT NOT NULL,
+            concept_id  TEXT NOT NULL,
+            interest    TEXT NOT NULL,
+            rating      INTEGER NOT NULL,
+            rated_at    TEXT NOT NULL,
+            PRIMARY KEY (student_id, concept_id, interest)
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_views_student ON lesson_views(student_id)")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_answers_student ON answers(student_id, concept_id)"
+    )
 
 
 def _migrate_students(conn: sqlite3.Connection) -> None:
@@ -788,3 +847,179 @@ def list_class_students(class_id: str) -> list[dict[str, Any]]:
          "last_active": r["last_active"]}
         for r in rows
     ]
+
+
+# ---------------------------------------------------------------------------
+# Pilot metrics (2026-10-02)
+#
+# What the pilot needs to show: did students open lessons, how long did they
+# actually read, what did they get wrong (and which misconception that
+# reveals), and did the interest-based explanation work for them (👍/👎).
+# The rules — caps, ownership, who may read what — live in the boundary; these
+# functions only store and fetch.
+# ---------------------------------------------------------------------------
+
+def create_lesson_view(view_id: str, student_id: str, concept_id: str, interest: str) -> dict[str, Any]:
+    opened_at = _now_iso()
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO lesson_views (view_id, student_id, concept_id, interest, opened_at, "
+            "active_seconds) VALUES (?, ?, ?, ?, ?, 0)",
+            (view_id, student_id, concept_id, interest, opened_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"view_id": view_id, "student_id": student_id, "concept_id": concept_id,
+            "interest": interest, "opened_at": opened_at, "active_seconds": 0}
+
+
+def get_lesson_view(view_id: str) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute("SELECT * FROM lesson_views WHERE view_id = ?", (view_id,)).fetchone()
+    finally:
+        conn.close()
+    return dict(row) if row is not None else None
+
+
+def set_lesson_view_seconds(view_id: str, active_seconds: int) -> None:
+    """Raise a view's active time to `active_seconds`, never lower it.
+
+    The browser reports a running total, possibly more than once and out of
+    order (a heartbeat and a page-hide can race). Keeping the maximum makes
+    every report safe to repeat.
+    """
+    conn = _connect()
+    try:
+        conn.execute(
+            "UPDATE lesson_views SET active_seconds = MAX(active_seconds, ?) WHERE view_id = ?",
+            (int(active_seconds), view_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def record_answer(
+    student_id: str,
+    concept_id: str,
+    interest: str,
+    selected: str,
+    correct: bool,
+    misconception: str | None,
+) -> dict[str, Any]:
+    """Store one multiple-choice pick and return it with its attempt number.
+
+    attempt_no counts this student's picks on this concept, across interests:
+    attempt 1 is the honest measurement, because after a wrong pick the app
+    shows the right answer.
+    """
+    answered_at = _now_iso()
+    conn = _connect()
+    try:
+        with conn:
+            (previous,) = conn.execute(
+                "SELECT COUNT(*) FROM answers WHERE student_id = ? AND concept_id = ?",
+                (student_id, concept_id),
+            ).fetchone()
+            attempt_no = previous + 1
+            conn.execute(
+                "INSERT INTO answers (student_id, concept_id, interest, selected, correct, "
+                "attempt_no, misconception, answered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (student_id, concept_id, interest, selected, int(bool(correct)), attempt_no,
+                 misconception, answered_at),
+            )
+    finally:
+        conn.close()
+    return {"student_id": student_id, "concept_id": concept_id, "interest": interest,
+            "selected": selected, "correct": bool(correct), "attempt_no": attempt_no,
+            "misconception": misconception, "answered_at": answered_at}
+
+
+def set_lesson_rating(student_id: str, concept_id: str, interest: str, rating: int) -> None:
+    """Save +1 / -1 for a lesson, replacing any earlier rating; 0 removes it."""
+    conn = _connect()
+    try:
+        if rating == 0:
+            conn.execute(
+                "DELETE FROM lesson_ratings WHERE student_id = ? AND concept_id = ? AND interest = ?",
+                (student_id, concept_id, interest),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO lesson_ratings (student_id, concept_id, interest, rating, rated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(student_id, concept_id, interest) DO UPDATE SET
+                    rating = excluded.rating, rated_at = excluded.rated_at
+                """,
+                (student_id, concept_id, interest, int(rating), _now_iso()),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_lesson_rating(student_id: str, concept_id: str, interest: str) -> int:
+    """The student's rating of this lesson: 1, -1, or 0 for none."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT rating FROM lesson_ratings WHERE student_id = ? AND concept_id = ? "
+            "AND interest = ?",
+            (student_id, concept_id, interest),
+        ).fetchone()
+    finally:
+        conn.close()
+    return int(row["rating"]) if row is not None else 0
+
+
+def get_activity(student_ids: list[str] | None = None) -> dict[str, list[dict[str, Any]]]:
+    """Raw metric rows — views, answers, ratings — for some students, or everyone.
+
+    Returned as plain lists so the aggregation (src/progress/metrics.py) stays a
+    pure function that tests can feed directly. At pilot scale (a class of ~40,
+    a few hundred events each) fetching the rows is cheaper to reason about
+    than one SQL query per statistic.
+    """
+    conn = _connect()
+    try:
+        out: dict[str, list[dict[str, Any]]] = {}
+        for key, table, order in (
+            ("views", "lesson_views", "opened_at"),
+            ("answers", "answers", "answer_id"),
+            ("ratings", "lesson_ratings", "rated_at"),
+        ):
+            if student_ids is None:
+                rows = conn.execute(f"SELECT * FROM {table} ORDER BY {order}").fetchall()
+            elif not student_ids:
+                rows = []
+            else:
+                marks = ",".join("?" * len(student_ids))
+                rows = conn.execute(
+                    f"SELECT * FROM {table} WHERE student_id IN ({marks}) ORDER BY {order}",
+                    student_ids,
+                ).fetchall()
+            out[key] = [dict(r) for r in rows]
+    finally:
+        conn.close()
+    for answer in out["answers"]:
+        answer["correct"] = bool(answer["correct"])
+    return out
+
+
+def list_all_students() -> list[dict[str, Any]]:
+    """Every student's public profile plus class_id — for the server-side pilot report."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT * FROM students ORDER BY created_at").fetchall()
+    finally:
+        conn.close()
+    out = []
+    for row in rows:
+        profile = _student_to_dict(row)
+        profile["class_id"] = row["class_id"]
+        out.append(profile)
+    return out

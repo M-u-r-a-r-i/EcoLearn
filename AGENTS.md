@@ -106,6 +106,10 @@ the roadmap shows it mastered → refresh keeps you logged in → settings → l
   lesson's own explanation plus that option's misconception. The key never reaches the browser.
   Legacy JSON lessons still use the Assessor. `tests/test_mcq_grading.py` (24 checks) pins this.
 - `get_next_lesson` also returns `lesson.sections` and `lesson.check` (options, no answer).
+- **Pilot metrics** (§9za): `lesson_views` (active reading time), `answers` (every pick, with
+  attempt number and misconception) and `lesson_ratings` (👍/👎) tables; the teacher's class page
+  shows first-try accuracy, the most common misconceptions and per-interest numbers.
+  `scripts/pilot_report.py [--csv DIR]` covers every class, pseudonymised. `tests/test_pilot_metrics.py`.
 - `list_interests()` offers the **five in-scope interests** with `chapters_ready` /
   `chapters_total` (§9r), read from `data/content_scope.yaml` via `src/curriculum/scope.py`.
 - **Teacher tools** (§9z): separate `teachers` / `classes` tables, a `tch_…` id that every
@@ -147,11 +151,16 @@ the roadmap shows it mastered → refresh keeps you logged in → settings → l
 - The lesson page renders section by section and **collapses the worked example and "Where the
   picture breaks" behind a click** (user feedback, §9q). The check page is a radio group.
 
+**The finals (researched 2026-10-02):** HackAStone 2026, theme **"Agentic AI for Education"**,
+final at the *AI for Education Holland* conference (VU Amsterdam, 29–30 Oct 2026; NTU Singapore is
+on the organising committee; conference theme "Research meets Practice": evidence, responsible AI,
+classroom adoption). **15-minute presentation.** Judging criteria are not published.
+
 **-> YOUR NEXT ACTION (user, 2026-10-02): improve the project; lessons resume later.** The
-user's order: ~~teacher tools~~ (done, §9z) → **pilot metrics** (log lesson opens, time spent,
-check answers and a 👍/👎 per lesson, and show them on a teacher/admin page; this is the evidence
-for the finals pitch) → **robustness & polish** (error and not-found pages, skeletons, toasts,
-dark mode, login rate-limiting, a 30-student load test). When lessons resume,
+user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception dashboard~~ (done,
+§9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → **robustness &
+polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 
 **Machine issue to raise with the user:** Windows Application Control blocks `grpc`'s DLL on the
@@ -173,7 +182,9 @@ dev machine, so the doubt chat answers 503 there (§9z). It's a security setting
    `venv`. It worked, but tell them to start it with
    `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`.
 3. **Local test data in `data/progress.db`** (gitignored, never pushed): teacher `demo.teacher`
-   and the class "Demo 11-B" with three students, made while verifying §9z. Their passwords were
+   and the class "Demo 11-B" with three students, made while verifying §9z; teacher
+   `metrics.check` and "Metrics check 11-A" (`test.o`, `test.t`, `test.t2`), made while verifying
+   §9za — exclude them from real pilot numbers, or delete them before the pilot. Their passwords were
    shown once in that session and are gone. Use `scripts/create_teacher.py` for a fresh teacher,
    and a teacher's "Reset password" for the demo students.
 4. **Work happens on two machines.** A teammate (GitHub `M-u-r-a-r-i`) also runs lesson batches
@@ -408,6 +419,7 @@ venv\Scripts\python.exe tests\test_authored_lessons.py
 venv\Scripts\python.exe tests\test_api_auth.py
 venv\Scripts\python.exe tests\test_mcq_grading.py         # MCQ grading, no API key needed
 venv\Scripts\python.exe tests\test_teacher.py             # teacher tools: classes, resets, roles
+venv\Scripts\python.exe tests\test_pilot_metrics.py       # views, answers, 👍/👎, class insights
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 
