@@ -11,7 +11,29 @@
 
 // The base URL comes from the environment (web/.env.local). We fall back to
 // localhost so the app still runs if the var is missing in development.
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+//
+// Local development: the API must be on the SAME host name as the page.
+// localhost and 127.0.0.1 count as different sites, and the session cookie
+// (SameSite=Lax) is not sent between different sites — so a page opened at
+// 127.0.0.1:3000 calling localhost:8000 logged in, lost the cookie, and was
+// sent straight back to the login page. When both are a loopback name, follow
+// whichever one the page was opened with.
+function resolveApiUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  if (typeof window === "undefined") return configured;
+  try {
+    const url = new URL(configured);
+    const loopback = ["localhost", "127.0.0.1"];
+    if (loopback.includes(url.hostname) && loopback.includes(window.location.hostname)) {
+      url.hostname = window.location.hostname;
+    }
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return configured;
+  }
+}
+
+export const API_URL = resolveApiUrl();
 
 // ---------------------------------------------------------------------------
 // The one request helper.

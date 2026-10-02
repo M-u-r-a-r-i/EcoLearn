@@ -186,7 +186,7 @@ colours — the robustness list is done) (error and not-found pages, skeletons, 
   chat can't answer. Never print or commit the key.
 
 **Open threads at the end of the 2026-10-02 session (check these first):**
-1. **"I am unable to log in to the student account": unresolved, waiting on the user.** The
+1. **"I am unable to log in" — FIXED 2026-10-02 (§9zj):** the cause was opening `127.0.0.1:3000`; both hosts now work. Notes kept below for history. The
    server was verified healthy: `POST /api/auth/login` for a known student gave 200 with a
    `Set-Cookie`, the CORS headers allow `http://localhost:3000`, and `/api/auth/session` returned
    the student. The user hasn't yet said which message the login page shows. Likely causes, in

@@ -57,7 +57,9 @@ app = FastAPI(title="EcoLearn API", version="0.1.0")
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # the Next.js dev server
+    # The Next.js dev server, by either loopback name: localhost and 127.0.0.1
+    # are different origins to a browser, and people open both.
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     # Credentials = cookies. Needed so the browser sends the session cookie to
     # this API. Browsers refuse credentials with allow_origins=["*"], so the
     # allowed origins must always be listed explicitly.

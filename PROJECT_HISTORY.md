@@ -2011,3 +2011,32 @@ All test scripts, `tsc`, lint and `npm run build` are clean.
 *Session paused here:* the Pro 5-hour window reached 100% (weekly 24%). Robustness list done:
 rate limiting, error pages, logout, load test, dark mode, toasts. Skeletons were already present on
 every data page.
+
+## 9zj. "I can't log in, the page just refreshes": opening the app at 127.0.0.1 (2026-10-02)
+
+**The bug** (the open thread from §9z, finally reproduced). Opened at `http://127.0.0.1:3000`
+instead of `localhost:3000`, two separate things broke:
+1. **`next dev` refuses its dev scripts to any host but the one it started on** (localhost). The
+   page rendered from the server, but none of its JavaScript ran, so "Log in" and signup fell back
+   to a plain HTML form submit: the page reloaded and nothing happened. Console:
+   `WebSocket connection to 'ws://127.0.0.1:3000/_next/webpack-hmr' failed`, and no React on the
+   form.
+2. Even with scripts running, a page on `127.0.0.1` calling the API on `localhost` is a
+   **different site**: the `SameSite=Lax` session cookie isn't sent, so a successful login
+   bounced back to the login page. CORS also allowed only `localhost:3000`.
+
+**Changed.**
+- `web/next.config.ts`: `allowedDevOrigins: ["127.0.0.1"]` (see
+  `node_modules/next/dist/docs/.../allowedDevOrigins.md`).
+- `web/lib/api.ts`: `API_URL` follows the page's host when both are loopback names, so the API is
+  always same-site with the page.
+- `api/main.py`: CORS allows `http://127.0.0.1:3000` too.
+
+**Verified in the browser on both hosts.** On `127.0.0.1:3000`: login → roadmap; signup step 1 →
+step 2 → `/start`; a refresh keeps the session. On `localhost:3000`: the same account logs in.
+`test_api_auth`, `test_teacher`, `test_rate_limit`, `test_story_review`, `tsc` and lint are clean.
+The user's web dev server was restarted to read the new config (Next reads it only at startup).
+Test account `loop.check` was added to the local DB.
+
+**Learned.** "The page just refreshes" on a form means the client JavaScript never ran. Check
+whether React is attached to the form (`__react*` keys) before suspecting the API.
