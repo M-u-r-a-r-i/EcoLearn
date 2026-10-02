@@ -1770,3 +1770,74 @@ Displacement, "Focus" on Acceleration, and "Next up" on Position.
   `cProfile` run named the culprit at once.
 - JSX dropped the space in `{n} quick questions` again (same as §9z). An explicit `{" "}` fixes it.
 - Test data: student `start.check` (Class 11, cricket) in the local DB, from this verification.
+
+## 9ze. Layer 3: personal stories, and a provider layer for free models (2026-10-02)
+
+*User decisions:* show the personal story first, with the lesson's pre-written story "in a
+drop box" (collapsible); use **OmniRoute and free models for now**, and buy a Gemini key once
+it works as planned.
+
+**Changed.**
+- `src/llm/` (new; the start of ROADMAP M1a): `chat()` over any **OpenAI-compatible** endpoint
+  using httpx (no new dependency). It has a fallback chain, Bearer key, tool calls and
+  `parse_json_object` for chatty free models. Configured by `LLM_BASE_URL` (default OmniRoute,
+  `http://localhost:20128/v1`), `LLM_API_KEY`, `LLM_MODEL`, `LLM_FALLBACK_MODELS`,
+  `LLM_CRITIC_MODEL` and `LLM_TIMEOUT_SECONDS`, read from the environment or `.env`. With
+  `LLM_MODEL` unset the layer is off and every feature uses its non-AI fallback. Gemini later is a
+  config change (Google's OpenAI-compatible URL). `.env.example` documents both setups.
+- `src/learner/personal_story.py` (new) plus `prompts/personal_story_{writer,critic}.txt`:
+  - picks a hobby that fits the concept's domain (`fits` and `interest` added to the hobbies in
+    `data/diagnostic.yaml`; never the student's own lesson interest; own hobbies go to the writer,
+    which may decline);
+  - the writer gets the lesson's "The physics" and "Key takeaway" plus the student's open mix-up
+    (first sentence), and no identity;
+  - deterministic guards run next: JSON, word limits, **no digits at all**, no links or maths;
+  - a critic call follows, strict and fail-closed, with one retry that feeds back the problems;
+  - results are stored per student × concept, tied to a hash of the lesson text, and errors wait
+    30 minutes before a retry;
+  - generation runs on a 2-thread pool, for the opened lesson and the next two.
+- `src/progress/store.py`: `personal_stories` table.
+- `src/platform_api.py`: `get_next_lesson` adds `lesson.personal_story` (ready / pending / none)
+  and starts the next two; `get_personal_story` for polling. `api/main.py`:
+  `GET /api/personal-story`.
+- `src/agents/teacher_agent.py`: `OpenAICompatModel`. The assistant now tries the src/llm models
+  (OmniRoute) first, then Gemini direct, then rules. Tool-call ids are carried through the loop,
+  since the OpenAI format needs them.
+- Web: `components/personal-story.tsx`:
+  - **ready:** a "Your story" card (story, "In badminton terms", "Where the comparison stops", and
+    an AI-written-and-checked label), with the original under "Read the original Cricket story";
+  - **pending:** the original as usual plus "Writing a badminton version…", polling every 3 s for
+    about a minute;
+  - **none:** exactly as before.
+- `tests/test_personal_story.py` (new): **35 checks**, including the HTTP client and the teacher
+  agent against `httpx.MockTransport` playing OmniRoute.
+
+**Why these shapes.**
+- **One OpenAI-compatible client instead of an OmniRoute-specific one.** OmniRoute, OpenRouter,
+  Groq and Gemini all speak it, so "free now, paid Gemini later" costs no code.
+- **Fail closed here, unlike the older judges.** Availability doesn't matter for a story, because
+  the reviewed one is always there; correctness for a minor's lesson does.
+- **No digits, enforced in code.** An invented number is the cheapest way for a model to slip in
+  wrong physics; banning numbers outright is easy to check and costs the story nothing.
+- **Background generation and prefetching** keep the lesson instant. Free models can take tens of
+  seconds per call.
+
+**Verified.** All 17 test scripts, `tsc`, lint and the validator are clean. In the browser, a story
+row was seeded by hand for the test student `start.check` (OmniRoute isn't installed here, so
+nothing can be generated live). The lesson showed "Your story · 🏸 Badminton" (cricket skipped as
+the lesson interest), the analogy, the limit and the label, with "Read the original Cricket story"
+closed; opening it showed the cricket story. A lesson without a story looked exactly as before.
+**Not verified:** a live generation through OmniRoute, and the "being written…" polling state in
+the browser.
+
+**Rules amended (AGENTS.md):** non-negotiable 3 gains a second exception (personal stories:
+background-only, never blocking, fallback always shown). Non-negotiable 8: OmniRoute through
+`src/llm/` was the user's explicit request; new agents use `src/llm/`, while the four older
+agents still call google-genai until the rest of M1a.
+
+**A caution recorded for the user.** OmniRoute's "keyless" free pools include web-scraping
+providers (e.g. `duckduckgo-web`). Those are unreliable and of doubtful terms. Prefer connecting
+real free tiers inside OmniRoute: an AI Studio key, Groq, or OpenRouter's free models.
+
+**Learned.** A long multi-heredoc shell command failed to parse and ran nothing; for prose, write
+it to a file first.

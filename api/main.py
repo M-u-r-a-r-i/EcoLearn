@@ -478,6 +478,14 @@ def submit_diagnostic(
     return api.submit_diagnostic(student_id, payload.answers, payload.hobbies)
 
 
+@app.get("/api/personal-story")
+def personal_story(
+    concept_id: str, student_id: str = Depends(get_current_student_id)
+) -> dict:
+    """The story written for this student's hobby: ready, pending (poll), or none."""
+    return api.get_personal_story(student_id, concept_id)
+
+
 @app.get("/api/learning-plan")
 def learning_plan(student_id: str = Depends(get_current_student_id)) -> dict:
     """What to focus on and where to start, from the starting check and lessons."""

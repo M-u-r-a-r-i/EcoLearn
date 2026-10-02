@@ -142,6 +142,29 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    # Personal stories (2026-10-02, layer 3): one per student × concept, written
+    # by the story agent and checked by the critic agent. `lesson_hash` ties a
+    # story to the lesson text it was based on, so editing the lesson (or the
+    # student switching interest) retires it. status: ready | no_fit | failed | error.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS personal_stories (
+            student_id   TEXT NOT NULL,
+            concept_id   TEXT NOT NULL,
+            hobby        TEXT NOT NULL,
+            lesson_hash  TEXT NOT NULL,
+            status       TEXT NOT NULL,
+            story        TEXT,
+            analogy      TEXT,
+            limit_text   TEXT,
+            model        TEXT,
+            attempts     INTEGER NOT NULL DEFAULT 0,
+            problems     TEXT NOT NULL DEFAULT '[]',
+            created_at   TEXT NOT NULL,
+            PRIMARY KEY (student_id, concept_id)
+        )
+        """
+    )
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS diagnostic_answers (
@@ -1202,3 +1225,44 @@ def get_diagnostic_answers(student_ids: list[str] | None) -> list[dict[str, Any]
         row["correct"] = None if row["correct"] is None else bool(row["correct"])
         out.append(row)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Personal stories (2026-10-02, layer 3)
+# ---------------------------------------------------------------------------
+
+def get_personal_story(student_id: str, concept_id: str) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM personal_stories WHERE student_id = ? AND concept_id = ?",
+            (student_id, concept_id),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    story = dict(row)
+    story["problems"] = json.loads(story["problems"])
+    return story
+
+
+def save_personal_story(row: dict[str, Any]) -> None:
+    """Insert or replace the one story for (student_id, concept_id)."""
+    conn = _connect()
+    try:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO personal_stories
+                (student_id, concept_id, hobby, lesson_hash, status, story, analogy,
+                 limit_text, model, attempts, problems, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (row["student_id"], row["concept_id"], row["hobby"], row["lesson_hash"],
+             row["status"], row.get("story"), row.get("analogy"), row.get("limit_text"),
+             row.get("model"), int(row.get("attempts", 0)),
+             json.dumps(row.get("problems", []), ensure_ascii=False), _now_iso()),
+        )
+        conn.commit()
+    finally:
+        conn.close()

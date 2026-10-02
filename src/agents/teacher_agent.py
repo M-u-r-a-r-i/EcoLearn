@@ -335,8 +335,46 @@ class GeminiModel:
         return ModelTurn(text=text, calls=calls, raw=raw)
 
 
+class OpenAICompatModel:
+    """A model behind any OpenAI-compatible endpoint, via src/llm (OmniRoute,
+    OpenRouter, or Gemini's OpenAI-compatible URL)."""
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def step(self, messages: list[dict[str, Any]], allow_tools: bool) -> ModelTurn:
+        from src import llm
+
+        out: list[dict[str, Any]] = []
+        for m in messages:
+            if m["role"] == "user":
+                out.append({"role": "user", "content": m["text"]})
+            elif m["role"] == "model":
+                out.append({"role": "assistant", **{k: v for k, v in m["raw"].items() if k != "role"}})
+            else:
+                for r in m["results"]:
+                    out.append({"role": "tool", "tool_call_id": r.get("id") or r["name"],
+                                "content": json.dumps(r["response"], ensure_ascii=False)})
+                if m.get("nudge"):
+                    out.append({"role": "user", "content": m["nudge"]})
+        tools = [{"type": "function", "function": t} for t in TOOL_DECLARATIONS] if allow_tools else None
+        result = llm.chat(out, models=[self.name], tools=tools, temperature=0.3, max_tokens=2000)
+        return ModelTurn(text="" if result.tool_calls else result.text,
+                         calls=result.tool_calls, raw=result.message)
+
+
 def default_models() -> list[Model]:
-    """The configured model chain, or [] if there is no API key."""
+    """The configured model chain: the src/llm models (OmniRoute or any
+    OpenAI-compatible endpoint) first, then Gemini direct if a key is set.
+    [] when neither is configured."""
+    from src import llm
+
+    chain: list[Model] = [OpenAICompatModel(m) for m in llm.configured_models()]
+    chain += _gemini_models()
+    return chain
+
+
+def _gemini_models() -> list[Model]:
     try:
         from dotenv import dotenv_values
         env_key = dotenv_values(_PROJECT_ROOT / ".env").get("GEMINI_API_KEY")
@@ -378,7 +416,8 @@ def run_agent(toolbox: ClassToolbox, model: Model, max_steps: int = MAX_STEPS) -
         if turn.calls and not last:
             messages.append({"role": "model", "text": turn.text, "calls": turn.calls, "raw": turn.raw})
             results = {"role": "tool", "results": [
-                {"name": c["name"], "response": toolbox.call(c["name"], c["args"])}
+                {"id": c.get("id"), "name": c["name"],
+                 "response": toolbox.call(c["name"], c["args"])}
                 for c in turn.calls
             ]}
             if step == max_steps - 2:

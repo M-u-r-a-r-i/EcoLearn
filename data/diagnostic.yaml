@@ -42,28 +42,32 @@ questions:
     - total_internal_reflection
     - photoelectric_observations
 
-# Hobbies a student can tick (several), plus up to two of their own. Stored for
-# the personal stories planned in layer 3 (PROJECT_HISTORY.md §9zc); nothing
-# reads them for teaching yet. Kept to short labels on purpose: no free-form
-# text about a child goes anywhere.
+# Hobbies a student can tick (several), plus up to two of their own. Used by the
+# personal stories (layer 3, src/learner/personal_story.py): `fits` lists the
+# physics domains (as in physics.yaml) where the hobby gives a natural, honest
+# analogy. A hobby is only used where it fits — no forced analogies (the same
+# weak-fit rule as content/AUTHORING_GUIDE.md). A student's own hobbies have no
+# list; the writing agent decides, and may decline. `interest` marks a hobby that
+# IS one of the lesson interests: it adds nothing for a student who already has it.
+# Kept to short labels on purpose: no free-form text about a child goes anywhere.
 hobbies:
-  - { id: cricket, label: Cricket, emoji: "🏏" }
-  - { id: football, label: Football, emoji: "⚽" }
-  - { id: badminton, label: Badminton, emoji: "🏸" }
-  - { id: basketball, label: Basketball, emoji: "🏀" }
-  - { id: kabaddi, label: Kabaddi, emoji: "🤼" }
-  - { id: athletics, label: Running & athletics, emoji: "🏃" }
-  - { id: swimming, label: Swimming, emoji: "🏊" }
-  - { id: cycling, label: Cycling, emoji: "🚴" }
-  - { id: gaming, label: Video games, emoji: "🎮" }
-  - { id: phones, label: Phones & gadgets, emoji: "📱" }
-  - { id: cars, label: Cars & racing, emoji: "🏎️" }
-  - { id: music, label: Music, emoji: "🎵" }
-  - { id: dance, label: Dance, emoji: "💃" }
-  - { id: art, label: Drawing & art, emoji: "🎨" }
-  - { id: cooking, label: Cooking, emoji: "🍳" }
-  - { id: photography, label: Photography, emoji: "📷" }
-  - { id: coding, label: Coding, emoji: "💻" }
-  - { id: space, label: Space & stars, emoji: "🔭" }
-  - { id: movies, label: Movies & anime, emoji: "🎬" }
-  - { id: reading, label: Reading, emoji: "📚" }
+  - { id: cricket, label: Cricket, emoji: "🏏", fits: [mechanics], interest: cricket }
+  - { id: football, label: Football, emoji: "⚽", fits: [mechanics], interest: football }
+  - { id: badminton, label: Badminton, emoji: "🏸", fits: [mechanics] }
+  - { id: basketball, label: Basketball, emoji: "🏀", fits: [mechanics] }
+  - { id: kabaddi, label: Kabaddi, emoji: "🤼", fits: [mechanics] }
+  - { id: athletics, label: Running & athletics, emoji: "🏃", fits: [mechanics, thermal] }
+  - { id: swimming, label: Swimming, emoji: "🏊", fits: [mechanics, thermal] }
+  - { id: cycling, label: Cycling, emoji: "🚴", fits: [mechanics, thermal] }
+  - { id: gaming, label: Video games, emoji: "🎮", fits: [mechanics, electricity, optics], interest: gaming }
+  - { id: phones, label: Phones & gadgets, emoji: "📱", fits: [electricity, magnetism, optics, modern], interest: smartphones }
+  - { id: cars, label: Cars & racing, emoji: "🏎️", fits: [mechanics, thermal, electricity, magnetism], interest: motorsport }
+  - { id: music, label: Music, emoji: "🎵", fits: [waves, electricity, magnetism] }
+  - { id: dance, label: Dance, emoji: "💃", fits: [mechanics] }
+  - { id: art, label: Drawing & art, emoji: "🎨", fits: [optics] }
+  - { id: cooking, label: Cooking, emoji: "🍳", fits: [thermal, electricity, magnetism] }
+  - { id: photography, label: Photography, emoji: "📷", fits: [optics, modern] }
+  - { id: coding, label: Coding, emoji: "💻", fits: [electricity] }
+  - { id: space, label: Space & stars, emoji: "🔭", fits: [mechanics, optics, modern] }
+  - { id: movies, label: Movies & anime, emoji: "🎬", fits: [optics] }
+  - { id: reading, label: Reading, emoji: "📚", fits: [] }

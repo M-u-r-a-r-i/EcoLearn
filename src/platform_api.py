@@ -55,7 +55,7 @@ from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
-from src.learner import diagnostic
+from src.learner import diagnostic, personal_story
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
@@ -1024,8 +1024,36 @@ def get_next_lesson(
                 envelope["lesson"]["title"] = view["title"]
                 envelope["lesson"]["sections"] = view["sections"]
                 envelope["lesson"]["check"] = view["check"]
+                # Layer 3: a story written for this student's hobby, shown above
+                # the lesson's own story. Written in the background; the next two
+                # concepts are started too, so they're usually ready on arrival.
+                envelope["lesson"]["personal_story"] = personal_story.view(student_id, chosen.id)
+                for upcoming in _upcoming_concepts(student_id, chosen, profile["interest"], 2):
+                    personal_story.request(student_id, upcoming)
 
     return envelope
+
+
+def _upcoming_concepts(student_id: str, concept: Any, interest: str, count: int) -> list[str]:
+    """The next `count` unfinished, written concepts after `concept` in its chapter."""
+    ready = lesson_service.concepts_with_lessons(interest)
+    rows = engine.get_roadmap(student_id, concept.chapter_id)
+    ids = [r["concept_id"] for r in rows]
+    after = rows[ids.index(concept.id) + 1:] if concept.id in ids else []
+    return [r["concept_id"] for r in after
+            if r["concept_id"] in ready and r["status"] != engine.ROADMAP_MASTERED][:count]
+
+
+def get_personal_story(student_id: str, concept_id: str) -> dict[str, Any]:
+    """The personal story for one concept: ready, pending (poll again) or none.
+
+    See src/learner/personal_story.py. Never raises for a missing story — "none"
+    simply means the page shows the lesson's own story.
+    """
+    _require_student(student_id)
+    if engine.find_concept(concept_id) is None:
+        raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
+    return personal_story.view(student_id, concept_id)
 
 
 # ---------------------------------------------------------------------------

@@ -164,12 +164,15 @@ classroom adoption). **15-minute presentation.** Judging criteria are not publis
 **-> YOUR NEXT ACTION (user, 2026-10-02): improve the project; lessons resume later.** The
 user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception dashboard~~ (done,
 §9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → ~~chapter picker
-fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → **layer 3
-once a working Gemini key exists (see "Open with the user" 0), and robustness & polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → ~~layer 3,
+personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** and set `LLM_*` in
+`.env`, then verify a live story) → **robustness & polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
 30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 
 **Machine issues to raise with the user:**
+- **OmniRoute is not installed** (checked 2026-10-02: nothing on `localhost:20128`). Installing a
+  global npm package is the user's step. Until then `LLM_MODEL` is unset and no story is written.
 - Windows Application Control blocks `grpc`'s DLL on the dev machine, so the doubt chat answers 503
   there (§9z). It's a security setting or a reinstall of `grpcio`, so it's the user's call; don't
   change it from code.
@@ -206,12 +209,9 @@ once a working Gemini key exists (see "Open with the user" 0), and robustness & 
 0. **The product vision (user, 2026-10-02):** "during signup the student takes an assessment that
    tells us their knowledge, interests and hobbies; we then generate specialised content for them,
    and personalise the chapters based on their interaction with the app." Three layers (§9zc).
-   **Layers 1–2 are built** (§9zd: the starting check at `/start`, the learning plan,
-   personal recommendations; no AI). **Layer 3 = option (b), chosen by the user**: a short personal
-   story + one analogy per student hobby on top of the reviewed lesson, critic-checked, cached per
-   student × concept, falling back to the pre-written interest. **Not built: it needs a working
-   (likely paid) Gemini key first**, and it is a new live call, so confirm the design with the user
-   before starting.
+   **All three layers are built** (§9zd: starting check, learning plan, recommendations; §9ze:
+   personal stories via `src/llm/` and OmniRoute, the original story in a collapsible box). Open:
+   a teacher view to read/flag generated stories, and a student "report this story" button.
 1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
    finish cricket, football and gaming first and leave smartphones and motorsport until after the
    finals; the user has not ruled either way.
@@ -320,8 +320,10 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
    **One deliberate exception (user request, 2026-10-02): the teacher agent**
    (`generate_class_plan`, §9zc). It is teacher-triggered and low-volume, read-only, never on a
    student's path, reuses a plan less than a minute old, and falls back to a rules-based plan, so
-   it costs nothing at student scale and can't take anything down. Any further live call needs
-   the user's say-so.
+   it costs nothing at student scale and can't take anything down. **Second exception (user
+   request, 2026-10-02): personal stories** (§9ze) — written in the background, never blocking a
+   page, cached per student × concept, critic-checked, and the reviewed story is always shown when
+   anything fails. Any further live call needs the user's say-so.
 4. **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
    **global across the subject**; a new chapter must continue the numbering (18, 19, …) or
    prerequisite validation rejects it.
@@ -338,9 +340,10 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
 8. **Models and providers.** *Today:* Gemma `gemma-4-31b-it` (generator/assessor), Gemini 2.5
    Flash-Lite (critic/polisher), local `all-MiniLM-L6-v2` embeddings, all via the `google-genai`
    SDK (**not** the deprecated `google-generativeai`). *The plan (user decision):* bulk generation
-   moves to a **self-hosted LLM on a GPU** in M1a, with the Gemini API as fallback. **Until M1a,
-   don't touch provider code. After M1a, agents call models only through `src/llm/`** — never a
-   model SDK directly. Don't add a third provider without asking. Judges fail open; key roles keep
+   moves to a **self-hosted LLM on a GPU** in M1a, with the Gemini API as fallback. **`src/llm/`
+   exists since 2026-10-02 (§9ze)**: an OpenAI-compatible client (OmniRoute for the free pilot, the
+   user's choice; Gemini's OpenAI-compatible URL later). **New agents call models only through
+   `src/llm/`**; the four older agents still use google-genai directly until the rest of M1a. Don't add a third provider without asking. Judges fail open; key roles keep
    fallback chains.
 9. **⚠️ Gemma accepts neither `system_instruction` nor `thinking_config`.** The agents prepend the
    system prompt to the user message on purpose. It looks like an oversight; it isn't. Re-adding
@@ -449,6 +452,7 @@ venv\Scripts\python.exe tests\test_pilot_metrics.py       # views, answers, 👍
 venv\Scripts\python.exe tests\test_chapter_coverage.py    # picker counts, coming-soon concepts
 venv\Scripts\python.exe tests\test_teacher_agent.py       # agent loop, privacy, fallbacks (no network)
 venv\Scripts\python.exe tests\test_learner_plan.py        # starting check, learning plan, recommendations
+venv\Scripts\python.exe tests\test_personal_story.py      # story agents, llm client, OmniRoute mock
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 

@@ -548,6 +548,26 @@ export interface Lesson {
   title?: string;
   sections?: LessonSection[];
   check?: LessonCheck;
+  personal_story?: PersonalStory;
+}
+
+// A story written for the student's hobby by the story agent and checked by
+// the critic agent. "pending" = being written (poll getPersonalStory);
+// "none" = show the lesson's own story as usual.
+export type PersonalStory =
+  | {
+      status: "ready";
+      hobby: string;
+      emoji: string;
+      story: string;
+      analogy: string;
+      limit: string;
+    }
+  | { status: "pending"; hobby: string; emoji: string }
+  | { status: "none" };
+
+export function getPersonalStory(conceptId: string): Promise<PersonalStory> {
+  return request("/api/personal-story", { query: { concept_id: conceptId } });
 }
 
 export type LessonStatus =

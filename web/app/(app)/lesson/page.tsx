@@ -20,6 +20,7 @@ import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Markdown } from "@/components/markdown";
 import { HelpWidget } from "@/components/help-widget";
+import { LessonStory } from "@/components/personal-story";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useChapter, withChapter } from "@/lib/use-chapter";
 
@@ -85,7 +86,11 @@ function LessonView() {
   const sections = lesson.sections ?? [];
   const collapsed = (heading: string) =>
     /worked example|picture breaks/i.test(heading);
-  const openSections = sections.filter((s) => !collapsed(s.heading));
+  // The opening story is drawn by <LessonStory>, which puts a story written
+  // for the student's hobby first when one exists (layer 3).
+  const isStory = (heading: string) => heading === "The story";
+  const originalStory = sections.find((s) => isStory(s.heading))?.markdown;
+  const openSections = sections.filter((s) => !collapsed(s.heading) && !isStory(s.heading));
   const extraSections = sections.filter((s) => collapsed(s.heading));
 
   return (
@@ -109,7 +114,16 @@ function LessonView() {
           {reason && <p className="text-muted-foreground">{reason}</p>}
         </header>
 
-        {/* The lesson itself */}
+        {/* The lesson itself, opening with the story */}
+        {sections.length > 0 && (
+          <LessonStory
+            key={lesson.concept_id}
+            conceptId={lesson.concept_id}
+            initial={lesson.personal_story}
+            original={originalStory}
+            interest={student?.interest}
+          />
+        )}
         {sections.length > 0 ? (
           openSections.map((section) => (
             <article key={section.heading}>
