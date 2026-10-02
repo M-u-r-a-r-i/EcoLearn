@@ -366,9 +366,12 @@ def teacher_reset_password(
 # secrets, and the signup page needs the interests before anyone has logged in.
 # ---------------------------------------------------------------------------
 @app.get("/api/chapters")
-def chapters() -> list[dict]:
-    """Every chapter in teaching order, with unit and class for grouping."""
-    return api.list_chapters()
+def chapters(interest: str | None = None) -> list[dict]:
+    """Every chapter in teaching order, with unit and class for grouping.
+
+    ?interest=cricket adds `lessons_ready` per chapter (400 for an unknown interest).
+    """
+    return api.list_chapters(interest)
 
 
 @app.get("/api/interests")

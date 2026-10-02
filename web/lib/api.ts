@@ -377,10 +377,12 @@ export interface Chapter {
   grade: number; // 11 or 12
   domain: string;
   concept_count: number;
+  // Present when asked for an interest: concepts with a lesson in it so far.
+  lessons_ready?: number;
 }
 
-export function getChapters(): Promise<Chapter[]> {
-  return request("/api/chapters");
+export function getChapters(interest?: string): Promise<Chapter[]> {
+  return request("/api/chapters", { query: { interest } });
 }
 
 export interface Interest {
@@ -412,6 +414,7 @@ export interface RoadmapConcept {
   best_score: number;
   attempts: number;
   missing_prerequisites: string[]; // uncleared prerequisites — a "brush up first" hint
+  has_lesson?: boolean; // false = not written yet for the student's interest
 }
 
 export function getRoadmap(chapterId: string): Promise<RoadmapConcept[]> {

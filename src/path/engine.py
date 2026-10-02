@@ -134,6 +134,12 @@ def list_chapters() -> list[dict]:
     ]
 
 
+def concept_ids_by_chapter() -> dict[str, list[str]]:
+    """{chapter_id: [concept ids in teaching order]} for the whole subject."""
+    subject = _load_subject()
+    return {ch.id: [c.id for c in ch.concepts] for unit in subject.units for ch in unit.chapters}
+
+
 def find_concept(concept_id: str) -> Concept | None:
     """Look up a single concept by id across the whole curriculum.
 

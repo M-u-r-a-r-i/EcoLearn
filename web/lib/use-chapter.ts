@@ -9,19 +9,27 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { useAuth } from "@/components/auth-provider";
 import { getChapters, type Chapter } from "@/lib/api";
 
-// Class 11, chapter 2 — the first chapter students are piloting on.
+// Class 11, chapter 2 — the first chapter students are piloting on. It has
+// lessons in every in-scope interest.
 export const DEFAULT_CHAPTER_ID = "motion_straight_line";
 
-// Fetch the chapter list once per page load and share it between components.
-let chaptersPromise: Promise<Chapter[]> | null = null;
-function loadChapters(): Promise<Chapter[]> {
-  chaptersPromise ??= getChapters().catch((err) => {
-    chaptersPromise = null; // let the next caller retry
-    throw err;
-  });
-  return chaptersPromise;
+// Fetch the chapter list once per page load per interest and share it between
+// components. Keyed by interest because each chapter's `lessons_ready` depends
+// on it, and a student can switch interest in settings.
+const chaptersPromises = new Map<string, Promise<Chapter[]>>();
+function loadChapters(interest: string): Promise<Chapter[]> {
+  let promise = chaptersPromises.get(interest);
+  if (!promise) {
+    promise = getChapters(interest || undefined).catch((err) => {
+      chaptersPromises.delete(interest); // let the next caller retry
+      throw err;
+    });
+    chaptersPromises.set(interest, promise);
+  }
+  return promise;
 }
 
 // Uses useSearchParams, so the calling page must render inside <Suspense>.
@@ -30,11 +38,21 @@ export function useChapter() {
   const router = useRouter();
   const pathname = usePathname();
   const chapterId = searchParams.get("chapter") ?? DEFAULT_CHAPTER_ID;
+  const interest = useAuth().student?.interest ?? "";
 
-  const [chapters, setChapters] = useState<Chapter[] | null>(null);
+  const [loaded, setLoaded] = useState<{ interest: string; chapters: Chapter[] } | null>(null);
   useEffect(() => {
-    loadChapters().then(setChapters, () => setChapters([]));
-  }, []);
+    let cancelled = false;
+    loadChapters(interest).then(
+      (list) => !cancelled && setLoaded({ interest, chapters: list }),
+      () => !cancelled && setLoaded({ interest, chapters: [] }),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [interest]);
+  // A list loaded for a previous interest is stale: show loading instead.
+  const chapters = loaded?.interest === interest ? loaded.chapters : null;
 
   const setChapter = useCallback(
     (id: string) => {

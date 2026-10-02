@@ -420,6 +420,7 @@ venv\Scripts\python.exe tests\test_api_auth.py
 venv\Scripts\python.exe tests\test_mcq_grading.py         # MCQ grading, no API key needed
 venv\Scripts\python.exe tests\test_teacher.py             # teacher tools: classes, resets, roles
 venv\Scripts\python.exe tests\test_pilot_metrics.py       # views, answers, 👍/👎, class insights
+venv\Scripts\python.exe tests\test_chapter_coverage.py    # picker counts, coming-soon concepts
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 

@@ -8,7 +8,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { Check, Play, ArrowRight, PartyPopper } from "lucide-react";
+import { Check, Clock, Play, ArrowRight, PartyPopper } from "lucide-react";
 
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
@@ -62,7 +62,10 @@ function Roadmap() {
   const total = concepts?.length ?? 0;
   const mastered = concepts?.filter((c) => c.status === "mastered").length ?? 0;
   const pct = total ? Math.round((mastered / total) * 100) : 0;
-  const nextConcept = concepts?.find((c) => c.status === "available");
+  // has_lesson is absent only for legacy accounts; treat that as "written".
+  const written = (c: RoadmapConcept) => c.has_lesson !== false;
+  const readyCount = concepts?.filter(written).length ?? 0;
+  const nextConcept = concepts?.find((c) => c.status === "available" && written(c));
   const allDone = total > 0 && mastered === total;
 
   return (
@@ -82,21 +85,28 @@ function Roadmap() {
             </p>
           </div>
 
-          <ChapterPicker chapters={chapters} value={chapterId} onChange={setChapter} />
+          <ChapterPicker
+            chapters={chapters}
+            value={chapterId}
+            onChange={setChapter}
+            interest={student.interest}
+          />
 
-          {/* Progress */}
-          <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-soft">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-foreground">
-                {mastered} of {total} concepts mastered
-              </span>
-              <span className="text-muted-foreground">{pct}%</span>
+          {/* Progress — pointless for a chapter with nothing written yet. */}
+          {(loading || readyCount > 0) && (
+            <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-soft">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold text-foreground">
+                  {mastered} of {total} concepts mastered
+                </span>
+                <span className="text-muted-foreground">{pct}%</span>
+              </div>
+              <Progress value={pct} />
             </div>
-            <Progress value={pct} />
-          </div>
+          )}
 
           {/* Continue Learning */}
-          {!loading && !error && total > 0 && (
+          {!loading && !error && readyCount > 0 && (nextConcept || allDone) && (
             <PrimaryButton asChild className="w-full sm:w-auto sm:self-start">
               <Link href={withChapter("/lesson", chapterId)}>
                 {allDone ? (
@@ -122,7 +132,21 @@ function Roadmap() {
           </p>
         )}
 
-        {!loading && !error && concepts && (
+        {!loading && !error && concepts && total > 0 && readyCount === 0 && (
+          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-card p-6 text-center">
+            <Clock className="mx-auto size-8 text-muted-foreground" aria-hidden />
+            <p className="font-semibold text-foreground">
+              The <span className="capitalize">{student.interest}</span> lessons for this chapter are
+              still being written.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Pick another chapter from the list above. The chapters you can open now are the ones
+              not marked &ldquo;coming soon&rdquo;.
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && concepts && readyCount > 0 && (
           <div className="relative flex flex-col gap-3">
             {/* The continuous vertical line that turns the nodes into a path.
                 left-5 (20px) aligns with the centre of the 40px node circles. */}
@@ -134,6 +158,7 @@ function Roadmap() {
             {concepts.map((c) => {
               const s = STATUS[c.status];
               const isNext = c.concept_id === nextConcept?.concept_id;
+              if (!written(c)) return <ComingSoonConcept key={c.concept_id} name={c.name} />;
               return (
                 <div key={c.concept_id} className="relative flex items-center gap-4">
                   {/* Node circle */}
@@ -188,6 +213,24 @@ function Roadmap() {
         )}
       </PageContainer>
     </main>
+  );
+}
+
+// A concept whose lesson isn't written yet in this interest: on the path, so
+// the chapter's shape is visible, but not a link to an empty page.
+function ComingSoonConcept({ name }: { name: string }) {
+  return (
+    <div className="relative flex items-center gap-4" aria-disabled="true">
+      <div className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground">
+        <Clock className="size-5" />
+      </div>
+      <div className="flex flex-1 items-center justify-between rounded-xl border border-dashed border-border bg-card/60 px-4 py-3">
+        <span className="font-semibold text-muted-foreground">{name}</span>
+        <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+          Coming soon
+        </span>
+      </div>
+    </div>
   );
 }
 

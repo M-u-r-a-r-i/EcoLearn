@@ -1599,3 +1599,34 @@ cd web && npx tsc --noEmit && npm run lint && npm run build
 - **Commit and push to `origin` (github.com/Niranjan-207/EcoLearn, branch `main`) when a chunk of work is complete and every check passes** (user authorisation, 2026-09-21). Never force-push, never rewrite pushed history, never commit secrets (`.env`, keys) or local files (`venv/`, `data/progress.db`, `chroma_db/`). (Until 2026-09-21 the rule was "the human runs commits".)
 - Beginner-friendly explanations are appreciated — explain the *why*. Honest, specific critique
   over vague praise.
+
+## 9zb. The chapter picker only offers what is written (2026-10-02)
+
+**Changed.** The picker listed all 29 chapters for every student. For an interest with gaps
+(motorsport: 7 of 14), most chapters opened onto concepts with no lesson, and the student saw
+"…Generate it with the lesson factory": developer text.
+- `src/content/lesson_service.py`: `concepts_with_lessons(interest)`, the serving rule (an
+  "explain" lesson or legacy JSON) for the whole syllabus in two globs.
+- `src/path/engine.py`: `concept_ids_by_chapter()`.
+- `src/platform_api.py`: `list_chapters(interest=None)` adds `lessons_ready` per chapter (the
+  interest is validated against the registry, since it becomes a glob pattern);
+  `get_roadmap` adds `has_lesson` per concept; `get_next_lesson` skips an unwritten concept to
+  the next unmastered one that is written; the `lesson_missing` reason is now written for students.
+- `api/main.py`: `GET /api/chapters?interest=`.
+- Web: `use-chapter` loads chapters for the student's interest (cached per interest); the picker
+  disables chapters with no lessons ("— coming soon"), labels part-written ones
+  ("8 of 11 lessons ready") and says "7 of 29 chapters have lessons for Motorsport so far";
+  the roadmap shows unwritten concepts as non-clickable "Coming soon" cards, and an empty chapter
+  shows one clear message instead of a progress bar and dead links.
+- `tests/test_chapter_coverage.py` (new): 13 checks, on a temporary lessons directory.
+
+**Why disabled, not hidden.** Showing the whole syllabus with "coming soon" is honest about where
+the content is and shows the curriculum's breadth; hiding chapters would make the product look
+smaller than it is, and a shared link to a hidden chapter would look like a bug.
+
+**Verified in the browser** as a motorsport student: 22 chapters disabled, Ray Optics shows the
+"still being written" message and no progress bar, Gravitation shows its 8 lessons and Continue.
+
+**Learned.** `chapters_with_lessons` (used for the signup counts) counts *any* format, but only
+"explain" is served. Coverage and serving must use the same rule, or the UI promises a lesson
+that the server can't deliver.

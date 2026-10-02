@@ -656,14 +656,29 @@ def reset_student_password(teacher_id: str, student_id: str) -> dict[str, Any]:
 # 2. Chapters + roadmap
 # ---------------------------------------------------------------------------
 
-def list_chapters() -> list[dict[str, Any]]:
+def list_chapters(interest: str | None = None) -> list[dict[str, Any]]:
     """Return all chapters in teaching order as
     [{id, name, unit_id, unit_name, grade, domain, concept_count}, ...].
 
     Lets a frontend render a chapter picker (grouped class → unit) without
     reaching into the curriculum directly.
+
+    With `interest`, each chapter also carries `lessons_ready`: how many of its
+    concepts have a lesson a student with that interest can be served. The
+    picker uses it to mark chapters "coming soon" instead of letting a student
+    walk into an empty one.
+
+    Raises:
+        EcoLearnError: `interest` is not a registered interest.
     """
-    return engine.list_chapters()
+    chapters = engine.list_chapters()
+    if interest is None:
+        return chapters
+    ready = lesson_service.concepts_with_lessons(_validate_interest(interest))
+    by_chapter = engine.concept_ids_by_chapter()
+    for chapter in chapters:
+        chapter["lessons_ready"] = sum(1 for c in by_chapter.get(chapter["id"], []) if c in ready)
+    return chapters
 
 
 def list_interests(active_only: bool = True) -> list[dict[str, Any]]:
@@ -716,10 +731,20 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
     prerequisites, shown as "brush up first" hints) — enough to render a
     roadmap view with no further calls.
 
+    Each entry also has `has_lesson`: whether a lesson exists yet for the
+    student's interest, so the UI can show "coming soon" instead of a link to
+    an empty page. (Omitted for an unknown, legacy-only student id.)
+
     Raises:
         ValueError: if the chapter has no concepts / doesn't exist.
     """
-    return engine.get_roadmap(student_id, chapter_id)
+    roadmap = engine.get_roadmap(student_id, chapter_id)
+    profile = store.get_student(student_id)
+    if profile is not None:
+        ready = lesson_service.concepts_with_lessons(profile["interest"])
+        for row in roadmap:
+            row["has_lesson"] = row["concept_id"] in ready
+    return roadmap
 
 
 # ---------------------------------------------------------------------------
@@ -783,16 +808,35 @@ def get_next_lesson(
             "lesson": None,
         }
         chosen = rec.concept if rec.kind in (engine.KIND_NEW, engine.KIND_REVIEW) else None
+        # Lessons are still being written, interest by interest. If the
+        # engine's pick has none yet in this student's interest, recommend the
+        # next unmastered concept in the chapter that does, rather than
+        # sending "Continue learning" into an empty page.
+        if chosen is not None and not lesson_service.has_lesson(chosen.id, profile["interest"]):
+            ready = lesson_service.concepts_with_lessons(profile["interest"])
+            fallback = next(
+                (row for row in engine.get_roadmap(student_id, chapter_id)
+                 if row["concept_id"] in ready and row["status"] != engine.ROADMAP_MASTERED),
+                None,
+            )
+            if fallback is not None:
+                chosen = engine.find_concept(fallback["concept_id"])
+                envelope.update(
+                    status=engine.KIND_NEW,
+                    reason=f"Next up: {chosen.name}.",
+                    concept_id=chosen.id,
+                    concept_name=chosen.name,
+                )
 
     # Load the lesson body when there's a concept to actually teach.
     if chosen is not None:
         lesson = lesson_service.get_lesson(chosen.id, profile["interest"])
         if lesson is None:
+            # Shown to the student, so it says what to do, not how it's built.
             envelope["status"] = "lesson_missing"
             envelope["reason"] = (
-                f"No pre-generated lesson exists for {chosen.name} in "
-                f"interest {profile['interest']!r} yet. "
-                "Generate it with the lesson factory."
+                f"The {profile['interest']} lesson for {chosen.name} is still being "
+                "written. Pick a chapter that's marked ready, or come back soon."
             )
         else:
             envelope["lesson"] = lesson.model_dump()

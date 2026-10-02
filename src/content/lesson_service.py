@@ -107,6 +107,20 @@ def chapters_with_lessons(interest: str) -> set[str]:
     return {path.parents[1].name for path in lessons_dir().glob(pattern)}
 
 
+def concepts_with_lessons(interest: str) -> set[str]:
+    """Every concept id a student with this interest can actually be served.
+
+    The same rule as `has_lesson` (an authored "explain" lesson, or a legacy
+    JSON one), but for the whole syllabus in two globs instead of one lookup
+    per concept — the chapter picker needs all 249 answers at once.
+    """
+    interest = interest.lower()
+    authored = {p.parent.name for p in lessons_dir().glob(f"*/*/*/{interest}__explain.md")}
+    suffix = f"__{interest}"
+    legacy = {p.stem[: -len(suffix)] for p in lessons_dir().glob(f"*{suffix}.json")}
+    return authored | legacy
+
+
 def has_lesson(concept_id: str, interest: str) -> bool:
     """True if any servable lesson exists for this concept + interest."""
     return (
