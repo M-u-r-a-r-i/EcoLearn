@@ -173,6 +173,8 @@ personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** a
 **Machine issues to raise with the user:**
 - **OmniRoute is not installed** (checked 2026-10-02: nothing on `localhost:20128`). Installing a
   global npm package is the user's step. Until then `LLM_MODEL` is unset and no story is written.
+  **The user asked to be reminded to set it up later** (2026-10-02): raise it at the start of the
+  next session and before any demo or pilot prep.
 - Windows Application Control blocks `grpc`'s DLL on the dev machine, so the doubt chat answers 503
   there (§9z). It's a security setting or a reinstall of `grpcio`, so it's the user's call; don't
   change it from code.
@@ -210,8 +212,8 @@ personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** a
    tells us their knowledge, interests and hobbies; we then generate specialised content for them,
    and personalise the chapters based on their interaction with the app." Three layers (§9zc).
    **All three layers are built** (§9zd: starting check, learning plan, recommendations; §9ze:
-   personal stories via `src/llm/` and OmniRoute, the original story in a collapsible box). Open:
-   a teacher view to read/flag generated stories, and a student "report this story" button.
+   personal stories via `src/llm/` and OmniRoute, the original story in a collapsible box; §9zf:
+   students report a story with fixed reasons, teachers read/hide/restore them on `/teacher/class`).
 1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
    finish cricket, football and gaming first and leave smartphones and motorsport until after the
    finals; the user has not ruled either way.
@@ -453,6 +455,7 @@ venv\Scripts\python.exe tests\test_chapter_coverage.py    # picker counts, comin
 venv\Scripts\python.exe tests\test_teacher_agent.py       # agent loop, privacy, fallbacks (no network)
 venv\Scripts\python.exe tests\test_learner_plan.py        # starting check, learning plan, recommendations
 venv\Scripts\python.exe tests\test_personal_story.py      # story agents, llm client, OmniRoute mock
+venv\Scripts\python.exe tests\test_story_review.py        # report button, teacher hide/restore
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 

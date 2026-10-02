@@ -49,6 +49,12 @@ def print_report(report: dict, top: int) -> None:
     print(f"First-try accuracy  {pct(s['first_try_accuracy'])}")
     print(f"Lesson ratings      👍 {s['thumbs_up']}  👎 {s['thumbs_down']}  "
           f"(approval {pct(s['approval'])})")
+    stories = report["stories"]
+    ready = [st for st in stories if st["status"] == "ready"]
+    print(f"Personal stories    {len(ready)} written, "
+          f"{sum(1 for st in ready if st['reported_at'])} reported by students, "
+          f"{sum(1 for st in ready if st['hidden'] and st['hidden_by'] == 'teacher')} hidden by teachers, "
+          f"{sum(1 for st in stories if st['status'] in ('failed', 'no_fit'))} not written (checks/fit)")
 
     print(f"\nBy interest")
     print(f"  {'interest':<13}{'students':>9}{'opens':>7}{'1st try':>9}{'👍':>5}{'👎':>5}{'approval':>10}")
@@ -101,6 +107,7 @@ def main() -> int:
             ("answers", report["answers"]),
             ("ratings", report["ratings"]),
             ("starting_check", report["diagnostic"]),
+            ("personal_stories", report["stories"]),
             ("per_student", insights["students"]),
             ("per_concept", insights["concepts"]),
             ("per_interest", insights["interests"]),

@@ -570,6 +570,60 @@ export function getPersonalStory(conceptId: string): Promise<PersonalStory> {
   return request("/api/personal-story", { query: { concept_id: conceptId } });
 }
 
+// Fixed reasons only: no free text from a child is stored.
+export type StoryReportReason = "wrong_physics" | "confusing" | "not_appropriate" | "other";
+
+export function reportPersonalStory(conceptId: string, reason: StoryReportReason): Promise<unknown> {
+  return request("/api/personal-story/report", {
+    method: "POST",
+    body: { concept_id: conceptId, reason },
+  });
+}
+
+// ---- Teachers: the AI-written stories in a class -----------------------------
+export interface ClassStory {
+  student_id: string;
+  name: string;
+  username: string;
+  concept_id: string;
+  concept_name: string;
+  chapter_name: string | null;
+  hobby: string;
+  emoji: string;
+  story: string;
+  analogy: string;
+  limit: string;
+  model: string | null;
+  created_at: string;
+  hidden: boolean;
+  hidden_by: "student" | "teacher" | null;
+  report_reason: StoryReportReason | null;
+  report_label: string | null;
+  reported_at: string | null;
+}
+
+export interface ClassStories {
+  summary: {
+    written: number;
+    showing: number;
+    reported: number;
+    hidden_by_teacher: number;
+    not_written: number; // failed the checks or no hobby fit: the reviewed story was shown
+  };
+  stories: ClassStory[];
+}
+
+export function getClassStories(classId: string): Promise<ClassStories> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/stories`);
+}
+
+export function setStoryHidden(studentId: string, conceptId: string, hidden: boolean): Promise<unknown> {
+  return request(
+    `/api/teacher/stories/${encodeURIComponent(studentId)}/${encodeURIComponent(conceptId)}/visibility`,
+    { method: "POST", body: { hidden } },
+  );
+}
+
 export type LessonStatus =
   | "new"
   | "review"

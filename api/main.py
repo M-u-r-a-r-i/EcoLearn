@@ -173,6 +173,20 @@ class DiagnosticRequest(BaseModel):
     hobbies: list[str] = []
 
 
+class StoryReportRequest(BaseModel):
+    """Body for POST /api/personal-story/report. `reason` is one of
+    wrong_physics | confusing | not_appropriate | other (no free text)."""
+
+    concept_id: str
+    reason: str
+
+
+class StoryVisibilityRequest(BaseModel):
+    """Body for POST /api/teacher/stories/{student_id}/{concept_id}/visibility."""
+
+    hidden: bool
+
+
 class CreateClassRequest(BaseModel):
     """Body for POST /api/teacher/classes. `roster`: one student name per line,
     optionally "Name, interest"."""
@@ -374,6 +388,25 @@ def teacher_generate_plan(
     return api.generate_class_plan(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/stories")
+def teacher_class_stories(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """Every AI-written personal story in this class, reported ones first."""
+    return api.list_class_stories(teacher_id, class_id)
+
+
+@app.post("/api/teacher/stories/{student_id}/{concept_id}/visibility")
+def teacher_story_visibility(
+    student_id: str,
+    concept_id: str,
+    payload: StoryVisibilityRequest,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Hide a story from the student (they see the reviewed one), or show it again."""
+    return api.set_class_story_hidden(teacher_id, student_id, concept_id, payload.hidden)
+
+
 @app.post("/api/teacher/students/{student_id}/reset-password")
 def teacher_reset_password(
     student_id: str,
@@ -484,6 +517,14 @@ def personal_story(
 ) -> dict:
     """The story written for this student's hobby: ready, pending (poll), or none."""
     return api.get_personal_story(student_id, concept_id)
+
+
+@app.post("/api/personal-story/report")
+def report_personal_story(
+    payload: StoryReportRequest, student_id: str = Depends(get_current_student_id)
+) -> dict:
+    """Report the story written for you: it's hidden at once and your teacher sees it."""
+    return api.report_personal_story(student_id, payload.concept_id, payload.reason)
 
 
 @app.get("/api/learning-plan")

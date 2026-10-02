@@ -17,6 +17,7 @@ import { PrimaryButton } from "@/components/primary-button";
 import { SectionHeading } from "@/components/section-heading";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { TeachingAssistant } from "@/components/teaching-assistant";
+import { ClassStoriesPanel } from "@/components/class-stories";
 import { CredentialsSheet, InterestSelect, RosterField } from "@/components/teacher-ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -117,6 +118,7 @@ function ClassView() {
             ) : (
               <FormError message={insights.error ?? "Couldn't load the class insights."} />
             )}
+            <ClassStoriesPanel classId={klass.class_id} />
             <StudentTable
               students={students}
               insights={insights.data?.students ?? []}

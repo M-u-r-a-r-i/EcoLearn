@@ -1841,3 +1841,53 @@ real free tiers inside OmniRoute: an AI Studio key, Groq, or OpenRouter's free m
 
 **Learned.** A long multi-heredoc shell command failed to parse and ran nothing; for prose, write
 it to a file first.
+
+## 9zf. Reviewing personal stories: a report button and the teacher's story view (2026-10-02)
+
+The user asked for the two review pieces left open in §9ze, and to be reminded to set up
+OmniRoute later. The reminder is in the assistant's memory and in AGENTS.md's machine issues.
+
+**Changed.**
+- `src/progress/store.py`: `personal_stories` gains `hidden`, `hidden_by` (student / teacher),
+  `report_reason` and `reported_at`, added the additive way (`PRAGMA table_info` + `ADD COLUMN`).
+  New: `list_personal_stories`, `set_story_visibility`.
+- `src/learner/personal_story.py`: `view()` treats a hidden story as "none", so the student gets
+  the reviewed story. It stays "current", so the same lesson never rewrites it.
+- `src/platform_api.py`:
+  - `report_personal_story`, with **fixed reasons only** (wrong physics, confusing, not
+    appropriate, something else) and no free text, since a child's typed comment is personal data;
+  - `list_class_stories`: the full text of every story in the class, reported first, plus counts
+    including attempts that failed the checks;
+  - `set_class_story_hidden`: the teacher hides or restores. A report stays on record even if the
+    story is restored. Ownership is checked like password resets, with one NotFound for every
+    "not yours".
+  - `pilot_report` adds the stories, pseudonymised.
+- `api/main.py`: `POST /api/personal-story/report` (student), `GET /api/teacher/classes/{id}/stories`,
+  `POST /api/teacher/stories/{student}/{concept}/visibility` (teacher).
+- `scripts/pilot_report.py`: a "Personal stories" line (written / reported / hidden / not written)
+  and `personal_stories.csv`.
+- Web:
+  - `components/personal-story.tsx`: "Something wrong with this story?" opens the four reasons.
+    Choosing one hides the story at once, with a thank-you note and the original story.
+  - `components/class-stories.tsx` on `/teacher/class`: counts, then each story with student,
+    concept, hobby, a status chip, the student's reason, the full text (open by default when
+    reported and hidden), and "Hide this story" / "Show it to X again".
+- `tests/test_story_review.py` (new): **21 checks**.
+
+**Why.** Two checks before any AI story stays in front of a child: the critic agent before it's
+shown, and people after it's shown. The student is the first to notice a confusing story, the
+teacher the best judge of it. Hiding on report, before review, is the safe default: the reviewed
+story is always there to fall back on.
+
+**Verified in the browser** (stories seeded by hand, since OmniRoute isn't installed):
+- as `test.t`: the report button showed the four reasons; "The physics seems wrong" swapped in the
+  thank-you note and the original story, and it stayed hidden after a reload;
+- as teacher `metrics.check`: "1 written · 0 showing · 1 reported", with the reason and the full
+  text; "Show it to Test again" moved it to "Reported · shown again". Page width fits.
+
+All 18 test scripts, `tsc`, lint and **`npm run build`** are clean (13 routes). The user's servers
+had stopped, so the API and web were restarted from `.claude/launch.json`; the API now runs on
+`venv`.
+
+**Learned.** Restoring a reported story must not erase the report: the pilot needs to know how often
+students flag AI text, whatever the teacher decided afterwards.

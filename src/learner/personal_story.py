@@ -294,7 +294,9 @@ def view(student_id: str, concept_id: str) -> dict[str, Any]:
     row = store.get_personal_story(student_id, concept_id)
     hobby = {"hobby": ctx["hobby"]["label"], "emoji": ctx["hobby"]["emoji"]}
     if row is not None and _is_current(row, ctx):
-        if row["status"] == READY:
+        # Reported by the student or hidden by a teacher: the reviewed story
+        # only. It stays "current", so the same lesson never rewrites it.
+        if row["status"] == READY and not row.get("hidden"):
             return {"status": "ready", **hobby, "story": row["story"],
                     "analogy": row["analogy"], "limit": row["limit_text"]}
         return {"status": "none"}

@@ -1056,6 +1056,125 @@ def get_personal_story(student_id: str, concept_id: str) -> dict[str, Any]:
     return personal_story.view(student_id, concept_id)
 
 
+# Why a student can report a story. Fixed choices, no free text: a child's
+# typed comment is personal data we'd rather not hold, and a reason code is
+# enough for a teacher to know what to look for.
+STORY_REPORT_REASONS = {
+    "wrong_physics": "The physics seems wrong",
+    "confusing": "It's confusing",
+    "not_appropriate": "It's not appropriate",
+    "other": "Something else",
+}
+
+
+def report_personal_story(student_id: str, concept_id: str, reason: str) -> dict[str, Any]:
+    """A student reports the story written for them. It is hidden from them at
+    once (they see the lesson's own story) and shows up for their teacher.
+
+    Raises:
+        EcoLearnError: an unknown reason.
+        NotFoundError: no story was shown to this student for this concept.
+    """
+    _require_student(student_id)
+    if reason not in STORY_REPORT_REASONS:
+        raise EcoLearnError(f"Reason must be one of: {', '.join(STORY_REPORT_REASONS)}.")
+    row = store.get_personal_story(student_id, concept_id)
+    if row is None or row["status"] != personal_story.READY:
+        raise NotFoundError("There's no story to report here.")
+    store.set_story_visibility(student_id, concept_id, hidden=True, hidden_by="student",
+                               report_reason=reason)
+    return {"concept_id": concept_id, "reported": True, "reason": reason}
+
+
+def list_class_stories(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """Every personal story written for students in one of the teacher's classes.
+
+    Reported ones first, then the newest. Each carries the full text, so a
+    teacher reads exactly what the student saw.
+
+    Returns:
+        {"summary": {written, showing, reported, hidden_by_teacher, not_written},
+         "stories": [{student_id, name, username, concept_id, concept_name,
+                      chapter_name, hobby, emoji, story, analogy, limit, model,
+                      created_at, hidden, hidden_by, report_reason,
+                      report_label, reported_at}]}
+        `not_written` counts attempts that failed the checks or found no fit
+        (the student saw the reviewed story instead).
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    students = {s["student_id"]: s for s in store.list_class_students(class_id)}
+    rows = store.list_personal_stories(list(students))
+    hobbies = personal_story._hobby_table()
+    chapter_names = {c["id"]: c["name"] for c in engine.list_chapters()}
+
+    stories = []
+    for r in rows:
+        if r["status"] != personal_story.READY:
+            continue
+        concept = engine.find_concept(r["concept_id"])
+        hobby = hobbies.get(r["hobby"], {"label": r["hobby"].capitalize(), "emoji": "✨"})
+        student = students[r["student_id"]]
+        stories.append({
+            "student_id": r["student_id"], "name": student["name"], "username": student["username"],
+            "concept_id": r["concept_id"], "concept_name": concept.name if concept else r["concept_id"],
+            "chapter_name": chapter_names.get(concept.chapter_id) if concept else None,
+            "hobby": hobby["label"], "emoji": hobby.get("emoji", ""),
+            "story": r["story"], "analogy": r["analogy"], "limit": r["limit_text"],
+            "model": r["model"], "created_at": r["created_at"],
+            "hidden": r["hidden"], "hidden_by": r["hidden_by"],
+            "report_reason": r["report_reason"],
+            "report_label": STORY_REPORT_REASONS.get(r["report_reason"] or ""),
+            "reported_at": r["reported_at"],
+        })
+    # Reported first (newest report first), then everything else newest first.
+    stories.sort(key=lambda s: s["created_at"], reverse=True)
+    stories.sort(key=lambda s: (s["reported_at"] is None, -_epoch(s["reported_at"])))
+    return {
+        "summary": {
+            "written": len(stories),
+            "showing": sum(1 for s in stories if not s["hidden"]),
+            "reported": sum(1 for s in stories if s["reported_at"]),
+            "hidden_by_teacher": sum(1 for s in stories if s["hidden"] and s["hidden_by"] == "teacher"),
+            "not_written": sum(1 for r in rows if r["status"] in (personal_story.FAILED,
+                                                                  personal_story.NO_FIT)),
+        },
+        "stories": stories,
+    }
+
+
+def _epoch(iso: str | None) -> float:
+    return datetime.fromisoformat(iso).timestamp() if iso else 0.0
+
+
+def set_class_story_hidden(
+    teacher_id: str, student_id: str, concept_id: str, hidden: bool
+) -> dict[str, Any]:
+    """A teacher hides a story (the student sees the reviewed one) or shows it
+    again — including one the student reported, if the teacher judges it fine.
+    The student's report stays on record either way.
+
+    Raises:
+        NotFoundError: the student isn't in this teacher's classes, or there's
+                       no such story (one answer, like password resets).
+    """
+    get_teacher_profile(teacher_id)
+    class_id = store.get_student_class_id(student_id)
+    try:
+        if class_id is None:
+            raise NotFoundError("")
+        _own_class(teacher_id, class_id)
+    except NotFoundError:
+        raise NotFoundError("Story not found in your classes.") from None
+    if not store.set_story_visibility(student_id, concept_id, hidden=bool(hidden),
+                                      hidden_by="teacher" if hidden else None):
+        raise NotFoundError("Story not found in your classes.")
+    return {"student_id": student_id, "concept_id": concept_id, "hidden": bool(hidden)}
+
+
 # ---------------------------------------------------------------------------
 # 4. Assessment
 # ---------------------------------------------------------------------------
@@ -1560,6 +1679,9 @@ def pilot_report() -> dict[str, Any]:
         "ratings": alias(activity["ratings"]),
         # The starting check: each student's baseline before any lesson.
         "diagnostic": alias(store.get_diagnostic_answers(None)),
+        # AI-written personal stories, with whether students reported them and
+        # whether teachers hid them: the evidence on the AI layer's quality.
+        "stories": alias(store.list_personal_stories(list(student_alias))),
     }
 
 

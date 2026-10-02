@@ -165,6 +165,14 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    # Review of personal stories (2026-10-02): a student can report one (it is
+    # hidden from them at once) and a teacher can hide or restore one. Added as
+    # columns, the additive way, so stories written before this keep working.
+    story_columns = {row["name"] for row in conn.execute("PRAGMA table_info(personal_stories)")}
+    for column, kind in (("hidden", "INTEGER NOT NULL DEFAULT 0"), ("hidden_by", "TEXT"),
+                         ("report_reason", "TEXT"), ("reported_at", "TEXT")):
+        if column not in story_columns:
+            conn.execute(f"ALTER TABLE personal_stories ADD COLUMN {column} {kind}")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS diagnostic_answers (
@@ -1264,5 +1272,57 @@ def save_personal_story(row: dict[str, Any]) -> None:
              json.dumps(row.get("problems", []), ensure_ascii=False), _now_iso()),
         )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def list_personal_stories(student_ids: list[str]) -> list[dict[str, Any]]:
+    """Every story row for these students (any status), newest first."""
+    if not student_ids:
+        return []
+    marks = ",".join("?" * len(student_ids))
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            f"SELECT * FROM personal_stories WHERE student_id IN ({marks}) ORDER BY created_at DESC",
+            student_ids,
+        ).fetchall()
+    finally:
+        conn.close()
+    out = []
+    for r in rows:
+        row = dict(r)
+        row["problems"] = json.loads(row["problems"])
+        row["hidden"] = bool(row["hidden"])
+        out.append(row)
+    return out
+
+
+def set_story_visibility(
+    student_id: str,
+    concept_id: str,
+    hidden: bool,
+    hidden_by: str | None,
+    report_reason: str | None = None,
+) -> bool:
+    """Hide or restore one story. A report reason (with its time) is recorded
+    once and kept even if a teacher later restores the story. Returns False if
+    there is no such story."""
+    conn = _connect()
+    try:
+        if report_reason is not None:
+            cursor = conn.execute(
+                "UPDATE personal_stories SET hidden = ?, hidden_by = ?, report_reason = ?, "
+                "reported_at = ? WHERE student_id = ? AND concept_id = ?",
+                (int(hidden), hidden_by, report_reason, _now_iso(), student_id, concept_id),
+            )
+        else:
+            cursor = conn.execute(
+                "UPDATE personal_stories SET hidden = ?, hidden_by = ? "
+                "WHERE student_id = ? AND concept_id = ?",
+                (int(hidden), hidden_by, student_id, concept_id),
+            )
+        conn.commit()
+        return cursor.rowcount > 0
     finally:
         conn.close()
