@@ -93,14 +93,19 @@ def main() -> None:
     check(bad["mastery"]["attempts"] == 1, "the attempt is recorded")
     check(bad["mastery"]["status"] != "mastered", "a wrong answer does not master the concept")
 
-    print("\n[3] the right pick: score 3, concept mastered")
+    # Since 2026-10-03 (§9zn) a right answer to a question the student has just
+    # been shown the answer to clears the concept but doesn't master it:
+    # mastery needs two DIFFERENT questions right (tests/test_mastery.py).
+    print("\n[3] the right pick after a wrong one: score 2, cleared but not mastered")
     good = api.submit_assessment(sid, CONCEPT, key.lower())  # lowercase accepted
-    check(good["score"] == 3, f"right pick scores 3 (got {good['score']})")
+    check(good["score"] == 2, f"right pick after seeing the answer scores 2 (got {good['score']})")
     check(good["correct"] is True, "correct flag is True")
     check(good["selected_option"] == key, "the picked letter is normalised to upper case")
     check(good["feedback"].startswith("Correct."), "feedback opens with Correct.")
-    check(good["mastery"]["status"] == "mastered", "the concept is now mastered")
-    check(good["mastery"]["best_score"] == 3, "best score is kept")
+    check(good["mastery"]["status"] == "partial" and good["mastery_signal"] == "partial",
+          "the concept is cleared (the path moves on), not mastered")
+    check(good["mastery"]["best_score"] == 2 and good["mastery_note"],
+          "best score 2, and a note saying how to master it")
 
     print("\n[4] rubbish input is rejected, progress untouched")
     before = good["mastery"]["attempts"]

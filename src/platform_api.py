@@ -40,11 +40,13 @@ same results over HTTP without translation.
 
 from __future__ import annotations
 
+import os
 import re
 import sqlite3
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 from src.agents import teacher_agent  # stdlib-only at import; the SDK loads lazily
@@ -59,6 +61,11 @@ from src.learner import diagnostic, personal_story
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
+from src import llm
+
+# Every model call made through src/llm goes into the usage log (the cost per
+# student for the pitch). Registered here, so src/llm needs no storage code.
+llm.set_usage_sink(store.record_llm_call)
 # src.pipeline (the doubt chat's generate→critic loop and its RAG index) is
 # imported lazily inside ask_help — see the note there.
 
@@ -964,6 +971,7 @@ def get_mix_ups(student_id: str) -> dict[str, Any]:
         store.get_diagnostic_answers([student_id]),
         store.get_activity([student_id])["answers"],
         store.get_end_check_answers([student_id]),
+        store.get_review_answers([student_id]),
     )
     ready = lesson_service.concepts_with_lessons(profile["interest"])
     chapters = {c["id"]: c["name"] for c in engine.list_chapters()}
@@ -1431,9 +1439,6 @@ def _grade_multiple_choice(
 
     sure = diagnostic.clean_confidence(confidence)
     correct = picked == check.answer
-    # 3 = mastered, 0 = not yet. The store's pass mark is 2, so a correct pick
-    # masters the concept and a wrong one leaves it unmastered but attempted.
-    score = 3 if correct else 0
 
     if correct:
         feedback = f"Correct. {check.explanation.strip()}"
@@ -1451,17 +1456,20 @@ def _grade_multiple_choice(
     elif correct and sure == "guess":
         feedback += "\n\nYou guessed right. Read the explanation above so it sticks."
 
-    updated = store.update_progress(student_id, concept_id, score)
     logged = store.record_answer(
         student_id, concept_id, interest, picked, correct,
         None if correct else (check.misconceptions.get(picked) or "").strip() or None,
         sure,
     )
+    # Scored AFTER recording, because this answer is part of the evidence.
+    score, note = _mastery_score(student_id, concept_id, correct)
+    updated = store.update_progress(student_id, concept_id, score)
     return {
         "concept_id": concept_id,
         "score": score,
         "attempt_no": logged["attempt_no"],
-        "mastery_signal": "mastered" if correct else "not_yet",
+        "mastery_signal": _SIGNAL[score],
+        "mastery_note": note,
         "feedback": feedback,
         "missing_concepts": [],
         "graded_question": check.question,
@@ -1472,6 +1480,170 @@ def _grade_multiple_choice(
         "correct_option": check.answer,
         "confidence": sure,
     }
+
+
+# ---------------------------------------------------------------------------
+# Mastery from evidence (2026-10-03)
+#
+# One right answer used to mean "mastered", and after a wrong pick the app
+# shows the right answer, so a retry was nearly free. Now a concept is
+# MASTERED only when the student has answered TWO DIFFERENT questions on it
+# right (learner_plan.mastery_evidence): the starting check, a lesson check,
+# the end check and revision questions all count, but not a question they got
+# wrong first. One right answer is "cleared" (score 2): the path moves on, and
+# the concept goes in the revision queue for a fresh question later.
+# ---------------------------------------------------------------------------
+
+_SIGNAL = {3: "mastered", 2: "partial", 0: "not_yet"}
+
+
+def _concept_rows(student_id: str, concept_id: str) -> tuple[list, list, list, list]:
+    """(starting check, lesson, end check, revision) answers for one concept."""
+    return store.get_concept_answers(student_id, concept_id)
+
+
+def _mastery_score(student_id: str, concept_id: str, correct: bool) -> tuple[int, str | None]:
+    """(score to record, a sentence for the student) after an answer is stored."""
+    if not correct:
+        return 0, None
+    events = learner_plan._answer_events(*_concept_rows(student_id, concept_id)).get(concept_id, [])
+    evidence = learner_plan.mastery_evidence(events)
+    if len(evidence) >= learner_plan.MASTERY_EVIDENCE:
+        return 3, "That's two different questions on this idea answered right: mastered."
+    if not evidence:
+        return 2, ("Right, now that you've seen why. It's in your revision list: get a new "
+                   "question on it right to show it's stuck.")
+    return 2, ("One more right answer, on a different question, masters it. It's in your "
+               "revision list for tomorrow.")
+
+
+# Revision questions wait this long after the last answer: spacing helps it stick.
+_DEFAULT_REVISION_HOURS = 20
+
+
+def _revision_hours() -> float:
+    raw = os.getenv("ECOLEARN_REVISION_HOURS")
+    try:
+        return max(0.0, float(raw)) if raw not in (None, "") else _DEFAULT_REVISION_HOURS
+    except ValueError:
+        return _DEFAULT_REVISION_HOURS
+
+
+def _fresh_question(concept_id: str, rows: tuple[list, list, list, list]) -> str | None:
+    """An interest whose check on this concept the student has never seen, or None."""
+    start, lesson, end, review = rows
+    seen = ({r["source_interest"] for r in start} | {r["interest"] for r in lesson}
+            | {r["source_interest"] for r in end} | {r["interest"] for r in review})
+    for interest in diagnostic.load_config()["source_interests"]:
+        if interest not in seen and lesson_service.get_authored_lesson(concept_id, interest):
+            return interest
+    return None
+
+
+def get_revision(student_id: str) -> dict[str, Any]:
+    """The revision queue: concepts answered right but not yet mastered.
+
+    Each gets a fresh question (another interest's lesson check it hasn't seen)
+    about ECOLEARN_REVISION_HOURS (default 20) after its last answer. Nothing is
+    locked: a concept that isn't due yet can still be tried.
+
+    Returns:
+        {"due": [...], "later": [...]}, each item {concept_id, concept_name,
+         chapter_id, chapter_name, reason, due_at, due}. Concepts with no
+         unseen question left are left out (`no_fresh_question` counts them).
+    """
+    _require_student(student_id)
+    progress = store.get_progress(student_id)
+    chapters = {c["id"]: c["name"] for c in engine.list_chapters()}
+    hours = _revision_hours()
+    now = datetime.now(timezone.utc)
+    due, later, no_fresh = [], [], 0
+    for concept_id, row in progress.items():
+        if row["status"] != store.STATUS_PARTIAL:
+            continue
+        concept = engine.find_concept(concept_id)
+        rows = _concept_rows(student_id, concept_id)
+        if concept is None:
+            continue
+        if _fresh_question(concept_id, rows) is None:
+            no_fresh += 1
+            continue
+        events = learner_plan._answer_events(*rows).get(concept_id, [])
+        last = max((r["answered_at"] for group in rows for r in group), default=row["last_seen"])
+        due_at = datetime.fromisoformat(last) + timedelta(hours=hours)
+        item = {
+            "concept_id": concept_id, "concept_name": concept.name,
+            "chapter_id": concept.chapter_id, "chapter_name": chapters.get(concept.chapter_id),
+            "reason": ("Right once. One more, on a new question, masters it."
+                       if learner_plan.mastery_evidence(events)
+                       else "Right after the explanation. Show it on a new question."),
+            "due_at": due_at.isoformat(), "due": due_at <= now, "order": concept.order,
+        }
+        (due if item["due"] else later).append(item)
+    due.sort(key=lambda i: (i["due_at"], i["order"]))
+    later.sort(key=lambda i: (i["due_at"], i["order"]))
+    for item in due + later:
+        del item["order"]
+    return {"due": due, "later": later, "no_fresh_question": no_fresh}
+
+
+def _revision_target(student_id: str, concept_id: str) -> tuple[Any, str]:
+    """(the lesson to ask from, its interest) for a concept in the queue."""
+    if store.get_progress(student_id).get(concept_id, {}).get("status") != store.STATUS_PARTIAL:
+        raise NotFoundError("That concept isn't in your revision list.")
+    interest = _fresh_question(concept_id, _concept_rows(student_id, concept_id))
+    if interest is None:
+        raise NotFoundError("There's no new question on that concept yet.")
+    return lesson_service.get_authored_lesson(concept_id, interest), interest
+
+
+def get_revision_question(student_id: str, concept_id: str) -> dict[str, Any]:
+    """The fresh question for a concept in the revision queue (no answer key).
+
+    Returns: {concept_id, concept_name, chapter_name, question, options}.
+
+    Raises:
+        NotFoundError: not in the queue, or no unseen question left.
+    """
+    _require_student(student_id)
+    _, interest = _revision_target(student_id, concept_id)
+    return diagnostic.present([{"concept_id": concept_id, "source_interest": interest}])[0]
+
+
+def submit_revision(
+    student_id: str, concept_id: str, answer: str, confidence: str | None = None
+) -> dict[str, Any]:
+    """Grade a revision answer, record it, and update mastery.
+
+    Returns: {concept_id, correct, selected_option, correct_option, feedback,
+              mastery_signal, mastery_note, mastery: the progress row}.
+
+    Raises:
+        NotFoundError: not in the queue / no fresh question.
+        EcoLearnError: not one of the options, or a bad confidence.
+    """
+    _require_student(student_id)
+    authored, interest = _revision_target(student_id, concept_id)
+    check = authored.check
+    picked = (answer or "").strip().upper()
+    if picked not in check.options:
+        raise EcoLearnError(f"Pick one of the options ({', '.join(check.options)}) — got {answer!r}.")
+    sure = diagnostic.clean_confidence(confidence)
+    correct = picked == check.answer
+    misconception = None if correct else (check.misconceptions.get(picked) or "").strip() or None
+    store.record_review_answer(student_id, concept_id, interest, picked, correct, misconception, sure)
+    score, note = _mastery_score(student_id, concept_id, correct)
+    updated = store.update_progress(student_id, concept_id, score)
+    if correct:
+        feedback = f"Correct. {check.explanation.strip()}"
+    else:
+        feedback = (f"Not quite. {misconception or ''}\n\n"
+                    f"The right answer is **{check.answer}**. {check.explanation.strip()}").strip()
+        note = "It's back on your mix-ups list. Open the lesson again when you're ready."
+    return {"concept_id": concept_id, "correct": correct, "selected_option": picked,
+            "correct_option": check.answer, "feedback": feedback,
+            "mastery_signal": _SIGNAL[score] if correct else "not_yet",
+            "mastery_note": note, "mastery": updated}
 
 
 def submit_assessment(
@@ -1856,12 +2028,22 @@ def generate_class_plan(
             return {**_render_plan(latest, class_id), "reused": True}
 
     toolbox, aliases = _class_toolbox(teacher_id, class_id)
-    result = teacher_agent.plan_class(toolbox, models)
+    with llm.usage_context(feature="teacher_agent", class_id=class_id):
+        result = teacher_agent.plan_class(toolbox, models)
     saved = store.save_class_plan(
         class_id, teacher_id, result["source"], result["model"], result["markdown"],
         result["trace"], aliases, result["note"],
     )
     return {**_render_plan(saved, class_id), "reused": False}
+
+
+def llm_prices() -> dict[str, Any]:
+    """data/llm_prices.yaml (prices entered from memory: verify before quoting)."""
+    import yaml
+
+    from src.file_cache import cached_parse
+    path = Path(__file__).resolve().parents[1] / "data" / "llm_prices.yaml"
+    return cached_parse(path, lambda p: yaml.safe_load(p.read_text(encoding="utf-8")), "llm_prices")
 
 
 def pilot_report() -> dict[str, Any]:
@@ -1922,6 +2104,14 @@ def pilot_report() -> dict[str, Any]:
         "end_check": alias(store.get_end_check_answers(None)),
         # Before -> after over every student who took both checks.
         "check_gains": _class_gains(list(student_alias))[0],
+        # Every model call, for the cost per student (ai_usage) and the raw rows.
+        "ai_usage": metrics.ai_usage(store.get_llm_calls(), llm_prices(), len(students)),
+        "llm_calls": [
+            {**{k: v for k, v in c.items() if k not in ("student_id", "class_id", "call_id")},
+             "student_id": student_alias.get(c["student_id"]) if c["student_id"] else None,
+             "class_id": class_alias.get(c["class_id"]) if c["class_id"] else None}
+            for c in store.get_llm_calls()
+        ],
         # AI-written personal stories, with whether students reported them and
         # whether teachers hid them: the evidence on the AI layer's quality.
         "stories": alias(store.list_personal_stories(list(student_alias))),
@@ -1982,6 +2172,7 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
             "fine — ask your teacher, or try the chat again later."
         ) from exc
 
+    started = datetime.now(timezone.utc)
     result = explain_with_review(
         concept=framed_query,
         interest=profile["interest"],
@@ -1989,6 +2180,16 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
         max_retries=_HELP_MAX_RETRIES,
     )
     answer = polish_explanation(result.get("explanation", ""))
+    # Usage log: this pipeline still calls google-genai directly (not src/llm),
+    # so it reports no tokens; the count and time still feed the cost picture.
+    try:
+        store.record_llm_call({
+            "feature": "doubt_chat", "model": "gemini pipeline (no token count)",
+            "ok": result.get("verdict", "ERROR") != "ERROR", "student_id": student_id,
+            "latency_ms": int((datetime.now(timezone.utc) - started).total_seconds() * 1000),
+            "error": None if result.get("verdict") != "ERROR" else "pipeline error"})
+    except Exception:  # noqa: BLE001 — logging must never cost the student an answer
+        pass
 
     return {
         "concept_id": concept_id,

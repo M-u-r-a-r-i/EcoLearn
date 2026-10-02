@@ -14,15 +14,25 @@ fallback, so an unset LLM_MODEL means those features quietly use it.
 
 Written on httpx (already installed with google-genai) rather than the openai
 package, so the project gains no new dependency.
+
+USAGE LOG (2026-10-03): every model call, answered or failed, is reported to a
+sink (set_usage_sink) with its model, tokens, latency and tags. The tags come
+from `usage_context(feature=..., student_id=...)`, a context variable, so
+callers label their calls without any signature changing. The boundary
+connects the sink to the database; this module stays free of storage code,
+and a failing sink never breaks a call.
 """
 
 from __future__ import annotations
 
+import contextvars
 import json
 import os
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Iterator
 
 import httpx
 
@@ -82,6 +92,55 @@ def is_configured() -> bool:
     return bool(configured_models())
 
 
+# ---------------------------------------------------------------------------
+# Usage log
+# ---------------------------------------------------------------------------
+_usage_tags: contextvars.ContextVar[dict[str, Any]] = contextvars.ContextVar(
+    "llm_usage_tags", default={})
+_usage_sink: Callable[[dict[str, Any]], None] | None = None
+
+
+def set_usage_sink(sink: Callable[[dict[str, Any]], None] | None) -> None:
+    """Where call records go (the boundary passes store.record_llm_call)."""
+    global _usage_sink
+    _usage_sink = sink
+
+
+@contextmanager
+def usage_context(**tags: Any) -> Iterator[None]:
+    """Label the model calls made inside: feature=..., student_id=..., class_id=..."""
+    token = _usage_tags.set({**_usage_tags.get(), **tags})
+    try:
+        yield
+    finally:
+        _usage_tags.reset(token)
+
+
+def _report(model: str, ok: bool, started: float, usage: dict[str, Any] | None,
+            error: str | None = None) -> None:
+    if _usage_sink is None:
+        return
+    usage = usage if isinstance(usage, dict) else {}
+
+    def tokens(key: str) -> int | None:
+        value = usage.get(key)
+        return int(value) if isinstance(value, (int, float)) else None
+
+    tags = _usage_tags.get()
+    try:
+        _usage_sink({
+            "feature": tags.get("feature", "other"),
+            "student_id": tags.get("student_id"), "class_id": tags.get("class_id"),
+            "model": model, "ok": ok,
+            "prompt_tokens": tokens("prompt_tokens"),
+            "completion_tokens": tokens("completion_tokens"),
+            "latency_ms": int((time.monotonic() - started) * 1000),
+            "error": error,
+        })
+    except Exception:  # noqa: BLE001 — logging must never break a model call
+        pass
+
+
 # Tests swap this for an httpx.MockTransport; None means real network.
 _transport: httpx.BaseTransport | None = None
 
@@ -133,6 +192,7 @@ def chat(
         payload["tools"] = tools
     failures = []
     for model in chain:
+        started = time.monotonic()
         try:
             data = _post(model, payload)
             choice = (data.get("choices") or [{}])[0]
@@ -149,9 +209,11 @@ def chat(
             text = message.get("content") or ""
             if not text and not calls:
                 raise LLMError(f"{model}: empty answer")
+            _report(data.get("model") or model, True, started, data.get("usage"))
             return ChatResult(text=text, tool_calls=calls, message=message,
                               model=data.get("model") or model)
         except LLMError as exc:
+            _report(model, False, started, None, str(exc))
             failures.append(str(exc))
     raise LLMError("All models failed: " + "; ".join(failures))
 

@@ -22,6 +22,7 @@ export function CheckQuestion({
   confidence,
   onConfidence,
   disabled,
+  allowUnsure = true,
 }: {
   question: DiagnosticQuestion;
   picked: string | undefined;
@@ -29,6 +30,7 @@ export function CheckQuestion({
   confidence: Confidence | undefined;
   onConfidence: (value: Confidence) => void;
   disabled?: boolean;
+  allowUnsure?: boolean; // revision questions need an answer, so they hide it
 }) {
   return (
     <section className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card">
@@ -65,25 +67,27 @@ export function CheckQuestion({
             <Markdown className="prose-sm">{text}</Markdown>
           </label>
         ))}
-        <label
-          className={cn(
-            "flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4 text-sm transition-all",
-            picked === UNSURE
-              ? "border-brand-accent bg-brand-accent/5 ring-2 ring-brand-accent"
-              : "border-border text-muted-foreground hover:border-brand-accent/50",
-          )}
-        >
-          <input
-            type="radio"
-            name={question.concept_id}
-            value={UNSURE}
-            checked={picked === UNSURE}
-            onChange={() => onPick(UNSURE)}
-            className="sr-only"
-          />
-          <HelpCircle className="size-5 shrink-0" aria-hidden />
-          I&apos;m not sure yet
-        </label>
+        {allowUnsure && (
+          <label
+            className={cn(
+              "flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4 text-sm transition-all",
+              picked === UNSURE
+                ? "border-brand-accent bg-brand-accent/5 ring-2 ring-brand-accent"
+                : "border-border text-muted-foreground hover:border-brand-accent/50",
+            )}
+          >
+            <input
+              type="radio"
+              name={question.concept_id}
+              value={UNSURE}
+              checked={picked === UNSURE}
+              onChange={() => onPick(UNSURE)}
+              className="sr-only"
+            />
+            <HelpCircle className="size-5 shrink-0" aria-hidden />
+            I&apos;m not sure yet
+          </label>
+        )}
       </fieldset>
       {picked && picked !== UNSURE && (
         <ConfidencePicker

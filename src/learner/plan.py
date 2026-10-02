@@ -160,10 +160,66 @@ def annotate_roadmap(rows: list[dict[str, Any]], state: dict[str, Any]) -> None:
 ACTIVE, RECHECK, FIXED = "active", "recheck", "fixed"
 
 
+def _answer_events(
+    start_rows: list[dict[str, Any]],
+    lesson_rows: list[dict[str, Any]],
+    end_rows: list[dict[str, Any]],
+    review_rows: list[dict[str, Any]] = (),
+) -> dict[str, list[dict[str, Any]]]:
+    """{concept_id: [answer events, oldest first]} from every place a student
+    answers. "Not sure" is dropped: it says nothing either way.
+
+    A question is a lesson's check, (concept, interest): the starting check's
+    football question IS the football lesson's check, so `question` is the
+    interest whichever table the row came from.
+    """
+    events: dict[str, list[dict[str, Any]]] = {}
+    for source, rows, question_key in (
+        ("start", start_rows, "source_interest"),
+        ("lesson", lesson_rows, "interest"),
+        ("end", end_rows, "source_interest"),
+        ("review", review_rows, "interest"),
+    ):
+        for row in rows:
+            if row.get("correct") is None:
+                continue
+            events.setdefault(row["concept_id"], []).append({
+                "source": source, "at": row["answered_at"], "correct": bool(row["correct"]),
+                "question": row[question_key],
+                "text": row.get("misconception"), "confidence": row.get("confidence"),
+            })
+    for items in events.values():
+        items.sort(key=lambda e: e["at"])
+    return events
+
+
+# Mastery needs this many different questions answered right (2026-10-03).
+MASTERY_EVIDENCE = 2
+
+
+def mastery_evidence(events: list[dict[str, Any]]) -> set[str]:
+    """The questions (interests) this student has answered right WITHOUT having
+    got that same question wrong first, for one concept's events.
+
+    After a wrong pick the app shows the right answer, so a later right answer
+    to that question proves little. A right answer to a question they hadn't
+    failed is evidence; two different ones (MASTERY_EVIDENCE) make "mastered".
+    """
+    failed: set[str] = set()
+    counted: set[str] = set()
+    for e in events:
+        if not e["correct"]:
+            failed.add(e["question"])
+        elif e["question"] not in failed:
+            counted.add(e["question"])
+    return counted
+
+
 def mix_up_history(
     start_rows: list[dict[str, Any]],
     lesson_rows: list[dict[str, Any]],
     end_rows: list[dict[str, Any]],
+    review_rows: list[dict[str, Any]] = (),
 ) -> dict[str, dict[str, Any]]:
     """{concept_id: record} for every concept the student has ever got wrong
     with a named misconception. Pure: the rows come from the store.
@@ -179,28 +235,10 @@ def mix_up_history(
 
     Record: {status, text (latest misconception), sure (was the student sure
     when they got it wrong), times (wrong answers), found_in / found_at (the
-    first wrong answer: start | lesson | end), fixed_in / fixed_at}.
+    first wrong answer: start | lesson | end | review), fixed_in / fixed_at}.
     """
-    events: dict[str, list[dict[str, Any]]] = {}
-    for source, rows, question_key in (
-        ("start", start_rows, "source_interest"),
-        ("lesson", lesson_rows, "interest"),
-        ("end", end_rows, "source_interest"),
-    ):
-        for row in rows:
-            if row.get("correct") is None:
-                continue
-            events.setdefault(row["concept_id"], []).append({
-                "source": source, "at": row["answered_at"], "correct": bool(row["correct"]),
-                # A question is a lesson's check: (concept, interest). The starting
-                # check's football question IS the football lesson's check.
-                "question": row[question_key],
-                "text": row.get("misconception"), "confidence": row.get("confidence"),
-            })
-
     history: dict[str, dict[str, Any]] = {}
-    for concept_id, items in events.items():
-        items.sort(key=lambda e: e["at"])
+    for concept_id, items in _answer_events(start_rows, lesson_rows, end_rows, review_rows).items():
         wrong = [i for i, e in enumerate(items) if not e["correct"] and e["text"]]
         if not wrong:
             continue

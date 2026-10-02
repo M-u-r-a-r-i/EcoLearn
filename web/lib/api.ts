@@ -592,7 +592,7 @@ export function submitEndCheck(
 // question after the explanation; active = nothing right since.
 // ---------------------------------------------------------------------------
 export type MixUpStatus = "active" | "recheck" | "fixed";
-export type CheckSource = "start" | "lesson" | "end";
+export type CheckSource = "start" | "lesson" | "end" | "review";
 
 export interface MixUp {
   concept_id: string;
@@ -617,6 +617,56 @@ export interface MixUps {
 
 export function getMixUps(): Promise<MixUps> {
   return request("/api/mix-ups");
+}
+
+// ---------------------------------------------------------------------------
+// Revision: concepts answered right once (cleared, not mastered) get a FRESH
+// question — another interest's lesson check — about a day later. Right on it
+// = mastered. Nothing is locked: a concept that isn't due can still be tried.
+// ---------------------------------------------------------------------------
+export interface RevisionItem {
+  concept_id: string;
+  concept_name: string;
+  chapter_id: string;
+  chapter_name: string | null;
+  reason: string;
+  due_at: string;
+  due: boolean;
+}
+
+export interface Revision {
+  due: RevisionItem[];
+  later: RevisionItem[];
+  no_fresh_question: number;
+}
+
+export interface RevisionResult {
+  concept_id: string;
+  correct: boolean;
+  selected_option: string;
+  correct_option: string;
+  feedback: string; // markdown
+  mastery_signal: "mastered" | "partial" | "not_yet";
+  mastery_note: string | null;
+}
+
+export function getRevision(): Promise<Revision> {
+  return request("/api/revision");
+}
+
+export function getRevisionQuestion(conceptId: string): Promise<DiagnosticQuestion> {
+  return request("/api/revision/question", { query: { concept_id: conceptId } });
+}
+
+export function submitRevision(
+  conceptId: string,
+  answer: string,
+  confidence?: Confidence,
+): Promise<RevisionResult> {
+  return request("/api/revision", {
+    method: "POST",
+    body: { concept_id: conceptId, answer, confidence: confidence ?? null },
+  });
 }
 
 // Rates are 0–1, or null when there is nothing to divide.
@@ -887,6 +937,9 @@ export interface AssessmentResult {
   selected_option?: string;
   correct_option?: string;
   confidence?: Confidence | null;
+  // Mastery needs two DIFFERENT questions right; this says where the student
+  // stands ("One more right answer, on a different question, masters it.").
+  mastery_note?: string | null;
 }
 
 // "How sure are you?" — asked after picking an option in any check.

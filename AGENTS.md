@@ -104,6 +104,8 @@ pages. When the teacher opens it, **`/end-check`**: the same 8 ideas with new qu
 before → after (fixed mix-ups, ideas learned since "not sure", what slipped). Every check asks
 **"How sure are you?"** after an option is picked, and **`/mix-ups`** lists each misconception as
 to fix / check again / fixed (fixed = right on a *different* question about the idea).
+**Mastered needs two different questions right** (§9zn): one right answer is "cleared" (the path
+moves on), and **`/review`** asks a fresh question (another interest's check) about a day later.
 
 **What a teacher does today:** accounts are created on the server only
 (`venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`). A teacher creates a
@@ -125,6 +127,8 @@ also lifts a login lockout). **`/teacher/class`** has:
 |---|---|---|
 | Boundary (all logic) | `src/platform_api.py` | — |
 | Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
+| Mastery from evidence + revision queue | `learner_plan.mastery_evidence`, `platform_api` §"Mastery from evidence", `web/app/(app)/review` | 9zn |
+| AI usage log + cost per student | `src/llm/client.py` (usage sink), `store.llm_calls`, `metrics.ai_usage`, `data/llm_prices.yaml` | 9zn |
 | My mix-ups + "how sure are you?" | `learner_plan.mix_up_history`, `diagnostic.clean_confidence`, `web/app/(app)/mix-ups`, `web/components/confidence-picker.tsx` | 9zm |
 | End check (pilot before → after, counterbalanced forms) | `src/learner/diagnostic.py`, `metrics.check_gains`, `web/app/(app)/end-check`, `web/components/class-checks.tsx` | 9zl |
 | Personal stories (writer + critic agents) | `src/learner/personal_story.py`, `prompts/personal_story_*.txt` | 9ze, 9zf |
@@ -147,8 +151,11 @@ next batch (the batch procedure is below). Famous images: `data/media/famous/`, 
 - **No live AI run has happened.** Personal stories and the teacher agent are tested against mocks
   only. The "being written…" polling state is unverified in a browser.
 - The doubt chat is broken on this machine (see below), and takes ~2 min when it works.
-- "Mastered" after one multiple-choice answer overclaims; the teacher dashboard uses first-try
-  accuracy to compensate.
+- Mastery now needs two different questions right (§9zn), but concepts mastered before
+  2026-10-03 under the old one-answer rule keep their status.
+- The AI usage log has tokens for `src/llm` calls only; the doubt chat (older google-genai
+  pipeline) and the teacher agent's Gemini fallback log no tokens. `data/llm_prices.yaml` was
+  typed from memory: verify before quoting a ₹ figure.
 - The end check's two forms are different lessons' checks on the same concept, written
   independently, not psychometrically matched. Counterbalancing cancels a difference in difficulty
   on average across a class; it doesn't make one student's two forms equal (§9zl).
@@ -194,8 +201,8 @@ Candidates for next, roughly by value for the finals:
    - teachers `demo.teacher` ("Demo 11-B": `aarav.k`, `meera.i`, `kabir.s`) and `metrics.check`
      ("Metrics check 11-A": `test.o`, `test.t`, `test.t2`);
    - teacher `endcheck.teacher` ("End check test": `asha.r`, `bilal.k`, `chitra.n`; the end
-     check is open and all three have taken it; `chitra.n` also answered a lesson check), from
-     the §9zl and §9zm browser checks;
+     check is open and all three have taken it; `chitra.n` and `asha.r` also answered lesson
+     checks, `asha.r` a revision question), from the §9zl–§9zn browser checks;
    - self-signup students `start.check` and `loop.check`;
    - two hand-seeded personal stories (model "ui-check (seeded by hand)").
 
@@ -456,6 +463,8 @@ venv\Scripts\python.exe tests\test_story_review.py        # report button, teach
 venv\Scripts\python.exe tests\test_rate_limit.py          # login lockouts (fake clock)
 venv\Scripts\python.exe tests\test_end_check.py           # end check: forms, access, before -> after
 venv\Scripts\python.exe tests\test_mix_ups.py             # my mix-ups, "how sure are you?"
+venv\Scripts\python.exe tests\test_mastery.py             # two-question mastery, revision queue
+venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost per student
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch

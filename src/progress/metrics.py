@@ -18,6 +18,7 @@ Two choices that shape every number below:
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import datetime
 from statistics import median
 from typing import Any, Callable
 
@@ -289,4 +290,79 @@ def check_gains(
         "studied": split([c for c in pairs if c["studied"]]),
         "not_studied": split([c for c in pairs if not c["studied"]]),
         "concepts": concepts,
+    }
+
+
+# ---------------------------------------------------------------------------
+# AI usage and cost (2026-10-03): the evidence behind "₹X per student".
+# ---------------------------------------------------------------------------
+
+def _price_for(model: str, prices: dict[str, Any]) -> dict[str, float] | None:
+    """The longest price key the model name contains, or None (unpriced)."""
+    name = (model or "").lower()
+    matches = [k for k in (prices.get("models") or {}) if k.lower() in name]
+    return prices["models"][max(matches, key=len)] if matches else None
+
+
+def _usd(price: dict[str, float] | None, prompt: int | None, completion: int | None) -> float:
+    if not price:
+        return 0.0
+    return ((prompt or 0) * price["input"] + (completion or 0) * price["output"]) / 1_000_000
+
+
+def ai_usage(calls: list[dict[str, Any]], prices: dict[str, Any], students: int) -> dict[str, Any]:
+    """Model calls, tokens and cost, per feature and per student.
+
+    Two costs: `actual` prices each call at its own model (unlisted models,
+    such as free ones, cost 0); `reference` prices every call at
+    prices["reference_model"], i.e. what the same usage would cost on the paid
+    key. Calls without token counts (the doubt chat's older pipeline) are
+    counted but can't be priced; `calls_without_tokens` says how many.
+
+    Per-student numbers divide by `students` (everyone in the pilot, not only
+    those whose actions triggered a call) and, per month, scale by the days
+    between the first and last call.
+    """
+    rate = float(prices.get("usd_to_inr") or 0)
+    reference = (prices.get("models") or {}).get(prices.get("reference_model") or "")
+
+    def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
+        with_tokens = [r for r in rows if r.get("prompt_tokens") is not None
+                       or r.get("completion_tokens") is not None]
+        latencies = [r["latency_ms"] for r in rows if r.get("latency_ms") is not None]
+        actual = sum(_usd(_price_for(r["model"], prices), r.get("prompt_tokens"),
+                          r.get("completion_tokens")) for r in rows)
+        ref = sum(_usd(reference, r.get("prompt_tokens"), r.get("completion_tokens")) for r in rows)
+        return {
+            "calls": len(rows),
+            "failed": sum(1 for r in rows if not r["ok"]),
+            "calls_without_tokens": len(rows) - len(with_tokens),
+            "prompt_tokens": sum(r.get("prompt_tokens") or 0 for r in rows),
+            "completion_tokens": sum(r.get("completion_tokens") or 0 for r in rows),
+            "median_latency_ms": int(median(latencies)) if latencies else None,
+            "actual_inr": round(actual * rate, 2),
+            "reference_inr": round(ref * rate, 2),
+        }
+
+    by_feature = {}
+    for feature in sorted({c["feature"] for c in calls}):
+        by_feature[feature] = summarise([c for c in calls if c["feature"] == feature])
+    total = summarise(calls)
+    days = 1.0
+    if calls:
+        first = min(c["at"] for c in calls)
+        last = max(c["at"] for c in calls)
+        span = (datetime.fromisoformat(last) - datetime.fromisoformat(first)).total_seconds() / 86400
+        days = max(1.0, span)
+    per_student = (total["reference_inr"] / students) if students else None
+    return {
+        "total": total,
+        "by_feature": by_feature,
+        "models": sorted({c["model"] for c in calls}),
+        "reference_model": prices.get("reference_model"),
+        "students": students,
+        "days": round(days, 1),
+        "reference_inr_per_student": round(per_student, 2) if per_student is not None else None,
+        "reference_inr_per_student_month": (round(per_student / days * 30, 2)
+                                            if per_student is not None else None),
     }

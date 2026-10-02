@@ -61,6 +61,22 @@ def print_report(report: dict, top: int) -> None:
           f"{sum(1 for st in ready if st['hidden'] and st['hidden_by'] == 'teacher')} hidden by teachers, "
           f"{sum(1 for st in stories if st['status'] in ('failed', 'no_fit'))} not written (checks/fit)")
 
+    u = report["ai_usage"]
+    t = u["total"]
+    print(f"\nAI usage  ({t['calls']} model calls, {t['failed']} failed, over {u['days']} days; "
+          f"models: {', '.join(u['models']) or '—'})")
+    for feature, f in u["by_feature"].items():
+        print(f"  {feature:<15}{f['calls']:>5} calls  {f['prompt_tokens']:>9} in  "
+              f"{f['completion_tokens']:>8} out  median {f['median_latency_ms'] or '—'} ms  "
+              f"₹{f['actual_inr']} actual, ₹{f['reference_inr']} on {u['reference_model']}")
+    if t["calls"]:
+        print(f"  Per student (÷{u['students']}): ₹{u['reference_inr_per_student']} so far, "
+              f"≈ ₹{u['reference_inr_per_student_month']} a month on {u['reference_model']}")
+        if t["calls_without_tokens"]:
+            print(f"  {t['calls_without_tokens']} calls report no tokens (the doubt chat's older "
+                  "pipeline), so they aren't in the ₹ figures.")
+        print("  Prices: data/llm_prices.yaml, entered from memory. Verify before quoting.")
+
     g = report["check_gains"]
     print(f"\nStarting check → end check  ({g['students_finished']} of {g['students_started']} "
           f"students took both; {g['paired_answers']} paired answers)")
@@ -126,6 +142,7 @@ def main() -> int:
             ("ratings", report["ratings"]),
             ("starting_check", report["diagnostic"]),
             ("end_check", report["end_check"]),
+            ("llm_calls", report["llm_calls"]),
             ("check_gains_per_concept", report["check_gains"]["concepts"]),
             ("personal_stories", report["stories"]),
             ("per_student", insights["students"]),

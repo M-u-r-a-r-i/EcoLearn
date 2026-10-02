@@ -11,7 +11,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, AlertCircle, XCircle, ArrowRight, RotateCcw } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw } from "lucide-react";
 
 import {
   friendlyMessage,
@@ -38,14 +38,16 @@ const RESULT = {
     accent: "text-success",
     Icon: CheckCircle2,
     title: "Mastered!",
-    blurb: "You nailed it — this concept is now marked mastered on your roadmap.",
+    blurb: "Two different questions right: this concept is now mastered on your roadmap.",
   },
+  // Since 2026-10-03 a right answer is "partial" until a SECOND, different
+  // question on the idea is right too (the revision list asks it).
   partial: {
-    card: "border-brand-accent/30 bg-brand-accent/5",
-    accent: "text-brand-accent",
-    Icon: AlertCircle,
-    title: "Almost there",
-    blurb: "You passed, but not full marks yet. Move on, or try again to master it.",
+    card: "border-success/30 bg-success/5",
+    accent: "text-success",
+    Icon: CheckCircle2,
+    title: "Right!",
+    blurb: "One more right answer, on a different question, masters it.",
   },
   not_yet: {
     card: "border-destructive/30 bg-destructive/5",
@@ -175,7 +177,7 @@ function Assessment() {
                       <span className="font-bold text-success">{result.correct_option}</span>
                     </>
                   )}
-                  . {tier.blurb}
+                  . {result.mastery_note ?? tier.blurb}
                 </p>
               )}
 

@@ -184,8 +184,9 @@ def critic_verdict(ctx: dict[str, Any], draft: dict[str, Any]) -> tuple[bool, li
     message = (f"{prompt}\n\n---\n{_facts(ctx)}\nHobby: {ctx['hobby']['label']}\n\n"
                f"THE DRAFT\nStory: {draft['story']}\n\nAnalogy: {draft['analogy']}\n\n"
                f"Limit: {draft['limit']}\n\nGive your verdict as JSON now.")
-    result = chat([{"role": "user", "content": message}], role="critic",
-                  temperature=0.0, max_tokens=400)
+    with llm.usage_context(feature="story_critic"):  # the usage log's label
+        result = chat([{"role": "user", "content": message}], role="critic",
+                      temperature=0.0, max_tokens=400)
     verdict = parse_json_object(result.text)
     if not verdict or verdict.get("verdict") not in ("PASS", "FAIL"):
         return False, ["The checker's answer couldn't be read."], result.model
@@ -254,7 +255,9 @@ def _is_current(row: dict[str, Any] | None, ctx: dict[str, Any]) -> bool:
 
 def _run(student_id: str, concept_id: str) -> None:
     try:
-        generate(student_id, concept_id)
+        # Labels every model call in the usage log (the critic relabels its own).
+        with llm.usage_context(feature="story_writer", student_id=student_id):
+            generate(student_id, concept_id)
     except Exception:  # noqa: BLE001 — a background failure must never surface
         pass
     finally:

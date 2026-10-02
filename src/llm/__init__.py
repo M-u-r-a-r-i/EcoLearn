@@ -12,6 +12,15 @@ The four older agents (generator, critic, polisher, assessor) still call
 google-genai directly; moving them here is the rest of M1a.
 """
 
-from src.llm.client import LLMError, ChatResult, chat, configured_models, is_configured
+from src.llm.client import (
+    ChatResult,
+    LLMError,
+    chat,
+    configured_models,
+    is_configured,
+    set_usage_sink,
+    usage_context,
+)
 
-__all__ = ["LLMError", "ChatResult", "chat", "configured_models", "is_configured"]
+__all__ = ["LLMError", "ChatResult", "chat", "configured_models", "is_configured",
+           "set_usage_sink", "usage_context"]

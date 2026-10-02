@@ -13,7 +13,7 @@ import { Check, Clock, Play, ArrowRight, PartyPopper, Target } from "lucide-reac
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
 import { ChapterPicker } from "@/components/chapter-picker";
-import { EndCheckCard, LearningPlanCard } from "@/components/learning-plan";
+import { EndCheckCard, LearningPlanCard, RevisionCard } from "@/components/learning-plan";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Progress } from "@/components/ui/progress";
@@ -98,6 +98,7 @@ function Roadmap() {
           />
 
           <EndCheckCard />
+          <RevisionCard />
           <LearningPlanCard chapterId={chapterId} />
 
           {/* Progress — pointless for a chapter with nothing written yet. */}
@@ -196,9 +197,11 @@ function Roadmap() {
                         {c.status === "mastered" &&
                           `Got it right · ${c.attempts} attempt${c.attempts === 1 ? "" : "s"}`}
                         {c.status === "available" &&
-                          (c.attempts
-                            ? `Tried ${c.attempts}× · not right yet`
-                            : "Ready to learn")}
+                          (c.progress_status === "partial"
+                            ? "Right once · one more question to master it"
+                            : c.attempts
+                              ? `Tried ${c.attempts}× · not right yet`
+                              : "Ready to learn")}
                         {/* Nothing is locked; uncleared prerequisites are only a hint. */}
                         {c.status === "available" &&
                           c.missing_prerequisites.length > 0 &&

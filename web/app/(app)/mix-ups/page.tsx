@@ -22,6 +22,7 @@ const SOURCE: Record<CheckSource, string> = {
   start: "your starting check",
   lesson: "a lesson check",
   end: "your end check",
+  review: "a revision question",
 };
 
 const GROUPS: { status: MixUpStatus; title: string; blurb: string; Icon: typeof Target; tone: string }[] = [
@@ -36,7 +37,7 @@ const GROUPS: { status: MixUpStatus; title: string; blurb: string; Icon: typeof 
     status: "recheck",
     title: "Check again",
     blurb:
-      "You got these right after the explanation. They count as fixed once you get a different question on them right — in another check or your end check.",
+      "You got these right after the explanation. They count as fixed once you get a different question on them right: try a new one in Revision.",
     Icon: RotateCcw,
     tone: "text-brand-accent",
   },
@@ -142,7 +143,13 @@ function MixUpRow({ m }: { m: MixUp }) {
           {m.fixed_in && ` · ${fixed ? "fixed" : "right"} in ${SOURCE[m.fixed_in]} on ${when(m.fixed_at)}`}
         </span>
       </div>
-      {!fixed &&
+      {m.status === "recheck" ? (
+        <Button variant="outline" size="sm" asChild className="shrink-0 self-start sm:self-auto">
+          <Link href={`/review?concept=${encodeURIComponent(m.concept_id)}`}>
+            New question <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      ) : !fixed &&
         (m.has_lesson ? (
           <Button variant="outline" size="sm" asChild className="shrink-0 self-start sm:self-auto">
             <Link href={withChapter("/lesson", m.chapter_id, { concept: m.concept_id })}>

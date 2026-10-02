@@ -2194,3 +2194,77 @@ another session serves `web/`).
 - The retry after a wrong pick still says "Mastered!": the overclaim this page avoids is still on
   the lesson check itself. That's item 3 on the pre-pilot list (mastery after two separate right
   answers, plus a revision queue).
+
+## 9zn. Mastery needs two questions, a revision queue, and an AI usage log (2026-10-03)
+
+*User request:* items 3 and 4 of the pre-pilot list.
+
+**Changed (mastery, item 3).**
+- `src/learner/plan.py`: `_answer_events` (every answer from the starting check, lesson checks,
+  end check and revision, by question = interest), shared by `mix_up_history` and the new
+  `mastery_evidence`: the questions answered right *without* having got that question wrong
+  first. `MASTERY_EVIDENCE = 2`.
+- `src/platform_api.py`: a lesson check now scores **3 (mastered) only with two pieces of
+  evidence**; a right answer otherwise scores **2** ("cleared": the engine moves on, unchanged).
+  Results carry `mastery_note`. New `get_revision` (cleared concepts, each with a question from an
+  interest the student has never seen, due `ECOLEARN_REVISION_HOURS` (default 20) after its last
+  answer), `get_revision_question`, `submit_revision`. `api/main.py`: `GET /api/revision`,
+  `GET /api/revision/question`, `POST /api/revision`.
+- `src/progress/store.py`: `review_answers` (own table, so first-try metrics keep their meaning),
+  `get_concept_answers` (one concept's rows from all four tables on one connection).
+- Web: `/review` (ready now / coming up, a fresh question without "not sure", confidence
+  required, the result with the mastery note); a roadmap banner when revision is due; roadmap
+  line "Right once · one more question to master it"; the lesson-check result says "Right!" plus
+  the note instead of "Mastered!"; "Check again" mix-ups link to a new question.
+- `tests/test_mastery.py` (new): **33 checks**. `tests/test_mcq_grading.py` now pins the new rule
+  (right after being shown the answer = 2, not 3).
+
+**Changed (AI usage log, item 4).**
+- `src/llm/client.py`: every call, answered or failed, goes to a usage sink with model, tokens
+  (from the response's `usage`), latency and tags. Tags come from `usage_context(feature=...,
+  student_id=..., class_id=...)`, a context variable, so no signature changed and the tests'
+  fake `chat` functions still work. A failing sink never breaks a call.
+- `src/platform_api.py` registers `store.record_llm_call` as the sink; the story writer, the
+  critic and the teacher agent tag their calls; the doubt chat logs a row without tokens (its
+  pipeline is still google-genai). `pilot_report` adds `ai_usage` and pseudonymised call rows.
+- `data/llm_prices.yaml` (new): USD per million tokens and the ₹ rate, **typed from memory and
+  marked so**; a reference model (`gemini-2.5-flash`, the paid key the user plans to buy).
+- `src/progress/metrics.py`: `ai_usage` — per feature and total: calls, failures, tokens, median
+  latency, actual ₹ (unlisted free models cost 0) and ₹ on the reference model; per student and
+  per month. `scripts/pilot_report.py` prints it and writes `llm_calls.csv`.
+- `tests/test_llm_usage.py` (new): **19 checks** (a mock-transport story run is logged as
+  `story_writer` then `story_critic` with tokens; the cost arithmetic re-derived by hand).
+
+**Why this way.**
+- **Two different questions.** After a wrong pick the app shows the answer, so a retry proves
+  little; and one right answer can be luck (one in four). Two different questions (another
+  interest's check on the same concept) is the cheapest honest test of understanding, and needs no
+  new content: every concept already has up to five checks.
+- **Cleared still moves the path on.** Nothing is locked; only the word "mastered" got stricter.
+  The engine's 2-vs-3 split already meant cleared vs mastered, so the engine didn't change.
+- **A day's wait, not a lock.** Spacing helps memory, so revision items are "best after" a time,
+  but a student can try one at once.
+- **The usage log lives in the client, the storage in the boundary**: `src/llm` stays a thin
+  client any agent can use, and logging can't take a model call down.
+- **Two costs:** free models make the actual cost ₹0, which says nothing about the paid plan. The
+  reference price answers "what would this pilot have cost on the Gemini key?"
+
+**Verified in the browser** (`127.0.0.1:3000`, test student `asha.r`): a first-try right lesson
+answer → "Right! … One more right answer, on a different question, masters it."; the roadmap line
+"Right once · one more question to master it"; `/review` listed Position under "Coming up"; the
+fresh question (football's check; no "not sure"; "Check my answer" waits for confidence) answered
+right → "Position: mastered!". A dropped space ("masteredonce") was fixed with `{" "}`.
+
+**Load test: red for a while today, for old and new code alike; green on the rerun.** It passed at p95 1.1 s in
+§9zm; today `HEAD` (2621d70, before this change) and this change both fail the 2 s p95 bar,
+because 30 simultaneous logins (bcrypt, CPU-bound) take ~4 s on both. Measured back to back from a
+temporary worktree of `HEAD`. The comparison did find a real cost in this change: assessment p50
+went from 480–700 ms to 840–1020 ms, because scoring read the student's whole activity over four
+connections. `store.get_concept_answers` (one connection, one concept) brought it back to
+580–770 ms vs 680–830 ms for `HEAD`. **Rerun later, with the machine quieter: PASS** (logins 0.6 s, all requests p95 1.4 s).
+
+**Learned.**
+- When a timing check fails, run the previous commit beside it before blaming either: here both
+  failed, and the comparison still caught the real 300 ms regression the threshold alone wouldn't
+  have pinned on this change.
+- JSX dropped the space after `</span>` at a line end again (third time; §9z, §9zd): use `{" "}`.

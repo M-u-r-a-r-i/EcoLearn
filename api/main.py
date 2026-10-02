@@ -186,6 +186,14 @@ class EndCheckRequest(BaseModel):
     confidence: dict[str, str] = {}  # concept_id -> sure | think | guess
 
 
+class RevisionRequest(BaseModel):
+    """Body for POST /api/revision: a revision question's pick (+ how sure)."""
+
+    concept_id: str
+    answer: str
+    confidence: str | None = None
+
+
 class EndCheckOpenRequest(BaseModel):
     """Body for POST /api/teacher/classes/{id}/end-check: open or close it."""
 
@@ -588,6 +596,26 @@ def submit_diagnostic(
 ) -> dict:
     """Grade the starting check (once; 409 if already taken) and return the plan."""
     return api.submit_diagnostic(student_id, payload.answers, payload.hobbies, payload.confidence)
+
+
+@app.get("/api/revision")
+def revision(student_id: str = Depends(get_current_student_id)) -> dict:
+    """Concepts answered right once: a fresh question on each, due or later."""
+    return api.get_revision(student_id)
+
+
+@app.get("/api/revision/question")
+def revision_question(concept_id: str, student_id: str = Depends(get_current_student_id)) -> dict:
+    """The fresh question for one concept in the revision list (no answer key)."""
+    return api.get_revision_question(student_id, concept_id)
+
+
+@app.post("/api/revision")
+def submit_revision(
+    payload: RevisionRequest, student_id: str = Depends(get_current_student_id)
+) -> dict:
+    """Grade a revision answer; two different questions right = mastered."""
+    return api.submit_revision(student_id, payload.concept_id, payload.answer, payload.confidence)
 
 
 @app.get("/api/mix-ups")

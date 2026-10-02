@@ -233,6 +233,45 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
     class_columns = {row["name"] for row in conn.execute("PRAGMA table_info(classes)")}
     if "end_check_opened_at" not in class_columns:
         conn.execute("ALTER TABLE classes ADD COLUMN end_check_opened_at TEXT")
+    # Revision questions (2026-10-03): a concept answered right once is asked
+    # again later with a FRESH question (another interest's lesson check). Its
+    # own table, so lesson metrics (first-try accuracy) keep their meaning.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS review_answers (
+            answer_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id     TEXT NOT NULL,
+            concept_id     TEXT NOT NULL,
+            interest       TEXT NOT NULL,
+            selected       TEXT NOT NULL,
+            correct        INTEGER NOT NULL,
+            misconception  TEXT,
+            confidence     TEXT,
+            answered_at    TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_review_student ON review_answers(student_id)")
+    # The AI usage log (2026-10-03): one row per model call, answered or failed,
+    # for the cost-per-student number. Tokens are NULL when the provider doesn't
+    # report them; `feature` says which agent made the call.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS llm_calls (
+            call_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            at                 TEXT NOT NULL,
+            feature            TEXT NOT NULL,
+            model              TEXT NOT NULL,
+            ok                 INTEGER NOT NULL,
+            prompt_tokens      INTEGER,
+            completion_tokens  INTEGER,
+            latency_ms         INTEGER,
+            student_id         TEXT,
+            class_id           TEXT,
+            error              TEXT
+        )
+        """
+    )
     # "How sure are you?" (2026-10-02): sure | think | guess, or NULL (not asked,
     # "not sure", or an answer from before this existed).
     for table in ("answers", "diagnostic_answers", "end_check_answers"):
@@ -1446,3 +1485,105 @@ def set_story_visibility(
         return cursor.rowcount > 0
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Revision questions (2026-10-03)
+# ---------------------------------------------------------------------------
+
+def record_review_answer(
+    student_id: str,
+    concept_id: str,
+    interest: str,
+    selected: str,
+    correct: bool,
+    misconception: str | None,
+    confidence: str | None,
+) -> dict[str, Any]:
+    """Store one answer to a revision question (another interest's lesson check)."""
+    answered_at = _now_iso()
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO review_answers (student_id, concept_id, interest, selected, correct, "
+            "misconception, confidence, answered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (student_id, concept_id, interest, selected, int(bool(correct)), misconception,
+             confidence, answered_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"student_id": student_id, "concept_id": concept_id, "interest": interest,
+            "selected": selected, "correct": bool(correct), "misconception": misconception,
+            "confidence": confidence, "answered_at": answered_at}
+
+
+def get_review_answers(student_ids: list[str] | None) -> list[dict[str, Any]]:
+    """Revision answers for some students (or everyone, with None), oldest first."""
+    conn = _connect()
+    try:
+        if student_ids is None:
+            rows = conn.execute("SELECT * FROM review_answers ORDER BY answer_id").fetchall()
+        elif not student_ids:
+            rows = []
+        else:
+            marks = ",".join("?" * len(student_ids))
+            rows = conn.execute(
+                f"SELECT * FROM review_answers WHERE student_id IN ({marks}) ORDER BY answer_id",
+                student_ids,
+            ).fetchall()
+    finally:
+        conn.close()
+    return [{**dict(r), "correct": bool(r["correct"])} for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# The AI usage log (2026-10-03)
+# ---------------------------------------------------------------------------
+
+def record_llm_call(call: dict[str, Any]) -> None:
+    """One model call: {feature, model, ok, prompt_tokens, completion_tokens,
+    latency_ms, student_id, class_id, error}. `at` is now."""
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO llm_calls (at, feature, model, ok, prompt_tokens, completion_tokens, "
+            "latency_ms, student_id, class_id, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (_now_iso(), call.get("feature") or "other", call.get("model") or "unknown",
+             int(bool(call.get("ok"))), call.get("prompt_tokens"), call.get("completion_tokens"),
+             call.get("latency_ms"), call.get("student_id"), call.get("class_id"),
+             (call.get("error") or None) and str(call["error"])[:300]),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_llm_calls() -> list[dict[str, Any]]:
+    """Every logged model call, oldest first."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT * FROM llm_calls ORDER BY call_id").fetchall()
+    finally:
+        conn.close()
+    return [{**dict(r), "ok": bool(r["ok"])} for r in rows]
+
+
+def get_concept_answers(student_id: str, concept_id: str) -> tuple[list, list, list, list]:
+    """One student's answers on one concept, from every check, on ONE connection:
+    (starting check, lesson checks, end check, revision). Used to score mastery
+    on every lesson answer, so it reads only the rows it needs."""
+    conn = _connect()
+    try:
+        out = []
+        for table, order in (("diagnostic_answers", "answered_at"), ("answers", "answer_id"),
+                             ("end_check_answers", "answered_at"), ("review_answers", "answer_id")):
+            rows = conn.execute(
+                f"SELECT * FROM {table} WHERE student_id = ? AND concept_id = ? ORDER BY {order}",
+                (student_id, concept_id),
+            ).fetchall()
+            out.append([{**dict(r), "correct": None if r["correct"] is None else bool(r["correct"])}
+                        for r in rows])
+    finally:
+        conn.close()
+    return tuple(out)
