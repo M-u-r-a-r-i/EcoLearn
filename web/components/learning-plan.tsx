@@ -161,6 +161,9 @@ export function LearningPlanCard({ chapterId }: { chapterId: string }) {
       </summary>
       <div className="mt-3 flex flex-col gap-3">
         {focus.length > 0 && <FocusList items={focus} />}
+        <Link href="/mix-ups" className="text-sm font-semibold text-primary hover:underline">
+          All your mix-ups, and what you&apos;ve fixed →
+        </Link>
         {elsewhere && plan.start && (
           <Link
             href={withChapter("/roadmap", plan.start.chapter_id)}

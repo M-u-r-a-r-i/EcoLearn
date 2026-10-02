@@ -846,12 +846,15 @@ def get_diagnostic(student_id: str) -> dict[str, Any]:
 
 
 def submit_diagnostic(
-    student_id: str, picks: dict[str, str], hobbies: list[str] | None = None
+    student_id: str,
+    picks: dict[str, str],
+    hobbies: list[str] | None = None,
+    confidence: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Grade and store the starting check (once per student).
 
     `picks` maps concept_id -> "A".."D" or "unsure"; anything left out counts as
-    "unsure". It is taken once, because it is the pilot's baseline: a retake
+    "unsure". `confidence` maps concept_id -> sure | think | guess (optional). It is taken once, because it is the pilot's baseline: a retake
     after the lessons would overwrite the "before" picture.
 
     Returns: {"result": {...}, "plan": get_learning_plan(...)}.
@@ -866,7 +869,7 @@ def submit_diagnostic(
         raise ConflictError("You've already taken the starting check.")
     clean = diagnostic.clean_hobbies(hobbies)
     graded = diagnostic.grade(profile["level"], profile["interest"], picks or {},
-                              diagnostic.form_for(student_id))
+                              diagnostic.form_for(student_id), confidence)
     store.save_diagnostic(student_id, clean, graded)
     return {"result": _diagnostic_result(student_id), "plan": get_learning_plan(student_id)}
 
@@ -942,6 +945,54 @@ def get_learning_plan(student_id: str) -> dict[str, Any]:
     }
 
 
+def get_mix_ups(student_id: str) -> dict[str, Any]:
+    """Every misconception this student has shown, and whether it's fixed.
+
+    See learner_plan.mix_up_history for the rule: "fixed" needs a right answer
+    to a DIFFERENT question on the concept; right again on the same question
+    (after the app explained it) is "recheck".
+
+    Returns:
+        {"summary": {"active", "recheck", "fixed"},
+         "items": [{concept_id, concept_name, chapter_id, chapter_name, note,
+                    status, sure, times, found_in, found_at, fixed_in,
+                    fixed_at, has_lesson}]}
+        Active first (in teaching order), then recheck, then fixed (newest first).
+    """
+    profile = _require_student(student_id)
+    history = learner_plan.mix_up_history(
+        store.get_diagnostic_answers([student_id]),
+        store.get_activity([student_id])["answers"],
+        store.get_end_check_answers([student_id]),
+    )
+    ready = lesson_service.concepts_with_lessons(profile["interest"])
+    chapters = {c["id"]: c["name"] for c in engine.list_chapters()}
+    items = []
+    for concept_id, record in history.items():
+        concept = engine.find_concept(concept_id)
+        if concept is None:
+            continue
+        items.append({
+            "concept_id": concept_id, "concept_name": concept.name,
+            "chapter_id": concept.chapter_id, "chapter_name": chapters.get(concept.chapter_id),
+            "note": learner_plan.you_might(record["text"]),
+            "order": concept.order, "has_lesson": concept_id in ready,
+            **{k: v for k, v in record.items() if k != "text"},
+        })
+    rank = {learner_plan.ACTIVE: 0, learner_plan.RECHECK: 1, learner_plan.FIXED: 2}
+    items.sort(key=lambda i: (rank[i["status"]], i["order"]))
+    fixed = sorted((i for i in items if i["status"] == learner_plan.FIXED),
+                   key=lambda i: i["fixed_at"], reverse=True)
+    items = [i for i in items if i["status"] != learner_plan.FIXED] + fixed
+    for i in items:
+        del i["order"]
+    return {
+        "summary": {status: sum(1 for i in items if i["status"] == status)
+                    for status in (learner_plan.ACTIVE, learner_plan.RECHECK, learner_plan.FIXED)},
+        "items": items,
+    }
+
+
 # ---------------------------------------------------------------------------
 # 2c. The end check (2026-10-02): the pilot's "after"
 #
@@ -1008,8 +1059,11 @@ def get_end_check(student_id: str) -> dict[str, Any]:
     return out
 
 
-def submit_end_check(student_id: str, picks: dict[str, str]) -> dict[str, Any]:
+def submit_end_check(
+    student_id: str, picks: dict[str, str], confidence: dict[str, str] | None = None
+) -> dict[str, Any]:
     """Grade and store the end check (once). Anything left out counts as "unsure".
+    `confidence` maps concept_id -> sure | think | guess (optional).
 
     Returns: get_end_check(student_id) after saving (status "taken", with the comparison).
 
@@ -1029,7 +1083,7 @@ def submit_end_check(student_id: str, picks: dict[str, str]) -> dict[str, Any]:
         raise EcoLearnError("The end check isn't open yet. Your teacher will open it.")
     chosen = diagnostic.choose_end_questions(
         profile["interest"], store.get_diagnostic_answers([student_id]))
-    store.save_end_check(student_id, diagnostic.grade_chosen(chosen, picks or {}))
+    store.save_end_check(student_id, diagnostic.grade_chosen(chosen, picks or {}, confidence))
     return get_end_check(student_id)
 
 
@@ -1355,6 +1409,7 @@ def _grade_multiple_choice(
     answer: str,
     authored: Any,
     interest: str,
+    confidence: str | None = None,
 ) -> dict[str, Any]:
     """Grade one multiple-choice pick against an authored lesson's answer key.
 
@@ -1374,6 +1429,7 @@ def _grade_multiple_choice(
             f"Pick one of the options ({', '.join(check.options)}) — got {answer!r}."
         )
 
+    sure = diagnostic.clean_confidence(confidence)
     correct = picked == check.answer
     # 3 = mastered, 0 = not yet. The store's pass mark is 2, so a correct pick
     # masters the concept and a wrong one leaves it unmastered but attempted.
@@ -1387,11 +1443,19 @@ def _grade_multiple_choice(
             f"Not quite. {why_wrong}\n\n"
             f"The right answer is **{check.answer}**. {check.explanation.strip()}"
         ).strip()
+    # How sure they were changes what the result means, so say it.
+    if not correct and sure == "sure":
+        feedback += ("\n\nYou were sure of this one, which makes it a mix-up worth fixing "
+                     "properly. It's on your mix-ups list until you get a different question "
+                     "on it right.")
+    elif correct and sure == "guess":
+        feedback += "\n\nYou guessed right. Read the explanation above so it sticks."
 
     updated = store.update_progress(student_id, concept_id, score)
     logged = store.record_answer(
         student_id, concept_id, interest, picked, correct,
         None if correct else (check.misconceptions.get(picked) or "").strip() or None,
+        sure,
     )
     return {
         "concept_id": concept_id,
@@ -1406,6 +1470,7 @@ def _grade_multiple_choice(
         "correct": correct,
         "selected_option": picked,
         "correct_option": check.answer,
+        "confidence": sure,
     }
 
 
@@ -1413,6 +1478,7 @@ def submit_assessment(
     student_id: str,
     concept_id: str,
     answer: str,
+    confidence: str | None = None,
 ) -> dict[str, Any]:
     """Grade a student's answer to a concept's self-check and update mastery.
 
@@ -1429,7 +1495,9 @@ def submit_assessment(
       generated lessons and Streamlit keep working.
 
     Either way the 0-3 score is written to the progress store, advancing the
-    student's mastery.
+    student's mastery. `confidence` (sure | think | guess) is the student's
+    "how sure are you?" for a multiple-choice pick; optional, ignored for
+    legacy free-text grading.
 
     Returns:
         {
@@ -1462,7 +1530,7 @@ def submit_assessment(
     authored = lesson_service.get_authored_lesson(concept_id, profile["interest"])
     if authored is not None:
         return _grade_multiple_choice(
-            student_id, concept_id, answer, authored, profile["interest"]
+            student_id, concept_id, answer, authored, profile["interest"], confidence
         )
 
     # Anchor the grader with the concept's name and learning objective so it

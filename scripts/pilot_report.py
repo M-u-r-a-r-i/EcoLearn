@@ -47,6 +47,11 @@ def print_report(report: dict, top: int) -> None:
           f"(median {s['median_minutes_per_lesson'] or '—'} min per lesson)")
     print(f"Checks answered     {s['answers']}  ({s['first_try_answers']} first tries)")
     print(f"First-try accuracy  {pct(s['first_try_accuracy'])}")
+    c = s["by_confidence"]
+    print(f"How sure vs right   sure {pct(c['sure']['accuracy'])} ({c['sure']['answers']}) · "
+          f"think {pct(c['think']['accuracy'])} ({c['think']['answers']}) · "
+          f"guess {pct(c['guess']['accuracy'])} ({c['guess']['answers']}) · "
+          f"sure but wrong {s['sure_but_wrong']}")
     print(f"Lesson ratings      👍 {s['thumbs_up']}  👎 {s['thumbs_down']}  "
           f"(approval {pct(s['approval'])})")
     stories = report["stories"]

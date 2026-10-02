@@ -143,10 +143,12 @@ class ProfilePatch(BaseModel):
 
 
 class AssessmentRequest(BaseModel):
-    """Body for POST /api/assessment. The student comes from the session cookie."""
+    """Body for POST /api/assessment. The student comes from the session cookie.
+    `confidence`: sure | think | guess ("how sure are you?"), optional."""
 
     concept_id: str
     answer: str
+    confidence: str | None = None
 
 
 class HelpRequest(BaseModel):
@@ -174,12 +176,14 @@ class DiagnosticRequest(BaseModel):
 
     answers: dict[str, str]
     hobbies: list[str] = []
+    confidence: dict[str, str] = {}  # concept_id -> sure | think | guess
 
 
 class EndCheckRequest(BaseModel):
     """Body for POST /api/end-check: {concept_id: "A".."D" or "unsure"}."""
 
     answers: dict[str, str]
+    confidence: dict[str, str] = {}  # concept_id -> sure | think | guess
 
 
 class EndCheckOpenRequest(BaseModel):
@@ -564,6 +568,7 @@ def submit_assessment(
         student_id=student_id,
         concept_id=payload.concept_id,
         answer=payload.answer,
+        confidence=payload.confidence,
     )
 
 
@@ -582,7 +587,13 @@ def submit_diagnostic(
     student_id: str = Depends(get_current_student_id),
 ) -> dict:
     """Grade the starting check (once; 409 if already taken) and return the plan."""
-    return api.submit_diagnostic(student_id, payload.answers, payload.hobbies)
+    return api.submit_diagnostic(student_id, payload.answers, payload.hobbies, payload.confidence)
+
+
+@app.get("/api/mix-ups")
+def mix_ups(student_id: str = Depends(get_current_student_id)) -> dict:
+    """Every misconception you've shown, and whether it's fixed."""
+    return api.get_mix_ups(student_id)
 
 
 @app.get("/api/end-check")
@@ -597,7 +608,7 @@ def submit_end_check(
     student_id: str = Depends(get_current_student_id),
 ) -> dict:
     """Grade the end check (once; 409 if already taken, 400 if not open)."""
-    return api.submit_end_check(student_id, payload.answers)
+    return api.submit_end_check(student_id, payload.answers, payload.confidence)
 
 
 @app.get("/api/personal-story")

@@ -2132,3 +2132,65 @@ The full deterministic suite, the load test (p95 1.2 s, PASS), `tsc --noEmit` an
 - The per-student tallies wrapped one word per line at 375 px; `whitespace-nowrap` per part in a
   `flex-wrap` keeps "3 mix-ups" together.
 - Git Bash heredocs mangle `\n` inside Python patch scripts. Write the script to a file instead.
+
+## 9zm. "My mix-ups" and "How sure are you?" (2026-10-03)
+
+*User request:* items 1 and 2 of the pre-pilot list: both change what the pilot records, so they
+had to land before students start.
+
+**Changed.**
+- `src/learner/plan.py`: `mix_up_history(start_rows, lesson_rows, end_rows)` (pure). Every concept
+  the student got wrong with a named misconception, with a status from the answers after the
+  latest wrong one: **fixed** = right on a *different* question (a question is a lesson's check,
+  `(concept, interest)`; the starting check's football question *is* the football lesson's
+  check); **recheck** = right only on the same question; **active** = nothing right since. "Not
+  sure" counts for neither. Also `sure` (latest wrong answer), `times`, where it was found/fixed.
+- `src/learner/diagnostic.py`: `CONFIDENCE_LEVELS` (sure | think | guess) and `clean_confidence`.
+  `grade_chosen` / `grade` take `confidence` per concept, keep it for a picked option, drop it for
+  "not sure".
+- `src/progress/store.py`: a `confidence` column on `answers`, `diagnostic_answers` and
+  `end_check_answers` (additive); `record_answer(..., confidence)`.
+- `src/platform_api.py`: `submit_assessment(..., confidence=None)` stores it and adds a line to the
+  feedback when it matters (sure and wrong; guessed and right); `submit_diagnostic` and
+  `submit_end_check` take a `confidence` map; `get_mix_ups(student_id)`. `api/main.py`: the three
+  request bodies take `confidence` (optional), and `GET /api/mix-ups`.
+- `src/progress/metrics.py`: each misconception gets `sure` (students who chose it while sure);
+  the summary gets `by_confidence` (first-try accuracy per level) and `sure_but_wrong`.
+  `scripts/pilot_report.py` prints them.
+- Web: `components/confidence-picker.tsx`, shown in the shared question card and on the lesson
+  check once an option is picked; Next / "Check my answer" wait for it. `/mix-ups` (three tiles,
+  then To fix / Check again / Fixed with "Open the lesson"), a "Mix-ups" nav link and a link from
+  the roadmap's plan card. Teacher insights: "· N sure of it" on each misconception and a "Sure but
+  wrong" tile.
+- `tests/test_mix_ups.py` (new): **32 checks**.
+
+**Why this way.**
+- **"Fixed" needs a different question.** After a wrong pick the lesson check shows the right
+  answer, so a correct retry on the same question mostly proves the student read the screen.
+  Calling that "fixed" would repeat the "mastered after one answer" overclaim (AGENTS.md's honest
+  list). "Check again" is honest and still encouraging, and the end check or another interest's
+  lesson can then confirm it.
+- **Confidence is required in the UI, optional in the API.** Pilot data with gaps is weak for the
+  one question it answers (were they sure when wrong?), and a tap costs a student a second.
+  Streamlit and older clients keep working without it.
+- **"Not sure" stays a separate option**: it already says how sure the student is, so it is never
+  asked twice.
+- **Sure-and-wrong is what teachers see first**: it separates a firmly held misconception (worth
+  class time) from a guess.
+- The learning plan (`learner_state`) is unchanged on purpose: it still closes a mix-up once the
+  concept is cleared. The mix-ups page is the stricter, student-facing view.
+
+**Verified in the browser** (at `127.0.0.1:3000`, test student `chitra.n`): the lesson check shows
+"How sure are you?" only after an option is picked and keeps "Check my answer" disabled until
+then; sure and wrong → the feedback says so; a correct retry with "I think so" → acceleration under
+**Check again**, "came up 2 times", "you were sure". The end check gates Next on confidence for an
+option but not for "not sure"; afterwards acceleration and projectile motion moved to **Fixed**
+(in the end check), Newton's third law stayed **To fix**. No sideways scroll at 375 px with the
+extra nav link. Teacher view: "1 of 1 students · 1 sure of it" and the "Sure but wrong" tile.
+Full suite, load test (p95 1.1 s), `tsc` and lint pass; `npm run build` not run (a `next dev` from
+another session serves `web/`).
+
+**Learned.**
+- The retry after a wrong pick still says "Mastered!": the overclaim this page avoids is still on
+  the lesson check itself. That's item 3 on the pre-pilot list (mastery after two separate right
+  answers, plus a revision queue).

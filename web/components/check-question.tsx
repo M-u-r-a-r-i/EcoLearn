@@ -1,4 +1,5 @@
-// One multiple-choice question with an honest "I'm not sure yet" option, as
+// One multiple-choice question with an honest "I'm not sure yet" option, and
+// "How sure are you?" once an option is picked, as
 // used by the starting check (/start) and the end check (/end-check). Nothing
 // is graded here: the pick is sent with the rest at the end, and the answer
 // key never reaches the browser.
@@ -7,8 +8,9 @@
 
 import { HelpCircle } from "lucide-react";
 
+import { ConfidencePicker } from "@/components/confidence-picker";
 import { Markdown } from "@/components/markdown";
-import type { DiagnosticQuestion } from "@/lib/api";
+import type { Confidence, DiagnosticQuestion } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export const UNSURE = "unsure";
@@ -17,11 +19,15 @@ export function CheckQuestion({
   question,
   picked,
   onPick,
+  confidence,
+  onConfidence,
   disabled,
 }: {
   question: DiagnosticQuestion;
   picked: string | undefined;
   onPick: (value: string) => void;
+  confidence: Confidence | undefined;
+  onConfidence: (value: Confidence) => void;
   disabled?: boolean;
 }) {
   return (
@@ -79,6 +85,14 @@ export function CheckQuestion({
           I&apos;m not sure yet
         </label>
       </fieldset>
+      {picked && picked !== UNSURE && (
+        <ConfidencePicker
+          name={question.concept_id}
+          value={confidence}
+          onChange={onConfidence}
+          disabled={disabled}
+        />
+      )}
     </section>
   );
 }

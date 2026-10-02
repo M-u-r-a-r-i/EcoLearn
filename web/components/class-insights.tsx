@@ -10,7 +10,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Clock, Target, ThumbsUp, Users } from "lucide-react";
+import { AlertTriangle, BookOpen, Clock, Target, ThumbsUp, Users } from "lucide-react";
 
 import { Markdown } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
@@ -90,9 +90,20 @@ function SummaryTiles({ insights }: { insights: ClassInsights }) {
       value: pct(s.approval),
       note: `👍 ${s.thumbs_up} · 👎 ${s.thumbs_down}`,
     },
+    {
+      // Wrong while sure: a firmly held misconception, the ones to discuss in class.
+      Icon: AlertTriangle,
+      label: "Sure but wrong",
+      value: String(s.sure_but_wrong),
+      note:
+        s.by_confidence.sure.answers > 0
+          ? `first answers · right ${pct(s.by_confidence.sure.accuracy)} when sure, ${pct(s.by_confidence.guess.accuracy)} when guessing`
+          : "first answers given with \"I'm sure\"",
+      tone: s.sure_but_wrong > 0 ? "text-destructive" : undefined,
+    },
   ];
   return (
-    <section aria-label="Headline numbers" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <section aria-label="Headline numbers" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {tiles.map(({ Icon, label, value, note, tone }) => (
         <div key={label} className="flex flex-col gap-1 rounded-xl border border-border bg-card p-4 shadow-soft">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -139,6 +150,7 @@ function Misconceptions({ items }: { items: MisconceptionInsight[] }) {
                 </span>
                 <span className="text-sm font-semibold text-destructive">
                   {m.students} of {m.students_answered} students
+                  {m.sure > 0 && <span className="font-normal"> · {m.sure} sure of it</span>}
                 </span>
               </div>
               {/* The share as a bar: quick to compare down the list. */}

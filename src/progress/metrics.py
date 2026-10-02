@@ -118,8 +118,11 @@ def class_insights(
         if a["correct"]:
             continue
         key = (a["concept_id"], a["interest"], a["selected"])
-        entry = wrong_by.setdefault(key, {"students": set(), "misconception": a.get("misconception")})
+        entry = wrong_by.setdefault(key, {"students": set(), "sure": set(),
+                                          "misconception": a.get("misconception")})
         entry["students"].add(a["student_id"])
+        if a.get("confidence") == "sure":
+            entry["sure"].add(a["student_id"])
         if a.get("misconception"):
             entry["misconception"] = a["misconception"]
     misconceptions = []
@@ -138,6 +141,8 @@ def class_insights(
             "correct_text": options.get(check.get("answer")) if check.get("answer") else None,
             "misconception": entry["misconception"],
             "students": len(entry["students"]),
+            # Of those, how many were SURE: a firmly held misconception, not a slip.
+            "sure": len(entry["sure"]),
             "student_ids": sorted(entry["students"]),
             "students_answered": answered,
             "share": _accuracy(len(entry["students"]), answered),
@@ -163,6 +168,15 @@ def class_insights(
             "approval": _accuracy(up, len(i_ratings)),
         })
 
+    # ---- how sure, against how right (first tries) ---------------------------
+    # Well-calibrated students are right when sure and unsure when wrong. "Sure
+    # and wrong" is the number a teacher should worry about.
+    by_confidence = {}
+    for level in ("sure", "think", "guess"):
+        rows = [a for a in first if a.get("confidence") == level]
+        by_confidence[level] = {"answers": len(rows),
+                                "accuracy": _accuracy(sum(a["correct"] for a in rows), len(rows))}
+
     # ---- headline numbers -------------------------------------------------
     up_total = sum(1 for r in ratings if r["rating"] > 0)
     summary = {
@@ -180,6 +194,8 @@ def class_insights(
         "thumbs_up": up_total,
         "thumbs_down": len(ratings) - up_total,
         "approval": _accuracy(up_total, len(ratings)),
+        "by_confidence": by_confidence,
+        "sure_but_wrong": sum(1 for a in first if a.get("confidence") == "sure" and not a["correct"]),
     }
 
     return {

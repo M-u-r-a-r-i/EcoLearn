@@ -13,13 +13,19 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Flag, Sparkles } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
-import { CheckQuestion } from "@/components/check-question";
+import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { CheckResultSummary } from "@/components/check-result";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { friendlyMessage, getEndCheck, submitEndCheck, type EndCheck } from "@/lib/api";
+import {
+  friendlyMessage,
+  getEndCheck,
+  submitEndCheck,
+  type Confidence,
+  type EndCheck,
+} from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 
 export default function EndCheckPage() {
@@ -117,6 +123,7 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
   const [started, setStarted] = useState(false);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [confidence, setConfidence] = useState<Record<string, Confidence>>({});
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,7 +131,7 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
     setSending(true);
     setError(null);
     try {
-      onDone(await submitEndCheck(answers));
+      onDone(await submitEndCheck(answers, confidence));
     } catch (err) {
       setError(friendlyMessage(err));
       setSending(false);
@@ -155,6 +162,7 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
 
   const q = questions[index];
   const picked = answers[q.concept_id];
+  const ready = picked === UNSURE || (!!picked && !!confidence[q.concept_id]);
   const last = index === questions.length - 1;
 
   return (
@@ -166,13 +174,15 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
           </span>
           {q.chapter_name && <span>{q.chapter_name}</span>}
         </div>
-        <Progress value={((index + (picked ? 1 : 0)) / questions.length) * 100} />
+        <Progress value={((index + (ready ? 1 : 0)) / questions.length) * 100} />
       </div>
 
       <CheckQuestion
         question={q}
         picked={picked}
         onPick={(value) => setAnswers((a) => ({ ...a, [q.concept_id]: value }))}
+        confidence={confidence[q.concept_id]}
+        onConfidence={(value) => setConfidence((c) => ({ ...c, [q.concept_id]: value }))}
         disabled={sending}
       />
 
@@ -180,11 +190,11 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
 
       <div className="flex flex-wrap gap-3">
         {last ? (
-          <PrimaryButton onClick={finish} disabled={!picked || sending}>
+          <PrimaryButton onClick={finish} disabled={!ready || sending}>
             {sending ? "Comparing…" : <>See how far I&apos;ve come <Sparkles className="size-5" /></>}
           </PrimaryButton>
         ) : (
-          <PrimaryButton onClick={() => setIndex((i) => i + 1)} disabled={!picked}>
+          <PrimaryButton onClick={() => setIndex((i) => i + 1)} disabled={!ready}>
             Next <ArrowRight className="size-5" />
           </PrimaryButton>
         )}

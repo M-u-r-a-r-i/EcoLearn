@@ -233,6 +233,12 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
     class_columns = {row["name"] for row in conn.execute("PRAGMA table_info(classes)")}
     if "end_check_opened_at" not in class_columns:
         conn.execute("ALTER TABLE classes ADD COLUMN end_check_opened_at TEXT")
+    # "How sure are you?" (2026-10-02): sure | think | guess, or NULL (not asked,
+    # "not sure", or an answer from before this existed).
+    for table in ("answers", "diagnostic_answers", "end_check_answers"):
+        columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if "confidence" not in columns:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN confidence TEXT")
     return conn
 
 
@@ -1035,8 +1041,12 @@ def record_answer(
     selected: str,
     correct: bool,
     misconception: str | None,
+    confidence: str | None = None,
 ) -> dict[str, Any]:
     """Store one multiple-choice pick and return it with its attempt number.
+
+    `confidence` is the student's "how sure are you?" (sure | think | guess),
+    or None when it wasn't given.
 
     attempt_no counts this student's picks on this concept, across interests:
     attempt 1 is the honest measurement, because after a wrong pick the app
@@ -1053,15 +1063,17 @@ def record_answer(
             attempt_no = previous + 1
             conn.execute(
                 "INSERT INTO answers (student_id, concept_id, interest, selected, correct, "
-                "attempt_no, misconception, answered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "attempt_no, misconception, answered_at, confidence) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (student_id, concept_id, interest, selected, int(bool(correct)), attempt_no,
-                 misconception, answered_at),
+                 misconception, answered_at, confidence),
             )
     finally:
         conn.close()
     return {"student_id": student_id, "concept_id": concept_id, "interest": interest,
             "selected": selected, "correct": bool(correct), "attempt_no": attempt_no,
-            "misconception": misconception, "answered_at": answered_at}
+            "misconception": misconception, "answered_at": answered_at,
+            "confidence": confidence}
 
 
 def set_lesson_rating(student_id: str, concept_id: str, interest: str, rating: int) -> None:
@@ -1225,7 +1237,8 @@ def save_diagnostic(
     """Store a completed starting check and the hobbies, in one transaction.
 
     Each answer: {concept_id, source_interest, selected ("A".."D" or "unsure"),
-    correct (bool, or None for unsure), misconception (str or None)}.
+    correct (bool, or None for unsure), misconception (str or None),
+    confidence (sure | think | guess, optional)}.
     Returns the completion time.
     """
     completed_at = _now_iso()
@@ -1246,8 +1259,8 @@ def save_diagnostic(
                 """
                 INSERT OR REPLACE INTO diagnostic_answers
                     (student_id, concept_id, source_interest, selected, correct,
-                     misconception, answered_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                     misconception, answered_at, confidence)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 _check_values(student_id, answers, completed_at),
             )
@@ -1282,7 +1295,7 @@ def _check_values(student_id: str, answers: list[dict[str, Any]], at: str) -> li
     return [
         (student_id, a["concept_id"], a["source_interest"], a["selected"],
          None if a["correct"] is None else int(bool(a["correct"])),
-         a.get("misconception"), at)
+         a.get("misconception"), at, a.get("confidence"))
         for a in answers
     ]
 
@@ -1314,8 +1327,8 @@ def save_end_check(student_id: str, answers: list[dict[str, Any]]) -> str:
                 """
                 INSERT OR REPLACE INTO end_check_answers
                     (student_id, concept_id, source_interest, selected, correct,
-                     misconception, answered_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                     misconception, answered_at, confidence)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 _check_values(student_id, answers, completed_at),
             )

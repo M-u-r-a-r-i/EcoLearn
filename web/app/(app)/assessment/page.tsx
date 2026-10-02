@@ -18,9 +18,11 @@ import {
   getNextLesson,
   submitAssessment,
   type AssessmentResult,
+  type Confidence,
   type NextLesson,
 } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
+import { ConfidencePicker } from "@/components/confidence-picker";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
@@ -86,16 +88,19 @@ function Assessment() {
 
   // Answer + grading state. For multiple choice the answer is the option letter.
   const [answer, setAnswer] = useState("");
+  // "How sure are you?" — asked for multiple choice only, once an option is picked.
+  const [confidence, setConfidence] = useState<Confidence | undefined>();
   const [grading, setGrading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<AssessmentResult | null>(null);
 
   async function handleSubmit() {
     if (!conceptId || !answer.trim() || grading) return;
+    if (options.length > 0 && !confidence) return;
     setGrading(true);
     setSubmitError(null);
     try {
-      const res = await submitAssessment(conceptId, answer.trim());
+      const res = await submitAssessment(conceptId, answer.trim(), confidence);
       setResult(res);
     } catch (err) {
       setSubmitError(
@@ -111,6 +116,7 @@ function Assessment() {
     // Re-attempt the SAME concept: clear the result, keep the question.
     setResult(null);
     setAnswer("");
+    setConfidence(undefined);
     setSubmitError(null);
   }
 
@@ -293,6 +299,15 @@ function Assessment() {
               />
             )}
 
+            {options.length > 0 && answer && (
+              <ConfidencePicker
+                name="answer"
+                value={confidence}
+                onChange={setConfidence}
+                disabled={grading}
+              />
+            )}
+
             {submitError && (
               <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                 {submitError}
@@ -301,7 +316,7 @@ function Assessment() {
 
             <PrimaryButton
               onClick={handleSubmit}
-              disabled={grading || !answer.trim()}
+              disabled={grading || !answer.trim() || (options.length > 0 && !confidence)}
               className="self-start"
             >
               {grading ? "Checking…" : options.length > 0 ? "Check my answer" : "Submit answer"}

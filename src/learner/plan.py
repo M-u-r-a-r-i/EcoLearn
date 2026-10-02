@@ -149,3 +149,78 @@ def annotate_roadmap(rows: list[dict[str, Any]], state: dict[str, Any]) -> None:
         else:
             row["personal"] = None
             row["personal_note"] = None
+
+
+# ---------------------------------------------------------------------------
+# "My mix-ups" (2026-10-02): every misconception a student has shown, and
+# whether it's fixed. Built from all three places a student answers: the
+# starting check, lesson checks and the end check.
+# ---------------------------------------------------------------------------
+
+ACTIVE, RECHECK, FIXED = "active", "recheck", "fixed"
+
+
+def mix_up_history(
+    start_rows: list[dict[str, Any]],
+    lesson_rows: list[dict[str, Any]],
+    end_rows: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """{concept_id: record} for every concept the student has ever got wrong
+    with a named misconception. Pure: the rows come from the store.
+
+    Status, from the answers AFTER the latest wrong one:
+      * fixed:   right on a DIFFERENT question about the concept. Each check
+                 asks a different interest's question, so this is real
+                 transfer, not a remembered letter;
+      * recheck: right only on the same question, which the app explained
+                 after the wrong pick. Better, but not proof yet;
+      * active:  nothing right since.
+    "Not sure" answers are neither: they say nothing about a misconception.
+
+    Record: {status, text (latest misconception), sure (was the student sure
+    when they got it wrong), times (wrong answers), found_in / found_at (the
+    first wrong answer: start | lesson | end), fixed_in / fixed_at}.
+    """
+    events: dict[str, list[dict[str, Any]]] = {}
+    for source, rows, question_key in (
+        ("start", start_rows, "source_interest"),
+        ("lesson", lesson_rows, "interest"),
+        ("end", end_rows, "source_interest"),
+    ):
+        for row in rows:
+            if row.get("correct") is None:
+                continue
+            events.setdefault(row["concept_id"], []).append({
+                "source": source, "at": row["answered_at"], "correct": bool(row["correct"]),
+                # A question is a lesson's check: (concept, interest). The starting
+                # check's football question IS the football lesson's check.
+                "question": row[question_key],
+                "text": row.get("misconception"), "confidence": row.get("confidence"),
+            })
+
+    history: dict[str, dict[str, Any]] = {}
+    for concept_id, items in events.items():
+        items.sort(key=lambda e: e["at"])
+        wrong = [i for i, e in enumerate(items) if not e["correct"] and e["text"]]
+        if not wrong:
+            continue
+        last = wrong[-1]
+        later_right = [e for e in items[last + 1:] if e["correct"]]
+        moved_on = [e for e in later_right if e["question"] != items[last]["question"]]
+        if moved_on:
+            status, fix = FIXED, moved_on[0]
+        elif later_right:
+            status, fix = RECHECK, later_right[0]
+        else:
+            status, fix = ACTIVE, None
+        first = items[wrong[0]]
+        history[concept_id] = {
+            "status": status,
+            "text": items[last]["text"],
+            "sure": items[last]["confidence"] == "sure",
+            "times": len(wrong),
+            "found_in": first["source"], "found_at": first["at"],
+            "fixed_in": fix["source"] if fix else None,
+            "fixed_at": fix["at"] if fix else None,
+        }
+    return history

@@ -14,7 +14,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Compass, Sparkles } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
-import { CheckQuestion } from "@/components/check-question";
+import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { LearningPlanSummary } from "@/components/learning-plan";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
@@ -25,6 +25,7 @@ import {
   getDiagnostic,
   getLearningPlan,
   submitDiagnostic,
+  type Confidence,
   type Diagnostic,
   type HobbyOption,
   type LearningPlan,
@@ -86,6 +87,7 @@ function StartingCheck({
   const [hobbies, setHobbies] = useState<string[]>(diagnostic.hobbies);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [confidence, setConfidence] = useState<Record<string, Confidence>>({});
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,7 +95,7 @@ function StartingCheck({
     setSending(true);
     setError(null);
     try {
-      const out = await submitDiagnostic(answers, hobbies);
+      const out = await submitDiagnostic(answers, hobbies, confidence);
       onDone(out.plan);
     } catch (err) {
       setError(friendlyMessage(err));
@@ -150,6 +152,8 @@ function StartingCheck({
   const picked = answers[q.concept_id];
   const last = index === questions.length - 1;
   const pick = (value: string) => setAnswers((a) => ({ ...a, [q.concept_id]: value }));
+  // An option needs "how sure?" too; "not sure" already says it.
+  const ready = picked === UNSURE || (!!picked && !!confidence[q.concept_id]);
 
   return (
     <Shell>
@@ -161,20 +165,27 @@ function StartingCheck({
           </span>
           {q.chapter_name && <span>{q.chapter_name}</span>}
         </div>
-        <Progress value={((index + (picked ? 1 : 0)) / questions.length) * 100} />
+        <Progress value={((index + (ready ? 1 : 0)) / questions.length) * 100} />
       </div>
 
-      <CheckQuestion question={q} picked={picked} onPick={pick} disabled={sending} />
+      <CheckQuestion
+        question={q}
+        picked={picked}
+        onPick={pick}
+        confidence={confidence[q.concept_id]}
+        onConfidence={(value) => setConfidence((c) => ({ ...c, [q.concept_id]: value }))}
+        disabled={sending}
+      />
 
       <FormError message={error} />
 
       <div className="flex flex-wrap gap-3">
         {last ? (
-          <PrimaryButton onClick={finish} disabled={!picked || sending}>
+          <PrimaryButton onClick={finish} disabled={!ready || sending}>
             {sending ? "Building your plan…" : <>See my plan <Sparkles className="size-5" /></>}
           </PrimaryButton>
         ) : (
-          <PrimaryButton onClick={() => setIndex((i) => i + 1)} disabled={!picked}>
+          <PrimaryButton onClick={() => setIndex((i) => i + 1)} disabled={!ready}>
             Next <ArrowRight className="size-5" />
           </PrimaryButton>
         )}

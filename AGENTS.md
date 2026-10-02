@@ -101,7 +101,9 @@ concepts tagged "Know it?" / "Focus"; "Next up" follows the personal recommendat
 this story?" report button, 👍/👎, active reading time recorded) → **multiple-choice check**
 (misconception feedback) → progress. Plus settings, a dark/light/device theme toggle, error and 404
 pages. When the teacher opens it, **`/end-check`**: the same 8 ideas with new questions, and a
-before → after (fixed mix-ups, ideas learned since "not sure", what slipped).
+before → after (fixed mix-ups, ideas learned since "not sure", what slipped). Every check asks
+**"How sure are you?"** after an option is picked, and **`/mix-ups`** lists each misconception as
+to fix / check again / fixed (fixed = right on a *different* question about the idea).
 
 **What a teacher does today:** accounts are created on the server only
 (`venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`). A teacher creates a
@@ -109,8 +111,8 @@ class from pasted names (printable login slips, passwords shown once) and resets
 also lifts a login lockout). **`/teacher/class`** has:
 - the **Teaching assistant**, a tool-calling agent that plans the next lesson; it sees students
   only as S1, S2…, and falls back to a labelled rules plan;
-- **insights**: first-try accuracy, the most common misconceptions (counted per student), concepts
-  hardest-first, and results by interest;
+- **insights**: first-try accuracy, the most common misconceptions (counted per student, with how
+  many were sure of it), "sure but wrong", concepts hardest-first, and results by interest;
 - **starting check → end check**: open/close the end check; before → after right answers and
   mix-ups over paired answers, studied vs not-studied ideas (a rough control), per idea and per
   student;
@@ -123,6 +125,7 @@ also lifts a login lockout). **`/teacher/class`** has:
 |---|---|---|
 | Boundary (all logic) | `src/platform_api.py` | — |
 | Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
+| My mix-ups + "how sure are you?" | `learner_plan.mix_up_history`, `diagnostic.clean_confidence`, `web/app/(app)/mix-ups`, `web/components/confidence-picker.tsx` | 9zm |
 | End check (pilot before → after, counterbalanced forms) | `src/learner/diagnostic.py`, `metrics.check_gains`, `web/app/(app)/end-check`, `web/components/class-checks.tsx` | 9zl |
 | Personal stories (writer + critic agents) | `src/learner/personal_story.py`, `prompts/personal_story_*.txt` | 9ze, 9zf |
 | LLM client (OpenAI-compatible, OmniRoute) | `src/llm/client.py`, `.env.example` (LLM_* vars) | 9ze |
@@ -191,7 +194,8 @@ Candidates for next, roughly by value for the finals:
    - teachers `demo.teacher` ("Demo 11-B": `aarav.k`, `meera.i`, `kabir.s`) and `metrics.check`
      ("Metrics check 11-A": `test.o`, `test.t`, `test.t2`);
    - teacher `endcheck.teacher` ("End check test": `asha.r`, `bilal.k`, `chitra.n`; the end
-     check is open and two have taken it), from the §9zl browser check;
+     check is open and all three have taken it; `chitra.n` also answered a lesson check), from
+     the §9zl and §9zm browser checks;
    - self-signup students `start.check` and `loop.check`;
    - two hand-seeded personal stories (model "ui-check (seeded by hand)").
 
@@ -451,6 +455,7 @@ venv\Scripts\python.exe tests\test_personal_story.py      # story agents, llm cl
 venv\Scripts\python.exe tests\test_story_review.py        # report button, teacher hide/restore
 venv\Scripts\python.exe tests\test_rate_limit.py          # login lockouts (fake clock)
 venv\Scripts\python.exe tests\test_end_check.py           # end check: forms, access, before -> after
+venv\Scripts\python.exe tests\test_mix_ups.py             # my mix-ups, "how sure are you?"
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch

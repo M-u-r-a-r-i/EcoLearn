@@ -319,6 +319,9 @@ export interface InsightSummary {
   thumbs_up: number;
   thumbs_down: number;
   approval: number | null;
+  // First tries by "how sure are you?"; accuracy is 0–1 or null.
+  by_confidence: Record<Confidence, { answers: number; accuracy: number | null }>;
+  sure_but_wrong: number;
 }
 
 // One wrong option and the misconception it reveals, counted in students.
@@ -333,6 +336,7 @@ export interface MisconceptionInsight {
   correct_text: string | null; // markdown
   misconception: string | null;
   students: number; // students who chose this option
+  sure: number; // of those, how many were sure (a firmly held misconception)
   student_ids: string[]; // which ones (this teacher's own students)
   students_answered: number; // students who answered this question
   share: number | null;
@@ -527,11 +531,13 @@ export function getDiagnostic(): Promise<Diagnostic> {
 }
 
 // answers: {concept_id: "A".."D" | "unsure"}; anything left out counts as unsure.
+// confidence: {concept_id: "sure" | "think" | "guess"} for picked options.
 export function submitDiagnostic(
   answers: Record<string, string>,
   hobbies: string[],
+  confidence: Record<string, Confidence> = {},
 ): Promise<{ result: DiagnosticResult; plan: LearningPlan }> {
-  return request("/api/diagnostic", { method: "POST", body: { answers, hobbies } });
+  return request("/api/diagnostic", { method: "POST", body: { answers, hobbies, confidence } });
 }
 
 export function getLearningPlan(): Promise<LearningPlan> {
@@ -573,8 +579,44 @@ export function getEndCheck(): Promise<EndCheck> {
 }
 
 // answers: {concept_id: "A".."D" | "unsure"}; anything left out counts as unsure.
-export function submitEndCheck(answers: Record<string, string>): Promise<EndCheck> {
-  return request("/api/end-check", { method: "POST", body: { answers } });
+export function submitEndCheck(
+  answers: Record<string, string>,
+  confidence: Record<string, Confidence> = {},
+): Promise<EndCheck> {
+  return request("/api/end-check", { method: "POST", body: { answers, confidence } });
+}
+
+// ---------------------------------------------------------------------------
+// "My mix-ups": every misconception the student has shown, and its status.
+// fixed = right on a different question; recheck = right only on the same
+// question after the explanation; active = nothing right since.
+// ---------------------------------------------------------------------------
+export type MixUpStatus = "active" | "recheck" | "fixed";
+export type CheckSource = "start" | "lesson" | "end";
+
+export interface MixUp {
+  concept_id: string;
+  concept_name: string;
+  chapter_id: string;
+  chapter_name: string | null;
+  note: string; // "You might think …"
+  status: MixUpStatus;
+  sure: boolean; // they were sure when they got it wrong
+  times: number;
+  found_in: CheckSource;
+  found_at: string;
+  fixed_in: CheckSource | null;
+  fixed_at: string | null;
+  has_lesson: boolean;
+}
+
+export interface MixUps {
+  summary: Record<MixUpStatus, number>;
+  items: MixUp[];
+}
+
+export function getMixUps(): Promise<MixUps> {
+  return request("/api/mix-ups");
 }
 
 // Rates are 0–1, or null when there is nothing to divide.
@@ -844,15 +886,23 @@ export interface AssessmentResult {
   correct?: boolean;
   selected_option?: string;
   correct_option?: string;
+  confidence?: Confidence | null;
 }
+
+// "How sure are you?" — asked after picking an option in any check.
+export type Confidence = "sure" | "think" | "guess";
 
 // `answer` is the chosen option letter ("A".."D") for authored lessons, or free
 // text for the older generated ones. Multiple-choice grading is a lookup against
 // the lesson file, so it answers immediately — no model call.
-export function submitAssessment(conceptId: string, answer: string): Promise<AssessmentResult> {
+export function submitAssessment(
+  conceptId: string,
+  answer: string,
+  confidence?: Confidence,
+): Promise<AssessmentResult> {
   return request("/api/assessment", {
     method: "POST",
-    body: { concept_id: conceptId, answer },
+    body: { concept_id: conceptId, answer, confidence: confidence ?? null },
     timeoutMs: LIVE_TIMEOUT_MS, // legacy free-text grading is still a live call
   });
 }

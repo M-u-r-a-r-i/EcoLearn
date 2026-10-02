@@ -53,6 +53,9 @@ export function SiteNav() {
                 <Link href="/roadmap" className={LINK}>
                   Roadmap
                 </Link>
+                <Link href="/mix-ups" className={LINK}>
+                  Mix-ups
+                </Link>
                 <Link href="/settings" className={LINK}>
                   Settings
                 </Link>

@@ -33,6 +33,9 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _CONFIG_PATH = _PROJECT_ROOT / "data" / "diagnostic.yaml"
 
 UNSURE = "unsure"
+# "How sure are you?" after picking an option (2026-10-02). Confident and wrong
+# is the clearest sign of a real misconception; guessing and wrong may be noise.
+CONFIDENCE_LEVELS = ("sure", "think", "guess")
 MAX_HOBBIES = 8
 MAX_OWN_HOBBIES = 2
 # A hobby of the student's own: a short label, letters and a few separators
@@ -130,15 +133,38 @@ def student_questions(level: str, interest: str, form: int = 0) -> list[dict[str
     return present(choose_questions(level, interest, form))
 
 
-def grade_chosen(chosen: list[dict[str, str]], picks: dict[str, str]) -> list[dict[str, Any]]:
-    """Grade answers to these questions. Unanswered questions count as "not sure".
+def clean_confidence(value: str | None) -> str | None:
+    """sure | think | guess, or None when not given.
 
     Raises:
-        EcoLearnError: an answer for a concept that wasn't asked, or a pick
-                       that isn't an option or "unsure".
+        EcoLearnError: anything else.
     """
+    if value is None or not str(value).strip():
+        return None
+    level = str(value).strip().lower()
+    if level not in CONFIDENCE_LEVELS:
+        raise EcoLearnError(f"How sure: one of {', '.join(CONFIDENCE_LEVELS)} — got {value!r}.")
+    return level
+
+
+def grade_chosen(
+    chosen: list[dict[str, str]],
+    picks: dict[str, str],
+    confidence: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
+    """Grade answers to these questions. Unanswered questions count as "not sure".
+
+    `confidence` maps concept_id -> sure | think | guess. It is kept only for a
+    picked option: "not sure" already says how sure the student is.
+
+    Raises:
+        EcoLearnError: an answer (or confidence) for a concept that wasn't
+                       asked, a pick that isn't an option or "unsure", or a
+                       confidence that isn't one of the levels.
+    """
+    confidence = confidence or {}
     asked = {q["concept_id"] for q in chosen}
-    extra = sorted(set(picks) - asked)
+    extra = sorted((set(picks) | set(confidence)) - asked)
     if extra:
         raise EcoLearnError(f"These weren't in your check: {', '.join(extra)}.")
 
@@ -150,11 +176,13 @@ def grade_chosen(chosen: list[dict[str, str]], picks: dict[str, str]) -> list[di
         if pick != UNSURE and pick not in check.options:
             raise EcoLearnError(f"Pick one of {', '.join(check.options)} or 'unsure' — got {raw!r}.")
         correct = None if pick == UNSURE else pick == check.answer
+        sure = clean_confidence(confidence.get(q["concept_id"]))
         graded.append({
             "concept_id": q["concept_id"],
             "source_interest": q["source_interest"],
             "selected": pick,
             "correct": correct,
+            "confidence": None if pick == UNSURE else sure,
             "misconception": (
                 ((check.misconceptions.get(pick) or "").strip() or None)
                 if correct is False else None
@@ -163,9 +191,15 @@ def grade_chosen(chosen: list[dict[str, str]], picks: dict[str, str]) -> list[di
     return graded
 
 
-def grade(level: str, interest: str, picks: dict[str, str], form: int = 0) -> list[dict[str, Any]]:
+def grade(
+    level: str,
+    interest: str,
+    picks: dict[str, str],
+    form: int = 0,
+    confidence: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
     """Grade a whole starting check (see grade_chosen)."""
-    return grade_chosen(choose_questions(level, interest, form), picks)
+    return grade_chosen(choose_questions(level, interest, form), picks, confidence)
 
 
 def _outcome(correct: bool | None) -> str:
