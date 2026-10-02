@@ -74,7 +74,8 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await register({ name: name.trim(), username: username.trim(), password, interest, level });
-      router.replace("/roadmap");
+      // New students begin with the starting check (they can skip it there).
+      router.replace("/start");
     } catch (err) {
       setLoading(false);
       // A taken username is a step-1 problem: send them back to fix it.

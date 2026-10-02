@@ -442,6 +442,78 @@ export interface RoadmapConcept {
   attempts: number;
   missing_prerequisites: string[]; // uncleared prerequisites — a "brush up first" hint
   has_lesson?: boolean; // false = not written yet for the student's interest
+  // Personalisation: "known" (the starting check says so), "focus" (a mix-up
+  // was seen), or null; a student-facing note; and whether "Continue" opens it.
+  personal?: "known" | "focus" | null;
+  personal_note?: string | null;
+  recommended?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// The starting check (after signup) and the learning plan built from it.
+// ---------------------------------------------------------------------------
+export interface DiagnosticQuestion {
+  concept_id: string;
+  concept_name: string;
+  chapter_name: string | null;
+  question: string; // markdown
+  options: Record<string, string>; // never the answer
+}
+
+export interface HobbyOption {
+  id: string;
+  label: string;
+  emoji: string;
+}
+
+export interface DiagnosticResult {
+  asked: number;
+  known: number;
+  mix_ups: number;
+  unsure: number;
+}
+
+export interface Diagnostic {
+  taken: boolean;
+  completed_at: string | null;
+  hobbies: string[];
+  hobby_options: HobbyOption[];
+  questions?: DiagnosticQuestion[]; // until taken
+  result?: DiagnosticResult; // once taken
+}
+
+export interface FocusItem {
+  concept_id: string;
+  concept_name: string;
+  chapter_id: string;
+  chapter_name: string | null;
+  note: string; // "You might think …"
+  source: "check" | "lesson";
+  has_lesson: boolean;
+}
+
+export interface LearningPlan {
+  check: DiagnosticResult & { taken: boolean; completed_at: string | null };
+  focus: FocusItem[];
+  known: { concept_id: string; concept_name: string }[];
+  start: { chapter_id: string; chapter_name: string; reason: string } | null;
+  hobbies: string[];
+}
+
+export function getDiagnostic(): Promise<Diagnostic> {
+  return request("/api/diagnostic");
+}
+
+// answers: {concept_id: "A".."D" | "unsure"}; anything left out counts as unsure.
+export function submitDiagnostic(
+  answers: Record<string, string>,
+  hobbies: string[],
+): Promise<{ result: DiagnosticResult; plan: LearningPlan }> {
+  return request("/api/diagnostic", { method: "POST", body: { answers, hobbies } });
+}
+
+export function getLearningPlan(): Promise<LearningPlan> {
+  return request("/api/learning-plan");
 }
 
 export function getRoadmap(chapterId: string): Promise<RoadmapConcept[]> {

@@ -8,11 +8,12 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { Check, Clock, Play, ArrowRight, PartyPopper } from "lucide-react";
+import { Check, Clock, Play, ArrowRight, PartyPopper, Target } from "lucide-react";
 
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
 import { ChapterPicker } from "@/components/chapter-picker";
+import { LearningPlanCard } from "@/components/learning-plan";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Progress } from "@/components/ui/progress";
@@ -65,7 +66,11 @@ function Roadmap() {
   // has_lesson is absent only for legacy accounts; treat that as "written".
   const written = (c: RoadmapConcept) => c.has_lesson !== false;
   const readyCount = concepts?.filter(written).length ?? 0;
-  const nextConcept = concepts?.find((c) => c.status === "available" && written(c));
+  // The server's personal recommendation (it may skip what the starting check
+  // says they know); the first unfinished concept if it points elsewhere.
+  const nextConcept =
+    concepts?.find((c) => c.recommended) ??
+    concepts?.find((c) => c.status === "available" && written(c));
   const allDone = total > 0 && mastered === total;
 
   return (
@@ -91,6 +96,8 @@ function Roadmap() {
             onChange={setChapter}
             interest={student.interest}
           />
+
+          <LearningPlanCard chapterId={chapterId} />
 
           {/* Progress — pointless for a chapter with nothing written yet. */}
           {(loading || readyCount > 0) && (
@@ -184,26 +191,48 @@ function Roadmap() {
                     <div className="flex flex-col">
                       <span className="font-semibold text-foreground">{c.name}</span>
                       <span className="text-xs text-muted-foreground">
+                        {/* Checks are multiple choice: right or not yet, so no "2/3". */}
                         {c.status === "mastered" &&
-                          `Best ${c.best_score}/3 · ${c.attempts} attempt${c.attempts === 1 ? "" : "s"}`}
+                          `Got it right · ${c.attempts} attempt${c.attempts === 1 ? "" : "s"}`}
                         {c.status === "available" &&
                           (c.attempts
-                            ? `Ready to learn · best ${c.best_score}/3`
+                            ? `Tried ${c.attempts}× · not right yet`
                             : "Ready to learn")}
                         {/* Nothing is locked; uncleared prerequisites are only a hint. */}
                         {c.status === "available" &&
                           c.missing_prerequisites.length > 0 &&
                           ` · builds on ${c.missing_prerequisites.length} earlier concept${c.missing_prerequisites.length === 1 ? "" : "s"}`}
                       </span>
+                      {c.personal_note && (
+                        <span
+                          className={cn(
+                            "mt-1 flex items-start gap-1 text-xs",
+                            c.personal === "focus" ? "text-destructive" : "text-success",
+                          )}
+                        >
+                          {c.personal === "focus" && <Target className="mt-px size-3 shrink-0" aria-hidden />}
+                          {c.personal_note}
+                        </span>
+                      )}
                     </div>
 
                     <span
                       className={cn(
                         "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
-                        s.badge,
+                        !isNext && c.status !== "mastered" && c.personal === "focus"
+                          ? "bg-destructive/10 text-destructive"
+                          : !isNext && c.status !== "mastered" && c.personal === "known"
+                            ? "bg-success/10 text-success"
+                            : s.badge,
                       )}
                     >
-                      {isNext ? "Next up" : s.label}
+                      {isNext
+                        ? "Next up"
+                        : c.status !== "mastered" && c.personal === "focus"
+                          ? "Focus"
+                          : c.status !== "mastered" && c.personal === "known"
+                            ? "Know it?"
+                            : s.label}
                     </span>
                   </Link>
                 </div>

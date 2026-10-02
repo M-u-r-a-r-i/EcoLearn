@@ -939,6 +939,10 @@ pattern.
 
 ## 8. MILESTONE 3 — Diagnostic assessment layer
 
+> **Started 2026-10-02 (`PROJECT_HISTORY.md` §9zd):** a starting check after signup, built from the
+> existing MCQ checks (distractor → misconception), stored separately as the pilot baseline.
+> Per-skill tagging and adaptive question choice are still to do.
+
 **Goal:** turn answers into signal.
 
 - A **question bank** with per-question concept + skill tags, difficulty, type
@@ -963,6 +967,10 @@ pattern.
   monotonically and flags the expected misconception.
 
 ## 10. MILESTONE 5 — Adaptive sequencer
+
+> **A first version, 2026-10-02 (§9zd):** `src/learner/plan.py` skips concepts the starting check
+> says are known and inserts a prerequisite brush-up where a misconception was seen, on top of the
+> unchanged engine. No profiler (M4) yet: the signals are the check and lesson answers.
 
 **Goal:** dynamic order from the learner state.
 

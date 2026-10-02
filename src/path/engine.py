@@ -90,8 +90,25 @@ def _review_interval_days() -> int:
     return _DEFAULT_REVIEW_INTERVAL_DAYS
 
 
+# The parsed curriculum, cached until the file changes. Parsing and validating
+# the 249-concept YAML costs ~0.1–0.3 s, and one request used to do it up to 11
+# times (measured 2026-10-02: 1.3 s for a roadmap, 2.2 s for a learning plan).
+# Keyed on path + modification time + size, so editing physics.yaml, or a test
+# pointing ECOLEARN_CURRICULUM elsewhere, is picked up on the next call.
+# Callers must treat the Subject as read-only: it is shared.
+_subject_cache: dict[tuple[str, int, int], Subject] = {}
+
+
 def _load_subject() -> Subject:
-    return load_subject(_curriculum_path())
+    path = _curriculum_path()
+    stat = path.stat()
+    key = (str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+    subject = _subject_cache.get(key)
+    if subject is None:
+        subject = load_subject(path)
+        _subject_cache.clear()  # one curriculum at a time; drop stale versions
+        _subject_cache[key] = subject
+    return subject
 
 
 def _chapter_concepts(subject: Subject, chapter_id: str) -> list[Concept]:

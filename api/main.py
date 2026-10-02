@@ -166,6 +166,13 @@ class RatingRequest(BaseModel):
     rating: int
 
 
+class DiagnosticRequest(BaseModel):
+    """Body for POST /api/diagnostic: {concept_id: "A".."D" or "unsure"} + hobbies."""
+
+    answers: dict[str, str]
+    hobbies: list[str] = []
+
+
 class CreateClassRequest(BaseModel):
     """Body for POST /api/teacher/classes. `roster`: one student name per line,
     optionally "Name, interest"."""
@@ -451,6 +458,30 @@ def submit_assessment(
         concept_id=payload.concept_id,
         answer=payload.answer,
     )
+
+
+# ---------------------------------------------------------------------------
+# The starting check and the learning plan (personalisation, layers 1 and 2).
+# ---------------------------------------------------------------------------
+@app.get("/api/diagnostic")
+def get_diagnostic(student_id: str = Depends(get_current_student_id)) -> dict:
+    """The starting check: its questions (no answers), or the result once taken."""
+    return api.get_diagnostic(student_id)
+
+
+@app.post("/api/diagnostic")
+def submit_diagnostic(
+    payload: DiagnosticRequest,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
+    """Grade the starting check (once; 409 if already taken) and return the plan."""
+    return api.submit_diagnostic(student_id, payload.answers, payload.hobbies)
+
+
+@app.get("/api/learning-plan")
+def learning_plan(student_id: str = Depends(get_current_student_id)) -> dict:
+    """What to focus on and where to start, from the starting check and lessons."""
+    return api.get_learning_plan(student_id)
 
 
 # ---------------------------------------------------------------------------

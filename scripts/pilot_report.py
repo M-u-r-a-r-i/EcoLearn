@@ -100,6 +100,7 @@ def main() -> int:
             ("lesson_views", report["views"]),
             ("answers", report["answers"]),
             ("ratings", report["ratings"]),
+            ("starting_check", report["diagnostic"]),
             ("per_student", insights["students"]),
             ("per_concept", insights["concepts"]),
             ("per_interest", insights["interests"]),

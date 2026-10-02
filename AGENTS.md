@@ -110,6 +110,11 @@ the roadmap shows it mastered → refresh keeps you logged in → settings → l
   attempt number and misconception) and `lesson_ratings` (👍/👎) tables; the teacher's class page
   shows first-try accuracy, the most common misconceptions and per-interest numbers.
   `scripts/pilot_report.py [--csv DIR]` covers every class, pseudonymised. `tests/test_pilot_metrics.py`.
+- **Personalisation** (§9zd): the starting check (`data/diagnostic.yaml`, `src/learner/`, `/start`
+  right after signup, taken once) and the learning plan (focus mix-ups, likely-known concepts, a
+  suggested start). Recommendations go through `_recommend` in the boundary, on top of the
+  unchanged engine; no check taken = the old behaviour exactly. The curriculum is now parsed once
+  and cached (`engine._load_subject`).
 - `list_interests()` offers the **five in-scope interests** with `chapters_ready` /
   `chapters_total` (§9r), read from `data/content_scope.yaml` via `src/curriculum/scope.py`.
 - **Teacher tools** (§9z): separate `teachers` / `classes` tables, a `tch_…` id that every
@@ -159,8 +164,8 @@ classroom adoption). **15-minute presentation.** Judging criteria are not publis
 **-> YOUR NEXT ACTION (user, 2026-10-02): improve the project; lessons resume later.** The
 user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception dashboard~~ (done,
 §9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → ~~chapter picker
-fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → **the user's answer on the signup-assessment vision
-(§9zc), then robustness & polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → **layer 3
+once a working Gemini key exists (see "Open with the user" 0), and robustness & polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
 30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 
@@ -190,7 +195,8 @@ fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → **the user's answer on the signu
 3. **Local test data in `data/progress.db`** (gitignored, never pushed): teacher `demo.teacher`
    and the class "Demo 11-B" with three students, made while verifying §9z; teacher
    `metrics.check` and "Metrics check 11-A" (`test.o`, `test.t`, `test.t2`), made while verifying
-   §9za — exclude them from real pilot numbers, or delete them before the pilot. Their passwords were
+   §9za; student `start.check` (§9zd) — exclude them from real pilot numbers, or delete them
+   before the pilot. Their passwords were
    shown once in that session and are gone. Use `scripts/create_teacher.py` for a fresh teacher,
    and a teacher's "Reset password" for the demo students.
 4. **Work happens on two machines.** A teammate (GitHub `M-u-r-a-r-i`) also runs lesson batches
@@ -199,9 +205,13 @@ fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → **the user's answer on the signu
 **Open with the user, don't decide alone:**
 0. **The product vision (user, 2026-10-02):** "during signup the student takes an assessment that
    tells us their knowledge, interests and hobbies; we then generate specialised content for them,
-   and personalise the chapters based on their interaction with the app." This reverses the
-   sprint's "no live generation" decision, so it was put to the user as options (2026-10-02,
-   §9zc) rather than built. Read that entry before starting any of it.
+   and personalise the chapters based on their interaction with the app." Three layers (§9zc).
+   **Layers 1–2 are built** (§9zd: the starting check at `/start`, the learning plan,
+   personal recommendations; no AI). **Layer 3 = option (b), chosen by the user**: a short personal
+   story + one analogy per student hobby on top of the reviewed lesson, critic-checked, cached per
+   student × concept, falling back to the pre-written interest. **Not built: it needs a working
+   (likely paid) Gemini key first**, and it is a new live call, so confirm the design with the user
+   before starting.
 1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
    finish cricket, football and gaming first and leave smartphones and motorsport until after the
    finals; the user has not ruled either way.
@@ -438,6 +448,7 @@ venv\Scripts\python.exe tests\test_teacher.py             # teacher tools: class
 venv\Scripts\python.exe tests\test_pilot_metrics.py       # views, answers, 👍/👎, class insights
 venv\Scripts\python.exe tests\test_chapter_coverage.py    # picker counts, coming-soon concepts
 venv\Scripts\python.exe tests\test_teacher_agent.py       # agent loop, privacy, fallbacks (no network)
+venv\Scripts\python.exe tests\test_learner_plan.py        # starting check, learning plan, recommendations
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 

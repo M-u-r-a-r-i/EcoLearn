@@ -130,6 +130,32 @@ def _connect() -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_plans_class ON class_plans(class_id, plan_id)")
+    # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
+    # are a baseline taken before any lesson, and mixing them into the lesson
+    # answers would muddy the pilot's "right first time" number.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS learner_profiles (
+            student_id               TEXT PRIMARY KEY,
+            hobbies                  TEXT NOT NULL DEFAULT '[]',
+            diagnostic_completed_at  TEXT
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS diagnostic_answers (
+            student_id       TEXT NOT NULL,
+            concept_id       TEXT NOT NULL,
+            source_interest  TEXT NOT NULL,
+            selected         TEXT NOT NULL,
+            correct          INTEGER,
+            misconception    TEXT,
+            answered_at      TEXT NOT NULL,
+            PRIMARY KEY (student_id, concept_id)
+        )
+        """
+    )
     return conn
 
 
@@ -1092,3 +1118,87 @@ def get_latest_class_plan(class_id: str) -> dict[str, Any] | None:
     plan["trace"] = json.loads(plan["trace"])
     plan["aliases"] = json.loads(plan["aliases"])
     return plan
+
+
+# ---------------------------------------------------------------------------
+# The starting check and the learner profile (2026-10-02)
+# ---------------------------------------------------------------------------
+
+def get_learner_profile(student_id: str) -> dict[str, Any]:
+    """{hobbies: [...], diagnostic_completed_at: iso | None}; defaults if none yet."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM learner_profiles WHERE student_id = ?", (student_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return {"hobbies": [], "diagnostic_completed_at": None}
+    return {"hobbies": json.loads(row["hobbies"]),
+            "diagnostic_completed_at": row["diagnostic_completed_at"]}
+
+
+def save_diagnostic(
+    student_id: str, hobbies: list[str], answers: list[dict[str, Any]]
+) -> str:
+    """Store a completed starting check and the hobbies, in one transaction.
+
+    Each answer: {concept_id, source_interest, selected ("A".."D" or "unsure"),
+    correct (bool, or None for unsure), misconception (str or None)}.
+    Returns the completion time.
+    """
+    completed_at = _now_iso()
+    conn = _connect()
+    try:
+        with conn:
+            conn.execute(
+                """
+                INSERT INTO learner_profiles (student_id, hobbies, diagnostic_completed_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(student_id) DO UPDATE SET
+                    hobbies = excluded.hobbies,
+                    diagnostic_completed_at = excluded.diagnostic_completed_at
+                """,
+                (student_id, json.dumps(hobbies), completed_at),
+            )
+            conn.executemany(
+                """
+                INSERT OR REPLACE INTO diagnostic_answers
+                    (student_id, concept_id, source_interest, selected, correct,
+                     misconception, answered_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (student_id, a["concept_id"], a["source_interest"], a["selected"],
+                     None if a["correct"] is None else int(bool(a["correct"])),
+                     a.get("misconception"), completed_at)
+                    for a in answers
+                ],
+            )
+    finally:
+        conn.close()
+    return completed_at
+
+
+def get_diagnostic_answers(student_ids: list[str] | None) -> list[dict[str, Any]]:
+    """Starting-check answers for some students (or everyone, with None)."""
+    conn = _connect()
+    try:
+        if student_ids is None:
+            rows = conn.execute("SELECT * FROM diagnostic_answers").fetchall()
+        elif not student_ids:
+            rows = []
+        else:
+            marks = ",".join("?" * len(student_ids))
+            rows = conn.execute(
+                f"SELECT * FROM diagnostic_answers WHERE student_id IN ({marks})", student_ids
+            ).fetchall()
+    finally:
+        conn.close()
+    out = []
+    for r in rows:
+        row = dict(r)
+        row["correct"] = None if row["correct"] is None else bool(row["correct"])
+        out.append(row)
+    return out

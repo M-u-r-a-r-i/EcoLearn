@@ -1707,3 +1707,66 @@ layers rather than built:
   call showed it.
 - An absolutely positioned child (`sr-only`) inside `overflow-x-auto` escapes the scroll box unless
   the box is positioned, and widens the whole page. Measure with `scrollWidth` vs `clientWidth`.
+
+## 9zd. Personalisation layers 1 and 2: the starting check and the learning plan (2026-10-02)
+
+*User decision:* option **(b)** for generated content (a personal story and analogy per hobby on
+top of the reviewed lesson; layer 3, not built yet), and **layers 1 and 2 first**.
+
+**Changed.**
+- `data/diagnostic.yaml` (new): the starting check as content. There are 8 concepts per class,
+  chosen for *understanding* rather than arithmetic, since many misconception texts are slips like
+  "Divides…" rather than beliefs. A Class 12 student also gets one Class 11 foundation
+  (`second_law`). The file also lists the questions' source-interest order and 20 hobbies.
+- `src/learner/diagnostic.py` (new): picks each question from a **different interest's** lesson
+  than the student's own, so they never meet the same question again in their lesson and its
+  first-try number stays honest. Grades by answer key; "not sure" is a real answer; validates
+  hobbies (listed ids plus up to 2 own labels of at most 24 letters, so nothing sentence-like
+  about a child is stored).
+- `src/learner/plan.py` (new): `learner_state` builds likely-known concepts (right in the check)
+  and open mix-ups (wrong in the check or in a lesson; closed once cleared). `personal_next`
+  works on top of the unchanged engine: a review it wants stands; otherwise it skips likely-known
+  concepts and brushes up a direct prerequisite that has a mix-up first, across chapters.
+  `you_might` turns "Thinks X. <correction>" into "You might think X." (first sentence only, so
+  the roadmap doesn't give away the lesson). `annotate_roadmap` adds known/focus notes.
+- `src/progress/store.py`: `learner_profiles` (hobbies, check completed) and
+  `diagnostic_answers`, kept apart from lesson `answers` so the baseline doesn't muddy the
+  lesson numbers.
+- `src/platform_api.py`: `get_diagnostic`, `submit_diagnostic` (once only, since it's the pilot's
+  baseline), `get_learning_plan` (focus, known, suggested start, preferring the student's own
+  class). A `_recommend` helper is now shared by `get_next_lesson` and `get_roadmap`, which gain
+  `personal`, `personal_note` and `recommended`. `pilot_report` includes the starting check,
+  pseudonymised.
+- `api/main.py`: `GET`/`POST /api/diagnostic`, `GET /api/learning-plan`.
+- `src/path/engine.py`: **`_load_subject` is cached** by path, mtime and size. One request parsed
+  the 249-concept YAML up to 11 times. Measured before → after: roadmap 1330 → 75 ms, learning
+  plan 2211 → 47 ms, chapters 791 → 44 ms. This was the latent issue listed in §2 since September.
+- Web: `/start` (intro → hobbies → one question at a time with "I'm not sure yet" → the plan),
+  and signup now lands there. `components/learning-plan.tsx` has the summary and a roadmap card
+  ("Take the 5-minute starting check", or "Your plan · N mix-ups to fix" with "Fix this" links and
+  a suggested start). Roadmap concepts get "Know it?" / "Focus" badges with the note; "Next up"
+  follows the server's `recommended`. Roadmap status lines no longer say "Best 3/3", since checks
+  are right/wrong only.
+- `tests/test_learner_plan.py` (new): **48 checks**.
+
+**Why this way.**
+- **No AI in layers 1–2**, on purpose. The lesson checks already encode misconceptions, so a
+  diagnostic is a lookup, which is instant, free and testable. That leaves the AI budget for
+  layer 3, where it adds something a lookup can't.
+- **A student who skips the check sees exactly the old behaviour**, wording included; a test
+  pins it. Personalisation only adds, and nothing is ever locked.
+- **The check is taken once**: it is the "before" picture for the pilot. A later post-test
+  would be a separate feature, not a retake.
+
+**Verified in the browser:** a new cricket Class 11 student, signed up through the API (the app
+window was minimised, so the page was driven with JS clicks). /start went intro → 3 hobbies (one
+typed) → 8 questions (3 right, 3 wrong, 2 not sure) → plan: 3 known, 3 mix-ups in the second
+person, "Start with Motion in a Straight Line". The roadmap showed the plan card, "Know it?" on
+Displacement, "Focus" on Acceleration, and "Next up" on Position.
+
+**Learned.**
+- The YAML-reparse cost had been invisible for weeks because each endpoint paid it a few times.
+  New code that calls the engine more made it 1–2 s per request. Profile before guessing: one
+  `cProfile` run named the culprit at once.
+- JSX dropped the space in `{n} quick questions` again (same as §9z). An explicit `{" "}` fixes it.
+- Test data: student `start.check` (Class 11, cricket) in the local DB, from this verification.

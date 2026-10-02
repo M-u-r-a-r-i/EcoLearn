@@ -55,6 +55,8 @@ from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
+from src.learner import diagnostic
+from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
 # src.pipeline (the doubt chat's generate→critic loop and its RAG index) is
@@ -739,6 +741,11 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
     student's interest, so the UI can show "coming soon" instead of a link to
     an empty page. (Omitted for an unknown, legacy-only student id.)
 
+    Personalisation (2026-10-02, layer 2): `personal` is "known" (the starting
+    check says they know it), "focus" (they showed a misconception) or None,
+    with a student-facing `personal_note`; `recommended` marks the concept
+    "Continue learning" would open.
+
     Raises:
         ValueError: if the chapter has no concepts / doesn't exist.
     """
@@ -746,9 +753,191 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
     profile = store.get_student(student_id)
     if profile is not None:
         ready = lesson_service.concepts_with_lessons(profile["interest"])
+        state = learner_plan.learner_state(student_id)
+        learner_plan.annotate_roadmap(roadmap, state)
+        _, _, chosen = _recommend(student_id, chapter_id, profile["interest"], state)
         for row in roadmap:
             row["has_lesson"] = row["concept_id"] in ready
+            row["recommended"] = chosen is not None and row["concept_id"] == chosen.id
     return roadmap
+
+
+def _recommend(
+    student_id: str, chapter_id: str, interest: str, state: dict[str, Any] | None = None
+) -> tuple[str, str, Any]:
+    """(status, reason, concept or None): what "Continue learning" opens.
+
+    The path engine decides first. A spaced review it asks for stands. Otherwise
+    the learner plan may personalise the pick (skip what the starting check
+    says they know, brush up a misconception first). Finally, a concept with
+    no lesson yet in this interest is skipped to the next one that has one.
+    """
+    rec = engine.next_concept(student_id, chapter_id)
+    status, reason = rec.kind, rec.reason
+    chosen = rec.concept if rec.kind in (engine.KIND_NEW, engine.KIND_REVIEW) else None
+
+    if rec.kind != engine.KIND_REVIEW:
+        personal = learner_plan.personal_next(student_id, chapter_id, interest, state)
+        if personal is not None:
+            return engine.KIND_NEW, personal["reason"], engine.find_concept(personal["concept_id"])
+
+    # Lessons are still being written, interest by interest. If the pick has
+    # none yet in this student's interest, recommend the next unmastered concept
+    # in the chapter that does, rather than sending "Continue learning" into an
+    # empty page.
+    if chosen is not None and not lesson_service.has_lesson(chosen.id, interest):
+        ready = lesson_service.concepts_with_lessons(interest)
+        fallback = next(
+            (row for row in engine.get_roadmap(student_id, chapter_id)
+             if row["concept_id"] in ready and row["status"] != engine.ROADMAP_MASTERED),
+            None,
+        )
+        if fallback is not None:
+            chosen = engine.find_concept(fallback["concept_id"])
+            status, reason = engine.KIND_NEW, f"Next up: {chosen.name}."
+    return status, reason, chosen
+
+
+# ---------------------------------------------------------------------------
+# 2b. The starting check and the learning plan (2026-10-02, layers 1 and 2)
+#
+#   get_diagnostic(student_id)                    -> questions, or the result if taken
+#   submit_diagnostic(student_id, picks, hobbies) -> the result
+#   get_learning_plan(student_id)                 -> what to focus on, where to start
+#
+# No model calls: the questions are existing lesson checks and grading is the
+# same answer-key lookup. See src/learner/.
+# ---------------------------------------------------------------------------
+
+def _diagnostic_result(student_id: str) -> dict[str, Any]:
+    rows = store.get_diagnostic_answers([student_id])
+    return {
+        "asked": len(rows),
+        "known": sum(1 for r in rows if r["correct"]),
+        "mix_ups": sum(1 for r in rows if r["correct"] is False),
+        "unsure": sum(1 for r in rows if r["correct"] is None),
+    }
+
+
+def get_diagnostic(student_id: str) -> dict[str, Any]:
+    """The starting check for this student.
+
+    Returns:
+        {"taken": bool, "completed_at": iso|None, "hobbies": [...],
+         "hobby_options": [{id, label, emoji}], "questions": [...] (only while
+         not taken: {concept_id, concept_name, chapter_name, question, options}),
+         "result": {asked, known, mix_ups, unsure} (only once taken)}
+    """
+    profile = _require_student(student_id)
+    learner = store.get_learner_profile(student_id)
+    taken = learner["diagnostic_completed_at"] is not None
+    out: dict[str, Any] = {
+        "taken": taken,
+        "completed_at": learner["diagnostic_completed_at"],
+        "hobbies": learner["hobbies"],
+        "hobby_options": diagnostic.hobby_options(),
+    }
+    if taken:
+        out["result"] = _diagnostic_result(student_id)
+    else:
+        out["questions"] = diagnostic.student_questions(profile["level"], profile["interest"])
+    return out
+
+
+def submit_diagnostic(
+    student_id: str, picks: dict[str, str], hobbies: list[str] | None = None
+) -> dict[str, Any]:
+    """Grade and store the starting check (once per student).
+
+    `picks` maps concept_id -> "A".."D" or "unsure"; anything left out counts as
+    "unsure". It is taken once, because it is the pilot's baseline: a retake
+    after the lessons would overwrite the "before" picture.
+
+    Returns: {"result": {...}, "plan": get_learning_plan(...)}.
+
+    Raises:
+        ConflictError: already taken.
+        EcoLearnError: a pick for a concept not in this check, a bad option, or
+                       bad hobbies.
+    """
+    profile = _require_student(student_id)
+    if store.get_learner_profile(student_id)["diagnostic_completed_at"] is not None:
+        raise ConflictError("You've already taken the starting check.")
+    clean = diagnostic.clean_hobbies(hobbies)
+    graded = diagnostic.grade(profile["level"], profile["interest"], picks or {})
+    store.save_diagnostic(student_id, clean, graded)
+    return {"result": _diagnostic_result(student_id), "plan": get_learning_plan(student_id)}
+
+
+def get_learning_plan(student_id: str) -> dict[str, Any]:
+    """What EcoLearn suggests for this student, from the starting check and lessons.
+
+    Returns:
+        {"check": {"taken", "completed_at", asked, known, mix_ups, unsure},
+         "focus": [{concept_id, concept_name, chapter_id, chapter_name, note,
+                    source: "check"|"lesson"}]  (open mix-ups, in teaching order),
+         "known": [{concept_id, concept_name}]  (likely known, not yet confirmed),
+         "start": {chapter_id, chapter_name, reason} | None,
+         "hobbies": [...]}
+    """
+    profile = _require_student(student_id)
+    learner = store.get_learner_profile(student_id)
+    state = learner_plan.learner_state(student_id)
+    ready = lesson_service.concepts_with_lessons(profile["interest"])
+    chapters = {c["id"]: c for c in engine.list_chapters()}
+    concepts = {cid: engine.find_concept(cid)
+                for cid in set(state["mix_ups"]) | state["likely_known"]}
+
+    def by_order(cid: str) -> int:
+        return concepts[cid].order if concepts[cid] else 0
+
+    focus = []
+    for cid in sorted(state["mix_ups"], key=by_order):
+        c = concepts[cid]
+        if c is None:
+            continue
+        focus.append({
+            "concept_id": cid, "concept_name": c.name, "chapter_id": c.chapter_id,
+            "chapter_name": chapters.get(c.chapter_id, {}).get("name"),
+            "note": learner_plan.you_might(state["mix_ups"][cid]["text"]),
+            "source": state["mix_ups"][cid]["source"],
+            "has_lesson": cid in ready,
+        })
+    known = [{"concept_id": cid, "concept_name": concepts[cid].name}
+             for cid in sorted(state["likely_known"], key=by_order) if concepts[cid]]
+
+    # Where to start: the chapter of the first mix-up that has a lesson, in the
+    # student's own class if possible; otherwise their class's first chapter
+    # that still has something to learn.
+    grade = 12 if "12" in (profile["level"] or "") else 11
+    start = None
+    fixable = [f for f in focus if f["has_lesson"]]
+    own_class = [f for f in fixable if chapters.get(f["chapter_id"], {}).get("grade") == grade]
+    if own_class or fixable:
+        f = (own_class or fixable)[0]
+        start = {"chapter_id": f["chapter_id"], "chapter_name": f["chapter_name"],
+                 "reason": f"Your starting check found a mix-up in {f['concept_name']}."}
+    else:
+        by_chapter = engine.concept_ids_by_chapter()
+        for chapter_id in scope_chapter_ids():
+            if chapters.get(chapter_id, {}).get("grade") != grade:
+                continue
+            left = [c for c in by_chapter.get(chapter_id, [])
+                    if c in ready and c not in state["cleared"] and c not in state["likely_known"]]
+            if left:
+                start = {"chapter_id": chapter_id, "chapter_name": chapters[chapter_id]["name"],
+                         "reason": "The first chapter with something new for you."}
+                break
+
+    return {
+        "check": {"taken": learner["diagnostic_completed_at"] is not None,
+                  "completed_at": learner["diagnostic_completed_at"],
+                  **_diagnostic_result(student_id)},
+        "focus": focus,
+        "known": known,
+        "start": start,
+        "hobbies": learner["hobbies"],
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -803,34 +992,14 @@ def get_next_lesson(
         }
         chosen = concept
     else:
-        rec = engine.next_concept(student_id, chapter_id)
+        status, reason, chosen = _recommend(student_id, chapter_id, profile["interest"])
         envelope = {
-            "status": rec.kind,
-            "reason": rec.reason,
-            "concept_id": rec.concept.id if rec.concept else None,
-            "concept_name": rec.concept.name if rec.concept else None,
+            "status": status,
+            "reason": reason,
+            "concept_id": chosen.id if chosen else None,
+            "concept_name": chosen.name if chosen else None,
             "lesson": None,
         }
-        chosen = rec.concept if rec.kind in (engine.KIND_NEW, engine.KIND_REVIEW) else None
-        # Lessons are still being written, interest by interest. If the
-        # engine's pick has none yet in this student's interest, recommend the
-        # next unmastered concept in the chapter that does, rather than
-        # sending "Continue learning" into an empty page.
-        if chosen is not None and not lesson_service.has_lesson(chosen.id, profile["interest"]):
-            ready = lesson_service.concepts_with_lessons(profile["interest"])
-            fallback = next(
-                (row for row in engine.get_roadmap(student_id, chapter_id)
-                 if row["concept_id"] in ready and row["status"] != engine.ROADMAP_MASTERED),
-                None,
-            )
-            if fallback is not None:
-                chosen = engine.find_concept(fallback["concept_id"])
-                envelope.update(
-                    status=engine.KIND_NEW,
-                    reason=f"Next up: {chosen.name}.",
-                    concept_id=chosen.id,
-                    concept_name=chosen.name,
-                )
 
     # Load the lesson body when there's a concept to actually teach.
     if chosen is not None:
@@ -1321,7 +1490,8 @@ def pilot_report() -> dict[str, Any]:
     Returns:
         {"insights": class_insights over every student,
          "students": [{student, class, interest, level, created_at}],
-         "views": [...], "answers": [...], "ratings": [...]}  — pseudonymised rows.
+         "views": [...], "answers": [...], "ratings": [...],
+         "diagnostic": [...]}  — pseudonymised rows.
     """
     students = store.list_all_students()
     class_alias: dict[str | None, str | None] = {None: None}
@@ -1360,6 +1530,8 @@ def pilot_report() -> dict[str, Any]:
         "views": alias(activity["views"], drop=("view_id",)),
         "answers": alias(activity["answers"], drop=("answer_id",)),
         "ratings": alias(activity["ratings"]),
+        # The starting check: each student's baseline before any lesson.
+        "diagnostic": alias(store.get_diagnostic_answers(None)),
     }
 
 
