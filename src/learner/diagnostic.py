@@ -5,10 +5,19 @@ they're chosen), so grading is the same answer-key lookup as a lesson check,
 and each wrong option already names the misconception it reveals. "Not sure"
 is a first-class answer: a guess would plant a misconception the student
 doesn't hold, so we'd rather know they don't know.
+
+The END CHECK (2026-10-02) asks the same concepts again at the end of the
+pilot, each with a PARALLEL question: the same concept's check from another
+interest's lesson. Two forms are counterbalanced: half the students (by a hash
+of their id) get form A at the start and B at the end, the other half the
+reverse, so a before -> after gain can't just be one form being easier.
+Neither form is ever the student's own interest, whose check they meet in
+their lesson.
 """
 
 from __future__ import annotations
 
+import hashlib
 import re
 from pathlib import Path
 from typing import Any
@@ -42,33 +51,67 @@ def _grade_key(level: str, config: dict[str, Any]) -> str:
     return level if level in config["questions"] else "Class 11"
 
 
-def choose_questions(level: str, interest: str) -> list[dict[str, str]]:
-    """[{concept_id, source_interest}] for this student, in teaching order.
+def form_for(student_id: str) -> int:
+    """0 or 1: which question form this student gets at the start (the other at the end).
 
-    Each question comes from the first interest in `source_interests` that is
-    not the student's own and has that lesson written. A concept with no such
-    lesson is skipped rather than failing the whole check.
+    A hash, not random(), so it is stable across requests and restarts and
+    splits a class roughly in half.
+    """
+    return hashlib.sha256(student_id.encode("utf-8")).digest()[0] & 1
+
+
+def _forms(concept_id: str, own: str) -> list[str]:
+    """The interests whose lesson check can be asked for this concept, in
+    `source_interests` order: never the student's own, and only written ones."""
+    return [i for i in load_config()["source_interests"]
+            if i != own and lesson_service.get_authored_lesson(concept_id, i) is not None]
+
+
+def _in_teaching_order(chosen: list[dict[str, str]]) -> list[dict[str, str]]:
+    order = {c["concept_id"]: engine.find_concept(c["concept_id"]).order for c in chosen}
+    return sorted(chosen, key=lambda c: order[c["concept_id"]])
+
+
+def choose_questions(level: str, interest: str, form: int = 0) -> list[dict[str, str]]:
+    """[{concept_id, source_interest}] for the starting check, in teaching order.
+
+    Each question comes from an interest that is not the student's own and has
+    that lesson written: the first such in `source_interests` for form 0, the
+    second for form 1 (or the first, when there is only one). A concept with no
+    such lesson is skipped rather than failing the whole check.
     """
     config = load_config()
     own = (interest or "").lower()
     chosen = []
     for concept_id in config["questions"][_grade_key(level, config)]:
-        source = next(
-            (i for i in config["source_interests"]
-             if i != own and lesson_service.get_authored_lesson(concept_id, i) is not None),
-            None,
-        )
-        if source is not None:
-            chosen.append({"concept_id": concept_id, "source_interest": source})
-    order = {c["concept_id"]: (engine.find_concept(c["concept_id"]).order) for c in chosen}
-    return sorted(chosen, key=lambda c: order[c["concept_id"]])
+        forms = _forms(concept_id, own)
+        if forms:
+            chosen.append({"concept_id": concept_id, "source_interest": forms[form % len(forms)]})
+    return _in_teaching_order(chosen)
 
 
-def student_questions(level: str, interest: str) -> list[dict[str, Any]]:
+def choose_end_questions(interest: str, start_rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """The end check: every concept of the student's starting check, asked from
+    an interest that is neither their own nor the one used at the start.
+
+    Built from the stored starting-check rows (not the config), so the two
+    checks pair up concept for concept even if the config changes later. A
+    concept with no parallel question is left out: it can't be compared fairly.
+    """
+    own = (interest or "").lower()
+    chosen = []
+    for row in start_rows:
+        forms = [i for i in _forms(row["concept_id"], own) if i != row["source_interest"]]
+        if forms:
+            chosen.append({"concept_id": row["concept_id"], "source_interest": forms[0]})
+    return _in_teaching_order(chosen)
+
+
+def present(chosen: list[dict[str, str]]) -> list[dict[str, Any]]:
     """The questions as the browser may see them: no answers, no misconceptions."""
     chapter_names = {c["id"]: c["name"] for c in engine.list_chapters()}
     out = []
-    for q in choose_questions(level, interest):
+    for q in chosen:
         lesson = lesson_service.get_authored_lesson(q["concept_id"], q["source_interest"])
         view = lesson_service.student_view(lesson)["check"]
         concept = engine.find_concept(q["concept_id"])
@@ -82,21 +125,25 @@ def student_questions(level: str, interest: str) -> list[dict[str, Any]]:
     return out
 
 
-def grade(level: str, interest: str, picks: dict[str, str]) -> list[dict[str, Any]]:
-    """Grade a whole check. Unanswered questions count as "not sure".
+def student_questions(level: str, interest: str, form: int = 0) -> list[dict[str, Any]]:
+    """The starting check as the browser may see it."""
+    return present(choose_questions(level, interest, form))
+
+
+def grade_chosen(chosen: list[dict[str, str]], picks: dict[str, str]) -> list[dict[str, Any]]:
+    """Grade answers to these questions. Unanswered questions count as "not sure".
 
     Raises:
-        EcoLearnError: an answer for a concept that wasn't in this student's
-                       check, or a pick that isn't an option or "unsure".
+        EcoLearnError: an answer for a concept that wasn't asked, or a pick
+                       that isn't an option or "unsure".
     """
-    questions = choose_questions(level, interest)
-    asked = {q["concept_id"] for q in questions}
+    asked = {q["concept_id"] for q in chosen}
     extra = sorted(set(picks) - asked)
     if extra:
         raise EcoLearnError(f"These weren't in your check: {', '.join(extra)}.")
 
     graded = []
-    for q in questions:
+    for q in chosen:
         check = lesson_service.get_authored_lesson(q["concept_id"], q["source_interest"]).check
         raw = (picks.get(q["concept_id"]) or UNSURE).strip()
         pick = UNSURE if raw.lower() == UNSURE else raw.upper()
@@ -114,6 +161,53 @@ def grade(level: str, interest: str, picks: dict[str, str]) -> list[dict[str, An
             ),
         })
     return graded
+
+
+def grade(level: str, interest: str, picks: dict[str, str], form: int = 0) -> list[dict[str, Any]]:
+    """Grade a whole starting check (see grade_chosen)."""
+    return grade_chosen(choose_questions(level, interest, form), picks)
+
+
+def _outcome(correct: bool | None) -> str:
+    return "right" if correct else ("unsure" if correct is None else "mix_up")
+
+
+def compare(
+    start_rows: list[dict[str, Any]], end_rows: list[dict[str, Any]], studied: set[str]
+) -> dict[str, Any]:
+    """One student's before -> after, over the concepts asked in BOTH checks.
+
+    `studied`: concepts whose lesson the student opened or answered. Concepts
+    they didn't study are a rough control: if those improve as much as the
+    studied ones, the gain isn't the lessons'.
+
+    Returns {paired, before: {right, mix_up, unsure}, after: {...}, fixed
+    (mix-up -> right), learned (not sure -> right), slipped (right -> not
+    right), concepts: [{concept_id, before, after, studied}]}.
+    """
+    before = {r["concept_id"]: r for r in start_rows}
+    concepts = []
+    for row in end_rows:
+        start = before.get(row["concept_id"])
+        if start is None:
+            continue
+        concepts.append({"concept_id": row["concept_id"],
+                         "before": _outcome(start["correct"]),
+                         "after": _outcome(row["correct"]),
+                         "studied": row["concept_id"] in studied})
+
+    def tally(key: str) -> dict[str, int]:
+        return {k: sum(1 for c in concepts if c[key] == k) for k in ("right", "mix_up", "unsure")}
+
+    return {
+        "paired": len(concepts),
+        "before": tally("before"),
+        "after": tally("after"),
+        "fixed": sum(1 for c in concepts if c["before"] == "mix_up" and c["after"] == "right"),
+        "learned": sum(1 for c in concepts if c["before"] == "unsure" and c["after"] == "right"),
+        "slipped": sum(1 for c in concepts if c["before"] == "right" and c["after"] != "right"),
+        "concepts": concepts,
+    }
 
 
 def hobby_options() -> list[dict[str, str]]:

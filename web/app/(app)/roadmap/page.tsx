@@ -13,7 +13,7 @@ import { Check, Clock, Play, ArrowRight, PartyPopper, Target } from "lucide-reac
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
 import { ChapterPicker } from "@/components/chapter-picker";
-import { LearningPlanCard } from "@/components/learning-plan";
+import { EndCheckCard, LearningPlanCard } from "@/components/learning-plan";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Progress } from "@/components/ui/progress";
@@ -97,6 +97,7 @@ function Roadmap() {
             interest={student.interest}
           />
 
+          <EndCheckCard />
           <LearningPlanCard chapterId={chapterId} />
 
           {/* Progress — pointless for a chapter with nothing written yet. */}

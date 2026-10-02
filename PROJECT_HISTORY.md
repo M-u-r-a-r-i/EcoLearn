@@ -2064,3 +2064,71 @@ The user is continuing in another session. **Changed:**
 
 Nothing needed for the next session lives outside the folder, apart from the gitignored local
 pieces listed in AGENTS.md §6 (`.env`, `data/progress.db`, `venv/`, `.claude/launch.json`).
+
+## 9zl. The end check: the pilot's "after" (2026-10-02)
+
+*User request:* first of the finals priorities, set against the judging criteria the user shared
+(Innovation 30, Technology readiness 20, Commercial 15, Education significance 15, Presentation 10,
+Demo 10). A pilot with only a starting check can show usage, not learning.
+
+**Changed.**
+- `src/learner/diagnostic.py`: **two counterbalanced forms.** For each starting-check concept,
+  form 0 and form 1 are the checks of two *different* interests' lessons, never the student's own.
+  `form_for(student_id)` (a SHA-256 bit, stable) picks which a student gets at the start; the end
+  check (`choose_end_questions`) asks each concept from an interest that is neither their own nor
+  the one used at the start, built from the stored starting-check rows so the pairs survive config
+  changes. `compare()` gives one student's before → after: right / mix-up / not sure, `fixed`
+  (mix-up → right), `learned` (not sure → right), `slipped` (right → not right), and `studied` per
+  concept. Grading is shared (`grade_chosen`, `present`).
+- `src/progress/store.py`: `end_check_answers` table (same shape as `diagnostic_answers`),
+  `learner_profiles.end_check_completed_at`, `classes.end_check_opened_at`, all additive.
+  `get_learner_profile` and class dicts carry the new fields.
+- `src/progress/metrics.py`: `studied_concepts` (lesson opened or answered *before* the end check)
+  and `check_gains` (class before → after over paired answers, studied vs not studied, per concept).
+- `src/platform_api.py` §2c: `get_end_check` / `submit_end_check` (status `not_open` |
+  `needs_start` | `open` | `taken`; once only), `get_class_checks`, `set_class_end_check`. The
+  starting check now uses the student's form. `pilot_report` adds `end_check` rows (pseudonymised)
+  and `check_gains`. `api/main.py`: `GET/POST /api/end-check`, `GET
+  /api/teacher/classes/{id}/checks`, `POST /api/teacher/classes/{id}/end-check`.
+- `scripts/pilot_report.py`: a "Starting check → end check" section and two more CSVs.
+- Web: `/end-check` (intro → one question at a time → before → after), `components/check-result.tsx`,
+  a roadmap banner while it's open (`EndCheckCard`), and `components/class-checks.tsx` on
+  `/teacher/class` (open/close, tiles, studied vs not studied, per idea, per student). The question
+  card is now shared with `/start` (`components/check-question.tsx`).
+- `tests/test_end_check.py` (new): **75 checks**. `tests/test_learner_plan.py`: both forms
+  checked; grading tests use the student's form (58 checks).
+
+**Why this way.**
+- **The teacher opens it**, rather than it appearing after N days: the whole class takes it at the
+  same point of the pilot, and the teacher decides when "the end" is. Self-signup students never
+  see it, since nobody can open it for them and they aren't in a pilot class.
+- **Parallel questions, not the same ones.** Re-asking the starting questions would partly
+  measure memory of those questions. The other interests' checks on the same concept were already
+  written to catch the same misconceptions, so no new content was needed.
+- **Counterbalanced**, because the two forms were written independently and one may be easier. With
+  half the class on each order, a difference in difficulty cancels on average instead of showing up
+  as a fake gain (or a fake loss).
+- **Studied vs not studied** is reported next to the headline. Without a control group, it's the
+  most honest check available: if concepts students never opened improve as much, the gain isn't
+  the lessons' (practice with the format, or school teaching in parallel).
+- **A separate table**, so the baseline is never overwritten and the learning plan's meaning
+  doesn't change. End-check answers don't feed the plan; that can come later.
+- No AI anywhere in it: the same answer-key lookup as every other check.
+
+**Verified in the browser** (at `127.0.0.1:3000`, so the user's `localhost` session wasn't touched):
+a seeded class (see AGENTS.md test data). As student `bilal.k`: the roadmap banner → `/end-check` →
+8 questions → "You fixed 1 mix-up" with 2 → 5 right, 3 → 1 mix-ups, idea by idea, and "worth
+another look". As the teacher: 3 of 3 started, 2 of 3 finished, right answers 25% → 63% over 16
+paired answers, mix-ups 6 → 2 (3 fixed, 3 learned, 0 slipped), studied 0% → 100% (2) vs not
+studied 29% → 57% (14). All re-derived by hand from the seeded answers. Close/open toggles; no
+sideways scroll at 375 px.
+The full deterministic suite, the load test (p95 1.2 s, PASS), `tsc --noEmit` and lint pass.
+`npm run build` was not run: a `next dev` from another session was serving `web/`, and both write
+`.next` (§13).
+
+**Learned.**
+- The forms are not psychometrically matched. That's a limitation to state in the pitch, not to
+  hide: counterbalancing protects the class average, not each student's comparison.
+- The per-student tallies wrapped one word per line at 375 px; `whitespace-nowrap` per part in a
+  `flex-wrap` keeps "3 mix-ups" together.
+- Git Bash heredocs mangle `\n` inside Python patch scripts. Write the script to a file instead.

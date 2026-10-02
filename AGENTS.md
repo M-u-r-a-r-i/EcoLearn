@@ -57,7 +57,9 @@ repo; whether to change the display name for the finals is an open question for 
 **HackAStone 2026 finals: 2026-10-29**, at the *AI for Education Holland* conference (VU
 Amsterdam, 29–30 Oct; NTU Singapore is on the organising committee; conference theme "Research
 meets Practice": evidence, responsible AI, classroom adoption). **Contest theme: "Agentic AI for
-Education". The final is a 15-minute presentation**; judging criteria are not published. Before
+Education". The final is a 15-minute presentation.** Judging criteria (a slide the user shared on
+2026-10-02, marked "to be firmed"): **Innovation 30% · Technology readiness 20% · Commercial
+viability 15% · Education significance 15% · Presentation 10% · Demo 10%.** Before
 that, a **pilot with real school students in October**, whose numbers go in the pitch. (The original
 build deadline, 2026-09-30, has passed; work continues toward the pilot and the finals.)
 
@@ -98,7 +100,8 @@ concepts tagged "Know it?" / "Focus"; "Next up" follows the personal recommendat
 ("Your story" for their hobby when one exists, the original story in a box, a "Something wrong with
 this story?" report button, 👍/👎, active reading time recorded) → **multiple-choice check**
 (misconception feedback) → progress. Plus settings, a dark/light/device theme toggle, error and 404
-pages.
+pages. When the teacher opens it, **`/end-check`**: the same 8 ideas with new questions, and a
+before → after (fixed mix-ups, ideas learned since "not sure", what slipped).
 
 **What a teacher does today:** accounts are created on the server only
 (`venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`). A teacher creates a
@@ -108,6 +111,9 @@ also lifts a login lockout). **`/teacher/class`** has:
   only as S1, S2…, and falls back to a labelled rules plan;
 - **insights**: first-try accuracy, the most common misconceptions (counted per student), concepts
   hardest-first, and results by interest;
+- **starting check → end check**: open/close the end check; before → after right answers and
+  mix-ups over paired answers, studied vs not-studied ideas (a rough control), per idea and per
+  student;
 - **personal stories**: read, hide or restore them, with students' reports first;
 - the students table.
 
@@ -117,6 +123,7 @@ also lifts a login lockout). **`/teacher/class`** has:
 |---|---|---|
 | Boundary (all logic) | `src/platform_api.py` | — |
 | Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
+| End check (pilot before → after, counterbalanced forms) | `src/learner/diagnostic.py`, `metrics.check_gains`, `web/app/(app)/end-check`, `web/components/class-checks.tsx` | 9zl |
 | Personal stories (writer + critic agents) | `src/learner/personal_story.py`, `prompts/personal_story_*.txt` | 9ze, 9zf |
 | LLM client (OpenAI-compatible, OmniRoute) | `src/llm/client.py`, `.env.example` (LLM_* vars) | 9ze |
 | Teacher agent | `src/agents/teacher_agent.py`, `prompts/teacher_agent.txt` | 9zc |
@@ -138,8 +145,10 @@ next batch (the batch procedure is below). Famous images: `data/media/famous/`, 
   only. The "being written…" polling state is unverified in a browser.
 - The doubt chat is broken on this machine (see below), and takes ~2 min when it works.
 - "Mastered" after one multiple-choice answer overclaims; the teacher dashboard uses first-try
-  accuracy to compensate. The starting-check results (the pilot's "before" picture) are in
-  `pilot_report` but not on the teacher dashboard.
+  accuracy to compensate.
+- The end check's two forms are different lessons' checks on the same concept, written
+  independently, not psychometrically matched. Counterbalancing cancels a difference in difficulty
+  on average across a class; it doesn't make one student's two forms equal (§9zl).
 - The landing page (`web/app/page.tsx`) is generic and says nothing about physics. `README.md` is
   out of date. Streamlit doesn't have any of the October features.
 - Phase 2 lesson formats (`challenge`, `misconception`): 2 of 70 batches.
@@ -181,6 +190,8 @@ Candidates for next, roughly by value for the finals:
    pilot or exclude from its numbers:
    - teachers `demo.teacher` ("Demo 11-B": `aarav.k`, `meera.i`, `kabir.s`) and `metrics.check`
      ("Metrics check 11-A": `test.o`, `test.t`, `test.t2`);
+   - teacher `endcheck.teacher` ("End check test": `asha.r`, `bilal.k`, `chitra.n`; the end
+     check is open and two have taken it), from the §9zl browser check;
    - self-signup students `start.check` and `loop.check`;
    - two hand-seeded personal stories (model "ui-check (seeded by hand)").
 
@@ -439,6 +450,7 @@ venv\Scripts\python.exe tests\test_learner_plan.py        # starting check, lear
 venv\Scripts\python.exe tests\test_personal_story.py      # story agents, llm client, OmniRoute mock
 venv\Scripts\python.exe tests\test_story_review.py        # report button, teacher hide/restore
 venv\Scripts\python.exe tests\test_rate_limit.py          # login lockouts (fake clock)
+venv\Scripts\python.exe tests\test_end_check.py           # end check: forms, access, before -> after
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch

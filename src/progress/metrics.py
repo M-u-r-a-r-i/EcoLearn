@@ -189,3 +189,88 @@ def class_insights(
         "interests": interests,
         "students": sorted(per_student.values(), key=lambda s: s["student_id"]),
     }
+
+
+# ---------------------------------------------------------------------------
+# Starting check -> end check (2026-10-02): the pilot's before and after.
+# ---------------------------------------------------------------------------
+
+def studied_concepts(
+    activity: dict[str, list[dict[str, Any]]], until: dict[str, str | None]
+) -> dict[str, set[str]]:
+    """{student_id: concepts whose lesson they opened or answered}, counting
+    only activity before their end check (`until`, an ISO time or None)."""
+    out: dict[str, set[str]] = defaultdict(set)
+    for kind, at in (("views", "opened_at"), ("answers", "answered_at")):
+        for row in activity.get(kind, []):
+            cutoff = until.get(row["student_id"])
+            if cutoff is None or row[at] < cutoff:
+                out[row["student_id"]].add(row["concept_id"])
+    return out
+
+
+def check_gains(
+    comparisons: dict[str, dict[str, Any]],
+    started: int,
+    concept_info: Callable[[str], dict[str, Any]],
+) -> dict[str, Any]:
+    """A class's before -> after, from each student's `diagnostic.compare` result.
+
+    `comparisons` holds only students who took BOTH checks; `started` counts
+    those who took the starting check. Rates are 0-1 (None when nothing to
+    divide). Every number is over paired answers: the same concept, before and
+    after, so students who skipped one check don't distort it.
+
+    Returns {students_started, students_finished, paired_answers,
+             before: {right, mix_up, unsure}, after: {...},
+             right_before, right_after (rates), fixed, learned, slipped,
+             studied: {pairs, right_before, right_after},
+             not_studied: {...},
+             concepts: [{concept_id, concept_name, chapter_name, students,
+                         right_before, right_after, fixed}] (biggest gain first)}
+    """
+    pairs = [c for comp in comparisons.values() for c in comp["concepts"]]
+
+    def rate(rows: list[dict[str, Any]], key: str) -> float | None:
+        return _accuracy(sum(1 for r in rows if r[key] == "right"), len(rows))
+
+    def split(rows: list[dict[str, Any]]) -> dict[str, Any]:
+        return {"pairs": len(rows), "right_before": rate(rows, "before"),
+                "right_after": rate(rows, "after")}
+
+    by_concept: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for c in pairs:
+        by_concept[c["concept_id"]].append(c)
+    concepts = []
+    for concept_id, rows in by_concept.items():
+        info = concept_info(concept_id)
+        concepts.append({
+            "concept_id": concept_id,
+            "concept_name": info.get("name", concept_id),
+            "chapter_name": info.get("chapter_name"),
+            "students": len(rows),
+            "right_before": rate(rows, "before"),
+            "right_after": rate(rows, "after"),
+            "fixed": sum(1 for r in rows if r["before"] == "mix_up" and r["after"] == "right"),
+        })
+    concepts.sort(key=lambda c: (-((c["right_after"] or 0) - (c["right_before"] or 0)),
+                                 c["concept_name"]))
+
+    def total(key: str) -> int:
+        return sum(comp[key] for comp in comparisons.values())
+
+    return {
+        "students_started": started,
+        "students_finished": len(comparisons),
+        "paired_answers": len(pairs),
+        "before": {k: sum(1 for c in pairs if c["before"] == k) for k in ("right", "mix_up", "unsure")},
+        "after": {k: sum(1 for c in pairs if c["after"] == k) for k in ("right", "mix_up", "unsure")},
+        "right_before": rate(pairs, "before"),
+        "right_after": rate(pairs, "after"),
+        "fixed": total("fixed"),
+        "learned": total("learned"),
+        "slipped": total("slipped"),
+        "studied": split([c for c in pairs if c["studied"]]),
+        "not_studied": split([c for c in pairs if not c["studied"]]),
+        "concepts": concepts,
+    }

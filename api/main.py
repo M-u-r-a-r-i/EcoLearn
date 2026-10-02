@@ -176,6 +176,18 @@ class DiagnosticRequest(BaseModel):
     hobbies: list[str] = []
 
 
+class EndCheckRequest(BaseModel):
+    """Body for POST /api/end-check: {concept_id: "A".."D" or "unsure"}."""
+
+    answers: dict[str, str]
+
+
+class EndCheckOpenRequest(BaseModel):
+    """Body for POST /api/teacher/classes/{id}/end-check: open or close it."""
+
+    open: bool
+
+
 class StoryReportRequest(BaseModel):
     """Body for POST /api/personal-story/report. `reason` is one of
     wrong_physics | confusing | not_appropriate | other (no free text)."""
@@ -412,6 +424,24 @@ def teacher_class_insights(
     return api.get_class_insights(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/checks")
+def teacher_class_checks(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """The class's starting check -> end check: before and after, per student and concept."""
+    return api.get_class_checks(teacher_id, class_id)
+
+
+@app.post("/api/teacher/classes/{class_id}/end-check")
+def teacher_set_end_check(
+    class_id: str,
+    payload: EndCheckOpenRequest,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Open the end check for the class (or close it again)."""
+    return api.set_class_end_check(teacher_id, class_id, payload.open)
+
+
 @app.get("/api/teacher/classes/{class_id}/plan")
 def teacher_class_plan(
     class_id: str, teacher_id: str = Depends(get_current_teacher_id)
@@ -553,6 +583,21 @@ def submit_diagnostic(
 ) -> dict:
     """Grade the starting check (once; 409 if already taken) and return the plan."""
     return api.submit_diagnostic(student_id, payload.answers, payload.hobbies)
+
+
+@app.get("/api/end-check")
+def get_end_check(student_id: str = Depends(get_current_student_id)) -> dict:
+    """The end check: not open yet, its questions (no answers), or before -> after."""
+    return api.get_end_check(student_id)
+
+
+@app.post("/api/end-check")
+def submit_end_check(
+    payload: EndCheckRequest,
+    student_id: str = Depends(get_current_student_id),
+) -> dict:
+    """Grade the end check (once; 409 if already taken, 400 if not open)."""
+    return api.submit_end_check(student_id, payload.answers)
 
 
 @app.get("/api/personal-story")

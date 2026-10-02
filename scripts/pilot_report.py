@@ -56,6 +56,19 @@ def print_report(report: dict, top: int) -> None:
           f"{sum(1 for st in ready if st['hidden'] and st['hidden_by'] == 'teacher')} hidden by teachers, "
           f"{sum(1 for st in stories if st['status'] in ('failed', 'no_fit'))} not written (checks/fit)")
 
+    g = report["check_gains"]
+    print(f"\nStarting check → end check  ({g['students_finished']} of {g['students_started']} "
+          f"students took both; {g['paired_answers']} paired answers)")
+    if g["paired_answers"]:
+        b, a = g["before"], g["after"]
+        print(f"  Right answers     {pct(g['right_before'])} → {pct(g['right_after'])}")
+        print(f"  Mix-ups           {b['mix_up']} → {a['mix_up']}   (not sure {b['unsure']} → {a['unsure']})")
+        print(f"  Fixed {g['fixed']}  ·  learned from 'not sure' {g['learned']}  ·  slipped {g['slipped']}")
+        for label, part in (("studied", g["studied"]), ("not studied", g["not_studied"])):
+            print(f"  Concepts {label:<12} {pct(part['right_before'])} → {pct(part['right_after'])}"
+                  f"  ({part['pairs']} pairs)")
+        print("  (Not-studied concepts are a rough control: a gain there isn't the lessons'.)")
+
     print(f"\nBy interest")
     print(f"  {'interest':<13}{'students':>9}{'opens':>7}{'1st try':>9}{'👍':>5}{'👎':>5}{'approval':>10}")
     for i in insights["interests"]:
@@ -107,6 +120,8 @@ def main() -> int:
             ("answers", report["answers"]),
             ("ratings", report["ratings"]),
             ("starting_check", report["diagnostic"]),
+            ("end_check", report["end_check"]),
+            ("check_gains_per_concept", report["check_gains"]["concepts"]),
             ("personal_stories", report["stories"]),
             ("per_student", insights["students"]),
             ("per_concept", insights["concepts"]),

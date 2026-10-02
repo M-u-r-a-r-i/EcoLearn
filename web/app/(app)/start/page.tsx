@@ -11,11 +11,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, Compass, HelpCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Compass, Sparkles } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { CheckQuestion } from "@/components/check-question";
 import { LearningPlanSummary } from "@/components/learning-plan";
-import { Markdown } from "@/components/markdown";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ import {
 import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
 
-const UNSURE = "unsure";
 const MAX_HOBBIES = 8;
 const MAX_OWN = 2;
 const OWN_HOBBY = /^[A-Za-z][A-Za-z &'-]{1,23}$/;
@@ -165,61 +164,7 @@ function StartingCheck({
         <Progress value={((index + (picked ? 1 : 0)) / questions.length) * 100} />
       </div>
 
-      <section className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card">
-        <Markdown>{q.question}</Markdown>
-        <fieldset className="flex flex-col gap-3" disabled={sending}>
-          <legend className="sr-only">Choose one answer, or Not sure</legend>
-          {Object.entries(q.options).map(([letter, text]) => (
-            <label
-              key={letter}
-              className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all",
-                picked === letter
-                  ? "border-primary bg-primary/5 ring-2 ring-primary"
-                  : "border-border bg-card hover:border-primary/40 hover:shadow-soft",
-              )}
-            >
-              <input
-                type="radio"
-                name={q.concept_id}
-                value={letter}
-                checked={picked === letter}
-                onChange={() => pick(letter)}
-                className="sr-only"
-              />
-              <span
-                aria-hidden
-                className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
-                  picked === letter ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground",
-                )}
-              >
-                {letter}
-              </span>
-              <Markdown className="prose-sm">{text}</Markdown>
-            </label>
-          ))}
-          <label
-            className={cn(
-              "flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4 text-sm transition-all",
-              picked === UNSURE
-                ? "border-brand-accent bg-brand-accent/5 ring-2 ring-brand-accent"
-                : "border-border text-muted-foreground hover:border-brand-accent/50",
-            )}
-          >
-            <input
-              type="radio"
-              name={q.concept_id}
-              value={UNSURE}
-              checked={picked === UNSURE}
-              onChange={() => pick(UNSURE)}
-              className="sr-only"
-            />
-            <HelpCircle className="size-5 shrink-0" aria-hidden />
-            I&apos;m not sure yet
-          </label>
-        </fieldset>
-      </section>
+      <CheckQuestion question={q} picked={picked} onPick={pick} disabled={sending} />
 
       <FormError message={error} />
 

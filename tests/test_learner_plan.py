@@ -95,9 +95,10 @@ def test_question_set() -> None:
     for level, ids in config["questions"].items():
         check(all(engine.find_concept(c) is not None for c in ids), f"{level}: every concept exists")
         for interest in scope_interest_ids():
-            chosen = diagnostic.choose_questions(level, interest)
-            check(len(chosen) == len(ids) and all(q["source_interest"] != interest for q in chosen),
-                  f"{level} × {interest}: all {len(ids)} questions, each from another interest")
+            for form in (0, 1):
+                chosen = diagnostic.choose_questions(level, interest, form)
+                check(len(chosen) == len(ids) and all(q["source_interest"] != interest for q in chosen),
+                      f"{level} × {interest} form {form}: all {len(ids)} questions, each from another interest")
     qs = diagnostic.student_questions("Class 11", "cricket")
     text = json.dumps(qs)
     _, _, c = key(qs[0]["concept_id"], "football")
@@ -112,7 +113,7 @@ def test_question_set() -> None:
 def test_grading_and_once() -> None:
     print("\n[2] grading")
     sid = new_student()
-    qs = diagnostic.choose_questions("Class 11", "cricket")
+    qs = diagnostic.choose_questions("Class 11", "cricket", diagnostic.form_for(sid))
     a, b, c3 = qs[0], qs[1], qs[2]
     right, _, _ = key(a["concept_id"], a["source_interest"])
     _, wrong, check_b = key(b["concept_id"], b["source_interest"])
@@ -151,7 +152,7 @@ def test_hobbies() -> None:
 def test_plan() -> None:
     print("\n[4] the learning plan")
     sid = new_student()
-    qs = diagnostic.choose_questions("Class 11", "cricket")
+    qs = diagnostic.choose_questions("Class 11", "cricket", diagnostic.form_for(sid))
     picks = {}
     for i, q in enumerate(qs):
         right, wrong, _ = key(q["concept_id"], q["source_interest"])
@@ -170,7 +171,7 @@ def test_plan() -> None:
     check(p["hobbies"] == ["cricket"] and p["check"]["taken"], "hobbies and check status included")
 
     sid12 = new_student("football", "Class 12")
-    qs12 = diagnostic.choose_questions("Class 12", "football")
+    qs12 = diagnostic.choose_questions("Class 12", "football", diagnostic.form_for(sid12))
     picks = {}
     for q in qs12:
         right, wrong, _ = key(q["concept_id"], q["source_interest"])

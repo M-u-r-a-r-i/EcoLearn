@@ -538,6 +538,99 @@ export function getLearningPlan(): Promise<LearningPlan> {
   return request("/api/learning-plan");
 }
 
+// ---------------------------------------------------------------------------
+// The end check: the starting check's concepts again, with parallel questions,
+// once the teacher opens it. Compared with the starting check: before → after.
+// ---------------------------------------------------------------------------
+export type CheckOutcome = "right" | "mix_up" | "unsure";
+export type CheckTally = Record<CheckOutcome, number>;
+
+export interface CheckComparison {
+  paired: number;
+  before: CheckTally;
+  after: CheckTally;
+  fixed: number; // mix-up → right
+  learned: number; // not sure → right
+  slipped: number; // right → not right
+  concepts: {
+    concept_id: string;
+    concept_name: string;
+    before: CheckOutcome;
+    after: CheckOutcome;
+    studied: boolean;
+  }[];
+}
+
+export interface EndCheck {
+  status: "not_open" | "needs_start" | "open" | "taken";
+  completed_at: string | null;
+  questions?: DiagnosticQuestion[]; // when open
+  comparison?: CheckComparison; // when taken
+}
+
+export function getEndCheck(): Promise<EndCheck> {
+  return request("/api/end-check");
+}
+
+// answers: {concept_id: "A".."D" | "unsure"}; anything left out counts as unsure.
+export function submitEndCheck(answers: Record<string, string>): Promise<EndCheck> {
+  return request("/api/end-check", { method: "POST", body: { answers } });
+}
+
+// Rates are 0–1, or null when there is nothing to divide.
+export interface CheckGains {
+  students_started: number;
+  students_finished: number;
+  paired_answers: number;
+  before: CheckTally;
+  after: CheckTally;
+  right_before: number | null;
+  right_after: number | null;
+  fixed: number;
+  learned: number;
+  slipped: number;
+  studied: { pairs: number; right_before: number | null; right_after: number | null };
+  not_studied: { pairs: number; right_before: number | null; right_after: number | null };
+  concepts: {
+    concept_id: string;
+    concept_name: string;
+    chapter_name: string | null;
+    students: number;
+    right_before: number | null;
+    right_after: number | null;
+    fixed: number;
+  }[];
+}
+
+export interface ClassChecks {
+  class: ClassSummary;
+  open: boolean;
+  opened_at: string | null;
+  summary: CheckGains;
+  students: {
+    student_id: string;
+    name: string;
+    username: string;
+    started: boolean;
+    finished: boolean;
+    before: CheckTally | null;
+    after: CheckTally | null;
+    fixed: number | null;
+    slipped: number | null;
+  }[];
+}
+
+export function getClassChecks(classId: string): Promise<ClassChecks> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/checks`);
+}
+
+export function setClassEndCheck(classId: string, open: boolean): Promise<ClassChecks> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/end-check`, {
+    method: "POST",
+    body: { open },
+  });
+}
+
 export function getRoadmap(chapterId: string): Promise<RoadmapConcept[]> {
   return request("/api/roadmap", { query: { chapter_id: chapterId } });
 }

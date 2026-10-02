@@ -18,6 +18,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { TeachingAssistant } from "@/components/teaching-assistant";
 import { ClassStoriesPanel } from "@/components/class-stories";
+import { ClassChecksPanel } from "@/components/class-checks";
 import { CredentialsSheet, InterestSelect, RosterField } from "@/components/teacher-ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,6 +111,7 @@ function ClassView() {
           />
         ) : (
           <>
+            <ClassChecksPanel classId={klass.class_id} />
             <TeachingAssistant classId={klass.class_id} />
             {insights.data ? (
               <ClassInsightsPanel insights={insights.data} />

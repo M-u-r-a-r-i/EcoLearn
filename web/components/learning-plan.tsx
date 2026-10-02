@@ -10,11 +10,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Compass, Lightbulb, Target } from "lucide-react";
+import { ArrowRight, Compass, Flag, Lightbulb, Target } from "lucide-react";
 
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
-import { getLearningPlan, type FocusItem, type LearningPlan } from "@/lib/api";
+import { getEndCheck, getLearningPlan, type FocusItem, type LearningPlan } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 import { withChapter } from "@/lib/use-chapter";
 
@@ -103,6 +103,24 @@ export function LearningPlanSummary({ plan }: { plan: LearningPlan }) {
           </PrimaryButton>
         </div>
       )}
+    </div>
+  );
+}
+
+// Shown on the roadmap only while the teacher has the end check open and the
+// student hasn't taken it. Silent otherwise (and if the request fails).
+export function EndCheckCard() {
+  const { data } = useFetch("end-check", getEndCheck);
+  if (data?.status !== "open") return null;
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-brand-accent/30 bg-brand-accent/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <span className="flex items-start gap-2 text-sm text-foreground">
+        <Flag className="mt-0.5 size-4 shrink-0 text-brand-accent" aria-hidden />
+        Your end check is open: five minutes to see which mix-ups you&apos;ve fixed since the start.
+      </span>
+      <Button size="sm" asChild className="shrink-0 self-start sm:self-auto">
+        <Link href="/end-check">Take the end check</Link>
+      </Button>
     </div>
   );
 }

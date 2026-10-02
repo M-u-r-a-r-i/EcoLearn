@@ -840,7 +840,8 @@ def get_diagnostic(student_id: str) -> dict[str, Any]:
     if taken:
         out["result"] = _diagnostic_result(student_id)
     else:
-        out["questions"] = diagnostic.student_questions(profile["level"], profile["interest"])
+        out["questions"] = diagnostic.student_questions(
+            profile["level"], profile["interest"], diagnostic.form_for(student_id))
     return out
 
 
@@ -864,7 +865,8 @@ def submit_diagnostic(
     if store.get_learner_profile(student_id)["diagnostic_completed_at"] is not None:
         raise ConflictError("You've already taken the starting check.")
     clean = diagnostic.clean_hobbies(hobbies)
-    graded = diagnostic.grade(profile["level"], profile["interest"], picks or {})
+    graded = diagnostic.grade(profile["level"], profile["interest"], picks or {},
+                              diagnostic.form_for(student_id))
     store.save_diagnostic(student_id, clean, graded)
     return {"result": _diagnostic_result(student_id), "plan": get_learning_plan(student_id)}
 
@@ -938,6 +940,174 @@ def get_learning_plan(student_id: str) -> dict[str, Any]:
         "start": start,
         "hobbies": learner["hobbies"],
     }
+
+
+# ---------------------------------------------------------------------------
+# 2c. The end check (2026-10-02): the pilot's "after"
+#
+#   get_end_check(student_id)                   -> status, questions or result
+#   submit_end_check(student_id, picks)         -> the before -> after result
+#   get_class_checks(teacher_id, class_id)      -> the class's before -> after
+#   set_class_end_check(teacher_id, class_id, open) -> open or close it
+#
+# The same concepts as the starting check, each asked with a parallel question
+# (see src/learner/diagnostic.py: two counterbalanced forms). The teacher opens
+# it for the class, so everyone takes it at the same point of the pilot.
+# Students without a class (self-signup) never get it: there is no one to open
+# it, and they aren't part of a pilot class. No model calls.
+# ---------------------------------------------------------------------------
+
+def _end_check_status(student_id: str, learner: dict[str, Any]) -> str:
+    """taken | open | needs_start | not_open."""
+    if learner["end_check_completed_at"] is not None:
+        return "taken"
+    class_id = store.get_student_class_id(student_id)
+    klass = store.get_class(class_id) if class_id else None
+    if klass is None or not klass.get("end_check_opened_at"):
+        return "not_open"
+    if learner["diagnostic_completed_at"] is None:
+        return "needs_start"
+    return "open"
+
+
+def _studied(student_ids: list[str], until: dict[str, str | None]) -> dict[str, set[str]]:
+    return metrics.studied_concepts(store.get_activity(student_ids), until)
+
+
+def _student_comparison(student_id: str, completed_at: str | None) -> dict[str, Any]:
+    """diagnostic.compare for one student, with concept names for the page."""
+    comparison = diagnostic.compare(
+        store.get_diagnostic_answers([student_id]),
+        store.get_end_check_answers([student_id]),
+        _studied([student_id], {student_id: completed_at}).get(student_id, set()),
+    )
+    for c in comparison["concepts"]:
+        concept = engine.find_concept(c["concept_id"])
+        c["concept_name"] = concept.name if concept else c["concept_id"]
+    return comparison
+
+
+def get_end_check(student_id: str) -> dict[str, Any]:
+    """The end check for this student.
+
+    Returns:
+        {"status": "not_open" | "needs_start" | "open" | "taken",
+         "completed_at": iso | None,
+         "questions": [...]  (only when open: same shape as the starting check's),
+         "comparison": {...} (only when taken: diagnostic.compare + concept_name)}
+    """
+    profile = _require_student(student_id)
+    learner = store.get_learner_profile(student_id)
+    status = _end_check_status(student_id, learner)
+    out: dict[str, Any] = {"status": status, "completed_at": learner["end_check_completed_at"]}
+    if status == "open":
+        out["questions"] = diagnostic.present(diagnostic.choose_end_questions(
+            profile["interest"], store.get_diagnostic_answers([student_id])))
+    elif status == "taken":
+        out["comparison"] = _student_comparison(student_id, learner["end_check_completed_at"])
+    return out
+
+
+def submit_end_check(student_id: str, picks: dict[str, str]) -> dict[str, Any]:
+    """Grade and store the end check (once). Anything left out counts as "unsure".
+
+    Returns: get_end_check(student_id) after saving (status "taken", with the comparison).
+
+    Raises:
+        ConflictError: already taken.
+        EcoLearnError: not open for this student, a pick for a concept not in
+                       the check, or a bad option.
+    """
+    profile = _require_student(student_id)
+    learner = store.get_learner_profile(student_id)
+    status = _end_check_status(student_id, learner)
+    if status == "taken":
+        raise ConflictError("You've already taken the end check.")
+    if status == "needs_start":
+        raise EcoLearnError("Take the starting check first: the end check is compared with it.")
+    if status != "open":
+        raise EcoLearnError("The end check isn't open yet. Your teacher will open it.")
+    chosen = diagnostic.choose_end_questions(
+        profile["interest"], store.get_diagnostic_answers([student_id]))
+    store.save_end_check(student_id, diagnostic.grade_chosen(chosen, picks or {}))
+    return get_end_check(student_id)
+
+
+def _class_gains(student_ids: list[str]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    """(metrics.check_gains, {student_id: compare}) for these students."""
+    start_rows = store.get_diagnostic_answers(student_ids)
+    end_rows = store.get_end_check_answers(student_ids)
+    finished_at = {r["student_id"]: r["answered_at"] for r in end_rows}
+    studied = _studied(student_ids, finished_at) if finished_at else {}
+
+    def rows_of(rows: list[dict[str, Any]], sid: str) -> list[dict[str, Any]]:
+        return [r for r in rows if r["student_id"] == sid]
+
+    comparisons = {
+        sid: diagnostic.compare(rows_of(start_rows, sid), rows_of(end_rows, sid),
+                                studied.get(sid, set()))
+        for sid in finished_at
+    }
+    concept_info, _ = _insight_lookups()
+    started = len({r["student_id"] for r in start_rows})
+    return metrics.check_gains(comparisons, started, concept_info), comparisons
+
+
+def get_class_checks(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """The class's starting check -> end check, for the teacher.
+
+    Returns:
+        {"class": {...}, "open": bool, "opened_at": iso | None,
+         "summary": metrics.check_gains(...),
+         "students": [{student_id, name, username, started: bool,
+                       finished: bool, before: {right, mix_up, unsure} | None,
+                       after: {...} | None, fixed, slipped}]}
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    klass = _own_class(teacher_id, class_id)
+    students = store.list_class_students(class_id)
+    ids = [s["student_id"] for s in students]
+    summary, comparisons = _class_gains(ids)
+    start_rows: dict[str, list[dict[str, Any]]] = {}
+    for r in store.get_diagnostic_answers(ids):
+        start_rows.setdefault(r["student_id"], []).append(r)
+
+    def whole_check(sid: str) -> dict[str, int]:
+        return {"right": sum(1 for r in start_rows[sid] if r["correct"]),
+                "mix_up": sum(1 for r in start_rows[sid] if r["correct"] is False),
+                "unsure": sum(1 for r in start_rows[sid] if r["correct"] is None)}
+
+    rows = []
+    for s in sorted(students, key=lambda s: (s["name"].lower(), s["username"] or "")):
+        sid = s["student_id"]
+        comp = comparisons.get(sid)
+        rows.append({
+            "student_id": sid, "name": s["name"], "username": s["username"],
+            "started": sid in start_rows,
+            "finished": comp is not None,
+            # Before: the pairs compared once both are taken, else the whole starting check.
+            "before": comp["before"] if comp else (whole_check(sid) if sid in start_rows else None),
+            "after": comp["after"] if comp else None,
+            "fixed": comp["fixed"] if comp else None,
+            "slipped": comp["slipped"] if comp else None,
+        })
+    return {"class": klass, "open": bool(klass.get("end_check_opened_at")),
+            "opened_at": klass.get("end_check_opened_at"), "summary": summary, "students": rows}
+
+
+def set_class_end_check(teacher_id: str, class_id: str, open_: bool) -> dict[str, Any]:
+    """Open the end check for the class (students see it on their roadmap), or
+    close it again. Answers already given are kept either way.
+
+    Returns: get_class_checks(...).
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    store.set_class_end_check(class_id, bool(open_))
+    return get_class_checks(teacher_id, class_id)
 
 
 # ---------------------------------------------------------------------------
@@ -1638,7 +1808,8 @@ def pilot_report() -> dict[str, Any]:
         {"insights": class_insights over every student,
          "students": [{student, class, interest, level, created_at}],
          "views": [...], "answers": [...], "ratings": [...],
-         "diagnostic": [...]}  — pseudonymised rows.
+         "diagnostic": [...], "end_check": [...], "check_gains": {...},
+         "stories": [...]}  — pseudonymised rows.
     """
     students = store.list_all_students()
     class_alias: dict[str | None, str | None] = {None: None}
@@ -1679,6 +1850,10 @@ def pilot_report() -> dict[str, Any]:
         "ratings": alias(activity["ratings"]),
         # The starting check: each student's baseline before any lesson.
         "diagnostic": alias(store.get_diagnostic_answers(None)),
+        # The end check: the same concepts with parallel questions, at the end.
+        "end_check": alias(store.get_end_check_answers(None)),
+        # Before -> after over every student who took both checks.
+        "check_gains": _class_gains(list(student_alias))[0],
         # AI-written personal stories, with whether students reported them and
         # whether teachers hid them: the evidence on the AI layer's quality.
         "stories": alias(store.list_personal_stories(list(student_alias))),

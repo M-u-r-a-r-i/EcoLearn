@@ -208,6 +208,31 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         )
         """
     )
+    # The end check (2026-10-02): the same concepts as the starting check, asked
+    # again with a parallel question once the teacher opens it, so the pilot can
+    # show before → after. Its own table, so the starting check (the baseline)
+    # is never overwritten and nothing that reads it changes meaning.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS end_check_answers (
+            student_id       TEXT NOT NULL,
+            concept_id       TEXT NOT NULL,
+            source_interest  TEXT NOT NULL,
+            selected         TEXT NOT NULL,
+            correct          INTEGER,
+            misconception    TEXT,
+            answered_at      TEXT NOT NULL,
+            PRIMARY KEY (student_id, concept_id)
+        )
+        """
+    )
+    learner_columns = {row["name"] for row in conn.execute("PRAGMA table_info(learner_profiles)")}
+    if "end_check_completed_at" not in learner_columns:
+        conn.execute("ALTER TABLE learner_profiles ADD COLUMN end_check_completed_at TEXT")
+    # NULL = closed. The teacher opens it for the whole class at the pilot's end.
+    class_columns = {row["name"] for row in conn.execute("PRAGMA table_info(classes)")}
+    if "end_check_opened_at" not in class_columns:
+        conn.execute("ALTER TABLE classes ADD COLUMN end_check_opened_at TEXT")
     return conn
 
 
@@ -725,6 +750,8 @@ def _class_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     }
     if "student_count" in row.keys():
         out["student_count"] = row["student_count"]
+    if "end_check_opened_at" in row.keys():
+        out["end_check_opened_at"] = row["end_check_opened_at"]
     return out
 
 
@@ -1177,7 +1204,7 @@ def get_latest_class_plan(class_id: str) -> dict[str, Any] | None:
 # ---------------------------------------------------------------------------
 
 def get_learner_profile(student_id: str) -> dict[str, Any]:
-    """{hobbies: [...], diagnostic_completed_at: iso | None}; defaults if none yet."""
+    """{hobbies, diagnostic_completed_at, end_check_completed_at}; defaults if none yet."""
     conn = _connect()
     try:
         row = conn.execute(
@@ -1186,9 +1213,10 @@ def get_learner_profile(student_id: str) -> dict[str, Any]:
     finally:
         conn.close()
     if row is None:
-        return {"hobbies": [], "diagnostic_completed_at": None}
+        return {"hobbies": [], "diagnostic_completed_at": None, "end_check_completed_at": None}
     return {"hobbies": json.loads(row["hobbies"]),
-            "diagnostic_completed_at": row["diagnostic_completed_at"]}
+            "diagnostic_completed_at": row["diagnostic_completed_at"],
+            "end_check_completed_at": row["end_check_completed_at"]}
 
 
 def save_diagnostic(
@@ -1221,30 +1249,24 @@ def save_diagnostic(
                      misconception, answered_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                [
-                    (student_id, a["concept_id"], a["source_interest"], a["selected"],
-                     None if a["correct"] is None else int(bool(a["correct"])),
-                     a.get("misconception"), completed_at)
-                    for a in answers
-                ],
+                _check_values(student_id, answers, completed_at),
             )
     finally:
         conn.close()
     return completed_at
 
 
-def get_diagnostic_answers(student_ids: list[str] | None) -> list[dict[str, Any]]:
-    """Starting-check answers for some students (or everyone, with None)."""
+def _check_rows(table: str, student_ids: list[str] | None) -> list[dict[str, Any]]:
     conn = _connect()
     try:
         if student_ids is None:
-            rows = conn.execute("SELECT * FROM diagnostic_answers").fetchall()
+            rows = conn.execute(f"SELECT * FROM {table}").fetchall()
         elif not student_ids:
             rows = []
         else:
             marks = ",".join("?" * len(student_ids))
             rows = conn.execute(
-                f"SELECT * FROM diagnostic_answers WHERE student_id IN ({marks})", student_ids
+                f"SELECT * FROM {table} WHERE student_id IN ({marks})", student_ids
             ).fetchall()
     finally:
         conn.close()
@@ -1254,6 +1276,70 @@ def get_diagnostic_answers(student_ids: list[str] | None) -> list[dict[str, Any]
         row["correct"] = None if row["correct"] is None else bool(row["correct"])
         out.append(row)
     return out
+
+
+def _check_values(student_id: str, answers: list[dict[str, Any]], at: str) -> list[tuple]:
+    return [
+        (student_id, a["concept_id"], a["source_interest"], a["selected"],
+         None if a["correct"] is None else int(bool(a["correct"])),
+         a.get("misconception"), at)
+        for a in answers
+    ]
+
+
+def get_diagnostic_answers(student_ids: list[str] | None) -> list[dict[str, Any]]:
+    """Starting-check answers for some students (or everyone, with None)."""
+    return _check_rows("diagnostic_answers", student_ids)
+
+
+def save_end_check(student_id: str, answers: list[dict[str, Any]]) -> str:
+    """Store a completed end check (same answer shape as save_diagnostic).
+
+    Returns the completion time.
+    """
+    completed_at = _now_iso()
+    conn = _connect()
+    try:
+        with conn:
+            conn.execute(
+                """
+                INSERT INTO learner_profiles (student_id, end_check_completed_at)
+                VALUES (?, ?)
+                ON CONFLICT(student_id) DO UPDATE SET
+                    end_check_completed_at = excluded.end_check_completed_at
+                """,
+                (student_id, completed_at),
+            )
+            conn.executemany(
+                """
+                INSERT OR REPLACE INTO end_check_answers
+                    (student_id, concept_id, source_interest, selected, correct,
+                     misconception, answered_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                _check_values(student_id, answers, completed_at),
+            )
+    finally:
+        conn.close()
+    return completed_at
+
+
+def get_end_check_answers(student_ids: list[str] | None) -> list[dict[str, Any]]:
+    """End-check answers for some students (or everyone, with None)."""
+    return _check_rows("end_check_answers", student_ids)
+
+
+def set_class_end_check(class_id: str, open_: bool) -> str | None:
+    """Open (now) or close the end check for a class. Returns the opened time or None."""
+    opened_at = _now_iso() if open_ else None
+    conn = _connect()
+    try:
+        conn.execute("UPDATE classes SET end_check_opened_at = ? WHERE class_id = ?",
+                     (opened_at, class_id))
+        conn.commit()
+    finally:
+        conn.close()
+    return opened_at
 
 
 # ---------------------------------------------------------------------------
