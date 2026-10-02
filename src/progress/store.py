@@ -17,6 +17,7 @@ tests point at a temp file before the first call.
 
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 from datetime import datetime, timezone
@@ -109,6 +110,26 @@ def _connect() -> sqlite3.Connection:
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id)")
     _create_metrics_tables(conn)
+    # Teacher-agent plans (2026-10-02). `markdown` refers to students only as
+    # [S1], [S2]…; `aliases` maps those labels to student ids, so names are
+    # filled in when the plan is shown and never stored in (or sent to) the AI.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS class_plans (
+            plan_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_id    TEXT NOT NULL,
+            teacher_id  TEXT NOT NULL,
+            created_at  TEXT NOT NULL,
+            source      TEXT NOT NULL,
+            model       TEXT,
+            markdown    TEXT NOT NULL,
+            trace       TEXT NOT NULL,
+            aliases     TEXT NOT NULL,
+            note        TEXT
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_plans_class ON class_plans(class_id, plan_id)")
     return conn
 
 
@@ -1023,3 +1044,51 @@ def list_all_students() -> list[dict[str, Any]]:
         profile["class_id"] = row["class_id"]
         out.append(profile)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Teacher-agent plans (2026-10-02)
+# ---------------------------------------------------------------------------
+
+def save_class_plan(
+    class_id: str,
+    teacher_id: str,
+    source: str,
+    model: str | None,
+    markdown: str,
+    trace: list[dict[str, Any]],
+    aliases: dict[str, str],
+    note: str | None,
+) -> dict[str, Any]:
+    """Store a plan; `aliases` is {"S1": student_id, ...}."""
+    created_at = _now_iso()
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "INSERT INTO class_plans (class_id, teacher_id, created_at, source, model, markdown, "
+            "trace, aliases, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (class_id, teacher_id, created_at, source, model, markdown,
+             json.dumps(trace, ensure_ascii=False), json.dumps(aliases), note),
+        )
+        conn.commit()
+        plan_id = cursor.lastrowid
+    finally:
+        conn.close()
+    return get_latest_class_plan(class_id) or {"plan_id": plan_id}
+
+
+def get_latest_class_plan(class_id: str) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM class_plans WHERE class_id = ? ORDER BY plan_id DESC LIMIT 1",
+            (class_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    plan = dict(row)
+    plan["trace"] = json.loads(plan["trace"])
+    plan["aliases"] = json.loads(plan["aliases"])
+    return plan

@@ -16,6 +16,7 @@ import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { SectionHeading } from "@/components/section-heading";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
+import { TeachingAssistant } from "@/components/teaching-assistant";
 import { CredentialsSheet, InterestSelect, RosterField } from "@/components/teacher-ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,6 +109,7 @@ function ClassView() {
           />
         ) : (
           <>
+            <TeachingAssistant classId={klass.class_id} />
             {insights.data ? (
               <ClassInsightsPanel insights={insights.data} />
             ) : insights.loading ? (
@@ -176,7 +178,7 @@ function StudentTable({
     <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 shadow-card">
       <h2 className="text-lg font-bold text-foreground">Students</h2>
       <FormError message={error} />
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="text-muted-foreground">
             <tr>

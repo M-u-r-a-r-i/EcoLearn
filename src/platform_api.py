@@ -24,6 +24,9 @@ to the platform through exactly these five functions and nothing else:
     get_class_insights(teacher_id, class_id)      -> a teacher's dashboard data
     pilot_report()                                -> every class, pseudonymised
 
+    TEACHER AGENT (the one teacher-triggered live call; falls back to rules)
+    get_class_plan / generate_class_plan(teacher_id, class_id) -> next-lesson plan
+
 These functions orchestrate the internal subsystems — the path engine
 (src/path), the lesson read-service (src/content), the progress store
 (src/progress), the assessor, and the live generate→critic→polish pipeline.
@@ -44,6 +47,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
 
+from src.agents import teacher_agent  # stdlib-only at import; the SDK loads lazily
 from src.agents.assessor import grade_answer
 from src.agents.polisher import polish_explanation
 from src.auth import credentials, passwords
@@ -1192,6 +1196,120 @@ def get_class_insights(teacher_id: str, class_id: str) -> dict[str, Any]:
     return {"class": klass, **insights}
 
 
+# ---------------------------------------------------------------------------
+# 4c. The teacher agent (2026-10-02)
+#
+#   get_class_plan(teacher_id, class_id)       -> the latest plan, or None
+#   generate_class_plan(teacher_id, class_id)  -> a new plan (agent, or rules)
+#
+# The ONE live model call a teacher can trigger. It is low-volume (a teacher
+# clicks a button, a few times a day), read-only, and never on a student's
+# path, so it doesn't touch the cached-lesson strategy. See
+# src/agents/teacher_agent.py for the guardrails.
+# ---------------------------------------------------------------------------
+
+# A plan younger than this is returned instead of making a new one, so a
+# double-click (or an impatient teacher) doesn't spend quota twice.
+_PLAN_REUSE_SECONDS = 60
+
+
+def _class_toolbox(teacher_id: str, class_id: str):
+    """The agent's read-only tools for one of the teacher's classes.
+
+    Returns (toolbox, aliases) where aliases is {"S1": student_id, ...}.
+    Students are numbered by when their account was made, then username, so a
+    label means the same student in every plan for this class.
+    """
+    insights = get_class_insights(teacher_id, class_id)  # checks ownership
+    roster = sorted(store.list_class_students(class_id),
+                    key=lambda s: (s["created_at"], s["username"] or ""))
+    aliases = {f"S{n}": s["student_id"] for n, s in enumerate(roster, start=1)}
+    alias_of = {sid: alias for alias, sid in aliases.items()}
+    chapter_names = {c["id"]: c["name"] for c in engine.list_chapters()}
+
+    def concept_lookup(concept_id: str) -> dict[str, Any] | None:
+        concept = engine.find_concept(concept_id)
+        if concept is None:
+            return None
+        return {"name": concept.name, "chapter_name": chapter_names.get(concept.chapter_id),
+                "learning_objective": concept.learning_objective,
+                "prerequisites": list(concept.prerequisites)}
+
+    def takeaway_lookup(concept_id: str, interest: str) -> str | None:
+        authored = lesson_service.get_authored_lesson(concept_id, interest)
+        if authored is None:
+            return None
+        sections = lesson_service.student_view(authored)["sections"]
+        return next((s["markdown"] for s in sections if s["heading"] == "Key takeaway"), None)
+
+    def days_since(iso: str | None) -> int | None:
+        if not iso:
+            return None
+        return (datetime.now(tz=timezone.utc) - datetime.fromisoformat(iso)).days
+
+    toolbox = teacher_agent.ClassToolbox(
+        class_info=insights["class"], insights=insights, alias_of=alias_of,
+        concept_lookup=concept_lookup, takeaway_lookup=takeaway_lookup, days_since=days_since,
+    )
+    return toolbox, aliases
+
+
+def _render_plan(plan: dict[str, Any], class_id: str) -> dict[str, Any]:
+    """A stored plan as the teacher sees it: aliases replaced by current names."""
+    names_by_id = {s["student_id"]: s["name"] for s in store.list_class_students(class_id)}
+    names = {alias: names_by_id[sid] for alias, sid in plan["aliases"].items() if sid in names_by_id}
+    return {
+        "plan_id": plan["plan_id"],
+        "created_at": plan["created_at"],
+        "source": plan["source"],
+        "model": plan["model"],
+        "note": plan["note"],
+        "markdown": teacher_agent.fill_names(plan["markdown"], names),
+        "steps": [{"summary": c["summary"], "ok": c.get("ok", True)} for c in plan["trace"]],
+    }
+
+
+def get_class_plan(teacher_id: str, class_id: str) -> dict[str, Any] | None:
+    """The latest plan for one of the teacher's classes, or None if none yet."""
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    plan = store.get_latest_class_plan(class_id)
+    return _render_plan(plan, class_id) if plan else None
+
+
+def generate_class_plan(
+    teacher_id: str, class_id: str, *, models: list[Any] | None = None
+) -> dict[str, Any]:
+    """Ask the teacher agent for a plan for the next lesson, and store it.
+
+    Uses the configured Gemini models (or `models`, for tests); if none is
+    configured or all fail, the plan is written by fixed rules and says so —
+    the teacher always gets a plan. A plan made in the last minute is returned
+    as-is instead of making another.
+
+    Returns: the rendered plan (see `get_class_plan`), with "reused": bool.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    latest = store.get_latest_class_plan(class_id)
+    if latest is not None:
+        age = (datetime.now(tz=timezone.utc)
+               - datetime.fromisoformat(latest["created_at"])).total_seconds()
+        if age < _PLAN_REUSE_SECONDS:
+            return {**_render_plan(latest, class_id), "reused": True}
+
+    toolbox, aliases = _class_toolbox(teacher_id, class_id)
+    result = teacher_agent.plan_class(toolbox, models)
+    saved = store.save_class_plan(
+        class_id, teacher_id, result["source"], result["model"], result["markdown"],
+        result["trace"], aliases, result["note"],
+    )
+    return {**_render_plan(saved, class_id), "reused": False}
+
+
 def pilot_report() -> dict[str, Any]:
     """Everything the pilot recorded, across all classes, with no names in it.
 
@@ -1219,6 +1337,8 @@ def pilot_report() -> dict[str, Any]:
     for row in insights["students"]:
         row["student_id"] = student_alias[row["student_id"]]
     insights["students"].sort(key=lambda r: r["student_id"])
+    for m in insights["misconceptions"]:
+        m["student_ids"] = [student_alias[s] for s in m["student_ids"] if s in student_alias]
 
     def alias(rows: list[dict[str, Any]], drop: tuple[str, ...] = ()) -> list[dict[str, Any]]:
         out = []

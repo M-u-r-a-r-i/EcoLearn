@@ -1630,3 +1630,80 @@ smaller than it is, and a shared link to a hidden chapter would look like a bug.
 **Learned.** `chapters_with_lessons` (used for the signup counts) counts *any* format, but only
 "explain" is served. Coverage and serving must use the same rule, or the UI promises a lesson
 that the server can't deliver.
+
+## 9zc. The teacher agent (2026-10-02)
+
+The HackAStone theme is **"Agentic AI for Education"**, and until now no agent was visible in
+the product. The user asked for a teacher-facing agent built on the §9za data.
+
+**Changed.**
+- `src/agents/teacher_agent.py` (new): a tool-calling loop. Five read-only tools over one class
+  (`get_class_overview`, `list_misconceptions`, `get_concept`, `get_lesson_takeaway`,
+  `list_students`); the model decides what to read, at most 8 turns (tools off on the last), and
+  must return five fixed Markdown sections. `GeminiModel` wraps google-genai (manual loop, so every
+  call is recorded as a step); `rules_plan` writes the same sections by fixed rules;
+  `plan_class` tries each model, then the rules.
+- `prompts/teacher_agent.txt` (new): how to investigate, and the rules (only tool numbers, students
+  only as `[S#]`, physics only from the lesson's key takeaway, say so when data is thin).
+- `src/progress/store.py`: `class_plans` table (markdown with aliases, the alias→student map, the
+  trace, source, model, note).
+- `src/progress/metrics.py`: misconceptions carry `student_ids`; `pilot_report` aliases them.
+- `src/platform_api.py` §4c: `get_class_plan`, `generate_class_plan` (ownership checked; a plan
+  under 60 s old is reused). `api/main.py`: `GET`/`POST /api/teacher/classes/{id}/plan`.
+- Web: `components/teaching-assistant.tsx` on `/teacher/class`: "Plan my next lesson", a progress
+  line while it works, the plan, "How the assistant worked (N steps)", and a privacy line.
+  Also fixed a page-wide horizontal scroll on narrow screens: the students table's `sr-only`
+  header is absolutely positioned and escaped its non-positioned scroll box (`relative` fixes it).
+- `tests/test_teacher_agent.py` (new): **28 checks**, with a scripted stand-in model, no network.
+
+**Why these shapes.**
+- **Names never reach the model.** Tools speak in S1…Sn (numbered by account creation, so stable);
+  the map is stored with the plan and names are filled in only for that class's teacher. The test
+  records everything sent to the model and asserts no name, username or id is in it. That's the
+  answer to "you're sending children's data to an AI?"
+- **Physics comes from reviewed lessons**, via `get_lesson_takeaway`, not from the model.
+- **Read-only tools**, so the worst failure is poor advice that a teacher reads before acting.
+- **A rules fallback, clearly labelled**, because a demo on stage or a teacher on a Monday morning
+  must never get an empty card. It is honest about being rules, not AI.
+- **An amendment to non-negotiable 3**, written into AGENTS.md: teacher-triggered, low-volume, never
+  on a student's path.
+
+**Verified.** All 15 test scripts, `tsc` and lint are clean. The adapter was exercised against a stub
+client (5 tool declarations sent; history replayed as user/model/user; tool results and the nudge in
+one turn; tools off on the last turn). In the browser the card produced a plan from the class's
+real data, with names filled in. It was the **rules plan**, because Gemini rejected the key.
+
+**Not verified: a live Gemini run.** The `GEMINI_API_KEY` in `.env` returns 401 both as an AI
+Studio key and as a Vertex express key (it starts `AQ.`; AI Studio keys start `AIza`). The same
+failure explains the doubt chat on this machine, on top of the blocked `grpc` DLL. A working key
+is the user's to add, then one click on "Plan my next lesson" confirms the live path.
+
+**The product vision, as stated by the user (2026-10-02).** *"During signup the student takes an
+assessment that tells us their knowledge, interests and hobbies; we then generate specialised
+content for them, and personalise the chapters based on their interaction with the app."* This
+reverses the sprint's "no live generation" decision, so it was put back to the user as three
+layers rather than built:
+1. **A signup diagnostic** (no AI needed): 8–10 MCQs drawn from existing lesson checks, whose wrong
+   options already map to misconceptions, plus interests and hobbies. This produces a starting
+   estimate per concept. Instant and free. (ROADMAP M3.)
+2. **Personalised chapters from interaction** (no AI needed): mark known concepts, insert a
+   prerequisite lesson when a misconception shows up, spaced review. "Reorder, not regenerate".
+   (M4/M5.)
+3. **Generated content**, three options:
+   - (a) the pre-written library only;
+   - (b) **a hybrid, recommended:** the reviewed lesson stays the backbone, and an agent writes only
+     a short personal story opening and one analogy for the student's own hobby. It is checked by
+     a critic agent, cached per student × concept, and falls back to the nearest pre-written
+     interest;
+   - (c) whole lessons generated per student, which risks unreviewed physics for minors, plus cost
+     and latency.
+
+   (b) and (c) need a working, probably paid, Gemini key: the free tier's ~20 calls a day per model
+   (§6) can't serve a class.
+
+**Learned.**
+- Check the credentials before designing around a live feature. The "doubt chat is broken by
+  Windows" diagnosis in §9z was true but incomplete: the key was also dead, and only a direct
+  call showed it.
+- An absolutely positioned child (`sr-only`) inside `overflow-x-auto` escapes the scroll box unless
+  the box is positioned, and widens the whole page. Measure with `scrollWidth` vs `clientWidth`.

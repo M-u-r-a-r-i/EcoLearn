@@ -350,6 +350,23 @@ def teacher_class_insights(
     return api.get_class_insights(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/plan")
+def teacher_class_plan(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict | None:
+    """The teacher assistant's latest plan for this class, or null if none yet."""
+    return api.get_class_plan(teacher_id, class_id)
+
+
+@app.post("/api/teacher/classes/{class_id}/plan")
+def teacher_generate_plan(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """Ask the teacher assistant for a new plan (takes seconds: a live model call,
+    or the rules-based fallback when no model is available)."""
+    return api.generate_class_plan(teacher_id, class_id)
+
+
 @app.post("/api/teacher/students/{student_id}/reset-password")
 def teacher_reset_password(
     student_id: str,

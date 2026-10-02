@@ -158,14 +158,20 @@ classroom adoption). **15-minute presentation.** Judging criteria are not publis
 
 **-> YOUR NEXT ACTION (user, 2026-10-02): improve the project; lessons resume later.** The
 user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception dashboard~~ (done,
-§9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → **robustness &
-polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+§9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → ~~chapter picker
+fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → **the user's answer on the signup-assessment vision
+(§9zc), then robustness & polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
 30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 
-**Machine issue to raise with the user:** Windows Application Control blocks `grpc`'s DLL on the
-dev machine, so the doubt chat answers 503 there (§9z). It's a security setting or a reinstall of
-`grpcio`, so it's the user's call; don't change it from code.
+**Machine issues to raise with the user:**
+- Windows Application Control blocks `grpc`'s DLL on the dev machine, so the doubt chat answers 503
+  there (§9z). It's a security setting or a reinstall of `grpcio`, so it's the user's call; don't
+  change it from code.
+- **The `GEMINI_API_KEY` in `.env` is rejected (401)**, both as an AI Studio key and as a Vertex
+  express key (it starts `AQ.`; AI Studio keys start `AIza`). Checked 2026-10-02. Until the user
+  puts a working key in `.env`, the teacher agent serves its rules-based fallback and the doubt
+  chat can't answer. Never print or commit the key.
 
 **Open threads at the end of the 2026-10-02 session (check these first):**
 1. **"I am unable to log in to the student account": unresolved, waiting on the user.** The
@@ -191,6 +197,11 @@ dev machine, so the doubt chat answers 503 there (§9z). It's a security setting
    (§9v). `git pull --ff-only` before starting anything, and agree who takes which batches.
 
 **Open with the user, don't decide alone:**
+0. **The product vision (user, 2026-10-02):** "during signup the student takes an assessment that
+   tells us their knowledge, interests and hobbies; we then generate specialised content for them,
+   and personalise the chapters based on their interaction with the app." This reverses the
+   sprint's "no live generation" decision, so it was put to the user as options (2026-10-02,
+   §9zc) rather than built. Read that entry before starting any of it.
 1. **Scope.** Finishing all five interests is ~36 more batches. Claude's recommendation was to
    finish cricket, football and gaming first and leave smartphones and motorsport until after the
    finals; the user has not ruled either way.
@@ -296,6 +307,11 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
    Static lessons are written by Claude Code sessions, never generated through an API. Everything else is served from pre-generated cache. **This is the entire
    cost, latency and capacity strategy — do not add a live call.** A self-hosted GPU doesn't change
    that: a live lesson would take minutes, and every student would compete for one GPU.
+   **One deliberate exception (user request, 2026-10-02): the teacher agent**
+   (`generate_class_plan`, §9zc). It is teacher-triggered and low-volume, read-only, never on a
+   student's path, reuses a plan less than a minute old, and falls back to a rules-based plan, so
+   it costs nothing at student scale and can't take anything down. Any further live call needs
+   the user's say-so.
 4. **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
    **global across the subject**; a new chapter must continue the numbering (18, 19, …) or
    prerequisite validation rejects it.
@@ -421,6 +437,7 @@ venv\Scripts\python.exe tests\test_mcq_grading.py         # MCQ grading, no API 
 venv\Scripts\python.exe tests\test_teacher.py             # teacher tools: classes, resets, roles
 venv\Scripts\python.exe tests\test_pilot_metrics.py       # views, answers, 👍/👎, class insights
 venv\Scripts\python.exe tests\test_chapter_coverage.py    # picker counts, coming-soon concepts
+venv\Scripts\python.exe tests\test_teacher_agent.py       # agent loop, privacy, fallbacks (no network)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 

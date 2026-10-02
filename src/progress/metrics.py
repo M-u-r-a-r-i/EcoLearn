@@ -138,6 +138,7 @@ def class_insights(
             "correct_text": options.get(check.get("answer")) if check.get("answer") else None,
             "misconception": entry["misconception"],
             "students": len(entry["students"]),
+            "student_ids": sorted(entry["students"]),
             "students_answered": answered,
             "share": _accuracy(len(entry["students"]), answered),
         })

@@ -311,6 +311,7 @@ export interface MisconceptionInsight {
   correct_text: string | null; // markdown
   misconception: string | null;
   students: number; // students who chose this option
+  student_ids: string[]; // which ones (this teacher's own students)
   students_answered: number; // students who answered this question
   share: number | null;
 }
@@ -364,6 +365,32 @@ export interface ClassInsights {
 
 export function getClassInsights(classId: string): Promise<ClassInsights> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/insights`);
+}
+
+// ---------------------------------------------------------------------------
+// The teaching assistant: an agent that reads the class's data and plans the
+// next lesson. Falls back to a rules-based plan when no model is available.
+// ---------------------------------------------------------------------------
+export interface ClassPlan {
+  plan_id: number;
+  created_at: string;
+  source: "agent" | "rules";
+  model: string | null;
+  note: string | null; // why it's a rules plan, when it is
+  markdown: string; // five sections, student names already filled in
+  steps: { summary: string; ok: boolean }[]; // what the agent looked at
+  reused?: boolean; // true if a plan from the last minute was returned
+}
+
+export function getClassPlan(classId: string): Promise<ClassPlan | null> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`);
+}
+
+export function generateClassPlan(classId: string): Promise<ClassPlan> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`, {
+    method: "POST",
+    timeoutMs: LIVE_TIMEOUT_MS, // a live, multi-step model run
+  });
 }
 
 // ---------------------------------------------------------------------------
