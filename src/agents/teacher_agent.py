@@ -375,12 +375,10 @@ def default_models() -> list[Model]:
 
 
 def _gemini_models() -> list[Model]:
-    try:
-        from dotenv import dotenv_values
-        env_key = dotenv_values(_PROJECT_ROOT / ".env").get("GEMINI_API_KEY")
-    except Exception:  # noqa: BLE001 — a missing or broken .env just means "no key"
-        env_key = None
-    key = os.getenv("GEMINI_API_KEY") or env_key
+    # Same rule as src/llm: a variable set in the environment wins even when
+    # empty, so GEMINI_API_KEY= switches Gemini off without touching .env.
+    from src.llm.client import _env
+    key = _env("GEMINI_API_KEY")
     if not key:
         return []
     names = [os.getenv("TEACHER_AGENT_MODEL") or DEFAULT_MODELS[0]]

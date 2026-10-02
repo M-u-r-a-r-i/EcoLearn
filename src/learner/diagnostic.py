@@ -17,6 +17,7 @@ import yaml
 
 from src.content import lesson_service
 from src.errors import EcoLearnError
+from src.file_cache import cached_parse
 from src.path import engine
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -31,7 +32,9 @@ _OWN_HOBBY_RE = re.compile(r"^[A-Za-z][A-Za-z &'\-]{1,23}$")
 
 
 def load_config() -> dict[str, Any]:
-    return yaml.safe_load(_CONFIG_PATH.read_text(encoding="utf-8"))
+    """data/diagnostic.yaml, parsed once per version of the file. Shared: read-only."""
+    return cached_parse(_CONFIG_PATH, lambda p: yaml.safe_load(p.read_text(encoding="utf-8")),
+                        "diagnostic")
 
 
 def _grade_key(level: str, config: dict[str, Any]) -> str:

@@ -57,6 +57,7 @@ from src.content.lesson_schema import (
     LessonMetadata,
     MCQCheck,
 )
+from src.file_cache import cached_parse
 
 _FRONT_MATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n(.*)\Z", re.DOTALL)
 _H2 = re.compile(r"^## +(.+?)\s*$", re.MULTILINE)
@@ -109,7 +110,11 @@ def parse_lesson_text(text: str) -> AuthoredLesson:
 
 
 def parse_lesson_file(path: str | Path) -> AuthoredLesson:
-    return parse_lesson_text(Path(path).read_text(encoding="utf-8"))
+    """Parse a lesson file, cached until it changes (src/file_cache.py).
+
+    The returned lesson is shared between requests: treat it as read-only.
+    """
+    return cached_parse(path, lambda p: parse_lesson_text(p.read_text(encoding="utf-8")), "lesson")
 
 
 def check_markdown(check: MCQCheck) -> str:

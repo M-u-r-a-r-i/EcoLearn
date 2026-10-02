@@ -166,8 +166,8 @@ user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception
 §9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → ~~chapter picker
 fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → ~~layer 3,
 personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** and set `LLM_*` in
-`.env`, then verify a live story) → **robustness & polish** (started §9zg: rate limiting, error
-pages and the logout fix are done; next: toasts, dark mode, a 30-student load test) (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+`.env`, then verify a live story) → **robustness & polish** (§9zg: rate limiting, error pages,
+logout fix; §9zh: the 30-student load test passes — p95 1.2 s; next: toasts, dark mode) (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
 30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 
@@ -458,6 +458,7 @@ venv\Scripts\python.exe tests\test_learner_plan.py        # starting check, lear
 venv\Scripts\python.exe tests\test_personal_story.py      # story agents, llm client, OmniRoute mock
 venv\Scripts\python.exe tests\test_story_review.py        # report button, teacher hide/restore
 venv\Scripts\python.exe tests\test_rate_limit.py          # login lockouts (fake clock)
+venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 
@@ -492,6 +493,10 @@ quota. Run it deliberately, not routinely.
 - **Never import a live-LLM feature's dependencies at module top level** in `platform_api.py`.
   chromadb → grpc native DLLs were once blocked by Windows Application Control, and the top-level
   import took the whole API down (§9z).
+- **Parsed files and lesson scans are cached** (§9zh, `src/file_cache.py`, `lesson_service`):
+  objects they return are shared — never mutate them. Edits to a file are seen at once (mtime);
+  the "which concepts have lessons" lists may lag up to 30 s after a writing session adds files.
+  An env var set to empty means "off" (it does not fall back to `.env`).
 - **A new route folder can 404 in `next dev`** while `npm run build` lists it. Restart the dev
   server, and don't run `npm run build` while `next dev` is running (both write `.next`).
 

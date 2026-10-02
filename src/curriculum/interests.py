@@ -20,6 +20,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.curriculum.schema import Domain
+from src.file_cache import cached_parse
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -59,6 +60,12 @@ def load_interests(path: str | Path | None = None) -> list[Interest]:
                          unknown key, missing field).
     """
     yaml_path = Path(path) if path else DEFAULT_INTERESTS_PATH
+    # Parsed and validated once per version of the file (src/file_cache.py);
+    # a copy of the list is returned so callers can't change the shared one.
+    return list(cached_parse(yaml_path, _parse_interests, "interests"))
+
+
+def _parse_interests(yaml_path: Path) -> list[Interest]:
     raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict) or not isinstance(raw.get("interests"), list):
         raise ValueError(f"{yaml_path} must contain a top-level `interests:` list.")

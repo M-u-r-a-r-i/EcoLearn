@@ -50,12 +50,33 @@ def _db_path() -> Path:
     return Path(raw) if raw else _DEFAULT_DB_PATH
 
 
+# Database files whose schema this process has already checked. Running ~20
+# CREATE/PRAGMA/ALTER statements on EVERY connection cost more than the queries
+# themselves (load test, 2026-10-02: 910 statements in one student's journey).
+_schema_ready: set[str] = set()
+
+
 def _connect() -> sqlite3.Connection:
-    """Open the DB (creating the file and schema if needed)."""
+    """Open the DB, creating the file and schema the first time this process
+    sees it (or again if the file has disappeared, e.g. a test deleted it)."""
     path = _db_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path))
+    existed = path.exists()
+    if not existed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    # timeout: under a classroom's worth of simultaneous writes, wait for the
+    # lock instead of failing with "database is locked".
+    conn = sqlite3.connect(str(path), timeout=15)
     conn.row_factory = sqlite3.Row
+    key = str(path)
+    if existed and key in _schema_ready:
+        return conn
+    _ensure_schema(conn)
+    _schema_ready.add(key)
+    return conn
+
+
+def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
+    """Create every table and run the additive migrations. Idempotent."""
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS progress (

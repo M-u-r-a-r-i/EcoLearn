@@ -1927,3 +1927,54 @@ teacher reset keep that small.
 **Verified.** All 19 test scripts, `tsc` and lint are clean. In the browser, `/no-such-page` showed
 the new page with the nav and returned 404. Logging out from a lesson landed on `/login` with no
 `next`.
+
+## 9zh. Robustness, part 2: a 30-student load test, and making it pass (2026-10-02)
+
+**Changed.**
+- `scripts/load_test.py` (new): starts its own API on a temporary DB (the real `progress.db` is
+  never touched), creates a teacher and a class of N, and runs every student through a lesson **at
+  the same moment**: login → session → chapters → roadmap → learning plan → starting check → next
+  lesson → open it → reading time → answer → rate → roadmap. Meanwhile the teacher refreshes
+  insights, stories and the class page. The AI is switched off for the run. It reports p50/p95/max
+  per endpoint and fails on any error or a p95 above 2 s.
+- `src/file_cache.py` (new): `cached_parse(path, parse)`. A file is parsed once per (path, mtime,
+  size), so edits are picked up with no restart; the result is shared and read-only. Used for
+  lesson files (`authored.parse_lesson_file`), `data/interests.yaml`, `data/diagnostic.yaml` and
+  `.env`.
+- `src/content/lesson_service.py`:
+  - one lesson **index** (a single directory walk) replaces a glob per lookup;
+  - the "which concepts or chapters have lessons" scans are cached for 30 s;
+  - **a miss is never trusted from the cache**: it gets a direct look on disk, so a lesson written
+    a moment ago is found at once.
+- `src/progress/store.py`: the schema (about 20 CREATE/PRAGMA/ALTER statements) is checked **once
+  per DB file per process** instead of on every connection, and again if the file has vanished.
+  `sqlite3.connect(..., timeout=15)` waits for the write lock rather than failing.
+- `src/llm/client.py` / `src/agents/teacher_agent.py`: **a variable set in the environment wins
+  even when empty**. Before, `GEMINI_API_KEY=` fell through to `.env`, and the load test's rules
+  plan made real calls to Google with the dead key: **26 s**.
+
+**Results (30 students, one process, this laptop):**
+
+| | first run | after |
+|---|---|---|
+| whole class | 52.4 s | 10.6 s |
+| p50 | 1106 ms | 455 ms |
+| p95 | 4694 ms | 1176 ms |
+| starting-check submit p95 | 6022 ms | ~940 ms |
+| teacher plan | 26551 ms | 41 ms |
+| errors | 0 | 0 |
+
+45 students: 14.6 s, p95 1614 ms, 0 errors. Single-journey CPU went from 1.4 s to 0.13 s; one
+`cProfile` run per step pointed at each fix in turn (YAML re-parsing, then SQL schema checks, then
+globs).
+
+**Why it mattered.** One Python process serves the whole class, so CPU time per request queues up.
+A student waiting 6 s after "See my plan" in front of a teacher reads as "it's broken". None of this
+showed in single-user testing.
+
+**Learned.**
+- **Load-test before the pilot, not after.** Every one of these costs was invisible to one user and
+  obvious at thirty.
+- An empty environment variable must mean "off", or switching a feature off in one place quietly
+  switches it back on from another.
+- Caching "not found" is the dangerous part of a file cache. Cache hits, re-check misses.

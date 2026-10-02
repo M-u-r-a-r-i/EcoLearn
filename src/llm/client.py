@@ -43,14 +43,23 @@ class ChatResult:
 
 
 def _env(name: str, default: str | None = None) -> str | None:
-    """os.environ first, then the project's .env (read each time: cheap, and a
-    key added while the server runs is picked up without a restart)."""
-    value = os.getenv(name)
-    if value:
-        return value
+    """The environment first, then the project's .env.
+
+    A variable that is SET in the environment wins even when it is empty:
+    `LLM_MODEL=` means "off", which is how tests and the load test switch the
+    AI off without editing .env (the load test found an empty value falling
+    through to .env and calling a real provider). The .env file is parsed once
+    per version (src/file_cache.py), so a key added while the server runs is
+    still picked up without a restart.
+    """
+    if name in os.environ:
+        return os.environ[name] or default
+    path = _PROJECT_ROOT / ".env"
     try:
         from dotenv import dotenv_values
-        value = dotenv_values(_PROJECT_ROOT / ".env").get(name)
+
+        from src.file_cache import cached_parse
+        value = cached_parse(path, lambda p: dict(dotenv_values(p)), "dotenv").get(name)
     except Exception:  # noqa: BLE001 — no .env, or unreadable: use the default
         value = None
     return value or default
