@@ -53,6 +53,11 @@ interface AuthContextValue {
   teacherLogin: (username: string, password: string) => Promise<TeacherProfile>;
   register: (input: RegisterInput) => Promise<StudentProfile>;
   logout: () => Promise<void>;
+  // True after the user pressed "Log out" (as opposed to a session that
+  // expired): the route guard then sends them to the plain login page instead
+  // of "log in to come back here", which would hand the next person on a
+  // shared classroom computer the previous student's page.
+  loggedOutOnPurpose: boolean;
   // After PATCH /api/profile, store the returned profile.
   setStudent: (student: StudentProfile) => void;
 }
@@ -62,10 +67,12 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
+  const [loggedOutOnPurpose, setLoggedOutOnPurpose] = useState(false);
 
   const signedIn = useCallback((next: Session) => {
     setSession(next);
     setStatus("authenticated");
+    setLoggedOutOnPurpose(false);
   }, []);
 
   const signedOut = useCallback(() => {
@@ -102,10 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: (username, password) => apiLogin(username, password).then(asStudent),
       teacherLogin: (username, password) => apiTeacherLogin(username, password).then(asTeacher),
       register: (input) => apiRegister(input).then(asStudent),
+      loggedOutOnPurpose,
       logout: async () => {
         try {
           await apiLogout();
         } finally {
+          setLoggedOutOnPurpose(true);
           signedOut(); // even if the network call fails, forget the user locally
         }
       },
@@ -113,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         asStudent(profile);
       },
     };
-  }, [status, session, signedIn, signedOut]);
+  }, [status, session, signedIn, signedOut, loggedOutOnPurpose]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

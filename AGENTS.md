@@ -166,7 +166,8 @@ user's order: ~~teacher tools~~ (done, §9z) → ~~pilot metrics + misconception
 §9za: `/teacher/class` insights, `scripts/pilot_report.py` for all classes) → ~~chapter picker
 fix~~ (§9zb) → ~~teacher agent~~ (§9zc) → ~~personalisation layers 1–2~~ (§9zd) → ~~layer 3,
 personal stories~~ (§9ze, built; **waiting on the user to install OmniRoute** and set `LLM_*` in
-`.env`, then verify a live story) → **robustness & polish** (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
+`.env`, then verify a live story) → **robustness & polish** (started §9zg: rate limiting, error
+pages and the logout fix are done; next: toasts, dark mode, a 30-student load test) (error and not-found pages, skeletons, toasts, dark mode, login rate-limiting, a
 30-student load test). When lessons resume,
 `scripts/batch_status.py` knows the next batch (8 left in phase 1); the procedure is below.
 
@@ -456,6 +457,7 @@ venv\Scripts\python.exe tests\test_teacher_agent.py       # agent loop, privacy,
 venv\Scripts\python.exe tests\test_learner_plan.py        # starting check, learning plan, recommendations
 venv\Scripts\python.exe tests\test_personal_story.py      # story agents, llm client, OmniRoute mock
 venv\Scripts\python.exe tests\test_story_review.py        # report button, teacher hide/restore
+venv\Scripts\python.exe tests\test_rate_limit.py          # login lockouts (fake clock)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 

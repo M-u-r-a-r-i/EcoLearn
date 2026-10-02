@@ -1891,3 +1891,39 @@ had stopped, so the API and web were restarted from `.claude/launch.json`; the A
 
 **Learned.** Restoring a reported story must not erase the report: the pilot needs to know how often
 students flag AI text, whatever the teacher decided afterwards.
+
+## 9zg. Robustness, part 1: login rate limiting, error pages, the logout redirect (2026-10-02)
+
+The user started the robustness and polish list. Order chosen for a real classroom: rate
+limiting → error pages → toasts and dark mode → a 30-student load test.
+
+**Changed.**
+- `api/ratelimit.py` (new): an in-memory `LoginLimiter`, built around the fact that **a whole
+  class shares one school IP**:
+  - per account, 8 wrong passwords in 15 min lock that username for 10 min;
+  - per IP, a much higher cap of 100 failures in 15 min stops spraying;
+  - unknown usernames count the same (no enumeration), and a right password clears the count;
+  - tunable with `ECOLEARN_LOGIN_*`.
+- `api/main.py`: `_check_password_attempt` wraps student and teacher login and both
+  change-password endpoints. A locked attempt answers **429 with Retry-After without checking the
+  password**, so a lock can't confirm a guess. A teacher's password reset clears the student's
+  lock.
+- Web: `app/not-found.tsx` (any unknown URL, with the nav; a real 404 status), `app/error.tsx`
+  (Next 16's `unstable_retry`, "Your progress is saved", a reference digest) and
+  `app/global-error.tsx` (self-contained `<html>`/`<body>`, inline styles; only if the root layout
+  fails).
+- **The logout redirect bug** (found in §9za): `RequireAuth` reacted to the signed-out state before
+  the nav's redirect and sent the user to `/login?next=<the page they were on>`. On a shared
+  classroom computer, that hands the next student the previous one's page. `auth-provider` now
+  records `loggedOutOnPurpose`, so a deliberate logout goes to the plain login page; an expired
+  session still keeps `?next=`.
+- `tests/test_rate_limit.py` (new): **13 checks**, with a fake clock.
+
+**Limits written into the code, not hidden.** The counts are per process (lost on restart; several
+workers would need a shared store such as Redis). Behind a proxy the client IP must come from its
+header. A classmate who knows a username can lock it for 10 minutes; the short lockout and the
+teacher reset keep that small.
+
+**Verified.** All 19 test scripts, `tsc` and lint are clean. In the browser, `/no-such-page` showed
+the new page with the nav and returned 404. Logging out from a lesson landed on `/login` with no
+`next`.

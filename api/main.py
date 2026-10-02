@@ -24,7 +24,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Request, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -35,6 +35,7 @@ from pydantic import BaseModel
 from src import platform_api as api
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
 
+from api.ratelimit import limiter, too_many_message
 from api.security import (
     clear_session_cookie,
     get_current_account,
@@ -205,6 +206,34 @@ class AddStudentsRequest(BaseModel):
 
 
 # ===========================================================================
+# Password guessing protection (see api/ratelimit.py for the design)
+# ===========================================================================
+def _client_ip(request: Request) -> str | None:
+    return request.client.host if request.client else None
+
+
+def _check_password_attempt(account_key: str, request: Request, attempt):
+    """Run a password check under the rate limiter.
+
+    Locked → 429 with Retry-After, without even checking the password (so a
+    lock can't be used to confirm a guess). A wrong password counts against
+    the account and the IP; a right one clears the account's count.
+    """
+    ip_key = limiter.ip_key(_client_ip(request))
+    wait = limiter.retry_after(account_key, ip_key)
+    if wait:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, too_many_message(wait),
+                            headers={"Retry-After": str(wait)})
+    try:
+        result = attempt()
+    except AuthError:
+        limiter.record_failure(account_key, ip_key)
+        raise
+    limiter.clear(account_key)
+    return result
+
+
+# ===========================================================================
 # Endpoints
 # ===========================================================================
 @app.get("/")
@@ -236,13 +265,15 @@ def register(payload: RegisterRequest, response: Response) -> dict:
 
 
 @app.post("/api/auth/login")
-def login(payload: LoginRequest, response: Response) -> dict:
+def login(payload: LoginRequest, request: Request, response: Response) -> dict:
     """Check credentials, set the session cookie, return the profile.
 
     401 with one generic message for any failure, so the response never reveals
-    whether a username exists.
+    whether a username exists. 429 after too many wrong passwords.
     """
-    profile = api.authenticate_student(payload.username, payload.password)
+    profile = _check_password_attempt(
+        limiter.account_key("student", payload.username), request,
+        lambda: api.authenticate_student(payload.username, payload.password))
     set_session_cookie(response, profile["student_id"])
     return profile
 
@@ -275,10 +306,14 @@ def session(account: tuple[str, dict] = Depends(get_current_account)) -> dict:
 @app.post("/api/auth/change-password")
 def change_password(
     payload: ChangePasswordRequest,
+    request: Request,
     student_id: str = Depends(get_current_student_id),
 ) -> dict:
-    """Change the password; requires the current one (401 if it's wrong)."""
-    return api.change_password(student_id, payload.current_password, payload.new_password)
+    """Change the password; requires the current one (401 if it's wrong, 429
+    after too many wrong tries — someone at an unlocked screen could guess)."""
+    return _check_password_attempt(
+        f"change:{student_id}", request,
+        lambda: api.change_password(student_id, payload.current_password, payload.new_password))
 
 
 @app.patch("/api/profile")
@@ -303,9 +338,11 @@ def _no_store(response: Response) -> None:
 
 
 @app.post("/api/teacher/login")
-def teacher_login(payload: LoginRequest, response: Response) -> dict:
-    """Teacher login. Same generic 401 as student login on any failure."""
-    profile = api.authenticate_teacher(payload.username, payload.password)
+def teacher_login(payload: LoginRequest, request: Request, response: Response) -> dict:
+    """Teacher login. Same generic 401 and the same rate limit as students."""
+    profile = _check_password_attempt(
+        limiter.account_key("teacher", payload.username), request,
+        lambda: api.authenticate_teacher(payload.username, payload.password))
     set_session_cookie(response, profile["teacher_id"])
     return profile
 
@@ -318,11 +355,13 @@ def teacher_me(teacher_id: str = Depends(get_current_teacher_id)) -> dict:
 @app.post("/api/teacher/change-password")
 def teacher_change_password(
     payload: ChangePasswordRequest,
+    request: Request,
     teacher_id: str = Depends(get_current_teacher_id),
 ) -> dict:
-    return api.change_teacher_password(
-        teacher_id, payload.current_password, payload.new_password
-    )
+    return _check_password_attempt(
+        f"change:{teacher_id}", request,
+        lambda: api.change_teacher_password(teacher_id, payload.current_password,
+                                            payload.new_password))
 
 
 @app.get("/api/teacher/classes")
@@ -415,7 +454,10 @@ def teacher_reset_password(
 ) -> dict:
     """Give a student in one of this teacher's classes a new password."""
     _no_store(response)
-    return api.reset_student_password(teacher_id, student_id)
+    result = api.reset_student_password(teacher_id, student_id)
+    # A student locked out by wrong passwords can log in with the new one now.
+    limiter.clear(limiter.account_key("student", result["username"] or ""))
+    return result
 
 
 # ---------------------------------------------------------------------------

@@ -19,21 +19,24 @@ import { PageContainer } from "@/components/page-container";
 const LOGIN: Record<Role, string> = { student: "/login", teacher: "/teacher/login" };
 
 export function RequireAuth({ role = "student", children }: { role?: Role; children: ReactNode }) {
-  const { status, role: current } = useAuth();
+  const { status, role: current, loggedOutOnPurpose } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      // Remember where they were going — query string included, so
-      // /teacher/class?id=… or /lesson?concept=… survives the round trip.
+    if (status === "unauthenticated" && loggedOutOnPurpose) {
+      // They pressed "Log out": a plain login page, no way back to their page.
+      router.replace(LOGIN[role]);
+    } else if (status === "unauthenticated") {
+      // The session expired: remember where they were going — query string
+      // included, so /teacher/class?id=… or /lesson?concept=… survives.
       const here = pathname + window.location.search;
       router.replace(`${LOGIN[role]}?next=${encodeURIComponent(here)}`);
     } else if (status === "authenticated" && current && current !== role) {
       // Logged in, but as the other kind of account: go to their own home.
       router.replace(HOME[current]);
     }
-  }, [status, current, role, router, pathname]);
+  }, [status, current, role, router, pathname, loggedOutOnPurpose]);
 
   if (status !== "authenticated" || current !== role) {
     return (
