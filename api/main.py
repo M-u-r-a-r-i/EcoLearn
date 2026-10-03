@@ -347,9 +347,21 @@ def update_profile(
     payload: ProfilePatch,
     student_id: str = Depends(get_current_student_id),
 ) -> dict:
-    """Change name / interest / level. Only the fields sent are changed."""
+    """Change name / interest. Only the fields sent are changed.
+
+    The class level is NOT the student's to change (2026-10-03): a teacher sets
+    it (POST /api/teacher/students/{id}/level). Re-sending the current level is
+    harmless, so older clients that send the whole form still work.
+    """
+    if payload.level is not None:
+        current = (api.get_student_profile(student_id) or {}).get("level")
+        if payload.level.strip() != current:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only your teacher can change your class.",
+            )
     return api.update_student_profile(
-        student_id, name=payload.name, interest=payload.interest, level=payload.level
+        student_id, name=payload.name, interest=payload.interest, level=None
     )
 
 
@@ -510,6 +522,20 @@ def teacher_reset_password(
     # A student locked out by wrong passwords can log in with the new one now.
     limiter.clear(limiter.account_key("student", result["username"] or ""))
     return result
+
+
+class LevelPatch(BaseModel):
+    level: str
+
+
+@app.post("/api/teacher/students/{student_id}/level")
+def teacher_set_level(
+    student_id: str,
+    payload: LevelPatch,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Move a student in one of this teacher's classes to Class 11 or Class 12."""
+    return api.set_student_level(teacher_id, student_id, payload.level)
 
 
 # ---------------------------------------------------------------------------

@@ -295,6 +295,14 @@ export function addStudents(
   });
 }
 
+// Only a teacher can move a student between Class 11 and Class 12.
+export function setStudentLevel(studentId: string, level: string): Promise<{ student_id: string; level: string }> {
+  return request(`/api/teacher/students/${encodeURIComponent(studentId)}/level`, {
+    method: "POST",
+    body: { level },
+  });
+}
+
 export function resetStudentPassword(studentId: string): Promise<StudentCredential> {
   return request(`/api/teacher/students/${encodeURIComponent(studentId)}/reset-password`, {
     method: "POST",
@@ -530,6 +538,9 @@ export interface RoadmapConcept {
   personal?: "known" | "focus" | null;
   personal_note?: string | null;
   recommended?: boolean;
+  // Concepts inside a chapter open in order. `locked_reason` says what to finish first.
+  locked?: boolean;
+  locked_reason?: string | null;
 }
 
 // ---------------------------------------------------------------------------

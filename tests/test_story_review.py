@@ -97,6 +97,8 @@ def test_report(ids) -> None:
     check(out["reported"] and out["reason"] == "wrong_physics", "a fixed reason is accepted")
     check(api.get_personal_story(aarav, "second_law")["status"] == "none",
           "hidden from the student at once: they get the reviewed story")
+    # Concepts open in order; a concept already tried stays open (here: tried once).
+    store.record_answer(aarav, "second_law", "cricket", "A", False, None)
     lesson = api.get_next_lesson(aarav, "laws_of_motion", concept_id="second_law")
     check(lesson["lesson"]["personal_story"]["status"] == "none", "on the lesson page too")
     row = store.get_personal_story(aarav, "second_law")

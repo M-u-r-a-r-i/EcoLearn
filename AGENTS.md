@@ -71,7 +71,9 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
   (cricket, football, gaming, smartphones, motorsport), in `data/content_scope.yaml`. Phase 1 the
   `explain` format; phase 2 `challenge` + `misconception`. The rest comes after the finals.
   Students are on **CBSE and ISC** — every concept carries `boards`.
-- **Nothing is ever locked.** Prerequisites and recommendations are hints, never gates.
+- **Chapters are never locked; concepts open in order** (revised 2026-10-03, §9zt): the next concept
+  opens once the one before is done (or the starting check says they know it). Prerequisites and
+  recommendations are still only hints. **Only a teacher moves a student between Class 11 and 12.**
 - **Every lesson opens with a story and has images.** **Never download an image without the
   user's approval**; every famous image needs a manifest entry (`content/AUTHORING_GUIDE.md` §4a, §7a).
 - **Static lessons are written by Claude Code sessions straight to files** — no LLM API for them.
@@ -502,6 +504,7 @@ venv\Scripts\python.exe tests\test_mix_ups.py             # my mix-ups, "how sur
 venv\Scripts\python.exe tests\test_mastery.py             # two-question mastery, revision queue
 venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost per student
 venv\Scripts\python.exe tests\test_ai_decisions.py        # decision trails, "How the AI decided"
+venv\Scripts\python.exe tests\test_concept_locks.py       # concept locks, class level (teacher only)
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

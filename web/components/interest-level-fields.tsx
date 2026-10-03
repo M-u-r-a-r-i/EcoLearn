@@ -19,6 +19,8 @@ interface Props {
   onInterestChange: (id: string) => void;
   onLevelChange: (level: string) => void;
   disabled?: boolean;
+  // Settings shows the class but only a teacher can change it.
+  levelLocked?: boolean;
 }
 
 export function InterestLevelFields({
@@ -27,6 +29,7 @@ export function InterestLevelFields({
   onInterestChange,
   onLevelChange,
   disabled,
+  levelLocked,
 }: Props) {
   const [interests, setInterests] = useState<Interest[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +87,12 @@ export function InterestLevelFields({
 
       <fieldset className="flex flex-col gap-2" disabled={disabled}>
         <legend className="mb-2 text-sm font-semibold text-foreground">Your class</legend>
+        {levelLocked ? (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{level}</span> · only your teacher can
+            change your class.
+          </p>
+        ) : (
         <div className="flex gap-3">
           {LEVELS.map((opt) => (
             <button
@@ -102,6 +111,7 @@ export function InterestLevelFields({
             </button>
           ))}
         </div>
+        )}
       </fieldset>
     </>
   );

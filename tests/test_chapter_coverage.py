@@ -45,7 +45,7 @@ from src.path import engine  # noqa: E402
 
 CHAPTER = "motion_straight_line"
 INTEREST = "cricket"
-EMPTY_CHAPTER = "ray_optics"
+EMPTY_CHAPTER = "gravitation"  # a Class 11 chapter: students only open their own class's chapters
 
 _checks = 0
 

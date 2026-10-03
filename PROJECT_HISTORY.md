@@ -2369,3 +2369,36 @@ decision panel shows 0 model calls. Don't quote these numbers as pilot results.
 
 Use: `venv\Scripts\python.exe scripts\seed_demo.py --reset`, then start the API with
 `$env:ECOLEARN_PROGRESS_DB = "data\demo.db"`.
+
+## 9zt. Done ticks, concepts open in order, only a teacher sets the class (2026-10-03)
+
+**Changed.**
+- **P3, the roadmap tick.** One right answer is "cleared" (partial) since §9zn, and the roadmap
+  still said "Available". Now: green ✓ **Done** ("a new question tomorrow (Review) masters it"),
+  gold ✓ **Mastered**, and the header reads "N of M concepts done · K mastered".
+- **P2, locks (user decision).** Chapters stay open. Inside a chapter concepts open in order
+  (`platform_api._concept_locks`): the first written concept is open; the next opens when the one
+  before is passed (right once, mastered, or the starting check says they know it). Already-tried
+  concepts and concepts with a mix-up from the check stay open (the plan sends students there).
+  "Coming soon" concepts never block. The roadmap rows carry `locked` / `locked_reason`; the
+  lesson fetch refuses a locked concept with "Finish X first." (the UI shows a Lock row).
+- **Class 11 / 12 is the teacher's.** The chapter picker lists only the student's class; the API
+  refuses another class's chapter (`_require_chapter_for_level`); Settings shows the class
+  read-only; `PATCH /api/profile` answers 403 if a different level is sent (re-sending the same
+  one is fine); new `set_student_level` + `POST /api/teacher/students/{id}/level`, and a Class
+  dropdown in the teacher's students table. A Class 12 student defaults to Current Electricity.
+- Tests: new `tests/test_concept_locks.py` (24 checks); `test_chapter_coverage` now uses a Class
+  11 empty chapter and `test_story_review` records an attempt before opening a concept directly.
+
+**Why.** Students saw progress move without a tick; the user wants a game-like path (milestones)
+but not a wall: so the lock is per concept, the starting check can open things, and a teacher can
+move a student up. **This replaces the old rule "nothing is ever locked" (2026-09-22) for concepts**;
+chapters are still never locked.
+
+**Learned / caveats.**
+- A student who is wrong repeatedly isn't stuck: after a wrong pick the right answer is shown, so a
+  retry clears the concept. A lucky guess on the starting check opens the concept after it.
+- Self-signup students still pick their class at signup (and can't change it after).
+- The demo dataset (§9zr) was seeded straight through the grading code, so its students have
+  out-of-order progress: some concepts are open ahead of unfinished ones. That's fine for a demo.
+- Existing students' changed level keeps their answers; the starting check isn't re-taken.

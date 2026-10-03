@@ -8,7 +8,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { Check, Clock, Play, ArrowRight, PartyPopper, Target } from "lucide-react";
+import { Check, Clock, Lock, Play, ArrowRight, PartyPopper, Target } from "lucide-react";
 
 import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
@@ -22,6 +22,16 @@ import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
 
 // Per-status visual config: node colour + icon + badge styling.
+// "Done" sits between the two: right once (cleared), so the path moves on, and
+// a new question later (Review) masters it. It gets its own tick so finishing a
+// lesson visibly counts, instead of still reading "Available".
+const DONE = {
+  label: "Done",
+  Icon: Check,
+  node: "bg-success text-success-foreground border-success",
+  badge: "bg-success/10 text-success",
+};
+
 const STATUS: Record<
   ConceptStatus,
   { label: string; Icon: typeof Check; node: string; badge: string }
@@ -29,8 +39,8 @@ const STATUS: Record<
   mastered: {
     label: "Mastered",
     Icon: Check,
-    node: "bg-success text-success-foreground border-success",
-    badge: "bg-success/10 text-success",
+    node: "bg-amber-400 text-amber-950 border-amber-500",
+    badge: "bg-amber-400/15 text-amber-500",
   },
   available: {
     label: "Available",
@@ -62,7 +72,9 @@ function Roadmap() {
 
   const total = concepts?.length ?? 0;
   const mastered = concepts?.filter((c) => c.status === "mastered").length ?? 0;
-  const pct = total ? Math.round((mastered / total) * 100) : 0;
+  const isDone = (c: RoadmapConcept) => c.status === "mastered" || c.progress_status === "partial";
+  const done = concepts?.filter(isDone).length ?? 0;
+  const pct = total ? Math.round((done / total) * 100) : 0;
   // has_lesson is absent only for legacy accounts; treat that as "written".
   const written = (c: RoadmapConcept) => c.has_lesson !== false;
   const readyCount = concepts?.filter(written).length ?? 0;
@@ -70,8 +82,8 @@ function Roadmap() {
   // says they know); the first unfinished concept if it points elsewhere.
   const nextConcept =
     concepts?.find((c) => c.recommended) ??
-    concepts?.find((c) => c.status === "available" && written(c));
-  const allDone = total > 0 && mastered === total;
+    concepts?.find((c) => c.status === "available" && written(c) && !c.locked);
+  const allDone = total > 0 && done === total;
 
   return (
     <main className="flex flex-1 flex-col">
@@ -106,7 +118,10 @@ function Roadmap() {
             <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-soft">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-semibold text-foreground">
-                  {mastered} of {total} concepts mastered
+                  {done} of {total} concepts done
+                  {mastered > 0 && (
+                    <span className="font-normal text-muted-foreground"> · {mastered} mastered</span>
+                  )}
                 </span>
                 <span className="text-muted-foreground">{pct}%</span>
               </div>
@@ -165,9 +180,15 @@ function Roadmap() {
             />
 
             {concepts.map((c) => {
-              const s = STATUS[c.status];
+              const cleared = c.status !== "mastered" && c.progress_status === "partial";
+              const s = cleared ? DONE : STATUS[c.status];
               const isNext = c.concept_id === nextConcept?.concept_id;
               if (!written(c)) return <ComingSoonConcept key={c.concept_id} name={c.name} />;
+              if (c.locked) {
+                return (
+                  <LockedConcept key={c.concept_id} name={c.name} reason={c.locked_reason ?? ""} />
+                );
+              }
               return (
                 <div key={c.concept_id} className="relative flex items-center gap-4">
                   {/* Node circle */}
@@ -180,7 +201,7 @@ function Roadmap() {
                     <s.Icon className="size-5" strokeWidth={2.5} />
                   </div>
 
-                  {/* Concept card — every concept opens its lesson; nothing is locked. */}
+                  {/* Concept card. Chapters are never locked; concepts open in order. */}
                   <Link
                     href={withChapter("/lesson", chapterId, { concept: c.concept_id })}
                     className={cn(
@@ -194,16 +215,16 @@ function Roadmap() {
                       <span className="font-semibold text-foreground">{c.name}</span>
                       <span className="text-xs text-muted-foreground">
                         {/* Checks are multiple choice: right or not yet, so no "2/3". */}
-                        {c.status === "mastered" &&
-                          `Got it right · ${c.attempts} attempt${c.attempts === 1 ? "" : "s"}`}
+                        {c.status === "mastered" && "Mastered · two different questions right"}
+                        {cleared && "Done ✓ · a new question tomorrow (Review) masters it"}
                         {c.status === "available" &&
-                          (c.progress_status === "partial"
-                            ? "Right once · one more question to master it"
-                            : c.attempts
+                          !cleared &&
+                          (c.attempts
                               ? `Tried ${c.attempts}× · not right yet`
                               : "Ready to learn")}
                         {/* Nothing is locked; uncleared prerequisites are only a hint. */}
                         {c.status === "available" &&
+                          !cleared &&
                           c.missing_prerequisites.length > 0 &&
                           ` · builds on ${c.missing_prerequisites.length} earlier concept${c.missing_prerequisites.length === 1 ? "" : "s"}`}
                       </span>
@@ -246,6 +267,27 @@ function Roadmap() {
         )}
       </PageContainer>
     </main>
+  );
+}
+
+// A concept that opens once the one before it is done: on the path so the
+// student sees what's ahead, but not a link.
+function LockedConcept({ name, reason }: { name: string; reason: string }) {
+  return (
+    <div className="relative flex items-center gap-4" aria-disabled="true">
+      <div className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground">
+        <Lock className="size-5" />
+      </div>
+      <div className="flex flex-1 items-center justify-between rounded-xl border border-dashed border-border bg-card/60 px-4 py-3">
+        <div className="flex flex-col">
+          <span className="font-semibold text-muted-foreground">{name}</span>
+          {reason && <span className="text-xs text-muted-foreground">{reason}</span>}
+        </div>
+        <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+          Locked
+        </span>
+      </div>
+    </div>
   );
 }
 

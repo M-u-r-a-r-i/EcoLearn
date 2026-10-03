@@ -50,7 +50,7 @@ function ProfileForm() {
   const { student, setStudent } = useAuth();
   const [name, setName] = useState(student?.name ?? "");
   const [interest, setInterest] = useState(student?.interest ?? "");
-  const [level, setLevel] = useState(student?.level ?? "Class 11");
+  const level = student?.level ?? "Class 11"; // a teacher changes it, not the student
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -65,7 +65,7 @@ function ProfileForm() {
     }
     setSaving(true);
     try {
-      setStudent(await updateProfile({ name: name.trim(), interest, level }));
+      setStudent(await updateProfile({ name: name.trim(), interest }));
       setSaved("Saved. Your lessons now follow your new choices.");
     } catch (err) {
       setError(friendlyMessage(err));
@@ -92,7 +92,8 @@ function ProfileForm() {
         interest={interest}
         level={level}
         onInterestChange={setInterest}
-        onLevelChange={setLevel}
+        onLevelChange={() => {}}
+        levelLocked
         disabled={saving}
       />
       <FormError message={error} />

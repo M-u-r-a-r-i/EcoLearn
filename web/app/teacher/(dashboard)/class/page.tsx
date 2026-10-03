@@ -28,6 +28,7 @@ import {
   getClassDetail,
   getClassInsights,
   resetStudentPassword,
+  setStudentLevel,
   type ClassStudent,
   type StudentCredential,
   type StudentInsight,
@@ -129,6 +130,7 @@ function ClassView() {
               onReset={(credential) =>
                 setSheet({ title: `New password for ${credential.name}`, credentials: [credential] })
               }
+              onLevelChanged={() => setVersion((v) => v + 1)}
             />
             <AddStudentsForm
               classId={klass.class_id}
@@ -151,10 +153,12 @@ function StudentTable({
   students,
   insights,
   onReset,
+  onLevelChanged,
 }: {
   students: ClassStudent[];
   insights: StudentInsight[];
   onReset: (credential: StudentCredential) => void;
+  onLevelChanged: () => void;
 }) {
   const metricsFor = new Map(insights.map((row) => [row.student_id, row]));
   // Two-step reset: the first click asks, the second does it. A reset makes the
@@ -176,6 +180,20 @@ function StudentTable({
     }
   }
 
+  // Only a teacher can move a student between Class 11 and Class 12.
+  async function changeLevel(studentId: string, level: string) {
+    setError(null);
+    setBusy(studentId);
+    try {
+      await setStudentLevel(studentId, level);
+      onLevelChanged();
+    } catch (err) {
+      setError(friendlyMessage(err));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   if (students.length === 0) {
     return <p className="text-sm text-muted-foreground">No students in this class yet.</p>;
   }
@@ -191,6 +209,7 @@ function StudentTable({
               <th className="py-2 pr-4 font-semibold">Name</th>
               <th className="py-2 pr-4 font-semibold">Username</th>
               <th className="py-2 pr-4 font-semibold">Interest</th>
+              <th className="py-2 pr-4 font-semibold">Class</th>
               <th className="py-2 pr-4 font-semibold">Mastered</th>
               <th className="py-2 pr-4 font-semibold">Reading</th>
               <th className="py-2 pr-4 font-semibold">Right first time</th>
@@ -208,6 +227,18 @@ function StudentTable({
                   <td className="py-2 pr-4 font-medium text-foreground">{s.name}</td>
                   <td className="py-2 pr-4 font-mono">{s.username}</td>
                   <td className="py-2 pr-4 capitalize">{s.interest}</td>
+                  <td className="py-2 pr-4">
+                    <select
+                      aria-label={`Class for ${s.name}`}
+                      value={s.level}
+                      disabled={busy !== null}
+                      onChange={(e) => changeLevel(s.student_id, e.target.value)}
+                      className="h-8 rounded-md border border-input bg-card px-2 text-sm"
+                    >
+                      <option value="Class 11">Class 11</option>
+                      <option value="Class 12">Class 12</option>
+                    </select>
+                  </td>
                   <td className="py-2 pr-4">
                     {s.mastered}
                     <span className="text-muted-foreground"> of {s.attempted} tried</span>

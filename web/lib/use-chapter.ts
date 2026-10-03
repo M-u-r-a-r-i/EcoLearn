@@ -16,6 +16,15 @@ import { getChapters, type Chapter } from "@/lib/api";
 // lessons in every in-scope interest.
 export const DEFAULT_CHAPTER_ID = "motion_straight_line";
 
+// Each class starts in its own first piloted chapter (the class is set by the teacher).
+const DEFAULT_BY_LEVEL: Record<string, string> = {
+  "Class 11": DEFAULT_CHAPTER_ID,
+  "Class 12": "current_electricity",
+};
+export function defaultChapterFor(level: string | undefined): string {
+  return DEFAULT_BY_LEVEL[level ?? ""] ?? DEFAULT_CHAPTER_ID;
+}
+
 // Fetch the chapter list once per page load per interest and share it between
 // components. Keyed by interest because each chapter's `lessons_ready` depends
 // on it, and a student can switch interest in settings.
@@ -37,8 +46,9 @@ export function useChapter() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const chapterId = searchParams.get("chapter") ?? DEFAULT_CHAPTER_ID;
-  const interest = useAuth().student?.interest ?? "";
+  const { student } = useAuth();
+  const interest = student?.interest ?? "";
+  const level = student?.level;
 
   const [loaded, setLoaded] = useState<{ interest: string; chapters: Chapter[] } | null>(null);
   useEffect(() => {
@@ -52,7 +62,16 @@ export function useChapter() {
     };
   }, [interest]);
   // A list loaded for a previous interest is stale: show loading instead.
-  const chapters = loaded?.interest === interest ? loaded.chapters : null;
+  // A student sees only their own class's chapters; a teacher moves them between classes.
+  const chapters =
+    loaded?.interest === interest
+      ? loaded.chapters.filter((c) => !level || `Class ${c.grade}` === level)
+      : null;
+  const wanted = searchParams.get("chapter");
+  const chapterId =
+    wanted && (chapters === null || chapters.some((c) => c.id === wanted))
+      ? wanted
+      : defaultChapterFor(level);
 
   const setChapter = useCallback(
     (id: string) => {

@@ -665,6 +665,35 @@ def reset_student_password(teacher_id: str, student_id: str) -> dict[str, Any]:
     }
 
 
+_LEVELS = ("Class 11", "Class 12")
+
+
+def set_student_level(teacher_id: str, student_id: str, level: str) -> dict[str, Any]:
+    """Move a student in one of the teacher's classes to Class 11 or Class 12.
+
+    Only a teacher can do this (2026-10-03): a student's level decides which
+    chapters they see, so it isn't theirs to change. Their earlier answers and
+    progress stay as they are; their lessons and roadmap follow the new level.
+
+    Raises:
+        NotFoundError: the student isn't in this teacher's classes.
+        EcoLearnError: a level other than Class 11 or Class 12.
+    """
+    level = (level or "").strip()
+    if level not in _LEVELS:
+        raise EcoLearnError(f"Level must be one of: {', '.join(_LEVELS)}.")
+    get_teacher_profile(teacher_id)
+    class_id = store.get_student_class_id(student_id)
+    if class_id is None:
+        raise NotFoundError("Student not found in your classes.")
+    try:
+        _own_class(teacher_id, class_id)
+    except NotFoundError:
+        raise NotFoundError("Student not found in your classes.") from None
+    store.update_student_profile(student_id, level=level)
+    return {"student_id": student_id, "level": level}
+
+
 # ---------------------------------------------------------------------------
 # 2. Chapters + roadmap
 # ---------------------------------------------------------------------------
@@ -735,6 +764,58 @@ def list_interests(active_only: bool = True) -> list[dict[str, Any]]:
     return out
 
 
+def _level_grade(level: str) -> int | None:
+    digits = re.findall(r"\d+", level or "")
+    return int(digits[0]) if digits else None
+
+
+def _require_chapter_for_level(profile: dict[str, Any], chapter_id: str) -> None:
+    """A student only works in their own class's chapters (the teacher sets the class)."""
+    grade = _level_grade(profile.get("level", ""))
+    chapter = next((c for c in engine.list_chapters() if c["id"] == chapter_id), None)
+    if grade is None or chapter is None or chapter["grade"] == grade:
+        return
+    raise EcoLearnError(
+        f"{chapter['name']} is a Class {chapter['grade']} chapter. You're in Class {grade}; "
+        "your teacher can move you up."
+    )
+
+
+def _concept_locks(
+    student_id: str, interest: str, rows: list[dict[str, Any]], state: dict[str, Any]
+) -> dict[str, str | None]:
+    """{concept_id: why it is locked, or None}: concepts open one after another.
+
+    Chapters are never locked (2026-10-03: the user's call); the concepts inside
+    one open in order, like levels. A concept is open when:
+      * it is the first written one in the chapter, or the one before it is
+        passed (right once = cleared, or mastered, or the starting check says
+        the student knows it: so strong students aren't held back), or
+      * the student already tried it, or the starting check showed a mix-up in
+        it (the plan sends them there), or it is passed itself.
+    A concept with no lesson yet ("coming soon") never blocks the one after it.
+    """
+    ready = lesson_service.concepts_with_lessons(interest)
+    attempted = {a["concept_id"] for a in store.get_activity([student_id])["answers"]}
+    open_anyway = attempted | set(state["mix_ups"])
+    locks: dict[str, str | None] = {}
+    previous: tuple[str, bool] | None = None  # (name, passed) of the last written concept
+    for row in rows:
+        cid = row["concept_id"]
+        if cid not in ready:
+            locks[cid] = None
+            continue
+        passed = (row["status"] == engine.ROADMAP_MASTERED
+                  or row["progress_status"] in (store.STATUS_PARTIAL, store.STATUS_MASTERED)
+                  or cid in state["likely_known"])
+        if previous is None or previous[1] or passed or cid in open_anyway:
+            locks[cid] = None
+        else:
+            locks[cid] = f"Finish {previous[0]} first."
+        previous = (row["name"], passed)
+    return locks
+
+
 def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
     """Return every concept in a chapter tagged mastered / available.
 
@@ -759,9 +840,14 @@ def get_roadmap(student_id: str, chapter_id: str) -> list[dict[str, Any]]:
     roadmap = engine.get_roadmap(student_id, chapter_id)
     profile = store.get_student(student_id)
     if profile is not None:
+        _require_chapter_for_level(profile, chapter_id)
         ready = lesson_service.concepts_with_lessons(profile["interest"])
         state = learner_plan.learner_state(student_id)
         learner_plan.annotate_roadmap(roadmap, state)
+        locks = _concept_locks(student_id, profile["interest"], roadmap, state)
+        for row in roadmap:
+            row["locked"] = locks.get(row["concept_id"]) is not None
+            row["locked_reason"] = locks.get(row["concept_id"])
         _, _, chosen = _recommend(student_id, chapter_id, profile["interest"], state)
         for row in roadmap:
             row["has_lesson"] = row["concept_id"] in ready
@@ -1214,6 +1300,13 @@ def get_next_lesson(
         concept = engine.find_concept(concept_id)
         if concept is None:
             raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
+        _require_chapter_for_level(profile, concept.chapter_id)
+        state = learner_plan.learner_state(student_id)
+        why_locked = _concept_locks(student_id, profile["interest"],
+                                    engine.get_roadmap(student_id, concept.chapter_id),
+                                    state).get(concept_id)
+        if why_locked:
+            raise EcoLearnError(why_locked)
         is_mastered = concept_id in store.get_mastered_concepts(student_id)
         envelope: dict[str, Any] = {
             "status": engine.KIND_REVIEW if is_mastered else engine.KIND_NEW,
@@ -1224,6 +1317,7 @@ def get_next_lesson(
         }
         chosen = concept
     else:
+        _require_chapter_for_level(profile, chapter_id)
         status, reason, chosen = _recommend(student_id, chapter_id, profile["interest"])
         envelope = {
             "status": status,
