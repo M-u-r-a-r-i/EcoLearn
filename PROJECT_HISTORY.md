@@ -2335,3 +2335,37 @@ The user is continuing in another session. `AGENTS.md` §2 now points at `e920f3
 §9zp as done. Next candidates are unchanged (demo dataset, doubt chat without grpc, landing page,
 dev-only error detail, local GPU backend); the user's own order is still OmniRoute (or the 3090),
 then the pre-pilot cleanup.
+
+## 9zr. Demo dataset (2026-10-03)
+
+**Changed.**
+- `scripts/seed_demo.py`: fills a *separate* database (`data/demo.db`, gitignored) with a fictional
+  class: teacher `demo.teacher`, "Class 11-B Physics", 25 students (cricket 9, football 8, gaming 8),
+  all with one shared throwaway password (a constant in the script). 23 took the starting check, 20
+  the end check; ~200 lesson checks, ~70 revision answers, ~11 personal stories with decision
+  trails, a rules-based teaching-assistant plan. Refuses to write to `data/progress.db`;
+  `--reset` rebuilds; fixed seed, so the same class every time.
+- `tests/test_seed_demo.py`: refusal, class shape, before < after, studied gains > unstudied,
+  labels, empty usage log, determinism.
+
+**Why this way.**
+- It calls the real code (`submit_diagnostic`, `_grade_multiple_choice`, `submit_revision`,
+  `submit_end_check`), then moves timestamps back over three weeks in SQL. So mastery, the mix-up
+  list, the revision queue and every dashboard number come from the real rules, not painted rows.
+- Student behaviour is a small model: an ability per student, a per-concept difficulty, a favoured
+  wrong option per question (so some mix-ups are common), "sure/think/guess" tied to ability, and
+  students study the ideas their check flagged first. End-check answers depend on the starting
+  answer (known stays known, studied-and-wrong mostly fixed, unstudied-and-wrong mostly not).
+
+**Honesty.** Everything is invented. Story texts are placeholders marked `[Demo placeholder]`, model
+`demo-seed`. **No AI usage is invented**: the usage log (tokens, cost) stays empty, and the
+decision panel shows 0 model calls. Don't quote these numbers as pilot results.
+
+**Learned.**
+- First version drew every answer independently, so "ideas not studied" got *worse* between checks
+  (regression to the mean: the unstudied ones were the ones they already knew). Answers have to
+  depend on the earlier state or the control group looks broken.
+- `MAX_ATTEMPTS` is 2, so a blocked story has two drafts, not three.
+
+Use: `venv\Scripts\python.exe scripts\seed_demo.py --reset`, then start the API with
+`$env:ECOLEARN_PROGRESS_DB = "data\demo.db"`.

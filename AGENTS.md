@@ -182,7 +182,7 @@ reminded), *then* the **pre-pilot cleanup**. Don't start either without them.
 
 Candidates in between or after, by value for the finals (the user picks):
 1. ~~"How the AI decided" panel~~ **done 2026-10-03 (§9zp).**
-2. **Demo dataset** (Demo, Presentation): a script filling a *separate* DB (`ECOLEARN_PROGRESS_DB=
+2. ~~**Demo dataset**~~ **done 2026-10-03 (§9zr): `scripts/seed_demo.py --reset`, then run the API with `ECOLEARN_PROGRESS_DB=data\demo.db`.** Original idea: a script filling a *separate* DB (`ECOLEARN_PROGRESS_DB=
    data/demo.db`) with a realistic class (~25 students, starting + end checks, lessons, mix-ups,
    confidence, revision), so the dashboards are full on stage and pilot data stays clean. ~1 day.
 3. **Doubt chat without grpc** (Readiness, Demo): it depends on chromadb → grpc, which Windows
@@ -502,6 +502,7 @@ venv\Scripts\python.exe tests\test_mix_ups.py             # my mix-ups, "how sur
 venv\Scripts\python.exe tests\test_mastery.py             # two-question mastery, revision queue
 venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost per student
 venv\Scripts\python.exe tests\test_ai_decisions.py        # decision trails, "How the AI decided"
+venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
