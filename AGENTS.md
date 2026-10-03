@@ -88,7 +88,7 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
-### Current state (everything committed and pushed; last commit `70850c8` or later)
+### Current state (everything committed and pushed; last code commit `b6f4d1e`, 2026-10-03)
 
 **Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`**. A teammate (GitHub `M-u-r-a-r-i`)
 also pushes lesson batches — always `git pull --ff-only` first.
@@ -165,20 +165,36 @@ next batch (the batch procedure is below). Famous images: `data/media/famous/`, 
 
 ### -> YOUR NEXT ACTION: ask the user which of these to do (they choose the order)
 
-The user's improvement list from 2026-10-02 is **done** (teacher tools → pilot metrics → chapter
-picker → teacher agent → personalisation layers 1–3 → story review → robustness & polish).
-Candidates for next, roughly by value for the finals:
-1. **OmniRoute setup + the first live run** (with the user): install it, pick a tool-calling
-   model from `/v1/models`, set `LLM_BASE_URL` / `LLM_MODEL` in `.env`, then read the first real
-   personal stories and a real teacher plan for quality before any student sees them.
-2. **Finals prep:** a 15-minute demo script, a seeded demo class with realistic data (so the
-   dashboards aren't empty on stage), the pitch's "agentic" story (writer + critic + teacher
-   assistant, with their guardrails), a landing page that says what EcoLearn is.
-3. **Pre-pilot cleanup:** delete the local test accounts (below), set `ECOLEARN_JWT_SECRET`,
-   parental consent forms and a one-page data policy (minors; India's DPDP Act), the teacher
-   accounts for the school.
-4. **Lessons:** the 8 phase-1 batches left (motorsport × 7 Class 12 chapters,
-   `ray_optics:smartphones`) — first settle the scope question below.
+**Prioritise by the judging weights** (Innovation 30, Technology readiness 20, Commercial 15,
+Education 15, Presentation 10, Demo 10). Content volume alone scores little.
+
+**Done since the 2026-10-02 handoff** (the pre-pilot list agreed with the user on 2026-10-02):
+end check with counterbalanced forms (§9zl) → "My mix-ups" + "How sure are you?" (§9zm) →
+two-question mastery + revision queue + AI usage/cost log (§9zn).
+
+**The user's stated order now:** they set up **OmniRoute** themselves first (they asked to be
+reminded), *then* the **pre-pilot cleanup**. Don't start either without them.
+
+Candidates in between or after, by value for the finals (the user picks):
+1. **"How the AI decided" panel** (teacher view; Innovation, responsible AI): what the story
+   critic rejected and why (`personal_stories.problems`, `attempts`), the teaching assistant's
+   tool calls (`class_plans.trace`), and when a fallback ran. Most data is already stored. ~1 day.
+2. **Demo dataset** (Demo, Presentation): a script filling a *separate* DB (`ECOLEARN_PROGRESS_DB=
+   data/demo.db`) with a realistic class (~25 students, starting + end checks, lessons, mix-ups,
+   confidence, revision), so the dashboards are full on stage and pilot data stays clean. ~1 day.
+3. **Doubt chat without grpc** (Readiness, Demo): it depends on chromadb → grpc, which Windows
+   Application Control blocks here, and takes ~2 min. With 249 concepts an in-process numpy
+   search over the existing MiniLM embeddings would remove grpc. Moving it onto `src/llm` would
+   also give it token counts in the usage log. ~1 day.
+4. **Landing page** (`web/app/page.tsx` says nothing about physics). ~½ day.
+5. **Dev-only error detail** on `web/app/error.tsx` (show `error.message` when
+   `process.env.NODE_ENV === "development"`), see Open threads 3. ~15 min.
+6. **Local GPU backend** (the user has an **RTX 3090, 24 GB**): Ollama / llama.cpp / vLLM exposes
+   an OpenAI-compatible URL, so `src/llm` needs only `LLM_BASE_URL` + `LLM_MODEL`. A private,
+   always-available alternative (or OmniRoute upstream) to free cloud tiers for stories and the
+   teaching assistant. The user's call; it's M1a's plan done small.
+7. Later: teacher report + "assign concepts", interactive simulations, phone check of every
+   student page, the remaining lesson batches (scope question below).
 
 ### Machine issues to raise with the user
 
@@ -192,7 +208,14 @@ Candidates for next, roughly by value for the finals:
   A machine setting or a `grpcio` reinstall: the user's call.
 - **The user often starts the API with the system Python** (`WindowsApps\…\Python 3.12`). It works;
   recommend `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`. The web app works
-  at both `localhost:3000` and `127.0.0.1:3000` since §9zj.
+  at both `localhost:3000` and `127.0.0.1:3000` since §9zj. **On 2026-10-03 two API servers were
+  running at once** (one from the venv, one from the system Python; only one can hold port 8000).
+  Suggest closing the extra terminal.
+- **Load-test timing depends on the machine's state.** On 2026-10-03 it failed for a while on old
+  and new code alike (30 bcrypt logins ~4 s), then passed (p95 1.4 s). If it fails, run the
+  previous commit beside it from a temporary `git worktree` before blaming a change (§9zn).
+- **The browser pane's `localhost` session is the user's own.** Sessions use per-origin cookies, so
+  checking as a test account at `127.0.0.1:3000` leaves it untouched (done in §9zl–§9zn).
 
 ### Open threads
 
@@ -203,6 +226,8 @@ Candidates for next, roughly by value for the finals:
    - teacher `endcheck.teacher` ("End check test": `asha.r`, `bilal.k`, `chitra.n`; the end
      check is open and all three have taken it; `chitra.n` and `asha.r` also answered lesson
      checks, `asha.r` a revision question), from the §9zl–§9zn browser checks;
+   - `dev.r` and `esha.r`, also in "End check test" (added 2026-10-03 while reproducing the
+     error report in thread 3);
    - self-signup students `start.check` and `loop.check`;
    - two hand-seeded personal stories (model "ui-check (seeded by hand)").
 
@@ -211,6 +236,12 @@ Candidates for next, roughly by value for the finals:
    and `demo_student` (self-signup; only a local reset via `store.update_student_password`, with
    their go-ahead).
 2. **Two machines:** pull first, and agree with the teammate who takes which lesson batches.
+3. **"Something went wrong" after a teacher-created student logged in** (user report,
+   2026-10-03, at `localhost:3000`). **Not reproduced:** the same path at `127.0.0.1:3000` (add a
+   student → log out → log in through the form) landed on the roadmap, no console errors; `/start`
+   and `/roadmap` render for a new class student. Likely a browser tab opened before the day's
+   changes (stale dev chunks); a hard refresh should fix it. If it recurs, ask for the red console
+   line under the error and the URL. Candidate fix: item 5 in the next-action list.
 
 ### Open with the user, don't decide alone
 

@@ -2268,3 +2268,15 @@ connections. `store.get_concept_answers` (one connection, one concept) brought i
   failed, and the comparison still caught the real 300 ms regression the threshold alone wouldn't
   have pinned on this change.
 - JSX dropped the space after `</span>` at a line end again (third time; §9z, §9zd): use `{" "}`.
+
+## 9zo. Handoff for a new session (2026-10-03)
+
+The user is continuing in another session. **Changed:** `AGENTS.md` §2: the current commit, what
+was done since the last handoff (§9zl–§9zn), the user's stated order (OmniRoute first, then the
+pre-pilot cleanup), next candidates ranked by the judging weights, machine notes (two API servers,
+load-test timing, the pane's `localhost` session), two more test students, and the unreproduced
+"Something went wrong" report (open thread 3).
+
+**Learned.** The user has an **RTX 3090 (24 GB)**, the GPU behind M1a's self-hosted plan. Any
+OpenAI-compatible local server (Ollama, llama.cpp, vLLM) plugs into `src/llm` with two `.env`
+values, so a local backend needs no code.
