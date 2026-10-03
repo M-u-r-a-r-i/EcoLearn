@@ -119,6 +119,10 @@ also lifts a login lockout). **`/teacher/class`** has:
   mix-ups over paired answers, studied vs not-studied ideas (a rough control), per idea and per
   student;
 - **personal stories**: read, hide or restore them, with students' reports first;
+- **How the AI decided** (§9zp): the story guardrail pipeline with this class's counts (drafts,
+  rule-check rejections, critic rejections, shown), safe fallbacks, human review, teaching-
+  assistant plans by AI vs rules fallback, model calls, and a decision log with each story's
+  step-by-step trail and reasons;
 - the students table.
 
 **Where things live** (each with its `PROJECT_HISTORY.md` entry):
@@ -128,6 +132,7 @@ also lifts a login lockout). **`/teacher/class`** has:
 | Boundary (all logic) | `src/platform_api.py` | — |
 | Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
 | Mastery from evidence + revision queue | `learner_plan.mastery_evidence`, `platform_api` §"Mastery from evidence", `web/app/(app)/review` | 9zn |
+| "How the AI decided" (decision trails) | `personal_story.generate` (trail), `platform_api.get_class_ai_decisions`, `web/components/ai-decisions.tsx` | 9zp |
 | AI usage log + cost per student | `src/llm/client.py` (usage sink), `store.llm_calls`, `metrics.ai_usage`, `data/llm_prices.yaml` | 9zn |
 | My mix-ups + "how sure are you?" | `learner_plan.mix_up_history`, `diagnostic.clean_confidence`, `web/app/(app)/mix-ups`, `web/components/confidence-picker.tsx` | 9zm |
 | End check (pilot before → after, counterbalanced forms) | `src/learner/diagnostic.py`, `metrics.check_gains`, `web/app/(app)/end-check`, `web/components/class-checks.tsx` | 9zl |
@@ -176,9 +181,7 @@ two-question mastery + revision queue + AI usage/cost log (§9zn).
 reminded), *then* the **pre-pilot cleanup**. Don't start either without them.
 
 Candidates in between or after, by value for the finals (the user picks):
-1. **"How the AI decided" panel** (teacher view; Innovation, responsible AI): what the story
-   critic rejected and why (`personal_stories.problems`, `attempts`), the teaching assistant's
-   tool calls (`class_plans.trace`), and when a fallback ran. Most data is already stored. ~1 day.
+1. ~~"How the AI decided" panel~~ **done 2026-10-03 (§9zp).**
 2. **Demo dataset** (Demo, Presentation): a script filling a *separate* DB (`ECOLEARN_PROGRESS_DB=
    data/demo.db`) with a realistic class (~25 students, starting + end checks, lessons, mix-ups,
    confidence, revision), so the dashboards are full on stage and pilot data stays clean. ~1 day.
@@ -228,6 +231,8 @@ Candidates in between or after, by value for the finals (the user picks):
      checks, `asha.r` a revision question), from the §9zl–§9zn browser checks;
    - `dev.r` and `esha.r`, also in "End check test" (added 2026-10-03 while reproducing the
      error report in thread 3);
+   - a **blocked** personal story for `asha.r` (second_law) written by a scripted stand-in model
+     ("scripted-main (UI check)"), the §9zp browser check of the decision log;
    - self-signup students `start.check` and `loop.check`;
    - two hand-seeded personal stories (model "ui-check (seeded by hand)").
 
@@ -496,6 +501,7 @@ venv\Scripts\python.exe tests\test_end_check.py           # end check: forms, ac
 venv\Scripts\python.exe tests\test_mix_ups.py             # my mix-ups, "how sure are you?"
 venv\Scripts\python.exe tests\test_mastery.py             # two-question mastery, revision queue
 venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost per student
+venv\Scripts\python.exe tests\test_ai_decisions.py        # decision trails, "How the AI decided"
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch

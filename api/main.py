@@ -479,6 +479,14 @@ def teacher_class_stories(
     return api.list_class_stories(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/ai-decisions")
+def teacher_ai_decisions(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """How the AI decided: guardrail counts and each personal story's step-by-step record."""
+    return api.get_class_ai_decisions(teacher_id, class_id)
+
+
 @app.post("/api/teacher/stories/{student_id}/{concept_id}/visibility")
 def teacher_story_visibility(
     student_id: str,

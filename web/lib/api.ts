@@ -408,6 +408,63 @@ export interface ClassPlan {
   reused?: boolean; // true if a plan from the last minute was returned
 }
 
+// ---------------------------------------------------------------------------
+// "How the AI decided": every guardrail at work in a class, and each personal
+// story's step-by-step record (rule checks, the critic's verdict, rewrites).
+// ---------------------------------------------------------------------------
+export type DecisionStep = "format" | "fit" | "rules" | "critic" | "model";
+
+export interface DecisionTrailStep {
+  attempt: number;
+  step: DecisionStep;
+  passed: boolean;
+  problems: string[];
+  model: string | null;
+}
+
+export interface AiDecisions {
+  stories: {
+    attempted: number;
+    shown: number;
+    first_draft: number;
+    rewritten: number;
+    blocked: number;
+    declined: number;
+    errors: number;
+    reported: number;
+    hidden_by_teacher: number;
+    rules_rejections: number;
+    critic_checks: number;
+    critic_rejections: number;
+  };
+  plans: { total: number; agent: number; rules: number; latest_note: string | null };
+  calls: {
+    total: number;
+    failed: number;
+    by_feature: Record<string, { calls: number; failed: number; median_latency_ms: number | null }>;
+  };
+  log: {
+    student_id: string;
+    name: string;
+    concept_id: string;
+    concept_name: string;
+    hobby: string;
+    emoji: string;
+    status: "ready" | "failed" | "no_fit" | "error";
+    outcome: string;
+    attempts: number;
+    model: string | null;
+    created_at: string;
+    hidden: boolean;
+    reported: boolean;
+    trail: DecisionTrailStep[];
+  }[];
+}
+
+export function getClassAiDecisions(classId: string): Promise<AiDecisions> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/ai-decisions`);
+}
+
 export function getClassPlan(classId: string): Promise<ClassPlan | null> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`);
 }

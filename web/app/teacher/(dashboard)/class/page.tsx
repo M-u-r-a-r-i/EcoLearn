@@ -19,6 +19,7 @@ import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { TeachingAssistant } from "@/components/teaching-assistant";
 import { ClassStoriesPanel } from "@/components/class-stories";
 import { ClassChecksPanel } from "@/components/class-checks";
+import { AiDecisionsPanel } from "@/components/ai-decisions";
 import { CredentialsSheet, InterestSelect, RosterField } from "@/components/teacher-ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,6 +122,7 @@ function ClassView() {
               <FormError message={insights.error ?? "Couldn't load the class insights."} />
             )}
             <ClassStoriesPanel classId={klass.class_id} />
+            <AiDecisionsPanel classId={klass.class_id} />
             <StudentTable
               students={students}
               insights={insights.data?.students ?? []}

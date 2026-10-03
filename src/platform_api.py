@@ -1378,6 +1378,97 @@ def list_class_stories(teacher_id: str, class_id: str) -> dict[str, Any]:
     }
 
 
+# What each status means to a teacher, for the decision log.
+_STORY_OUTCOME = {
+    "ready": "Shown to the student",
+    "failed": "Blocked: the student saw the reviewed lesson story",
+    "no_fit": "Declined: no honest link to this hobby, so the reviewed story",
+    "error": "Model unavailable: the student saw the reviewed lesson story",
+}
+
+
+def get_class_ai_decisions(teacher_id: str, class_id: str, limit: int = 30) -> dict[str, Any]:
+    """"How the AI decided" for one of the teacher's classes: every guardrail at
+    work, and the step-by-step record behind each personal story.
+
+    Returns:
+        {"stories": {attempted, shown, first_draft, rewritten, blocked, declined,
+                     errors, reported, hidden_by_teacher, rules_rejections,
+                     critic_checks, critic_rejections},
+         "plans": {total, agent, rules, latest_note},
+         "calls": {total, failed, by_feature: {feature: {calls, failed,
+                   median_latency_ms}}},
+         "log": [{student_id, name, concept_id, concept_name, hobby, emoji,
+                  status, outcome, attempts, model, created_at, hidden,
+                  reported, trail: [{attempt, step, passed, problems, model}]}]}
+        `log` is newest first, at most `limit` stories. Stories written before
+        the trail existed have an empty trail.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    students = {s["student_id"]: s for s in store.list_class_students(class_id)}
+    rows = store.list_personal_stories(list(students))
+    hobbies = personal_story._hobby_table()
+    steps = [t for r in rows for t in r["trail"]]
+    ready = [r for r in rows if r["status"] == personal_story.READY]
+    stories = {
+        "attempted": len(rows),
+        "shown": sum(1 for r in ready if not r["hidden"]),
+        "first_draft": sum(1 for r in ready if r["attempts"] == 1),
+        "rewritten": sum(1 for r in ready if r["attempts"] > 1),
+        "blocked": sum(1 for r in rows if r["status"] == personal_story.FAILED),
+        "declined": sum(1 for r in rows if r["status"] == personal_story.NO_FIT),
+        "errors": sum(1 for r in rows if r["status"] == personal_story.ERROR),
+        "reported": sum(1 for r in rows if r["reported_at"]),
+        "hidden_by_teacher": sum(1 for r in rows if r["hidden"] and r["hidden_by"] == "teacher"),
+        "rules_rejections": sum(1 for t in steps if t["step"] in ("rules", "format") and not t["passed"]),
+        "critic_checks": sum(1 for t in steps if t["step"] == "critic"),
+        "critic_rejections": sum(1 for t in steps if t["step"] == "critic" and not t["passed"]),
+    }
+
+    plans = store.list_class_plans(class_id)
+    calls = [c for c in store.get_llm_calls()
+             if c["class_id"] == class_id or c["student_id"] in students]
+    by_feature: dict[str, dict[str, Any]] = {}
+    for feature in sorted({c["feature"] for c in calls}):
+        mine = [c for c in calls if c["feature"] == feature]
+        latencies = sorted(c["latency_ms"] for c in mine if c["latency_ms"] is not None)
+        by_feature[feature] = {
+            "calls": len(mine), "failed": sum(1 for c in mine if not c["ok"]),
+            "median_latency_ms": latencies[len(latencies) // 2] if latencies else None,
+        }
+
+    log = []
+    for r in rows[:limit]:
+        concept = engine.find_concept(r["concept_id"])
+        hobby = hobbies.get(r["hobby"], {"label": r["hobby"].capitalize(), "emoji": "✨"})
+        log.append({
+            "student_id": r["student_id"], "name": students[r["student_id"]]["name"],
+            "concept_id": r["concept_id"], "concept_name": concept.name if concept else r["concept_id"],
+            "hobby": hobby["label"], "emoji": hobby.get("emoji", ""),
+            "status": r["status"],
+            "outcome": ("Hidden by you: the student sees the reviewed story"
+                        if r["hidden"] and r["hidden_by"] == "teacher"
+                        else "Reported by the student, so hidden from them" if r["hidden"]
+                        else _STORY_OUTCOME.get(r["status"], r["status"])),
+            "attempts": r["attempts"], "model": r["model"], "created_at": r["created_at"],
+            "hidden": r["hidden"], "reported": bool(r["reported_at"]), "trail": r["trail"],
+        })
+    return {
+        "stories": stories,
+        "plans": {"total": len(plans),
+                  "agent": sum(1 for p in plans if p["source"] == "agent"),
+                  "rules": sum(1 for p in plans if p["source"] != "agent"),
+                  "latest_note": plans[0]["note"] if plans else None},
+        "calls": {"total": len(calls), "failed": sum(1 for c in calls if not c["ok"]),
+                  "by_feature": by_feature},
+        "log": log,
+    }
+
+
 def _epoch(iso: str | None) -> float:
     return datetime.fromisoformat(iso).timestamp() if iso else 0.0
 

@@ -191,7 +191,9 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
     # columns, the additive way, so stories written before this keep working.
     story_columns = {row["name"] for row in conn.execute("PRAGMA table_info(personal_stories)")}
     for column, kind in (("hidden", "INTEGER NOT NULL DEFAULT 0"), ("hidden_by", "TEXT"),
-                         ("report_reason", "TEXT"), ("reported_at", "TEXT")):
+                         ("report_reason", "TEXT"), ("reported_at", "TEXT"),
+                         # How the AI decided (2026-10-03): each step's verdict, JSON.
+                         ("trail", "TEXT")):
         if column not in story_columns:
             conn.execute(f"ALTER TABLE personal_stories ADD COLUMN {column} {kind}")
     conn.execute(
@@ -1411,6 +1413,7 @@ def get_personal_story(student_id: str, concept_id: str) -> dict[str, Any] | Non
         return None
     story = dict(row)
     story["problems"] = json.loads(story["problems"])
+    story["trail"] = json.loads(story["trail"]) if story.get("trail") else []
     return story
 
 
@@ -1422,13 +1425,14 @@ def save_personal_story(row: dict[str, Any]) -> None:
             """
             INSERT OR REPLACE INTO personal_stories
                 (student_id, concept_id, hobby, lesson_hash, status, story, analogy,
-                 limit_text, model, attempts, problems, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 limit_text, model, attempts, problems, created_at, trail)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (row["student_id"], row["concept_id"], row["hobby"], row["lesson_hash"],
              row["status"], row.get("story"), row.get("analogy"), row.get("limit_text"),
              row.get("model"), int(row.get("attempts", 0)),
-             json.dumps(row.get("problems", []), ensure_ascii=False), _now_iso()),
+             json.dumps(row.get("problems", []), ensure_ascii=False), _now_iso(),
+             json.dumps(row.get("trail", []), ensure_ascii=False)),
         )
         conn.commit()
     finally:
@@ -1452,6 +1456,7 @@ def list_personal_stories(student_ids: list[str]) -> list[dict[str, Any]]:
     for r in rows:
         row = dict(r)
         row["problems"] = json.loads(row["problems"])
+        row["trail"] = json.loads(row["trail"]) if row.get("trail") else []
         row["hidden"] = bool(row["hidden"])
         out.append(row)
     return out
@@ -1587,3 +1592,17 @@ def get_concept_answers(student_id: str, concept_id: str) -> tuple[list, list, l
     finally:
         conn.close()
     return tuple(out)
+
+
+def list_class_plans(class_id: str) -> list[dict[str, Any]]:
+    """Every teaching-assistant plan for a class, newest first: who wrote it
+    (agent or rules), with which model, and why rules (note). No markdown."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT plan_id, created_at, source, model, note, trace FROM class_plans "
+            "WHERE class_id = ? ORDER BY plan_id DESC", (class_id,)
+        ).fetchall()
+    finally:
+        conn.close()
+    return [{**dict(r), "trace": json.loads(r["trace"])} for r in rows]

@@ -204,26 +204,42 @@ def generate(student_id: str, concept_id: str) -> dict[str, Any] | None:
     messages = writer_messages(ctx)
     problems: list[str] = []
     model = None
+    # The decision trail (2026-10-03): every step's verdict, so a teacher can see
+    # how a story was checked ("How the AI decided"). Steps: format (was the
+    # draft readable JSON), fit (the writer declined), rules (guard_problems),
+    # critic (the second model's verdict), model (a call failed).
+    trail: list[dict[str, Any]] = []
+
+    def step(attempt: int, name: str, passed: bool, found: list[str] | None = None,
+             by: str | None = None) -> None:
+        trail.append({"attempt": attempt, "step": name, "passed": passed,
+                      "problems": list(found or [])[:5], "model": by})
+
+    attempt = 0
     try:
         for attempt in range(1, MAX_ATTEMPTS + 1):
             result = chat(messages, role="main", temperature=0.7, max_tokens=900)
             model = result.model
             draft = parse_json_object(result.text)
             if draft is not None and draft.get("fit") is False:
+                step(attempt, "fit", False, ["The writer found no honest link to this hobby."], model)
                 store.save_personal_story({**row, "status": NO_FIT, "model": model,
-                                           "attempts": attempt})
+                                           "attempts": attempt, "trail": trail})
                 return store.get_personal_story(student_id, concept_id)
             if draft is None:
                 problems = ["The answer wasn't a JSON object."]
+                step(attempt, "format", False, problems, model)
             else:
                 problems = guard_problems(draft)
+                step(attempt, "rules", not problems, problems, model)
                 if not problems:
-                    passed, problems, _ = critic_verdict(ctx, draft)
+                    passed, problems, critic_model = critic_verdict(ctx, draft)
+                    step(attempt, "critic", passed, problems, critic_model)
                     if passed:
                         store.save_personal_story({
                             **row, "status": READY, "model": model, "attempts": attempt,
                             "story": draft["story"].strip(), "analogy": draft["analogy"].strip(),
-                            "limit_text": draft["limit"].strip()})
+                            "limit_text": draft["limit"].strip(), "trail": trail})
                         return store.get_personal_story(student_id, concept_id)
             messages = messages + [
                 {"role": "assistant", "content": result.text or ""},
@@ -232,10 +248,11 @@ def generate(student_id: str, concept_id: str) -> dict[str, Any] | None:
                  + "\nRewrite it to fix every one, following all the rules. JSON only."},
             ]
         store.save_personal_story({**row, "status": FAILED, "model": model,
-                                   "attempts": MAX_ATTEMPTS, "problems": problems})
+                                   "attempts": MAX_ATTEMPTS, "problems": problems, "trail": trail})
     except llm.LLMError as exc:
+        step(max(attempt, 1), "model", False, [str(exc)[:300]], model)
         store.save_personal_story({**row, "status": ERROR, "model": model,
-                                   "problems": [str(exc)[:300]]})
+                                   "problems": [str(exc)[:300]], "trail": trail})
     return store.get_personal_story(student_id, concept_id)
 
 

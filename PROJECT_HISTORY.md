@@ -2280,3 +2280,51 @@ load-test timing, the pane's `localhost` session), two more test students, and t
 **Learned.** The user has an **RTX 3090 (24 GB)**, the GPU behind M1a's self-hosted plan. Any
 OpenAI-compatible local server (Ollama, llama.cpp, vLLM) plugs into `src/llm` with two `.env`
 values, so a local backend needs no code.
+
+## 9zp. "How the AI decided" (2026-10-03)
+
+*User request:* the first item of the next-steps list (Innovation is 30% of the judging, and the
+conference theme includes responsible AI).
+
+**Changed.**
+- `src/learner/personal_story.py`: `generate` records a **decision trail**: one entry per step,
+  `{attempt, step, passed, problems, model}`, with steps `format` (readable JSON), `fit` (the writer
+  declined), `rules` (`guard_problems`), `critic` (the second model's verdict) and `model` (a
+  failed call). Saved with every outcome (ready, failed, no_fit, error).
+- `src/progress/store.py`: `personal_stories.trail` (additive JSON column; old rows read as `[]`),
+  `list_class_plans`.
+- `src/platform_api.py`: `get_class_ai_decisions(teacher_id, class_id)`: story guardrail counts
+  (attempted, shown, first draft, rewritten, blocked, declined, errors, reported, hidden by the
+  teacher, rule-check and critic rejections), teaching-assistant plans by source with the latest
+  fallback note, model calls for this class (by the class id or its students' ids) and a decision
+  log with names, plain-words outcomes and trails. `api/main.py`:
+  `GET /api/teacher/classes/{id}/ai-decisions`.
+- Web: `components/ai-decisions.tsx` on `/teacher/class`, below the stories: the pipeline
+  (writer → rule checks → AI critic → shown, with counts), four tiles (safe fallbacks, human
+  review, teaching assistant, model calls), and the log, where each story expands into its steps
+  with the reasons quoted.
+- `tests/test_ai_decisions.py` (new): **17 checks**.
+
+**Why this way.**
+- **The trail is written where the decision is made** (inside `generate`), not reconstructed
+  later: before this, a story that passed on its second draft kept no record of what the first
+  draft got wrong, which is exactly the evidence that guardrails work.
+- **Outcomes in plain words** ("Blocked: the student saw the reviewed lesson story"): the point for
+  a teacher is what the *student* saw, not the status code.
+- The teaching assistant's own tool calls were already listed under each plan (§9zc), so this
+  panel only counts its plans by source rather than repeating them.
+
+**Verified in the browser** (`127.0.0.1:3000`, test teacher `endcheck.teacher`): a scripted story
+run for `asha.r` (draft 1 had a number → rule checks sent it back; draft 2's analogy said force is
+"used up" → the critic rejected it as the very misconception the lesson corrects → blocked) shows
+as pipeline counts 1 / 1 / 1 / 0, "Safe fallbacks 1", and an expandable log entry with both
+reasons quoted. No sideways scroll at 375 px. **`npm run build` passed** for the first time this
+session (all 18 routes, incl. `/end-check`, `/mix-ups`, `/review`): the dev server was this
+session's own, so it could be stopped first.
+Load test: red on the first run (p95 4.6 s); back to back against `HEAD` in a temporary
+worktree, this change matched or beat it both rounds and its second round passed (p95 1.37 s vs
+2.07 s for `HEAD`): the machine's load again, as in §9zn.
+
+**Learned.**
+- `MAX_ATTEMPTS` is 2, so a story is either right first time, rewritten once, or blocked. The test's
+  first scenario assumed three drafts.
