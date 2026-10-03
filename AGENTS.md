@@ -88,7 +88,7 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
-### Current state (everything committed and pushed; last code commit `b6f4d1e`, 2026-10-03)
+### Current state (everything committed and pushed; last code commit `e920f30`, 2026-10-03)
 
 **Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`**. A teammate (GitHub `M-u-r-a-r-i`)
 also pushes lesson batches — always `git pull --ff-only` first.
@@ -175,7 +175,7 @@ Education 15, Presentation 10, Demo 10). Content volume alone scores little.
 
 **Done since the 2026-10-02 handoff** (the pre-pilot list agreed with the user on 2026-10-02):
 end check with counterbalanced forms (§9zl) → "My mix-ups" + "How sure are you?" (§9zm) →
-two-question mastery + revision queue + AI usage/cost log (§9zn).
+two-question mastery + revision queue + AI usage/cost log (§9zn) → "How the AI decided" (§9zp).
 
 **The user's stated order now:** they set up **OmniRoute** themselves first (they asked to be
 reminded), *then* the **pre-pilot cleanup**. Don't start either without them.

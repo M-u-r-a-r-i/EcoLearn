@@ -2328,3 +2328,10 @@ worktree, this change matched or beat it both rounds and its second round passed
 **Learned.**
 - `MAX_ATTEMPTS` is 2, so a story is either right first time, rewritten once, or blocked. The test's
   first scenario assumed three drafts.
+
+## 9zq. Handoff refresh (2026-10-03)
+
+The user is continuing in another session. `AGENTS.md` §2 now points at `e920f30` and lists
+§9zp as done. Next candidates are unchanged (demo dataset, doubt chat without grpc, landing page,
+dev-only error detail, local GPU backend); the user's own order is still OmniRoute (or the 3090),
+then the pre-pilot cleanup.
