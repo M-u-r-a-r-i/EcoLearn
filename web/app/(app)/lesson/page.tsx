@@ -3,15 +3,31 @@
 //
 // Client Component inside <RequireAuth>; the API knows the student from the
 // session cookie, and the chapter/concept come from the URL.
+//
+// Since 2026-10-04 an authored lesson is a short run of steps (components/
+// lesson-stepper.tsx): the story, the idea, an example to try, where the picture
+// breaks, the takeaway, then the check. Older lessons with no sections keep the
+// single-page layout. "Show everything on one page" is always one click away.
 
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, ChevronRight, Lightbulb, ThumbsDown, ThumbsUp } from "lucide-react";
+import {
+  ArrowRight,
+  Atom,
+  BookOpen,
+  CircleHelp,
+  Lightbulb,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
 
-import { getNextLesson, type LessonRating, type NextLesson } from "@/lib/api";
+import { getNextLesson, type LessonRating, type LessonSection, type NextLesson } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 import { useLessonView } from "@/lib/use-lesson-view";
 import { useAuth } from "@/components/auth-provider";
@@ -20,8 +36,9 @@ import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Markdown } from "@/components/markdown";
 import { HelpWidget } from "@/components/help-widget";
+import { LessonStepper, type LessonStep } from "@/components/lesson-stepper";
 import { LessonStory } from "@/components/personal-story";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useChapter, withChapter } from "@/lib/use-chapter";
 
 export default function LessonPage() {
@@ -30,6 +47,16 @@ export default function LessonPage() {
       <LessonView />
     </Suspense>
   );
+}
+
+// What each authored section is called to a student, and how it's drawn.
+type Look = { label: string; Icon: LucideIcon; kind: "plain" | "example" | "takeaway" | "caveat" };
+function lookOf(heading: string): Look {
+  if (/worked example/i.test(heading)) return { label: "Try an example", Icon: Lightbulb, kind: "example" };
+  if (/picture breaks|breaks down/i.test(heading)) return { label: "Where it breaks", Icon: TriangleAlert, kind: "caveat" };
+  if (/takeaway/i.test(heading)) return { label: "Remember this", Icon: Sparkles, kind: "takeaway" };
+  if (/physics|idea|explanation/i.test(heading)) return { label: "The idea", Icon: Atom, kind: "plain" };
+  return { label: heading, Icon: BookOpen, kind: "plain" };
 }
 
 function LessonView() {
@@ -78,25 +105,73 @@ function LessonView() {
   }
 
   const { lesson, concept_name, status, reason } = data;
+  const sections: LessonSection[] = lesson.sections ?? [];
+  const hasCheck = Boolean(lesson.check || lesson.check_question?.trim());
+  const assessmentHref = withChapter("/assessment", chapterId, { concept: lesson.concept_id });
 
-  // Authored lessons arrive as sections, so we choose what a student sees
-  // first. The story, the explanation and the takeaway are the lesson; the
-  // worked example and the caveats are there when wanted, not in the way.
-  // (Older generated lessons have no sections — they fall back to one body.)
-  const sections = lesson.sections ?? [];
-  const collapsed = (heading: string) =>
-    /worked example|picture breaks/i.test(heading);
-  // The opening story is drawn by <LessonStory>, which puts a story written
-  // for the student's hobby first when one exists (layer 3).
-  const isStory = (heading: string) => heading === "The story";
-  const originalStory = sections.find((s) => isStory(s.heading))?.markdown;
-  const openSections = sections.filter((s) => !collapsed(s.heading) && !isStory(s.heading));
-  const extraSections = sections.filter((s) => collapsed(s.heading));
+  // The check, the rating and the way out: the last step (or the end of a legacy page).
+  const checkBlock = (
+    <div className="flex flex-col gap-5">
+      {hasCheck && (
+        <section className="flex flex-col gap-4 rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/5 to-card p-6 shadow-card">
+          <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+            <CircleHelp className="size-6 text-primary" aria-hidden /> Check yourself
+          </h2>
+          <Markdown>{lesson.check?.question ?? lesson.check_question}</Markdown>
+          <PrimaryButton asChild className="self-start">
+            <Link href={assessmentHref}>
+              Answer the question <ArrowRight className="size-5" />
+            </Link>
+          </PrimaryButton>
+        </section>
+      )}
+      {/* Did the interest-based explanation work? The pilot's core question. */}
+      <RateLesson
+        interest={student?.interest}
+        rating={lessonView.rating}
+        onRate={lessonView.rate}
+        failed={lessonView.ratingError}
+      />
+    </div>
+  );
+
+  // The opening story is drawn by <LessonStory>, which puts a story written for
+  // the student's hobby first when one exists (layer 3).
+  const originalStory = sections.find((s) => s.heading === "The story")?.markdown;
+
+  const steps: LessonStep[] = [];
+  if (sections.length > 0) {
+    steps.push({
+      id: "story",
+      label: "The story",
+      icon: BookOpen,
+      content: (
+        <LessonStory
+          key={lesson.concept_id}
+          conceptId={lesson.concept_id}
+          initial={lesson.personal_story}
+          original={originalStory}
+          interest={student?.interest}
+        />
+      ),
+    });
+    for (const section of sections) {
+      if (section.heading === "The story") continue;
+      const look = lookOf(section.heading);
+      steps.push({
+        id: section.heading,
+        label: look.label,
+        icon: look.Icon,
+        content: <SectionCard section={section} look={look} />,
+      });
+    }
+    steps.push({ id: "check", label: "Check yourself", icon: CircleHelp, content: checkBlock });
+  }
 
   return (
     <main className="flex flex-1 flex-col">
       {/* ~720px reading column with generous vertical rhythm. */}
-      <PageContainer className="flex max-w-[720px] flex-col gap-8">
+      <PageContainer className="flex max-w-[720px] flex-col gap-6">
         {/* Title block */}
         <header className="flex flex-col gap-2">
           <Link
@@ -108,91 +183,100 @@ function LessonView() {
           <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
             {status === "review" ? "Quick review" : "Lesson"}
           </span>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
             {concept_name}
           </h1>
           {reason && <p className="text-muted-foreground">{reason}</p>}
         </header>
 
-        {/* The lesson itself, opening with the story */}
-        {sections.length > 0 && (
-          <LessonStory
-            key={lesson.concept_id}
-            conceptId={lesson.concept_id}
-            initial={lesson.personal_story}
-            original={originalStory}
-            interest={student?.interest}
-          />
-        )}
-        {sections.length > 0 ? (
-          openSections.map((section) => (
-            <article key={section.heading}>
-              <h2 className="mb-3 text-2xl font-bold tracking-tight text-foreground">
-                {section.heading}
-              </h2>
-              <Markdown>{section.markdown}</Markdown>
-            </article>
-          ))
+        {steps.length > 0 ? (
+          // Keyed by concept so moving to the next lesson starts at step one.
+          <LessonStepper key={lesson.concept_id} steps={steps} />
         ) : (
-          // Legacy lesson: one markdown blob.
-          <article>
-            <Markdown>{lesson.body}</Markdown>
-          </article>
-        )}
-
-        {/* Worth having, but only when asked for: <details> gives us a real
-            disclosure widget with keyboard and screen-reader support built in. */}
-        {extraSections.map((section) => (
-          <details
-            key={section.heading}
-            className="group rounded-xl border border-border bg-card px-5 py-4 shadow-soft"
-          >
-            <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold text-foreground marker:content-none">
-              <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
-              {/worked example/i.test(section.heading) ? (
-                <>
-                  <Lightbulb className="size-5 text-brand-accent" />
-                  Show the worked example
-                </>
-              ) : (
-                "Where this picture breaks down"
-              )}
-            </summary>
-            <div className="mt-4 border-t border-border pt-4">
-              <Markdown>{section.markdown}</Markdown>
-            </div>
-          </details>
-        ))}
-
-        {/* Did the interest-based explanation work? The pilot's core question. */}
-        <RateLesson
-          interest={student?.interest}
-          rating={lessonView.rating}
-          onRate={lessonView.rate}
-          failed={lessonView.ratingError}
-        />
-
-        {/* Check question — the multiple-choice check lives on its own page */}
-        {(lesson.check || lesson.check_question?.trim()) && (
-          <Card className="border-primary/20 bg-card shadow-card">
-            <CardHeader>
-              <CardTitle className="text-base text-foreground">Check yourself</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-5">
-              <Markdown>{lesson.check?.question ?? lesson.check_question}</Markdown>
-              <PrimaryButton asChild className="self-start">
-                <Link href={withChapter("/assessment", chapterId, { concept: lesson.concept_id })}>
-                  Answer the question <ArrowRight className="size-5" />
-                </Link>
-              </PrimaryButton>
-            </CardContent>
-          </Card>
+          // Legacy lesson: one markdown blob, then the check.
+          <>
+            <article>
+              <Markdown>{lesson.body}</Markdown>
+            </article>
+            {checkBlock}
+          </>
         )}
 
         {/* "I'm stuck" help widget — live tutor, stays on the lesson. */}
         <HelpWidget conceptId={lesson.concept_id} />
       </PageContainer>
     </main>
+  );
+}
+
+// One authored section as a card. The worked example is a "try it first" reveal,
+// the takeaway is highlighted, the caveat is marked as one.
+function SectionCard({ section, look }: { section: LessonSection; look: Look }) {
+  const { Icon } = look;
+  const title = (
+    <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+      <Icon
+        className={cn(
+          "size-6",
+          look.kind === "takeaway" ? "text-amber-500" : look.kind === "caveat" ? "text-destructive" : "text-primary",
+        )}
+        aria-hidden
+      />
+      {section.heading}
+    </h2>
+  );
+
+  if (look.kind === "example") {
+    return (
+      <Reveal title={title} button="Show the worked example" intro="Have a go in your head first, then check your working.">
+        <Markdown>{section.markdown}</Markdown>
+      </Reveal>
+    );
+  }
+
+  return (
+    <section
+      className={cn(
+        "flex flex-col gap-3 rounded-2xl border p-6 shadow-card",
+        look.kind === "takeaway"
+          ? "border-amber-400/40 bg-gradient-to-b from-amber-400/10 to-card"
+          : look.kind === "caveat"
+            ? "border-destructive/25 bg-card"
+            : "border-border bg-card",
+      )}
+    >
+      {title}
+      <Markdown>{section.markdown}</Markdown>
+    </section>
+  );
+}
+
+function Reveal({
+  title,
+  intro,
+  button,
+  children,
+}: {
+  title: ReactNode;
+  intro: string;
+  button: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+      {title}
+      {open ? (
+        <div className="rm-sheet">{children}</div>
+      ) : (
+        <>
+          <p className="text-muted-foreground">{intro}</p>
+          <Button size="lg" className="h-11 self-start rounded-xl px-5" onClick={() => setOpen(true)}>
+            <Lightbulb className="size-4" /> {button}
+          </Button>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -270,6 +354,11 @@ function LessonSkeleton() {
     <main className="flex flex-1 flex-col">
       <PageContainer className="flex max-w-[720px] flex-col gap-6">
         <div className="h-10 w-2/3 animate-pulse rounded-lg bg-muted" />
+        <div className="flex gap-1.5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-2 flex-1 animate-pulse rounded-full bg-muted" />
+          ))}
+        </div>
         <div className="flex flex-col gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
@@ -280,7 +369,6 @@ function LessonSkeleton() {
           ))}
         </div>
         <div className="h-40 animate-pulse rounded-xl bg-muted" />
-        <div className="h-32 animate-pulse rounded-xl bg-muted" />
       </PageContainer>
     </main>
   );

@@ -2431,3 +2431,31 @@ banner (needs a step to finish between two visits), screen readers, light theme.
 A zero-length SVG arc with a round cap still draws a dot: render the arc only when it has length.
 After `npm run build`, delete `web/.next` before `next dev`, or the dev server answers 404 for real
 routes (the §7 gotcha, hit again).
+
+## 9zv. The lesson as steps (2026-10-04)
+
+**Changed.**
+- `web/components/lesson-stepper.tsx` (new, knows nothing about physics) and the rewritten
+  `web/app/(app)/lesson/page.tsx`: an authored lesson is now a run of steps: The story, The idea,
+  Try an example, Where it breaks, Remember this, Check yourself. A segmented progress bar under
+  the site bar (every segment is a button: nothing is locked, you can jump anywhere; finished
+  steps turn green), Back / Next at the bottom that names the next step, ← / → keys (ignored while
+  typing in the "I'm stuck" box), a slide-in per step, the step scrolled into view, and "Show
+  everything on one page" for people who'd rather scroll.
+- The worked example waits behind a "Show the worked example" button ("have a go first"); the
+  takeaway is highlighted amber; the caveat is marked. The last step holds the check question,
+  the 👍/👎 and the way to /assessment. A lesson with no sections (old format) keeps the single
+  page. The personal story, the report button, reading time and rating are unchanged.
+- `globals.css`: slide-in keyframes, same reduced-motion guard as the roadmap.
+
+**Why.** One idea per screen is the interactive, game-like feel the user asked for, and it makes
+a long lesson less daunting on a phone. Nothing in the API changed.
+
+**Verified** in the browser on the demo class (`aarav.k`, Linear momentum, phone-width pane):
+steps via click and keyboard, progress turning green, the worked-example reveal (16 equations
+rendered), a jump to the last step (skipped steps stay grey), one-page mode. **Not checked:** a
+lesson with a ready personal story in this step layout, screen readers, light theme, a real
+phone. `tsc`, lint and `npm run build` are clean.
+
+**Learned.** The browser tool's screenshot can lag one action behind: read the DOM state
+(`aria-current`, text) before concluding a click did nothing.
