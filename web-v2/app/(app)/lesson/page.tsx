@@ -1,0 +1,375 @@
+// Lesson page (/lesson?chapter=...&concept=...) — the personalised lesson for
+// the student's next concept, or for a specific concept when ?concept= is set.
+//
+// Client Component inside <RequireAuth>; the API knows the student from the
+// session cookie, and the chapter/concept come from the URL.
+//
+// Since 2026-10-04 an authored lesson is a short run of steps (components/
+// lesson-stepper.tsx): the story, the idea, an example to try, where the picture
+// breaks, the takeaway, then the check. Older lessons with no sections keep the
+// single-page layout. "Show everything on one page" is always one click away.
+
+"use client";
+
+import { Suspense, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  Atom,
+  BookOpen,
+  CircleHelp,
+  Lightbulb,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
+
+import { getNextLesson, type LessonRating, type LessonSection, type NextLesson } from "@/lib/api";
+import { useFetch } from "@/lib/use-fetch";
+import { useLessonView } from "@/lib/use-lesson-view";
+import { useAuth } from "@/components/auth-provider";
+import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/page-container";
+import { PrimaryButton } from "@/components/primary-button";
+import { Markdown } from "@/components/markdown";
+import { HelpWidget } from "@/components/help-widget";
+import { LessonStepper, type LessonStep } from "@/components/lesson-stepper";
+import { LessonStory } from "@/components/personal-story";
+import { Button } from "@/components/ui/button";
+import { useChapter, withChapter } from "@/lib/use-chapter";
+
+export default function LessonPage() {
+  return (
+    <Suspense fallback={<LessonSkeleton />}>
+      <LessonView />
+    </Suspense>
+  );
+}
+
+// What each authored section is called to a student, and how it's drawn.
+type Look = { label: string; Icon: LucideIcon; kind: "plain" | "example" | "takeaway" | "caveat" };
+function lookOf(heading: string): Look {
+  if (/worked example/i.test(heading)) return { label: "Try an example", Icon: Lightbulb, kind: "example" };
+  if (/picture breaks|breaks down/i.test(heading)) return { label: "Where it breaks", Icon: TriangleAlert, kind: "caveat" };
+  if (/takeaway/i.test(heading)) return { label: "Remember this", Icon: Sparkles, kind: "takeaway" };
+  if (/physics|idea|explanation/i.test(heading)) return { label: "The idea", Icon: Atom, kind: "plain" };
+  return { label: heading, Icon: BookOpen, kind: "plain" };
+}
+
+function LessonView() {
+  const { chapterId } = useChapter();
+  const conceptParam = useSearchParams().get("concept") ?? undefined;
+  const roadmapHref = withChapter("/roadmap", chapterId);
+
+  const { data, loading, error } = useFetch<NextLesson>(`${chapterId}|${conceptParam ?? ""}`, () =>
+    getNextLesson(chapterId, conceptParam),
+  );
+  // Pilot metrics: the open, the reading time and the 👍/👎. Called before any
+  // early return (hooks must run in the same order every render).
+  const lessonView = useLessonView(loading || !data?.lesson ? null : data.lesson.concept_id);
+  const { student } = useAuth();
+
+  if (loading) return <LessonSkeleton />;
+
+  if (error) {
+    return (
+      <Centered>
+        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+        <PrimaryButton asChild>
+          <Link href={roadmapHref}>← Back to roadmap</Link>
+        </PrimaryButton>
+      </Centered>
+    );
+  }
+
+  // ----- Non-teaching states: done / blocked / lesson_missing -----
+  if (!data || !data.lesson || data.status === "done" || data.status === "blocked") {
+    return (
+      <Centered>
+        <h1 className="text-2xl font-bold text-foreground">
+          {data?.status === "done" ? "🎉 Chapter complete!" : "Nothing to learn just yet"}
+        </h1>
+        <p className="max-w-md text-muted-foreground">
+          {data?.reason ?? "Head back to your roadmap."}
+        </p>
+        <PrimaryButton asChild>
+          <Link href={roadmapHref}>← Back to roadmap</Link>
+        </PrimaryButton>
+      </Centered>
+    );
+  }
+
+  const { lesson, concept_name, status, reason } = data;
+  const sections: LessonSection[] = lesson.sections ?? [];
+  const hasCheck = Boolean(lesson.check || lesson.check_question?.trim());
+  const assessmentHref = withChapter("/assessment", chapterId, { concept: lesson.concept_id });
+
+  // The check, the rating and the way out: the last step (or the end of a legacy page).
+  const checkBlock = (
+    <div className="flex flex-col gap-5">
+      {hasCheck && (
+        <section className="flex flex-col gap-4 rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/5 to-card p-6 shadow-card">
+          <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+            <CircleHelp className="size-6 text-primary" aria-hidden /> Check yourself
+          </h2>
+          <Markdown>{lesson.check?.question ?? lesson.check_question}</Markdown>
+          <PrimaryButton asChild className="self-start">
+            <Link href={assessmentHref}>
+              Answer the question <ArrowRight className="size-5" />
+            </Link>
+          </PrimaryButton>
+        </section>
+      )}
+      {/* Did the interest-based explanation work? The pilot's core question. */}
+      <RateLesson
+        interest={student?.interest}
+        rating={lessonView.rating}
+        onRate={lessonView.rate}
+        failed={lessonView.ratingError}
+      />
+    </div>
+  );
+
+  // The opening story is drawn by <LessonStory>, which puts a story written for
+  // the student's hobby first when one exists (layer 3).
+  const originalStory = sections.find((s) => s.heading === "The story")?.markdown;
+
+  const steps: LessonStep[] = [];
+  if (sections.length > 0) {
+    steps.push({
+      id: "story",
+      label: "The story",
+      icon: BookOpen,
+      content: (
+        <LessonStory
+          key={lesson.concept_id}
+          conceptId={lesson.concept_id}
+          initial={lesson.personal_story}
+          original={originalStory}
+          interest={student?.interest}
+        />
+      ),
+    });
+    for (const section of sections) {
+      if (section.heading === "The story") continue;
+      const look = lookOf(section.heading);
+      steps.push({
+        id: section.heading,
+        label: look.label,
+        icon: look.Icon,
+        content: <SectionCard section={section} look={look} />,
+      });
+    }
+    steps.push({ id: "check", label: "Check yourself", icon: CircleHelp, content: checkBlock });
+  }
+
+  return (
+    <main className="flex flex-1 flex-col">
+      {/* ~720px reading column with generous vertical rhythm. */}
+      <PageContainer className="flex max-w-[720px] flex-col gap-6">
+        {/* Title block */}
+        <header className="flex flex-col gap-2">
+          <Link
+            href={roadmapHref}
+            className="text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            ← Roadmap
+          </Link>
+          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+            {status === "review" ? "Quick review" : "Lesson"}
+          </span>
+          <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+            {concept_name}
+          </h1>
+          {reason && <p className="text-muted-foreground">{reason}</p>}
+        </header>
+
+        {steps.length > 0 ? (
+          // Keyed by concept so moving to the next lesson starts at step one.
+          <LessonStepper key={lesson.concept_id} steps={steps} />
+        ) : (
+          // Legacy lesson: one markdown blob, then the check.
+          <>
+            <article>
+              <Markdown>{lesson.body}</Markdown>
+            </article>
+            {checkBlock}
+          </>
+        )}
+
+        {/* "I'm stuck" help widget — live tutor, stays on the lesson. */}
+        <HelpWidget conceptId={lesson.concept_id} />
+      </PageContainer>
+    </main>
+  );
+}
+
+// One authored section as a card. The worked example is a "try it first" reveal,
+// the takeaway is highlighted, the caveat is marked as one.
+function SectionCard({ section, look }: { section: LessonSection; look: Look }) {
+  const { Icon } = look;
+  const title = (
+    <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+      <Icon
+        className={cn(
+          "size-6",
+          look.kind === "takeaway" ? "text-amber-500" : look.kind === "caveat" ? "text-destructive" : "text-primary",
+        )}
+        aria-hidden
+      />
+      {section.heading}
+    </h2>
+  );
+
+  if (look.kind === "example") {
+    return (
+      <Reveal title={title} button="Show the worked example" intro="Have a go in your head first, then check your working.">
+        <Markdown>{section.markdown}</Markdown>
+      </Reveal>
+    );
+  }
+
+  return (
+    <section
+      className={cn(
+        "flex flex-col gap-3 rounded-2xl border p-6 shadow-card",
+        look.kind === "takeaway"
+          ? "border-amber-400/40 bg-gradient-to-b from-amber-400/10 to-card"
+          : look.kind === "caveat"
+            ? "border-destructive/25 bg-card"
+            : "border-border bg-card",
+      )}
+    >
+      {title}
+      <Markdown>{section.markdown}</Markdown>
+    </section>
+  );
+}
+
+function Reveal({
+  title,
+  intro,
+  button,
+  children,
+}: {
+  title: ReactNode;
+  intro: string;
+  button: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+      {title}
+      {open ? (
+        <div className="rm-sheet">{children}</div>
+      ) : (
+        <>
+          <p className="text-muted-foreground">{intro}</p>
+          <Button size="lg" className="h-11 self-start rounded-xl px-5" onClick={() => setOpen(true)}>
+            <Lightbulb className="size-4" /> {button}
+          </Button>
+        </>
+      )}
+    </section>
+  );
+}
+
+// 👍 / 👎 for the lesson. Two toggle buttons (aria-pressed), so a screen reader
+// says "Helpful, toggle button, pressed". Pressing the active one clears it.
+function RateLesson({
+  interest,
+  rating,
+  onRate,
+  failed,
+}: {
+  interest?: string;
+  rating: LessonRating;
+  onRate: (rating: LessonRating) => void;
+  failed: boolean;
+}) {
+  const choices = [
+    { value: 1 as const, label: "Yes, it helped", Icon: ThumbsUp, on: "border-success bg-success/10 text-success" },
+    { value: -1 as const, label: "Not really", Icon: ThumbsDown, on: "border-destructive bg-destructive/10 text-destructive" },
+  ];
+  return (
+    <section
+      aria-label="Rate this lesson"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="font-medium text-foreground">
+        Did the {interest ? <span className="capitalize">{interest}</span> : "story"} explanation
+        work for you?
+      </p>
+      <div className="flex gap-2">
+        {choices.map(({ value, label, Icon, on }) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={rating === value}
+            onClick={() => onRate(value)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              rating === value ? on : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            )}
+          >
+            <Icon className="size-4" aria-hidden />
+            {label}
+          </button>
+        ))}
+      </div>
+      {failed && (
+        <p role="status" className="text-sm text-destructive sm:basis-full">
+          Couldn&apos;t save that — try again.
+        </p>
+      )}
+      {!failed && rating !== 0 && (
+        <p role="status" className="sr-only">
+          Thanks, saved.
+        </p>
+      )}
+    </section>
+  );
+}
+
+// Small helper for the centered single-message states.
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex flex-1 flex-col">
+      <PageContainer className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+        {children}
+      </PageContainer>
+    </main>
+  );
+}
+
+// Loading skeleton that mirrors the reading layout.
+function LessonSkeleton() {
+  return (
+    <main className="flex flex-1 flex-col">
+      <PageContainer className="flex max-w-[720px] flex-col gap-6">
+        <div className="h-10 w-2/3 animate-pulse rounded-lg bg-muted" />
+        <div className="flex gap-1.5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-2 flex-1 animate-pulse rounded-full bg-muted" />
+          ))}
+        </div>
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-4 animate-pulse rounded bg-muted"
+              style={{ width: `${90 - (i % 3) * 12}%` }}
+            />
+          ))}
+        </div>
+        <div className="h-40 animate-pulse rounded-xl bg-muted" />
+      </PageContainer>
+    </main>
+  );
+}
