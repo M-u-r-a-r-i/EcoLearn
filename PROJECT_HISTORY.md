@@ -2459,3 +2459,34 @@ phone. `tsc`, lint and `npm run build` are clean.
 
 **Learned.** The browser tool's screenshot can lag one action behind: read the DOM state
 (`aria-current`, text) before concluding a click did nothing.
+
+## 9zw. The check page, interactive (2026-10-04)
+
+**Changed.**
+- `web/app/(app)/assessment/page.tsx` (rewritten) + `web/components/check-feedback.tsx` (new).
+  Question screen: big option cards that lift on hover and select, A-D (or 1-4) keys to pick,
+  "How sure are you?" slides in once an option is picked, a sticky bar says what's still
+  needed ("Pick an answer", "Now say how sure you are", "Ready. Press Enter") and holds the one
+  button; Enter submits.
+- Result screen (multiple choice): right = confetti (12 CSS pieces), a popping tick (a gold trophy
+  for mastered), "Right!"; wrong = a lightbulb and "Not quite, and that's useful", never a red
+  failure. Both replay the question with the student's pick (red, cross) and the right answer
+  (green, tick), each labelled in words too, then "Why" (the server's feedback), and for a right
+  answer the **road to mastered** (Right once → New question tomorrow → Mastered), so the
+  two-question rule explains itself. Wrong answers get Try again + Re-read the lesson.
+- Older free-text lessons keep the plain form and result.
+- `globals.css`: confetti keyframes; the pieces are `display:none` unless motion is welcome.
+- No API change: same `submitAssessment` result fields.
+
+**Why.** The check is the moment that decides whether a student feels clever or stupid; the
+user wanted it interactive. The wrong-answer screen is deliberately about "what to fix", in line
+with the mix-up design.
+
+**Verified** in the browser on the demo class (Linear momentum): keyboard pick and Enter, wrong
+then right, the red/green replay, the track, 12 confetti pieces in the DOM, 375 px (no sideways
+scroll). The demo DB was reseeded afterwards (the test wrote answers into it). **Not checked:** the
+"mastered" gold screen (needs a second right answer a day later), screen readers, light theme,
+reduced motion on a real setting, the free-text legacy path.
+
+**Learned.** A keyboard shortcut handler must not treat a radio as a text field: after clicking an
+option, focus is on its radio, so Enter did nothing until radios were excluded from "typing".

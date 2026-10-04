@@ -204,6 +204,14 @@
   }
   .rm-slide-next { animation: rm-slide-next 0.28s ease-out both; }
   .rm-slide-prev { animation: rm-slide-prev 0.28s ease-out both; }
+  @keyframes rm-confetti {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
+  }
+  .rm-confetti-piece {
+    display: block;
+    animation: rm-confetti 1.3s cubic-bezier(0.15, 0.7, 0.3, 1) var(--d, 0s) both;
+  }
   .rm-pulse { animation: rm-pulse 1.8s ease-out infinite; }
   .rm-bob { animation: rm-bob 1.6s ease-in-out infinite; }
   .rm-pop { animation: rm-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
@@ -211,4 +219,10 @@
   .rm-sheet { animation: rm-sheet 0.25s ease-out both; }
   .rm-glow { animation: rm-glow 2.4s ease-in-out infinite; }
   .rm-draw { stroke-dasharray: var(--len, 200); animation: rm-draw 0.9s ease-out both; }
+}
+
+/* Confetti is decoration: gone entirely unless motion is welcome. */
+.rm-confetti-piece { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rm-confetti-piece { display: block; }
 }
