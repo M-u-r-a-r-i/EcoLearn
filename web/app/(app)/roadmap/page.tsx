@@ -1,53 +1,37 @@
-// Roadmap page (/roadmap?chapter=...) — the student's learning path for a chapter.
+// Roadmap page (/roadmap?chapter=...) — the student's learning path for a chapter,
+// drawn as a level map (components/roadmap-path.tsx).
 //
 // Client Component: it's rendered inside <RequireAuth> (app/(app)/layout.tsx),
 // which only shows it once the browser knows who is logged in, and the chapter
 // comes from the URL. The API identifies the student by the session cookie.
+//
+// Chapters are never locked; the concepts inside one open in order (the server
+// says which are `locked`). Tap a step to select it; the sheet at the bottom
+// offers the action.
 
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Clock, Lock, Play, ArrowRight, PartyPopper, Target } from "lucide-react";
+import { ArrowRight, Clock, Lock, PartyPopper, Sparkles } from "lucide-react";
 
-import { getRoadmap, type RoadmapConcept, type ConceptStatus } from "@/lib/api";
+import { getRoadmap, type RoadmapConcept } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
 import { ChapterPicker } from "@/components/chapter-picker";
 import { EndCheckCard, LearningPlanCard, RevisionCard } from "@/components/learning-plan";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
-import { Progress } from "@/components/ui/progress";
+import { PathMap, ProgressRing, StepSheet, kindOf } from "@/components/roadmap-path";
 import { useChapter, withChapter } from "@/lib/use-chapter";
 import { useFetch } from "@/lib/use-fetch";
-import { cn } from "@/lib/utils";
 
-// Per-status visual config: node colour + icon + badge styling.
-// "Done" sits between the two: right once (cleared), so the path moves on, and
-// a new question later (Review) masters it. It gets its own tick so finishing a
-// lesson visibly counts, instead of still reading "Available".
-const DONE = {
-  label: "Done",
-  Icon: Check,
-  node: "bg-success text-success-foreground border-success",
-  badge: "bg-success/10 text-success",
-};
-
-const STATUS: Record<
-  ConceptStatus,
-  { label: string; Icon: typeof Check; node: string; badge: string }
-> = {
-  mastered: {
-    label: "Mastered",
-    Icon: Check,
-    node: "bg-amber-400 text-amber-950 border-amber-500",
-    badge: "bg-amber-400/15 text-amber-500",
-  },
-  available: {
-    label: "Available",
-    Icon: Play,
-    node: "bg-primary text-primary-foreground border-primary",
-    badge: "bg-primary/10 text-primary",
-  },
+// Each interest has an emoji and an accent that tints the header card.
+const INTEREST_LOOK: Record<string, { emoji: string; color: string }> = {
+  cricket: { emoji: "🏏", color: "#22c55e" },
+  football: { emoji: "⚽", color: "#3b82f6" },
+  gaming: { emoji: "🎮", color: "#a855f7" },
+  smartphones: { emoji: "📱", color: "#06b6d4" },
+  motorsport: { emoji: "🏎️", color: "#ef4444" },
 };
 
 export default function RoadmapPage() {
@@ -59,6 +43,18 @@ export default function RoadmapPage() {
   );
 }
 
+// What the student had finished last time they looked at this chapter, so a
+// step that became "done" since then can pop. Per tab (sessionStorage), and only
+// ever a convenience: if storage is blocked, nothing pops and nothing breaks.
+function readDone(key: string): Set<string> | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? new Set(JSON.parse(raw) as string[]) : null;
+  } catch {
+    return null;
+  }
+}
+
 function Roadmap() {
   const { student } = useAuth();
   const { chapterId, chapter, chapters, setChapter } = useChapter();
@@ -68,70 +64,89 @@ function Roadmap() {
     getRoadmap(chapterId),
   );
 
+  const isDone = (c: RoadmapConcept) => c.status === "mastered" || c.progress_status === "partial";
+  const doneIds = useMemo(() => (concepts ?? []).filter(isDone).map((c) => c.concept_id), [concepts]);
+  const storeKey = `rm-done:${student?.student_id ?? ""}:${chapterId}`;
+  // Read before the effect below writes, so this render sees the old list.
+  const fresh = useMemo(() => {
+    if (!concepts) return [];
+    const before = readDone(storeKey);
+    return before ? doneIds.filter((id) => !before.has(id)) : [];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [concepts]);
+  useEffect(() => {
+    if (!concepts) return;
+    try {
+      sessionStorage.setItem(storeKey, JSON.stringify(doneIds));
+    } catch {
+      /* private window: no celebration next time, that's all */
+    }
+  }, [concepts, doneIds, storeKey]);
+
   if (!student) return null; // RequireAuth guarantees a student; this satisfies TypeScript
 
   const total = concepts?.length ?? 0;
   const mastered = concepts?.filter((c) => c.status === "mastered").length ?? 0;
-  const isDone = (c: RoadmapConcept) => c.status === "mastered" || c.progress_status === "partial";
   const done = concepts?.filter(isDone).length ?? 0;
-  const pct = total ? Math.round((done / total) * 100) : 0;
+  const locked = concepts?.filter((c) => c.locked && c.has_lesson !== false).length ?? 0;
   // has_lesson is absent only for legacy accounts; treat that as "written".
   const written = (c: RoadmapConcept) => c.has_lesson !== false;
   const readyCount = concepts?.filter(written).length ?? 0;
   // The server's personal recommendation (it may skip what the starting check
-  // says they know); the first unfinished concept if it points elsewhere.
+  // says they know); the first unfinished open concept if it points elsewhere.
   const nextConcept =
     concepts?.find((c) => c.recommended) ??
     concepts?.find((c) => c.status === "available" && written(c) && !c.locked);
   const allDone = total > 0 && done === total;
+  const look = INTEREST_LOOK[student.interest] ?? { emoji: "⚛️", color: "#6366f1" };
+  const freshNames = (concepts ?? []).filter((c) => fresh.includes(c.concept_id)).map((c) => c.name);
 
   return (
     <main className="flex flex-1 flex-col">
-      <PageContainer className="flex w-full max-w-2xl flex-col gap-8">
-        {/* ---------- Header ---------- */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-              Your learning path
-            </span>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {chapter?.name ?? " "}
-            </h1>
-            <p className="text-muted-foreground">
-              Personalised for {student.name} · through {student.interest}
-            </p>
+      <PageContainer className="flex w-full max-w-2xl flex-col gap-6">
+        {/* ---------- Header card ---------- */}
+        <section
+          className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-card"
+          style={{
+            backgroundImage: `radial-gradient(110% 90% at 100% 0%, color-mix(in oklab, ${look.color} 24%, transparent), transparent 62%)`,
+          }}
+        >
+          <div className="flex items-center gap-5">
+            {loading ? (
+              <div className="size-28 shrink-0 animate-pulse rounded-full bg-muted" />
+            ) : (
+              <ProgressRing done={done} mastered={mastered} total={total} />
+            )}
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+                {look.emoji} Your learning path
+              </span>
+              <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                {chapter?.name ?? " "}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {student.name} · through <span className="capitalize">{student.interest}</span>
+              </p>
+              {!loading && readyCount > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1.5 text-xs font-semibold">
+                  <span className="rounded-full bg-success/10 px-2.5 py-1 text-success">{done} done</span>
+                  {mastered > 0 && (
+                    <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-amber-500">
+                      {mastered} mastered
+                    </span>
+                  )}
+                  {locked > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
+                      <Lock className="size-3" aria-hidden /> {locked} to unlock
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <ChapterPicker
-            chapters={chapters}
-            value={chapterId}
-            onChange={setChapter}
-            interest={student.interest}
-          />
-
-          <EndCheckCard />
-          <RevisionCard />
-          <LearningPlanCard chapterId={chapterId} />
-
-          {/* Progress — pointless for a chapter with nothing written yet. */}
-          {(loading || readyCount > 0) && (
-            <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-soft">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold text-foreground">
-                  {done} of {total} concepts done
-                  {mastered > 0 && (
-                    <span className="font-normal text-muted-foreground"> · {mastered} mastered</span>
-                  )}
-                </span>
-                <span className="text-muted-foreground">{pct}%</span>
-              </div>
-              <Progress value={pct} />
-            </div>
-          )}
-
-          {/* Continue Learning */}
           {!loading && !error && readyCount > 0 && (nextConcept || allDone) && (
-            <PrimaryButton asChild className="w-full sm:w-auto sm:self-start">
+            <PrimaryButton asChild className="mt-5 w-full sm:w-auto">
               <Link href={withChapter("/lesson", chapterId)}>
                 {allDone ? (
                   <>
@@ -139,13 +154,34 @@ function Roadmap() {
                   </>
                 ) : (
                   <>
-                    Continue Learning <ArrowRight className="size-5" />
+                    Continue learning <ArrowRight className="size-5" />
                   </>
                 )}
               </Link>
             </PrimaryButton>
           )}
-        </div>
+        </section>
+
+        {freshNames.length > 0 && (
+          <p
+            role="status"
+            className="rm-sheet flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-semibold text-success"
+          >
+            <Sparkles className="size-4 shrink-0" aria-hidden />
+            Nice work! {freshNames.join(", ")} {freshNames.length === 1 ? "is" : "are"} done.
+          </p>
+        )}
+
+        <ChapterPicker
+          chapters={chapters}
+          value={chapterId}
+          onChange={setChapter}
+          interest={student.interest}
+        />
+
+        <EndCheckCard />
+        <RevisionCard />
+        <LearningPlanCard chapterId={chapterId} />
 
         {/* ---------- Body: loading / error / path ---------- */}
         {loading && <RoadmapSkeleton />}
@@ -171,141 +207,66 @@ function Roadmap() {
         )}
 
         {!loading && !error && concepts && readyCount > 0 && (
-          <div className="relative flex flex-col gap-3">
-            {/* The continuous vertical line that turns the nodes into a path.
-                left-5 (20px) aligns with the centre of the 40px node circles. */}
-            <div
-              className="absolute bottom-6 left-5 top-6 w-px bg-border"
-              aria-hidden
-            />
-
-            {concepts.map((c) => {
-              const cleared = c.status !== "mastered" && c.progress_status === "partial";
-              const s = cleared ? DONE : STATUS[c.status];
-              const isNext = c.concept_id === nextConcept?.concept_id;
-              if (!written(c)) return <ComingSoonConcept key={c.concept_id} name={c.name} />;
-              if (c.locked) {
-                return (
-                  <LockedConcept key={c.concept_id} name={c.name} reason={c.locked_reason ?? ""} />
-                );
-              }
-              return (
-                <div key={c.concept_id} className="relative flex items-center gap-4">
-                  {/* Node circle */}
-                  <div
-                    className={cn(
-                      "z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-2 shadow-soft",
-                      s.node,
-                    )}
-                  >
-                    <s.Icon className="size-5" strokeWidth={2.5} />
-                  </div>
-
-                  {/* Concept card. Chapters are never locked; concepts open in order. */}
-                  <Link
-                    href={withChapter("/lesson", chapterId, { concept: c.concept_id })}
-                    className={cn(
-                      "flex flex-1 items-center justify-between rounded-xl border bg-card px-4 py-3 transition-all hover:border-primary/40 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      isNext
-                        ? "border-primary/40 shadow-card"
-                        : "border-border shadow-soft",
-                    )}
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-foreground">{c.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {/* Checks are multiple choice: right or not yet, so no "2/3". */}
-                        {c.status === "mastered" && "Mastered · two different questions right"}
-                        {cleared && "Done ✓ · a new question tomorrow (Review) masters it"}
-                        {c.status === "available" &&
-                          !cleared &&
-                          (c.attempts
-                              ? `Tried ${c.attempts}× · not right yet`
-                              : "Ready to learn")}
-                        {/* Nothing is locked; uncleared prerequisites are only a hint. */}
-                        {c.status === "available" &&
-                          !cleared &&
-                          c.missing_prerequisites.length > 0 &&
-                          ` · builds on ${c.missing_prerequisites.length} earlier concept${c.missing_prerequisites.length === 1 ? "" : "s"}`}
-                      </span>
-                      {c.personal_note && (
-                        <span
-                          className={cn(
-                            "mt-1 flex items-start gap-1 text-xs",
-                            c.personal === "focus" ? "text-destructive" : "text-success",
-                          )}
-                        >
-                          {c.personal === "focus" && <Target className="mt-px size-3 shrink-0" aria-hidden />}
-                          {c.personal_note}
-                        </span>
-                      )}
-                    </div>
-
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
-                        !isNext && c.status !== "mastered" && c.personal === "focus"
-                          ? "bg-destructive/10 text-destructive"
-                          : !isNext && c.status !== "mastered" && c.personal === "known"
-                            ? "bg-success/10 text-success"
-                            : s.badge,
-                      )}
-                    >
-                      {isNext
-                        ? "Next up"
-                        : c.status !== "mastered" && c.personal === "focus"
-                          ? "Focus"
-                          : c.status !== "mastered" && c.personal === "known"
-                            ? "Know it?"
-                            : s.label}
-                    </span>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
+          // Keyed by chapter so the selection resets when the chapter changes.
+          <PathSection
+            key={chapterId}
+            concepts={concepts}
+            nextId={nextConcept?.concept_id}
+            chapterId={chapterId}
+            fresh={fresh}
+          />
         )}
       </PageContainer>
     </main>
   );
 }
 
-// A concept that opens once the one before it is done: on the path so the
-// student sees what's ahead, but not a link.
-function LockedConcept({ name, reason }: { name: string; reason: string }) {
-  return (
-    <div className="relative flex items-center gap-4" aria-disabled="true">
-      <div className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground">
-        <Lock className="size-5" />
-      </div>
-      <div className="flex flex-1 items-center justify-between rounded-xl border border-dashed border-border bg-card/60 px-4 py-3">
-        <div className="flex flex-col">
-          <span className="font-semibold text-muted-foreground">{name}</span>
-          {reason && <span className="text-xs text-muted-foreground">{reason}</span>}
-        </div>
-        <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-          Locked
-        </span>
-      </div>
-    </div>
-  );
-}
+function PathSection({
+  concepts,
+  nextId,
+  chapterId,
+  fresh,
+}: {
+  concepts: RoadmapConcept[];
+  nextId: string | undefined;
+  chapterId: string;
+  fresh: string[];
+}) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const activeId = selected ?? nextId ?? concepts[0]?.concept_id;
+  const index = Math.max(0, concepts.findIndex((c) => c.concept_id === activeId));
+  const active = concepts[index];
 
-// A concept whose lesson isn't written yet in this interest: on the path, so
-// the chapter's shape is visible, but not a link to an empty page.
-function ComingSoonConcept({ name }: { name: string }) {
+  function select(id: string) {
+    setSelected(id);
+    const picked = concepts.find((c) => c.concept_id === id);
+    if (picked?.locked) {
+      // A little "not yet" shake; cleared so tapping again replays it.
+      setShakeId(id);
+      setTimeout(() => setShakeId((now) => (now === id ? null : now)), 450);
+    }
+  }
+
   return (
-    <div className="relative flex items-center gap-4" aria-disabled="true">
-      <div className="z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground">
-        <Clock className="size-5" />
-      </div>
-      <div className="flex flex-1 items-center justify-between rounded-xl border border-dashed border-border bg-card/60 px-4 py-3">
-        <span className="font-semibold text-muted-foreground">{name}</span>
-        <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-          Coming soon
-        </span>
-      </div>
-    </div>
+    <>
+      <PathMap
+        concepts={concepts}
+        nextId={nextId}
+        selectedId={activeId}
+        onSelect={select}
+        fresh={fresh}
+        shakeId={shakeId}
+      />
+      {active && (
+        <StepSheet
+          concept={active}
+          kind={kindOf(active, nextId)}
+          index={index}
+          chapterId={chapterId}
+        />
+      )}
+    </>
   );
 }
 
@@ -315,7 +276,7 @@ function RoadmapSkeleton() {
     <div className="flex flex-col gap-3">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4">
-          <div className="size-10 shrink-0 animate-pulse rounded-full bg-muted" />
+          <div className="size-16 shrink-0 animate-pulse rounded-full bg-muted" />
           <div className="h-16 flex-1 animate-pulse rounded-xl bg-muted" />
         </div>
       ))}

@@ -140,8 +140,10 @@ export function RevisionCard() {
     <div className="flex flex-col gap-3 rounded-xl border border-success/30 bg-success/5 p-4 sm:flex-row sm:items-center sm:justify-between">
       <span className="flex items-start gap-2 text-sm text-foreground">
         <RotateCcw className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-        {due === 1 ? "1 idea is" : `${due} ideas are`} ready to revise: a new question on each, and
-        they&apos;re mastered.
+        <span>
+          {due === 1 ? "1 idea is" : `${due} ideas are`} ready to revise: a new question on each,
+          and they&apos;re mastered.
+        </span>
       </span>
       <Button size="sm" asChild className="shrink-0 self-start sm:self-auto">
         <Link href="/review">Revise now</Link>

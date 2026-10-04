@@ -157,3 +157,48 @@
     @apply font-sans;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Roadmap motion (2026-10-04). Plain CSS, no animation library, and only for
+   people who haven't asked for reduced motion: without it the roadmap is the
+   same, just still.
+   ------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rm-pulse {
+    0% { transform: scale(1); opacity: 0.55; }
+    80%, 100% { transform: scale(1.55); opacity: 0; }
+  }
+  @keyframes rm-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes rm-pop {
+    0% { transform: scale(0.6); }
+    55% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes rm-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+  @keyframes rm-sheet {
+    from { transform: translateY(14px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes rm-draw {
+    from { stroke-dashoffset: var(--len, 200); }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes rm-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45); }
+    50% { box-shadow: 0 0 0 9px rgba(251, 191, 36, 0); }
+  }
+  .rm-pulse { animation: rm-pulse 1.8s ease-out infinite; }
+  .rm-bob { animation: rm-bob 1.6s ease-in-out infinite; }
+  .rm-pop { animation: rm-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+  .rm-shake { animation: rm-shake 0.4s ease-in-out; }
+  .rm-sheet { animation: rm-sheet 0.25s ease-out both; }
+  .rm-glow { animation: rm-glow 2.4s ease-in-out infinite; }
+  .rm-draw { stroke-dasharray: var(--len, 200); animation: rm-draw 0.9s ease-out both; }
+}

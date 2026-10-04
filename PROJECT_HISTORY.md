@@ -2402,3 +2402,32 @@ chapters are still never locked.
 - The demo dataset (§9zr) was seeded straight through the grading code, so its students have
   out-of-order progress: some concepts are open ahead of unfinished ones. That's fine for a demo.
 - Existing students' changed level keeps their answers; the starting check isn't re-taken.
+
+## 9zu. The roadmap as a level map (2026-10-04)
+
+**Changed.**
+- `web/components/roadmap-path.tsx` (new) + `web/app/(app)/roadmap/page.tsx` (rewritten): the path is
+  now a winding level map. Big round nodes in six states (Mastered gold, Done green, Next up with a
+  pulsing ring and a bobbing START tag, Open, Locked, Coming soon), a dotted line ahead and a
+  green line behind finished steps. Tap a step (node or label) to select it; a slim sheet at the
+  bottom says what it is and offers the one action (Start / Try again / Review / Locked). A header
+  card with a progress ring (green = done, gold = mastered), chips ("2 done", "4 to unlock") and the
+  interest's emoji and accent. A "Nice work! X is done" banner and a node pop when a step became
+  done since the student last looked (sessionStorage per tab; if storage is blocked nothing pops).
+- `globals.css`: "Roadmap motion" keyframes, plain CSS, off under `prefers-reduced-motion`. **No new
+  dependency** (no Framer Motion): CSS covers pulse, bob, pop, shake and slide-in.
+- `learning-plan.tsx`: the Revision card read "6 ideas areready": the text was split into flex items
+  and the space collapsed. Wrapped in a span.
+
+**Why.** The user wants a more interactive, game-like UI (a Replit-style polish) and chose to build
+it here, one screen at a time, starting with the roadmap. Nothing in the API changed: it still reads
+the same `getRoadmap` rows (`locked`, `locked_reason`, `progress_status`, `personal`).
+
+**Verified** in the browser on the demo class (`aarav.k`, Laws of Motion): header, ring, path, a
+locked step's sheet, the phone width (375 px: no sideways scroll). **Not checked:** the "pop"
+banner (needs a step to finish between two visits), screen readers, light theme.
+
+**Learned.** A fixed row height (112 px) makes the connecting curve one SVG with no measuring.
+A zero-length SVG arc with a round cap still draws a dot: render the arc only when it has length.
+After `npm run build`, delete `web/.next` before `next dev`, or the dev server answers 404 for real
+routes (the §7 gotcha, hit again).
