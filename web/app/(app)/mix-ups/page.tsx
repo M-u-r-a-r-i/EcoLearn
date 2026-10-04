@@ -11,6 +11,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, RotateCcw, Target } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { Markdown } from "@/components/markdown";
 import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { getMixUps, type CheckSource, type MixUp, type MixUpStatus } from "@/lib/api";
@@ -133,9 +134,14 @@ function MixUpRow({ m }: { m: MixUp }) {
           {m.concept_name}
           {m.chapter_name && <span className="ml-2 text-xs font-normal text-muted-foreground">{m.chapter_name}</span>}
         </span>
-        <span className={cn("text-sm", fixed ? "text-muted-foreground line-through decoration-success/60" : "text-foreground")}>
+        <Markdown
+          className={cn(
+            "prose-sm prose-p:my-0 prose-p:leading-snug",
+            fixed ? "prose-p:text-muted-foreground prose-p:line-through prose-p:decoration-success/60" : "prose-p:text-foreground",
+          )}
+        >
           {m.note}
-        </span>
+        </Markdown>
         <span className="text-xs text-muted-foreground">
           Found in {SOURCE[m.found_in]} on {when(m.found_at)}
           {m.times > 1 && ` · came up ${m.times} times`}

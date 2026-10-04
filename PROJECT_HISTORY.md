@@ -2490,3 +2490,34 @@ reduced motion on a real setting, the free-text legacy path.
 
 **Learned.** A keyboard shortcut handler must not treat a radio as a text field: after clicking an
 option, focus is on its radio, so Enter did nothing until radios were excluded from "typing".
+
+## 9zx. The starting check, interactive (2026-10-04)
+
+**Changed.**
+- `web/app/(app)/start/page.tsx` (rewritten). Intro: three "what to expect" tiles (about 5 minutes,
+  no marks, your own roadmap). Hobbies: a grid of tiles (emoji, label, a tick that pops), "N of 8
+  picked", the own-hobby box kept; the button says "Skip this" when none are picked. Questions:
+  a segmented progress bar (green answered, indigo here), a short cheer ("No marks. Honest answers
+  help most.", "Halfway there.", "Last one!"), a slide between questions, a sticky Back / Next bar
+  with a hint, and keys: **A-D / 1-4** pick, **U / 0** "not sure", **S / T / G** how sure, **Enter**
+  next (finish on the last). Plan reveal: confetti, and the three tiles count up
+  (`web/components/count-up.tsx`, new; shows the number outright under reduced motion).
+- Notes that can contain maths ("squared terms can't balance a product like $as$") were printed as
+  raw LaTeX in the plan, `/mix-ups` and the roadmap sheet; they now go through `<Markdown>`
+  (KaTeX). A pre-existing bug, found while testing.
+- No API change; the check is still taken once, answers sent at the end.
+
+**Why.** First impressions: the starting check is the first thing a student does after signup.
+
+**Verified** in the browser on the demo class (a not-yet-started student, then a second one at
+375 px): hobby tiles, the whole 8-question run by keyboard (including U and the S/T/G keys), the
+"Last one!" button and Enter to submit, the plan reveal (1 known, 5 mix-ups, 2 not sure = 8 answers),
+confetti pieces present, KaTeX rendering, the "already taken" guard, no sideways scroll. The demo DB
+was reseeded afterwards. **Not checked:** screen readers, light theme, the confetti and count-up
+under a real reduced-motion setting, the signup-to-start hand-off with a brand-new account.
+
+**Learned.**
+- JSX in this build drops the space in `{n} quick questions` (an expression followed by text on the
+  same line): write `{n}{" "}quick`. The old code already did, and my rewrite re-introduced "8quick".
+- Several clicks fired in one JS tick all read the same stale `value`; real users can't, but a
+  scripted test must pause between clicks.

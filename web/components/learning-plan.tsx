@@ -12,6 +12,8 @@
 import Link from "next/link";
 import { ArrowRight, Compass, Flag, Lightbulb, RotateCcw, Target } from "lucide-react";
 
+import { CountUp } from "@/components/count-up";
+import { Markdown } from "@/components/markdown";
 import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +38,7 @@ function FocusList({ items }: { items: FocusItem[] }) {
                 <span className="ml-2 text-xs font-normal text-muted-foreground">{f.chapter_name}</span>
               )}
             </span>
-            <span className="text-sm text-muted-foreground">{f.note}</span>
+            <Markdown className="prose-sm prose-p:my-0 prose-p:leading-snug prose-p:text-muted-foreground">{f.note}</Markdown>
           </div>
           {f.has_lesson ? (
             <Button variant="outline" size="sm" asChild className="shrink-0 self-start sm:self-auto">
@@ -66,7 +68,9 @@ export function LearningPlanSummary({ plan }: { plan: LearningPlan }) {
         <div className="grid grid-cols-3 gap-3">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col rounded-xl border border-border bg-card p-4 text-center shadow-soft">
-              <span className={`text-3xl font-bold ${s.tone}`}>{s.value}</span>
+              <span className={`text-3xl font-bold ${s.tone}`}>
+                <CountUp value={s.value} />
+              </span>
               <span className="text-xs text-muted-foreground">{s.label}</span>
             </div>
           ))}

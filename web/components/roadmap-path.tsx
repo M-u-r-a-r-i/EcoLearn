@@ -20,6 +20,7 @@
 import Link from "next/link";
 import { Check, Clock, Lock, Play, Target } from "lucide-react";
 
+import { Markdown } from "@/components/markdown";
 import { PrimaryButton } from "@/components/primary-button";
 import type { RoadmapConcept } from "@/lib/api";
 import { withChapter } from "@/lib/use-chapter";
@@ -269,15 +270,15 @@ export function StepSheet({
         <h2 className="line-clamp-2 text-base font-bold leading-snug text-foreground">{concept.name}</h2>
         <p className="line-clamp-2 text-xs text-muted-foreground">{blurb[kind]}</p>
         {concept.personal_note && kind !== "locked" && kind !== "soon" && (
-          <p
+          <div
             className={cn(
               "line-clamp-2 flex items-start gap-1 text-xs",
               concept.personal === "focus" ? "text-destructive" : "text-success",
             )}
           >
             {concept.personal === "focus" && <Target className="mt-px size-3 shrink-0" aria-hidden />}
-            {concept.personal_note}
-          </p>
+            <Markdown className="prose-sm prose-p:my-0 prose-p:leading-snug prose-p:text-inherit">{concept.personal_note}</Markdown>
+          </div>
         )}
       </div>
       {cta[kind] ? (
