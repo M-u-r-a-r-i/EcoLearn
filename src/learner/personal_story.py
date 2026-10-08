@@ -45,7 +45,7 @@ from typing import Any, Callable
 
 from src import llm
 from src.content import lesson_service
-from src.learner import diagnostic, plan
+from src.learner import diagnostic, plan, survey
 from src.llm.client import parse_json_object
 from src.path import engine
 from src.progress import store
@@ -126,14 +126,18 @@ def _context(student_id: str, concept_id: str) -> dict[str, Any] | None:
         return None
     chapters = {c["id"]: c for c in engine.list_chapters()}
     domain = chapters.get(concept.chapter_id, {}).get("domain")
-    hobby = choose_hobby(store.get_learner_profile(student_id)["hobbies"],
-                         profile["interest"], domain)
+    saved = store.get_survey(student_id)
+    traits = saved["traits"] if saved else None
+    # The hobby they know best goes first (survey.order_hobbies; unchanged when no survey).
+    hobbies = survey.order_hobbies(store.get_learner_profile(student_id)["hobbies"], traits)
+    hobby = choose_hobby(hobbies, profile["interest"], domain)
     source = lesson_source(concept_id, profile["interest"])
     if hobby is None or source is None:
         return None
     mix_up = plan.learner_state(student_id)["mix_ups"].get(concept_id)
     return {"concept": concept, "hobby": hobby, "source": source,
             "level": profile["level"],
+            "notes": survey.story_notes(traits, hobby["id"]) if hobby else [],
             "mix_up": _first_sentence(mix_up["text"]) if mix_up else None}
 
 
@@ -153,11 +157,14 @@ def writer_messages(ctx: dict[str, Any]) -> list[dict[str, str]]:
     prompt = _WRITER_PROMPT.read_text(encoding="utf-8")
     mix_up = (f"This student's mix-up on this concept: {ctx['mix_up']}\n" if ctx["mix_up"]
               else "No mix-up recorded for this concept.\n")
+    # What the student said about themselves (coarse categories only, never raw answers).
+    notes = "".join(f"Note: {n}\n" for n in ctx.get("notes", []))
+    notes = f"{notes}\n" if notes else ""
     # The instructions travel in the user message: every model accepts that
     # (Gemma has no system role; free gateway models vary).
     return [{"role": "user", "content": (
         f"{prompt}\n\n---\n{_facts(ctx)}\nHobby: {ctx['hobby']['label']}\n{mix_up}\n"
-        "Write the JSON now.")}]
+        f"{notes}Write the JSON now.")}]
 
 
 def guard_problems(draft: dict[str, Any]) -> list[str]:

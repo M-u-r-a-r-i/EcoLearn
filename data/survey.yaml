@@ -1,0 +1,149 @@
+# "Getting to know you" — the first thing a student does after the teacher creates their
+# account (2026-10-08). Not a test: no right answers, no marks. It tells EcoLearn who the
+# student is, so later content can match them: which hobby to build stories on and how
+# deep to go into it, how long and how fast to make a lesson feel, what to start a lesson
+# with, and how to speak about physics to someone who is nervous about it.
+#
+# Everything is a tap on a fixed option: no free text about a child is collected or stored
+# (the pilot is on minors). Every question can be skipped. What each answer changes is in
+# src/learner/survey.py (derive_traits, lesson_prefs, story_notes).
+#
+# Question types (the web app draws each one):
+#   hobbies          the hobby tile picker (ids from data/diagnostic.yaml)
+#   hobby_single     one choice, asked once per hobby for the student's first two picks
+#   hobby_multi      several choices, asked once per hobby for the first two picks
+#   single / multi   one choice / several choices
+# Edit this file to change the survey: it is content, not code. Option ids are stored in the
+# database and read by survey.py, so rename an id only together with survey.py.
+
+version: 1
+asked_hobbies: 2     # depth questions are asked for the first two hobbies picked
+
+sections:
+  - { id: interests, title: "What you enjoy", emoji: "✨" }
+  - { id: hobby,     title: "Your hobbies, honestly", emoji: "🎯" }
+  - { id: learning,  title: "How you like to learn", emoji: "🧠" }
+  - { id: focus,     title: "Focus and energy", emoji: "⚡" }
+  - { id: physics,   title: "You and physics", emoji: "⚛️" }
+
+questions:
+  - id: hobbies
+    section: interests
+    type: hobbies
+    prompt: "What do you enjoy outside school?"
+    help: "Tap a few. Tap your favourites first: we'll ask about the first two."
+
+  - id: hobby_depth
+    section: hobby
+    type: hobby_single
+    prompt: "How close are you to {hobby}?"
+    help: "There's no good or bad answer. It just tells us how to talk about it."
+    options:
+      - { id: watch,        emoji: "👀", label: "I mostly watch it or see it around" }
+      - { id: follow,       emoji: "📰", label: "I follow it closely: news, scores, players" }
+      - { id: play_fun,     emoji: "🎈", label: "I do it for fun" }
+      - { id: play_regular, emoji: "🔁", label: "I do it regularly and practise" }
+      - { id: compete,      emoji: "🏆", label: "I compete, perform or coach" }
+
+  - id: hobby_know
+    section: hobby
+    type: hobby_multi
+    prompt: "What could you explain to a friend about {hobby}?"
+    help: "Tick everything that's true."
+    options:
+      - { id: rules,     emoji: "📜", label: "The rules or how it works" }
+      - { id: tactics,   emoji: "♟️", label: "Why certain tactics or techniques work" }
+      - { id: equipment, emoji: "🛠️", label: "How the equipment or technology works" }
+      - { id: numbers,   emoji: "📊", label: "The numbers: scores, speeds, stats" }
+      - { id: history,   emoji: "📚", label: "The history and the big names" }
+
+  - id: first_step
+    section: learning
+    type: single
+    prompt: "A new idea is easiest for me when I start with…"
+    options:
+      - { id: story,   emoji: "📖", label: "A story or real-life moment" }
+      - { id: picture, emoji: "🖼️", label: "A picture or diagram" }
+      - { id: try,     emoji: "✏️", label: "A problem to try myself first" }
+      - { id: rule,    emoji: "📐", label: "The rule or formula, then examples" }
+
+  - id: pace
+    section: learning
+    type: single
+    prompt: "I like to go…"
+    options:
+      - { id: step_by_step, emoji: "🐢", label: "Step by step, with plenty of examples" }
+      - { id: steady,       emoji: "🚶", label: "At a steady pace" }
+      - { id: fast,         emoji: "🚀", label: "Fast: just tell me the point" }
+
+  - id: session_length
+    section: focus
+    type: single
+    prompt: "How long can you study before you need a break?"
+    options:
+      - { id: m5,  emoji: "⏱️", label: "About 5 minutes" }
+      - { id: m10, emoji: "⏳", label: "About 10 minutes" }
+      - { id: m20, emoji: "🕒", label: "About 20 minutes" }
+      - { id: m30, emoji: "🕰️", label: "30 minutes or more" }
+
+  - id: focus_drift
+    section: focus
+    type: single
+    prompt: "When I read something for 10 minutes, my mind…"
+    options:
+      - { id: stays, emoji: "🎯", label: "Stays on it" }
+      - { id: some,  emoji: "🌤️", label: "Wanders a little after a few minutes" }
+      - { id: often, emoji: "🌪️", label: "Wanders a lot" }
+
+  - id: distractions
+    section: focus
+    type: multi
+    max: 3
+    prompt: "What pulls my attention away most?"
+    help: "Pick up to three."
+    options:
+      - { id: phone,    emoji: "📱", label: "My phone" }
+      - { id: noise,    emoji: "🔊", label: "Noise or people around" }
+      - { id: thoughts, emoji: "💭", label: "My own thoughts" }
+      - { id: tired,    emoji: "😴", label: "Being tired" }
+      - { id: bored,    emoji: "🥱", label: "Getting bored" }
+
+  - id: physics_feel
+    section: physics
+    type: single
+    prompt: "How do you feel about physics?"
+    options:
+      - { id: love,    emoji: "😍", label: "I like it" }
+      - { id: ok,      emoji: "🙂", label: "It's okay" }
+      - { id: nervous, emoji: "😬", label: "It makes me nervous" }
+      - { id: dread,   emoji: "😖", label: "I really struggle with it" }
+
+  - id: maths_comfort
+    section: physics
+    type: single
+    prompt: "And the maths in physics (equations, graphs, vectors)?"
+    options:
+      - { id: strong,   emoji: "💪", label: "Comfortable" }
+      - { id: mostly,   emoji: "👍", label: "Mostly fine" }
+      - { id: shaky,    emoji: "🤏", label: "A bit shaky" }
+      - { id: struggle, emoji: "🧱", label: "It's hard for me" }
+
+  - id: trips
+    section: physics
+    type: single
+    prompt: "What usually trips me up?"
+    options:
+      - { id: ideas,      emoji: "💡", label: "Understanding the ideas" }
+      - { id: formulas,   emoji: "🔣", label: "Knowing which formula to use" }
+      - { id: numericals, emoji: "🧮", label: "Working out the numbers" }
+      - { id: wording,    emoji: "🔤", label: "Understanding what the question asks" }
+
+  - id: goal
+    section: physics
+    type: single
+    prompt: "What do I want from physics?"
+    options:
+      - { id: pass,     emoji: "✅", label: "Pass the boards comfortably" }
+      - { id: marks,    emoji: "📈", label: "Score as high as I can" }
+      - { id: entrance, emoji: "🎓", label: "Prepare for an entrance exam" }
+      - { id: curious,  emoji: "🔭", label: "I'm just curious" }

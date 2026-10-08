@@ -96,6 +96,8 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 also pushes lesson batches — always `git pull --ff-only` first.
 
 **What a student does today** (all verified in a browser):
+**first sign-in → `/welcome`: "getting to know you"** (§9zy; a gate sends any student who hasn't
+answered it there; fixed options only, every question skippable, taken once) →
 sign up (2 steps) → **`/start`: the starting check** (hobbies + 8 questions with "not sure", taken
 once, its result a learning plan) → **roadmap** (chapter picker marks "coming soon" chapters;
 concepts tagged "Know it?" / "Focus"; "Next up" follows the personal recommendation) → **lesson**
@@ -132,6 +134,7 @@ also lifts a login lockout). **`/teacher/class`** has:
 | Area | Files | § |
 |---|---|---|
 | Boundary (all logic) | `src/platform_api.py` | — |
+| **"Getting to know you" survey** (first login: hobbies + depth, focus, how they learn, feelings about physics; drives lesson prefs, story notes, teacher profile) | `data/survey.yaml`, `src/learner/survey.py`, `platform_api.{get_survey,submit_survey,get_class_learner_profiles}`, `web/app/(app)/welcome`, `web/components/{survey-flow,welcome-gate,break-nudge,class-profiles}.tsx` | 9zy |
 | Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
 | Mastery from evidence + revision queue | `learner_plan.mastery_evidence`, `platform_api` §"Mastery from evidence", `web/app/(app)/review` | 9zn |
 | "How the AI decided" (decision trails) | `personal_story.generate` (trail), `platform_api.get_class_ai_decisions`, `web/components/ai-decisions.tsx` | 9zp |
@@ -505,6 +508,7 @@ venv\Scripts\python.exe tests\test_mastery.py             # two-question mastery
 venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost per student
 venv\Scripts\python.exe tests\test_ai_decisions.py        # decision trails, "How the AI decided"
 venv\Scripts\python.exe tests\test_concept_locks.py       # concept locks, class level (teacher only)
+venv\Scripts\python.exe tests\test_survey.py              # "getting to know you": validation, traits, prefs, HTTP
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

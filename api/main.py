@@ -617,6 +617,33 @@ def submit_assessment(
 # ---------------------------------------------------------------------------
 # The starting check and the learning plan (personalisation, layers 1 and 2).
 # ---------------------------------------------------------------------------
+class SurveyRequest(BaseModel):
+    # One entry per question id; see data/survey.yaml. Every question may be skipped.
+    answers: dict = {}
+
+
+@app.get("/api/survey")
+def get_survey(student_id: str = Depends(get_current_student_id)) -> dict:
+    """The "getting to know you" survey: the questions until it's taken, the traits after."""
+    return api.get_survey(student_id)
+
+
+@app.post("/api/survey")
+def submit_survey(
+    payload: SurveyRequest, student_id: str = Depends(get_current_student_id)
+) -> dict:
+    """Store the survey (once) and the hobbies it collected."""
+    return api.submit_survey(student_id, payload.answers)
+
+
+@app.get("/api/teacher/classes/{class_id}/profiles")
+def teacher_class_profiles(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """What each student said about themselves, next to how they actually read."""
+    return api.get_class_learner_profiles(teacher_id, class_id)
+
+
 @app.get("/api/diagnostic")
 def get_diagnostic(student_id: str = Depends(get_current_student_id)) -> dict:
     """The starting check: its questions (no answers), or the result once taken."""

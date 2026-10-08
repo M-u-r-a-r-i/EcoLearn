@@ -2521,3 +2521,58 @@ under a real reduced-motion setting, the signup-to-start hand-off with a brand-n
   same line): write `{n}{" "}quick`. The old code already did, and my rewrite re-introduced "8quick".
 - Several clicks fired in one JS tick all read the same stale `value`; real users can't, but a
   scripted test must pause between clicks.
+
+## 9zy. "Getting to know you": the first-login survey (2026-10-08)
+
+**Changed.**
+- **Survey** (`data/survey.yaml`, editable content; `src/learner/survey.py`; table `learner_survey`):
+  12 questions in five parts (what you enjoy; your hobbies, honestly; how you like to learn; focus
+  and energy; you and physics). Fixed options only: **no free text about a child**. Every question is
+  skippable; taken once (a repeat is a 409). Hobby depth is asked for the first two hobbies picked
+  (how close they are, and what they could explain), so "level of understanding of his hobby" needs
+  no per-hobby authoring and works for all 20 hobbies. Concentration is self-reported (how long they
+  can study, how much the mind wanders, what distracts them).
+- **First sign-in:** `WelcomeGate` in the `(app)` layout sends a student who hasn't answered to
+  `/welcome`; afterwards the page offers the starting check. The gate fails open (API down =
+  the student sees the page they asked for). The starting check skips its hobby step when hobbies
+  already came from the survey (and never overwrites them: it sends the stored list).
+- **What the answers change (deterministic, no model):**
+  - lesson page (`prefs` in the next-lesson envelope): one page vs step by step ("fast" pace), a
+    gentle stretch nudge after the span they chose (only counts visible time), "Try an example"
+    before "The idea" for students who learn by trying, a kind line for those nervous about physics;
+  - personal story: the hobby they know best is tried first, and coarse notes (novice hobby = no
+    jargon; expert = real terms; nervous = warm tone; short focus = short) go into the writer's prompt;
+  - teacher: `Getting to know the class` panel (distributions + per student plain-English lines) with
+    **what a student said about focus beside what their lesson views show** (median reading minutes,
+    skim share), so a teacher sees when the two disagree. Teachers get summary lines, never raw answers.
+  - everything is presentation or ordering: nothing is hidden or locked, and the student is told
+    on the last screen exactly what will change.
+- Demo seeder: 23 students answer (own random stream, so the checks didn't change); the two who
+  haven't taken the starting check (`ananya.r`, `aditya.v`) are also un-surveyed, so logging in as
+  either shows the real first-sign-in flow.
+- Tests: `tests/test_survey.py` (50 checks). Existing suites pass.
+
+**Why.** The user wants the first thing a student does to *understand the student*, not to test
+them, so later content can match their level. Static lessons can't be rewritten per student, so
+"matching" means the things that can adapt cheaply and honestly (which hobby, how much jargon,
+how long and in what order a lesson is shown, how kind the tone is). The survey stores the traits
+so later adaptation (difficulty, pace of the path) reads the same data.
+
+**Honest limits.**
+- Self-report is not measurement. It is shown beside observed reading and the teacher decides.
+- No pilot evidence yet that these adaptations help; the pilot can compare, e.g., break-nudge
+  students' lesson completion. Don't claim an effect.
+- Concentration/feelings about physics are mildly sensitive for minors: teacher-visible only, kept
+  as category ids, never sent to a model as raw answers (only the coarse notes above).
+- Students can't retake it yet (a Settings "update my answers" is a candidate next step).
+
+**Verified** in the browser on the demo class: a never-signed-in student logs in and lands on
+`/welcome`; the gate bounces `/roadmap` back; all five parts with a constant "Part n of 5"; the
+summary screen; the hand-off to `/start` skipping hobbies; his lesson showing the example before
+the idea and the kind line; the teacher panel ("24 of 25 answered", per-student lines).
+**Not checked:** screen readers, light theme, the break nudge firing (it needs 5 real minutes),
+phone width of `/welcome`, the "all on one page" default (a "fast" student).
+
+**Learned.** The folder was on another session's branch (`design/frontend-v2`) when I came to
+commit after a shutdown: always `git branch --show-current` before committing, and stage files by
+name when untracked folders (`web-v2/`) are around.

@@ -17,6 +17,7 @@ import { PrimaryButton } from "@/components/primary-button";
 import { SectionHeading } from "@/components/section-heading";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { TeachingAssistant } from "@/components/teaching-assistant";
+import { ClassProfilesPanel } from "@/components/class-profiles";
 import { ClassStoriesPanel } from "@/components/class-stories";
 import { ClassChecksPanel } from "@/components/class-checks";
 import { AiDecisionsPanel } from "@/components/ai-decisions";
@@ -122,6 +123,7 @@ function ClassView() {
             ) : (
               <FormError message={insights.error ?? "Couldn't load the class insights."} />
             )}
+            <ClassProfilesPanel classId={klass.class_id} />
             <ClassStoriesPanel classId={klass.class_id} />
             <AiDecisionsPanel classId={klass.class_id} />
             <StudentTable

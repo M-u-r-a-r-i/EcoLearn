@@ -29,11 +29,11 @@ function typingInto(target: EventTarget | null): boolean {
   return el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
 }
 
-export function LessonStepper({ steps }: { steps: LessonStep[] }) {
+export function LessonStepper({ steps, initialAll = false }: { steps: LessonStep[]; initialAll?: boolean }) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [visited, setVisited] = useState<Set<number>>(() => new Set([0]));
-  const [all, setAll] = useState(false);
+  const [all, setAll] = useState(initialAll);
   const top = useRef<HTMLDivElement | null>(null);
   const moved = useRef(false);
 

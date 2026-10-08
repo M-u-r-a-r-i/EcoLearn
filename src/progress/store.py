@@ -163,6 +163,20 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         )
         """
     )
+    # "Getting to know you" (2026-10-08): the first-login survey. `answers` is the cleaned
+    # submission and `traits` what src/learner/survey.py derived from it, both JSON. One row
+    # per student; `version` is data/survey.yaml's version at the time they answered.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS learner_survey (
+            student_id    TEXT PRIMARY KEY,
+            version       INTEGER NOT NULL,
+            answers       TEXT NOT NULL,
+            traits        TEXT NOT NULL,
+            completed_at  TEXT NOT NULL
+        )
+        """
+    )
     # Personal stories (2026-10-02, layer 3): one per student × concept, written
     # by the story agent and checked by the critic agent. `lesson_hash` ties a
     # story to the lesson text it was based on, so editing the lesson (or the
@@ -1270,6 +1284,74 @@ def get_learner_profile(student_id: str) -> dict[str, Any]:
     return {"hobbies": json.loads(row["hobbies"]),
             "diagnostic_completed_at": row["diagnostic_completed_at"],
             "end_check_completed_at": row["end_check_completed_at"]}
+
+
+def get_survey(student_id: str) -> dict[str, Any] | None:
+    """The student's survey row ({version, answers, traits, completed_at}), or None."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM learner_survey WHERE student_id = ?", (student_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return _survey_row(row) if row else None
+
+
+def _survey_row(row: sqlite3.Row) -> dict[str, Any]:
+    return {"student_id": row["student_id"], "version": row["version"],
+            "answers": json.loads(row["answers"]), "traits": json.loads(row["traits"]),
+            "completed_at": row["completed_at"]}
+
+
+def list_surveys(student_ids: list[str]) -> dict[str, dict[str, Any]]:
+    """{student_id: survey row} for those who have taken it."""
+    if not student_ids:
+        return {}
+    conn = _connect()
+    try:
+        marks = ",".join("?" * len(student_ids))
+        rows = conn.execute(
+            f"SELECT * FROM learner_survey WHERE student_id IN ({marks})", student_ids
+        ).fetchall()
+    finally:
+        conn.close()
+    return {r["student_id"]: _survey_row(r) for r in rows}
+
+
+def save_survey(
+    student_id: str,
+    version: int,
+    answers: dict[str, Any],
+    traits: dict[str, Any],
+    hobbies: list[str],
+) -> str:
+    """Store the survey and the hobbies it collected, in ONE transaction. Returns the time.
+
+    The hobbies go to `learner_profiles` (where the starting check and the story writer
+    already read them) without touching the starting check's own completion time.
+    """
+    completed_at = _now_iso()
+    conn = _connect()
+    try:
+        with conn:
+            conn.execute(
+                "INSERT INTO learner_survey (student_id, version, answers, traits, completed_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (student_id, version, json.dumps(answers, ensure_ascii=False),
+                 json.dumps(traits, ensure_ascii=False), completed_at),
+            )
+            if hobbies:
+                conn.execute(
+                    """
+                    INSERT INTO learner_profiles (student_id, hobbies) VALUES (?, ?)
+                    ON CONFLICT(student_id) DO UPDATE SET hobbies = excluded.hobbies
+                    """,
+                    (student_id, json.dumps(hobbies)),
+                )
+    finally:
+        conn.close()
+    return completed_at
 
 
 def save_diagnostic(

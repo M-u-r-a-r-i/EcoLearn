@@ -914,6 +914,15 @@ export interface NextLesson {
   concept_id: string | null;
   concept_name: string | null;
   lesson: Lesson | null;
+  prefs?: LessonPrefs; // how this student likes lessons shaped (from the survey)
+}
+
+// Presentation only: nothing is hidden or locked.
+export interface LessonPrefs {
+  mode: "steps" | "all"; // one idea at a time, or everything on one page
+  break_after_minutes: number | null; // a gentle stretch nudge after this much reading
+  example_first: boolean; // "Try an example" before "The idea"
+  gentle: boolean; // physics makes them nervous: be kind about it
 }
 
 // conceptId is optional: pass it to open a specific concept instead of the
@@ -1026,4 +1035,92 @@ export function submitAssessment(
     body: { concept_id: conceptId, answer, confidence: confidence ?? null },
     timeoutMs: LIVE_TIMEOUT_MS, // legacy free-text grading is still a live call
   });
+}
+
+
+// ---------------------------------------------------------------------------
+// "Getting to know you": the survey every student answers on first login.
+// Fixed options only (no free text about a child); every question may be skipped.
+// ---------------------------------------------------------------------------
+export interface SurveyOption {
+  id: string;
+  label: string;
+  emoji?: string;
+}
+
+export interface SurveySection {
+  id: string;
+  title: string;
+  emoji: string;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  section: string;
+  type: "hobbies" | "hobby_single" | "hobby_multi" | "single" | "multi";
+  prompt: string; // hobby questions contain "{hobby}"
+  help?: string;
+  options?: SurveyOption[];
+  max?: number;
+}
+
+export interface SurveyTraits {
+  hobbies: string[];
+  hobby_levels: Record<string, { level: "novice" | "fan" | "player" | "expert"; depth: number | null; knows: number }>;
+  focus: { span: "short" | "medium" | "long"; session_minutes: number | null; drift: string | null; distractions: string[] };
+  learning: { first_step: string | null; pace: string | null };
+  physics: { feel: string | null; maths: string | null; trips: string | null; goal: string | null };
+  summary: string[];
+}
+
+export interface Survey {
+  taken: boolean;
+  completed_at: string | null;
+  // until taken:
+  sections?: SurveySection[];
+  questions?: SurveyQuestion[];
+  hobby_options?: HobbyOption[];
+  hobbies?: string[];
+  // once taken:
+  traits?: SurveyTraits;
+}
+
+// One entry per question id: a string, a list, or {hobby: string | string[]}.
+export type SurveyAnswers = Record<string, string | string[] | Record<string, string | string[]>>;
+
+export function getSurvey(): Promise<Survey> {
+  return request("/api/survey");
+}
+
+export function submitSurvey(answers: SurveyAnswers): Promise<Survey> {
+  return request("/api/survey", { method: "POST", body: { answers } });
+}
+
+// ---------------------------------------------------------------------------
+// Teacher: what each student said about themselves, next to how they actually read.
+// ---------------------------------------------------------------------------
+export interface ClassProfileStudent {
+  student_id: string;
+  name: string;
+  taken: boolean;
+  summary: string[]; // plain-English lines
+  focus_span: "short" | "medium" | "long" | null;
+  hobby_level: "novice" | "fan" | "player" | "expert" | null;
+  observed: { views: number; median_minutes: number | null; skim_share: number | null };
+}
+
+export interface ClassProfiles {
+  summary: {
+    taken: number;
+    total: number;
+    focus: Record<"short" | "medium" | "long", number>;
+    pace: Record<string, number>;
+    physics_feel: Record<string, number>;
+    hobby_level: Record<"novice" | "fan" | "player" | "expert", number>;
+  };
+  students: ClassProfileStudent[];
+}
+
+export function getClassProfiles(classId: string): Promise<ClassProfiles> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/profiles`);
 }

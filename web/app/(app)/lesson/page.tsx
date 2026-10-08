@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
 import { Markdown } from "@/components/markdown";
+import { BreakNudge } from "@/components/break-nudge";
 import { HelpWidget } from "@/components/help-widget";
 import { LessonStepper, type LessonStep } from "@/components/lesson-stepper";
 import { LessonStory } from "@/components/personal-story";
@@ -166,6 +167,13 @@ function LessonView() {
       });
     }
     steps.push({ id: "check", label: "Check yourself", icon: CircleHelp, content: checkBlock });
+    // A student who learns by trying (survey) sees the worked example before the explanation.
+    // Presentation only: every step is still there and one click away.
+    if (data.prefs?.example_first) {
+      const idea = steps.findIndex((s) => s.label === "The idea");
+      const example = steps.findIndex((s) => s.label === "Try an example");
+      if (idea !== -1 && example > idea) steps.splice(idea, 0, ...steps.splice(example, 1));
+    }
   }
 
   return (
@@ -187,11 +195,15 @@ function LessonView() {
             {concept_name}
           </h1>
           {reason && <p className="text-muted-foreground">{reason}</p>}
+          {data.prefs?.gentle && (
+            <p className="text-sm text-muted-foreground">Take your time. There&apos;s no rush here.</p>
+          )}
         </header>
+        <BreakNudge minutes={data.prefs?.break_after_minutes ?? null} key={`nudge-${lesson.concept_id}`} />
 
         {steps.length > 0 ? (
           // Keyed by concept so moving to the next lesson starts at step one.
-          <LessonStepper key={lesson.concept_id} steps={steps} />
+          <LessonStepper key={lesson.concept_id} steps={steps} initialAll={data.prefs?.mode === "all"} />
         ) : (
           // Legacy lesson: one markdown blob, then the check.
           <>

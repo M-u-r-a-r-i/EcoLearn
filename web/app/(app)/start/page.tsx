@@ -16,9 +16,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, Clock, Compass, Route, Sparkles, Target } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, Compass, Route, Sparkles, Target } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { HobbyPicker } from "@/components/hobby-picker";
 import { Confetti } from "@/components/check-feedback";
 import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { LearningPlanSummary } from "@/components/learning-plan";
@@ -32,15 +33,10 @@ import {
   submitDiagnostic,
   type Confidence,
   type Diagnostic,
-  type HobbyOption,
   type LearningPlan,
 } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
-
-const MAX_HOBBIES = 8;
-const MAX_OWN = 2;
-const OWN_HOBBY = /^[A-Za-z][A-Za-z &'-]{1,23}$/;
 
 type Stage = "intro" | "hobbies" | "questions" | "done";
 
@@ -98,6 +94,8 @@ function StartingCheck({
   onDone: (plan: LearningPlan) => void;
 }) {
   const questions = diagnostic.questions ?? [];
+  // Hobbies come from the first-login survey; only a student without any is asked here.
+  const needsHobbies = diagnostic.hobbies.length === 0;
   const [stage, setStage] = useState<Stage>("intro");
   const [hobbies, setHobbies] = useState<string[]>(diagnostic.hobbies);
   const [index, setIndex] = useState(0);
@@ -136,7 +134,7 @@ function StartingCheck({
   }
   function goBack() {
     if (sending) return;
-    if (index === 0) setStage("hobbies");
+    if (index === 0) setStage(needsHobbies ? "hobbies" : "intro");
     else {
       setDirection("prev");
       setIndex((i) => i - 1);
@@ -206,7 +204,7 @@ function StartingCheck({
           ))}
         </ul>
         <div className="flex flex-wrap gap-3">
-          <PrimaryButton onClick={() => setStage("hobbies")}>
+          <PrimaryButton onClick={() => setStage(needsHobbies ? "hobbies" : "questions")}>
             Let&apos;s go <ArrowRight className="size-5" />
           </PrimaryButton>
           <Button variant="ghost" asChild>
@@ -253,7 +251,7 @@ function StartingCheck({
 
   return (
     <Shell>
-      <StepLabel step={2} />
+      <StepLabel step={needsHobbies ? 2 : 1} total={needsHobbies ? 2 : 1} />
 
       {/* Segmented progress: green = answered, indigo = here. */}
       <div className="flex flex-col gap-2">
@@ -330,139 +328,12 @@ function StartingCheck({
   );
 }
 
-function StepLabel({ step }: { step: 1 | 2 }) {
+function StepLabel({ step, total = 2 }: { step: 1 | 2; total?: 1 | 2 }) {
   return (
     <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-      Starting check · step {step} of 2 · {step === 1 ? "what you enjoy" : "where you stand"}
+      Starting check{total === 2 ? ` · step ${step} of 2` : ""} ·{" "}
+      {step === 1 && total === 2 ? "what you enjoy" : "where you stand"}
     </span>
-  );
-}
-
-function HobbyPicker({
-  options,
-  value,
-  onChange,
-}: {
-  options: HobbyOption[];
-  value: string[];
-  onChange: (next: string[]) => void;
-}) {
-  const [own, setOwn] = useState("");
-  const [ownError, setOwnError] = useState<string | null>(null);
-  const listed = new Set(options.map((o) => o.id));
-  const ownOnes = value.filter((h) => !listed.has(h));
-  const full = value.length >= MAX_HOBBIES;
-
-  function toggle(id: string) {
-    if (value.includes(id)) onChange(value.filter((h) => h !== id));
-    else if (!full) onChange([...value, id]);
-  }
-
-  function addOwn() {
-    const label = own.trim();
-    if (!label) return;
-    if (!OWN_HOBBY.test(label)) {
-      setOwnError("Keep it short: letters and spaces, up to 24 characters.");
-      return;
-    }
-    if (ownOnes.length >= MAX_OWN || full) {
-      setOwnError(`You can add up to ${MAX_OWN} of your own.`);
-      return;
-    }
-    setOwnError(null);
-    setOwn("");
-    if (!value.includes(label.toLowerCase())) onChange([...value, label.toLowerCase()]);
-  }
-
-  return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">What do you enjoy?</h1>
-        <p className="text-muted-foreground">
-          Tap a few. EcoLearn uses them to make examples feel like yours. Optional.
-        </p>
-      </div>
-
-      <ul className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
-        {options.map((o) => {
-          const on = value.includes(o.id);
-          return (
-            <li key={o.id}>
-              <button
-                type="button"
-                aria-pressed={on}
-                disabled={!on && full}
-                onClick={() => toggle(o.id)}
-                className={cn(
-                  "relative flex w-full flex-col items-center gap-1 rounded-2xl border p-3 text-center text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
-                  on
-                    ? "-translate-y-0.5 border-primary bg-primary/10 text-foreground shadow-card ring-2 ring-primary"
-                    : "border-border bg-card text-foreground hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-soft",
-                )}
-              >
-                <span aria-hidden className={cn("text-3xl", on && "rm-pop")}>
-                  {o.emoji}
-                </span>
-                <span className="leading-tight">{o.label}</span>
-                {on && (
-                  <span className="rm-pop absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <Check className="size-3" strokeWidth={3} aria-hidden />
-                  </span>
-                )}
-              </button>
-            </li>
-          );
-        })}
-        {ownOnes.map((h) => (
-          <li key={h}>
-            <button
-              type="button"
-              aria-pressed
-              onClick={() => toggle(h)}
-              className="relative flex w-full flex-col items-center gap-1 rounded-2xl border border-primary bg-primary/10 p-3 text-center text-sm font-medium capitalize text-foreground ring-2 ring-primary"
-            >
-              <span aria-hidden className="text-3xl">
-                ✨
-              </span>
-              <span className="leading-tight">{h}</span>
-              <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Check className="size-3" strokeWidth={3} aria-hidden />
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <p className="text-sm text-muted-foreground" aria-live="polite">
-        {value.length === 0 ? "None picked yet." : `${value.length} of ${MAX_HOBBIES} picked.`}
-      </p>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="own-hobby" className="text-sm font-semibold text-muted-foreground">
-          Something else?
-        </label>
-        <div className="flex max-w-sm gap-2">
-          <input
-            id="own-hobby"
-            value={own}
-            maxLength={24}
-            onChange={(e) => setOwn(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addOwn();
-              }
-            }}
-            placeholder="e.g. kite flying"
-            className="h-10 flex-1 rounded-lg border border-input bg-card px-3 text-sm text-foreground shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <Button type="button" variant="outline" onClick={addOwn}>
-            Add
-          </Button>
-        </div>
-        {ownError && <p className="text-sm text-destructive">{ownError}</p>}
-      </div>
-    </div>
   );
 }
 
