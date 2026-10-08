@@ -2681,3 +2681,31 @@ showed the new sentences and "Last updated Oct 8, 2026"; the server held revisio
 
 **Limits.** No limit on how often someone updates (each is a history row). The history has no reader
 yet beyond `store.get_survey_history`: an export for the pilot report is the obvious next step.
+
+## 9zzc. End-to-end walkthrough of the student flow (2026-10-08)
+
+A full pass in the browser against a fresh demo database (a never-signed-in student, `ananya.r`),
+running `main` from a separate git worktree (the main folder was on the `design/frontend-v2` branch,
+and ports 8000/3000 belonged to the user's own servers, so the test copy used 8100/3100, with a
+temporary extra CORS origin that was discarded, not committed).
+
+**Passed:** landing page -> Log in -> first sign-in lands on `/welcome` -> all five survey parts
+(interests Football, Video games, Music; depth questions for the first two) -> "here's what we'll do"
+-> the starting check, skipping hobbies, 8 questions by keyboard -> plan reveal (1 known, 5 mix-ups,
+2 not sure) -> roadmap (ring, locks, plan card) -> lesson (all six steps, the kind line for a student
+who said physics is stressful, image, help chat) -> 👍 -> the check (wrong: red/green replay, Try again;
+right: confetti and the road to mastered) -> "Continue" -> the roadmap (Position Done, Distance next, 1 of
+11) -> Mix-ups (6 items, maths rendered), Review, End check, Settings (read-only class, About you),
+the update-answers form (prefilled) -> Log out (session ended, nav reset, a protected page redirects to
+login with `?next=`) -> logging back in goes straight to the roadmap with progress kept, no survey again.
+
+**Found and fixed:** roadmap step labels read with a doubled full stop ("Finish Position first..") for a
+screen reader: the sentence's own full stop plus the one the label added.
+
+**Tooling learned:** Turbopack refuses a `node_modules` junction that points outside the project
+("Symlink is invalid, it points out of the filesystem root"): run such a copy with `next dev --webpack`.
+The preview tool only starts servers whose `cwd` is inside the project root.
+Remove a `mklink /J` junction with `rmdir` (it removes the link only) BEFORE deleting a worktree.
+
+**Not covered:** the teacher side (checked separately in 9zza), the light theme, screen readers, a
+phone-width pass of every page in one go.

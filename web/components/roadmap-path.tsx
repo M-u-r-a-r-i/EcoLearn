@@ -147,7 +147,7 @@ export function PathMap({
             type="button"
             onClick={() => onSelect(c.concept_id)}
             aria-pressed={selected}
-            aria-label={`${c.name}. ${subline(c, kind)}.`}
+            aria-label={`${c.name}. ${subline(c, kind).replace(/\.$/, "")}.`}  // one full stop, even if the subline already ends in one
             className={cn(
               "absolute inset-x-0 rounded-2xl text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               selected ? "bg-primary/5 ring-1 ring-primary/30" : "hover:bg-muted/40",
