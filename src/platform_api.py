@@ -1190,19 +1190,24 @@ def get_survey(student_id: str) -> dict[str, Any]:
 
     Returns:
         {"taken": bool, "completed_at": iso | None,
-         "sections": [...], "questions": [...], "hobby_options": [...]   (until taken)
-         "traits": {...}  (once taken: what their answers mean, for display)}
+         "sections": [...], "questions": [...], "hobby_options": [...], "hobbies": [...],
+         "traits": {...}, "answers": {...}, "updated_at": iso | None, "revision": int
+                                   (once taken: their answers, so a form can be prefilled,
+                                    and what those answers mean)}
     """
     _require_student(student_id)
     row = store.get_survey(student_id)
-    if row is not None:
-        return {"taken": True, "completed_at": row["completed_at"], "traits": row["traits"]}
-    return {
-        "taken": False, "completed_at": None,
+    # The questions are public content and are always sent: answering AND updating need them.
+    out = {
         "sections": survey.sections(), "questions": survey.questions(),
         "hobby_options": diagnostic.hobby_options(),
-        "hobbies": store.get_learner_profile(student_id)["hobbies"],
     }
+    if row is not None:
+        return {**out, "taken": True, "completed_at": row["completed_at"],
+                "updated_at": row["updated_at"], "revision": row["revision"],
+                "traits": row["traits"], "answers": row["answers"], "hobbies": row["answers"].get("hobbies", [])}
+    return {**out, "taken": False, "completed_at": None,
+            "hobbies": store.get_learner_profile(student_id)["hobbies"]}
 
 
 def submit_survey(student_id: str, answers: dict[str, Any]) -> dict[str, Any]:
@@ -1222,6 +1227,26 @@ def submit_survey(student_id: str, answers: dict[str, Any]) -> dict[str, Any]:
     cleaned = survey.clean(answers)
     traits = survey.derive_traits(cleaned)
     store.save_survey(student_id, survey.version(), cleaned, traits, cleaned.get("hobbies", []))
+    return get_survey(student_id)
+
+
+def update_survey(student_id: str, answers: dict[str, Any]) -> dict[str, Any]:
+    """Replace the student's survey answers (they changed their mind, or grew).
+
+    The old set is kept in the history, never shown to the teacher. Validated exactly like
+    the first time; if anything is wrong, nothing changes.
+
+    Returns: get_survey(student_id) after saving.
+
+    Raises:
+        EcoLearnError: not answered yet (do that first), or an invalid submission.
+    """
+    _require_student(student_id)
+    if store.get_survey(student_id) is None:
+        raise EcoLearnError("Answer the first questions before you update them.")
+    cleaned = survey.clean(answers)
+    traits = survey.derive_traits(cleaned)
+    store.update_survey(student_id, survey.version(), cleaned, traits, cleaned.get("hobbies", []))
     return get_survey(student_id)
 
 
@@ -1273,7 +1298,8 @@ def get_class_learner_profiles(teacher_id: str, class_id: str) -> dict[str, Any]
             level[top["level"]] += 1
         rows.append({"student_id": s["student_id"], "name": s["name"], "taken": True,
                      "summary": t["summary"], "focus_span": t["focus"]["span"],
-                     "hobby_level": top["level"] if top else None, "observed": observed})
+                     "hobby_level": top["level"] if top else None, "observed": observed,
+                     "updated_at": row["updated_at"]})
     return {
         "summary": {"taken": len(surveys), "total": len(students), "focus": focus,
                     "pace": pace, "physics_feel": feel, "hobby_level": level},

@@ -636,6 +636,14 @@ def submit_survey(
     return api.submit_survey(student_id, payload.answers)
 
 
+@app.put("/api/survey")
+def update_survey(
+    payload: SurveyRequest, student_id: str = Depends(get_current_student_id)
+) -> dict:
+    """Replace your answers (the old set is kept in the history)."""
+    return api.update_survey(student_id, payload.answers)
+
+
 @app.get("/api/teacher/classes/{class_id}/profiles")
 def teacher_class_profiles(
     class_id: str, teacher_id: str = Depends(get_current_teacher_id)

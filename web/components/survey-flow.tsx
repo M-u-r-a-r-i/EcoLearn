@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import {
   friendlyMessage,
   submitSurvey,
+  updateSurvey,
   type Survey,
   type SurveyAnswers,
   type SurveyQuestion,
@@ -45,23 +46,31 @@ export function SurveyFlow({
   firstName,
   onDone,
   next,
+  mode = "first",
+  initialAnswers,
 }: {
   survey: Survey;
   firstName: string;
   onDone: () => void; // the gate learns they're finished
   next: { href: string; label: string };
+  // "first": the first-login welcome. "edit": changing answers later (from Settings): no intro,
+  // the form starts filled in, and finishing replaces the answers instead of storing them.
+  mode?: "first" | "edit";
+  initialAnswers?: SurveyAnswers;
 }) {
+  const editing = mode === "edit";
   const router = useRouter();
   const questions = survey.questions ?? [];
   const sections = survey.sections ?? [];
   const labelOf = (id: string) =>
     survey.hobby_options?.find((h) => h.id === id)?.label ?? id.charAt(0).toUpperCase() + id.slice(1);
 
-  const [stage, setStage] = useState<"intro" | "steps" | "done">("intro");
+  const [stage, setStage] = useState<"intro" | "steps" | "done">(editing ? "steps" : "intro");
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [answers, setAnswers] = useState<Record<string, Answer>>(
-    survey.hobbies?.length ? { hobbies: survey.hobbies } : {},
+    (initialAnswers as Record<string, Answer> | undefined) ??
+      (survey.hobbies?.length ? { hobbies: survey.hobbies } : {}),
   );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +100,18 @@ export function SurveyFlow({
     setSending(true);
     setError(null);
     try {
-      const out = await submitSurvey(answers as SurveyAnswers);
+      // Per-hobby answers only exist for the first two hobbies: if they changed their picks,
+      // drop answers about hobbies that are no longer in the first two (the server refuses them).
+      const body: Record<string, Answer> = { ...answers };
+      for (const key of ["hobby_depth", "hobby_know"]) {
+        const per = body[key] as Record<string, string | string[]> | undefined;
+        if (per) {
+          const kept = Object.fromEntries(Object.entries(per).filter(([h]) => asked.includes(h)));
+          if (Object.keys(kept).length) body[key] = kept;
+          else delete body[key];
+        }
+      }
+      const out = await (editing ? updateSurvey : submitSurvey)(body as SurveyAnswers);
       setTraits(out.traits ?? null);
       onDone();
       setStage("done");
@@ -148,16 +168,16 @@ export function SurveyFlow({
     return (
       <Shell>
         <div className="relative flex flex-col gap-2">
-          <Confetti />
+          {!editing && <Confetti />}
           <span className="rm-sheet flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
-            <Sparkles className="size-4" aria-hidden /> Thanks, {firstName}
+            <Sparkles className="size-4" aria-hidden /> {editing ? "Saved" : `Thanks, ${firstName}`}
           </span>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Here&apos;s what we&apos;ll do with this
+            {editing ? "Here's what changes now" : "Here's what we'll do with this"}
           </h1>
         </div>
         <ul className="flex flex-col gap-3">
-          {(traits ? whatWeHeard(traits, labelOf) : []).map((line, i) => (
+          {(traits ? whatWeHeard(traits, labelOf, !editing) : []).map((line, i) => (
             <li
               key={line.text}
               className="rm-sheet flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft"
@@ -171,8 +191,8 @@ export function SurveyFlow({
           ))}
         </ul>
         <p className="text-sm text-muted-foreground">
-          Nothing is locked in. You can always change how a lesson is shown, and your teacher can
-          see a short summary to help you.
+          Nothing is locked in. You can change these again whenever you like, and your teacher
+          can see a short summary to help you.
         </p>
         <PrimaryButton onClick={() => router.push(next.href)} className="self-start">
           {next.label} <ArrowRight className="size-5" />
@@ -272,7 +292,7 @@ export function SurveyFlow({
           variant="ghost"
           size="lg"
           disabled={sending}
-          onClick={() => (index === 0 ? setStage("intro") : go(index - 1))}
+          onClick={() => (index === 0 ? (editing ? router.push(next.href) : setStage("intro")) : go(index - 1))}
           className="h-11 rounded-xl px-4"
         >
           <ArrowLeft className="size-4" /> Back
@@ -373,7 +393,11 @@ function Question({
 
 // What the student is told we'll do with their answers: concrete, and only things the app
 // really does today (src/learner/survey.py: lesson_prefs, story_notes, order_hobbies).
-function whatWeHeard(t: SurveyTraits, labelOf: (id: string) => string): { emoji: string; text: string }[] {
+export function whatWeHeard(
+  t: SurveyTraits,
+  labelOf: (id: string) => string,
+  withNextStep = true,
+): { emoji: string; text: string }[] {
   const out: { emoji: string; text: string }[] = [];
   const [hobby, info] = Object.entries(t.hobby_levels)[0] ?? [];
   if (hobby && info) {
@@ -402,6 +426,8 @@ function whatWeHeard(t: SurveyTraits, labelOf: (id: string) => string): { emoji:
   if (t.physics.feel === "nervous" || t.physics.feel === "dread") {
     out.push({ emoji: "💛", text: "Physics can feel like a lot. We'll keep it kind and small, one step at a time." });
   }
-  out.push({ emoji: "🧭", text: "Next, a short physics check. It has no marks: it just shows where to start." });
+  if (withNextStep) {
+    out.push({ emoji: "🧭", text: "Next, a short physics check. It has no marks: it just shows where to start." });
+  }
   return out;
 }

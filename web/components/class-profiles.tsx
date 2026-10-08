@@ -81,6 +81,12 @@ function Row({ s }: { s: ClassProfileStudent }) {
                 ))}
               </ul>
               {shown && <p className="text-foreground">Lesson views: {shown}</p>}
+              {s.updated_at && (
+                <p className="text-xs">
+                  Updated their answers on{" "}
+                  {new Date(s.updated_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}.
+                </p>
+              )}
             </>
           ) : (
             <p>They&apos;ll be asked at their next sign-in.</p>

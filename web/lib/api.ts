@@ -60,7 +60,7 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH";
+  method?: "GET" | "POST" | "PATCH" | "PUT";
   query?: Record<string, string | undefined>;
   body?: unknown;
   timeoutMs?: number;
@@ -1081,8 +1081,11 @@ export interface Survey {
   questions?: SurveyQuestion[];
   hobby_options?: HobbyOption[];
   hobbies?: string[];
-  // once taken:
+  // once taken (the questions above are always sent, so a form can be shown to edit):
   traits?: SurveyTraits;
+  answers?: SurveyAnswers; // their current answers, to prefill the form
+  updated_at?: string | null; // set once they've changed their answers
+  revision?: number;
 }
 
 // One entry per question id: a string, a list, or {hobby: string | string[]}.
@@ -1096,6 +1099,11 @@ export function submitSurvey(answers: SurveyAnswers): Promise<Survey> {
   return request("/api/survey", { method: "POST", body: { answers } });
 }
 
+// Replace your answers. The old set is kept server-side as history; the teacher sees only this one.
+export function updateSurvey(answers: SurveyAnswers): Promise<Survey> {
+  return request("/api/survey", { method: "PUT", body: { answers } });
+}
+
 // ---------------------------------------------------------------------------
 // Teacher: what each student said about themselves, next to how they actually read.
 // ---------------------------------------------------------------------------
@@ -1107,6 +1115,7 @@ export interface ClassProfileStudent {
   focus_span: "short" | "medium" | "long" | null;
   hobby_level: "novice" | "fan" | "player" | "expert" | null;
   observed: { views: number; median_minutes: number | null; skim_share: number | null };
+  updated_at?: string | null; // set when the student has changed their answers since
 }
 
 export interface ClassProfiles {

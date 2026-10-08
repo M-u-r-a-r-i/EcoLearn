@@ -12,6 +12,8 @@ No LLM calls. Proves:
      learner profile, and the starting check still keeps them.
   5. Where it shows: the lesson envelope carries the preferences (defaults before the survey),
      the story writer's prompt carries coarse notes, the closest hobby is tried first.
+  7. Updating: replaces the answers (and hobbies and traits), keeps the old set in a history the
+     teacher never sees, refuses bad input without changing anything, and needs a first survey.
   6. HTTP: needs a student session; bad answers are 400; a repeat is 409; the teacher endpoint
      needs a teacher who owns the class and shows observed reading next to what was said.
 
@@ -206,12 +208,67 @@ def test_http() -> None:
     raises(NotFoundError, api.get_class_learner_profiles, other["teacher_id"], class_id)
 
 
+def test_update() -> None:
+    print("\n[7] updating your answers")
+    sid = new_student("Up Kid", "up.kid")
+    raises(EcoLearnError, api.update_survey, sid, {"pace": "fast"})  # answer first
+    api.submit_survey(sid, {"hobbies": ["badminton"], "session_length": "m5", "focus_drift": "often",
+                            "physics_feel": "nervous"})
+    first = store.get_survey(sid)
+    check(first["revision"] == 0 and first["updated_at"] is None, "a fresh survey is revision 0, never updated")
+
+    out = api.update_survey(sid, {"hobbies": ["music", "cricket"], "hobby_depth": {"music": "compete"},
+                                  "session_length": "m30", "focus_drift": "stays"})
+    check(out["revision"] == 1 and out["updated_at"], "the update bumps the revision and stamps the time")
+    check(out["traits"]["focus"]["span"] == "long", "the traits follow the new answers")
+    check(out["answers"]["hobbies"] == ["music", "cricket"] and "physics_feel" not in out["answers"],
+          "the new set REPLACES the old (skipped now means skipped)")
+    check(store.get_learner_profile(sid)["hobbies"] == ["music", "cricket"], "the hobbies follow")
+    check(store.get_survey(sid)["completed_at"] == first["completed_at"], "completed_at stays the first time")
+    history = store.get_survey_history(sid)
+    check(len(history) == 1 and history[0]["answers"]["hobbies"] == ["badminton"]
+          and history[0]["traits"]["focus"]["span"] == "short", "the old answers are kept in the history")
+
+    raises(EcoLearnError, api.update_survey, sid, {"pace": "warp"})
+    raises(EcoLearnError, api.update_survey, sid, {"hobbies": ["music"], "hobby_depth": {"cricket": "watch"}})
+    check(api.get_survey(sid)["revision"] == 1 and len(store.get_survey_history(sid)) == 1,
+          "a refused update changes nothing")
+    api.update_survey(sid, {})
+    check(store.get_learner_profile(sid)["hobbies"] == [] and api.get_survey(sid)["revision"] == 2,
+          "an empty update clears the hobbies (their choice) and is recorded as another revision")
+    check(len(store.get_survey_history(sid)) == 2, "two earlier sets are in the history")
+    check(api.get_survey(sid)["questions"], "the questions are still sent once taken (the edit form needs them)")
+
+    # HTTP
+    client = TestClient(app)
+    check(client.put("/api/survey", json={"answers": {}}).status_code == 401, "PUT needs a session")
+    made = api.create_class(api.create_teacher("Ms. Up", "up.teacher", "teacher-password-1")["teacher_id"],
+                            "11-U", "Class 11", "cricket", "Zed Ali")
+    zed = made["credentials"][0]
+    check(client.post("/api/auth/login", json={"username": zed["username"], "password": zed["password"]}).status_code == 200,
+          "a class student logs in")
+    check(client.put("/api/survey", json={"answers": {"pace": "fast"}}).status_code == 400, "PUT before the first answers is a 400")
+    check(client.post("/api/survey", json={"answers": {"pace": "steady"}}).status_code == 200, "first answers")
+    r = client.put("/api/survey", json={"answers": {"pace": "fast", "session_length": "m10"}})
+    check(r.status_code == 200 and r.json()["revision"] == 1 and r.json()["answers"]["pace"] == "fast", "PUT replaces them")
+    check(client.put("/api/survey", json={"answers": {"pace": "warp"}}).status_code == 400, "a bad option is a 400")
+    r = client.get("/api/survey")
+    check(r.json()["answers"]["pace"] == "fast", "GET returns the answers to prefill a form")
+
+    t_http = TestClient(app)
+    t_http.post("/api/teacher/login", json={"username": "up.teacher", "password": "teacher-password-1"})
+    rows = {x["name"]: x for x in t_http.get(f"/api/teacher/classes/{made['class']['class_id']}/profiles").json()["students"]}
+    check(rows["Zed Ali"]["updated_at"], "the teacher sees THAT they updated, and the current answers only")
+    check("history" not in str(rows["Zed Ali"]).lower(), "never the history")
+
+
 def main() -> None:
     test_bank()
     test_validation()
     test_traits()
     test_storage_and_surfaces()
     test_http()
+    test_update()
     print(f"\nAll {_checks} survey checks passed.")
 
 

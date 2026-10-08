@@ -2644,3 +2644,40 @@ replaces the tabs when shown).
 
 **Learned.** The "skimmer" and "sure but wrong" rules are heuristics, shown as prompts to look, not
 verdicts: the wording says "may be rushing", not "is".
+
+## 9zzb. "Update my answers" (2026-10-08)
+
+**Changed.**
+- **Backend.** `PUT /api/survey` -> `platform_api.update_survey`: validated exactly like the first
+  submission (nothing changes if it's refused), replaces the answers, traits and hobbies, and bumps a
+  `revision`. It needs a first survey (otherwise a 400, "Answer the first questions first"). The
+  current answers stay in `learner_survey` (`updated_at`, `revision` added as additive columns); every
+  set it replaces goes to a new **`learner_survey_history`** table, so the pilot can see how students
+  change (e.g. focus over a term) while the app and the teacher only ever use the current set.
+  `completed_at` stays the time of the first answers. `GET /api/survey` now always sends the questions
+  (public content) and, once taken, the student's own answers (to prefill the form), `updated_at` and
+  `revision`. An empty update clears the hobbies: that is the student's choice.
+- **Frontend.** Settings has an **"About you"** card: the same plain sentences the survey ended with
+  ("here's what we'll do with this"), when it was last updated, and an **Update my answers** button.
+  `/settings/about` reuses `SurveyFlow` in `mode="edit"`: no intro, every part pre-filled, the last
+  screen says "Saved / Here's what changes now" (no confetti, no "take the check" step). If the student
+  changes which hobbies are first, answers about hobbies no longer in the first two are dropped before
+  sending (the server refuses them).
+- **Teacher.** A student's row says "Updated their answers on <date>"; never the history.
+- Tests: `tests/test_survey.py` is now 70 checks (replace, history, refused update changes nothing,
+  clear, PUT over HTTP, the teacher sees only the flag). All other suites pass.
+
+**Why.** People change (and a mis-tapped answer at 8 a.m. shouldn't shape a term). Because lessons
+now adapt to the survey, a stale answer has a real cost, so changing it must be easy and visible.
+The history is for the pilot's evidence, not for display.
+
+**Verified** in the browser on the demo class (`aarav.k`): Settings shows his sentences; the edit flow
+opens pre-filled with no intro; dropping his first hobby and adding Music kept Kabaddi's old answers
+and started Music blank; saving replaced the answers (focus short -> long), the page and Settings
+showed the new sentences and "Last updated Oct 8, 2026"; the server held revision 1 with the old set
+(badminton, kabaddi, short focus) as revision 0 in the history.
+**Not checked:** phone width of `/settings/about`, screen readers, the light theme, the teacher row's
+"Updated" line in the browser (covered by the HTTP test).
+
+**Limits.** No limit on how often someone updates (each is a history row). The history has no reader
+yet beyond `store.get_survey_history`: an export for the pilot report is the obvious next step.
