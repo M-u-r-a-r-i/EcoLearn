@@ -2576,3 +2576,37 @@ phone width of `/welcome`, the "all on one page" default (a "fast" student).
 **Learned.** The folder was on another session's branch (`design/frontend-v2`) when I came to
 commit after a shutdown: always `git branch --show-current` before committing, and stage files by
 name when untracked folders (`web-v2/`) are around.
+
+## 9zz. The landing page (2026-10-08)
+
+**Changed.**
+- `web/app/page.tsx` (rewritten; still a Server Component) + `web/components/landing/{interest-showcase,
+  reveal,hero-actions}.tsx` (small client pieces). Sections: hero ("Physics, through the thing you already
+  love", Class 11 & 12, CBSE and ISC, Get started / Log in); **"Same physics. Your world."**, an
+  interactive showcase where picking cricket / football / gaming / smartphones / motorsport re-tells a real
+  physics idea through it, recolours the card, tours itself every 6 s until the visitor picks (not at
+  all under reduced motion, paused on hover or focus); How it works (4 steps: about you, the check, your
+  roadmap, learn-check-remember); "Built to understand, not to rank" (mix-ups, AI stories named as AI,
+  fair grading); For teachers (with an illustration labelled "made-up numbers"); a closing call to action.
+  Logged-in visitors see a way back to their own home instead of Get started.
+- The five showcase examples are checked physics with the arithmetic in comments (0.16 kg x 25 m/s = 4;
+  R = 20^2 sin 90 / 9.8 = 40.8 m; v = g t = 19.6; I^2 R = 4 x 0.1 = 0.4 W; m v^2 / r = 8000 N), and each
+  names a concept that exists in the curriculum (Linear momentum, Projectile motion, Equations of
+  motion, Electrical power, Dynamics of circular motion). Labelled "a taste of a lesson, not the lesson".
+- `Reveal`: sections fade up on scroll with no React state (an effect marks the element, an
+  IntersectionObserver flips it); the hidden state exists only under no-preference motion and only once JS
+  has run, so without JS or with reduced motion everything is simply visible. CSS in `globals.css`.
+- Page title/description now say "Physics, through the thing you love" (were generic "learn anything").
+
+**Why.** The landing page was the generic first thing a judge or a parent sees; it said nothing about
+physics. It now explains the product in about ten seconds and demonstrates the thesis instead of
+describing it.
+
+**Claims policy (keep it).** Every sentence is something the app does today. Deliberately NOT said:
+"free" (pricing undecided), "the AI grades you" (grading is multiple choice, no model), "no personal
+data" (we hold names: "as little as we can"), any user numbers or results (no pilot yet).
+
+**Verified** in the browser: hero, the showcase (each interest changes question, concept, numbers and
+the pressed chip), the reveal on scroll, 375 px (no sideways scroll), the light theme.
+**Not checked:** logged-in view of the hero buttons, screen readers, the tour pausing on keyboard
+focus, other widths (tablet).
