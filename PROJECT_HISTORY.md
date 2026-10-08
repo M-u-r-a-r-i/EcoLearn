@@ -2709,3 +2709,15 @@ Remove a `mklink /J` junction with `rmdir` (it removes the link only) BEFORE del
 
 **Not covered:** the teacher side (checked separately in 9zza), the light theme, screen readers, a
 phone-width pass of every page in one go.
+
+## 9zzd. Handoff refresh (2026-10-08)
+
+`AGENTS.md` §2 now describes the app as of `b4aea3f`: the full student flow (first-sign-in survey ->
+starting check -> roadmap -> lesson -> check -> settings with "update my answers"), the teacher's tabbed
+class page, the new landing page, where each piece lives, the honest "not verified" list, a rewritten
+next-actions list, and **machine notes for the next session**: a separate design session shares the folder
+on `design/frontend-v2` (check the branch before editing; `main` is the truth), how to test `main` from a
+git worktree on ports 8100/3100 (and the Turbopack junction / `--webpack` and `rmdir`-before-removal
+gotchas), the demo logins (`ananya.r` / `aditya.v` never sign in; the password is the constant in
+`scripts/seed_demo.py`), and the design-session merge as an open thread. Memory notes added:
+the user's own servers must not be stopped; a long interrupted run means do the walkthrough instead.
