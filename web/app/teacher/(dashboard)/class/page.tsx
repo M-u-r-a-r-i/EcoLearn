@@ -9,13 +9,14 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { FormError } from "@/components/auth-card";
 import { PageContainer } from "@/components/page-container";
 import { PrimaryButton } from "@/components/primary-button";
-import { SectionHeading } from "@/components/section-heading";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
+import { ClassSnapshot, NeedsAttention, type ClassTab } from "@/components/class-overview";
+import { TabBar, type TabDef } from "@/components/tab-bar";
 import { TeachingAssistant } from "@/components/teaching-assistant";
 import { ClassProfilesPanel } from "@/components/class-profiles";
 import { ClassStoriesPanel } from "@/components/class-stories";
@@ -26,8 +27,10 @@ import { Button } from "@/components/ui/button";
 import {
   addStudents,
   friendlyMessage,
+  getClassChecks,
   getClassDetail,
   getClassInsights,
+  getClassProfiles,
   resetStudentPassword,
   setStudentLevel,
   type ClassStudent,
@@ -50,13 +53,30 @@ function lastActive(iso: string | null): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+const TAB_IDS: ClassTab[] = ["overview", "insights", "students", "ai"];
+
 function ClassView() {
-  const classId = useSearchParams().get("id") ?? "";
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const classId = params.get("id") ?? "";
+  // The tab rides in the URL too, so a refresh or a shared link lands on the same view.
+  const tab: ClassTab = TAB_IDS.find((t) => t === params.get("tab")) ?? "overview";
+  function setTab(next: ClassTab) {
+    const q = new URLSearchParams(params);
+    q.set("tab", next);
+    router.replace(`${pathname}?${q}`, { scroll: false });
+  }
+
   const [version, setVersion] = useState(0);
+  const [checksVersion, setChecksVersion] = useState(0);
   const detail = useFetch(`class:${classId}:${version}`, () => getClassDetail(classId));
-  // Loaded separately so a slow or failed insights query never hides the
-  // student list (and the password resets a teacher may urgently need).
+  // Loaded separately so a slow or failed query never hides the student list (and the
+  // password resets a teacher may urgently need). The snapshot and "Needs attention"
+  // use whatever has arrived; a failure just leaves its part out.
   const insights = useFetch(`insights:${classId}:${version}`, () => getClassInsights(classId));
+  const checks = useFetch(`checks-top:${classId}:${version}:${checksVersion}`, () => getClassChecks(classId));
+  const profiles = useFetch(`profiles-top:${classId}:${version}`, () => getClassProfiles(classId));
   // Logins to show once: from a reset or from adding students.
   const [sheet, setSheet] = useState<{ title: string; credentials: StudentCredential[] } | null>(
     null,
@@ -91,19 +111,21 @@ function ClassView() {
   }
 
   const { class: klass, students } = detail.data;
-  const started = students.filter((s) => s.attempted > 0).length;
+  const tabs: TabDef<ClassTab>[] = [
+    { id: "overview", label: "Overview" },
+    { id: "insights", label: "Insights" },
+    { id: "students", label: "Students", count: students.length },
+    { id: "ai", label: "Stories and AI" },
+  ];
 
   return (
     <main className="flex flex-1 flex-col">
-      <PageContainer className="flex flex-col gap-8">
+      <PageContainer className="flex flex-col gap-6">
         {back}
-        <div className="print:hidden">
-          <SectionHeading
-            eyebrow={klass.level}
-            title={klass.name}
-            subtitle={`${students.length} students · ${started} have started`}
-          />
-        </div>
+        <header className="flex flex-col gap-1 print:hidden">
+          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">{klass.level}</span>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">{klass.name}</h1>
+        </header>
 
         {sheet ? (
           <CredentialsSheet
@@ -114,36 +136,81 @@ function ClassView() {
           />
         ) : (
           <>
-            <ClassChecksPanel classId={klass.class_id} />
-            <TeachingAssistant classId={klass.class_id} />
-            {insights.data ? (
-              <ClassInsightsPanel insights={insights.data} />
-            ) : insights.loading ? (
-              <div className="h-40 animate-pulse rounded-xl bg-muted" aria-label="Loading class insights" />
-            ) : (
-              <FormError message={insights.error ?? "Couldn't load the class insights."} />
-            )}
-            <ClassProfilesPanel classId={klass.class_id} />
-            <ClassStoriesPanel classId={klass.class_id} />
-            <AiDecisionsPanel classId={klass.class_id} />
-            <StudentTable
+            <ClassSnapshot
               students={students}
-              insights={insights.data?.students ?? []}
-              onReset={(credential) =>
-                setSheet({ title: `New password for ${credential.name}`, credentials: [credential] })
-              }
-              onLevelChanged={() => setVersion((v) => v + 1)}
+              insights={insights.data}
+              checks={checks.data}
+              profiles={profiles.data}
             />
-            <AddStudentsForm
-              classId={klass.class_id}
-              onAdded={(credentials) => {
-                setVersion((v) => v + 1);
-                setSheet({
-                  title: `${credentials.length} ${credentials.length === 1 ? "account" : "accounts"} added`,
-                  credentials,
-                });
-              }}
-            />
+            <TabBar tabs={tabs} value={tab} onChange={setTab} label="Class sections" />
+
+            <div
+              key={tab}
+              role="tabpanel"
+              id={`panel-${tab}`}
+              aria-labelledby={`tab-${tab}`}
+              className="rm-sheet flex flex-col gap-8"
+            >
+              {tab === "overview" && (
+                <>
+                  <NeedsAttention
+                    students={students}
+                    insights={insights.data}
+                    checks={checks.data}
+                    profiles={profiles.data}
+                    onOpenTab={setTab}
+                  />
+                  <TeachingAssistant classId={klass.class_id} />
+                  <ClassChecksPanel
+                    classId={klass.class_id}
+                    onChanged={() => setChecksVersion((v) => v + 1)}
+                  />
+                </>
+              )}
+
+              {tab === "insights" && (
+                <>
+                  {insights.data ? (
+                    <ClassInsightsPanel insights={insights.data} />
+                  ) : insights.loading ? (
+                    <div className="h-40 animate-pulse rounded-xl bg-muted" aria-label="Loading class insights" />
+                  ) : (
+                    <FormError message={insights.error ?? "Couldn't load the class insights."} />
+                  )}
+                  <ClassProfilesPanel classId={klass.class_id} />
+                </>
+              )}
+
+              {tab === "students" && (
+                <>
+                  <StudentTable
+                    students={students}
+                    insights={insights.data?.students ?? []}
+                    onReset={(credential) =>
+                      setSheet({ title: `New password for ${credential.name}`, credentials: [credential] })
+                    }
+                    onLevelChanged={() => setVersion((v) => v + 1)}
+                  />
+                  <AddStudentsForm
+                    classId={klass.class_id}
+                    onAdded={(credentials) => {
+                      setVersion((v) => v + 1);
+                      setSheet({
+                        title: `${credentials.length} ${credentials.length === 1 ? "account" : "accounts"} added`,
+                        credentials,
+                      });
+                    }}
+                  />
+                </>
+              )}
+
+              {tab === "ai" && (
+                <>
+                  <ClassStoriesPanel classId={klass.class_id} />
+                  <AiDecisionsPanel classId={klass.class_id} />
+                </>
+              )}
+            </div>
           </>
         )}
       </PageContainer>

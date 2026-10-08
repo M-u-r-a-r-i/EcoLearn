@@ -6,6 +6,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { ArrowRight, Users } from "lucide-react";
 
 import { Field, FormError } from "@/components/auth-card";
 import { useAuth } from "@/components/auth-provider";
@@ -95,12 +96,21 @@ function ClassList({
             <li key={c.class_id}>
               <Link
                 href={`/teacher/class?id=${encodeURIComponent(c.class_id)}`}
-                className="flex flex-col gap-1 rounded-xl border border-border bg-card p-5 shadow-card transition-colors hover:border-primary"
+                className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <span className="font-bold text-foreground">{c.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {c.level} · {c.student_count} {c.student_count === 1 ? "student" : "students"}
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Users className="size-6" aria-hidden />
                 </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-lg font-bold text-foreground">{c.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {c.level} · {c.student_count} {c.student_count === 1 ? "student" : "students"}
+                  </span>
+                </span>
+                <ArrowRight
+                  className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary"
+                  aria-hidden
+                />
               </Link>
             </li>
           ))}

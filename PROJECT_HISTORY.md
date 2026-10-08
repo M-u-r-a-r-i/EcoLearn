@@ -2610,3 +2610,37 @@ data" (we hold names: "as little as we can"), any user numbers or results (no pi
 the pressed chip), the reveal on scroll, 375 px (no sideways scroll), the light theme.
 **Not checked:** logged-in view of the hero buttons, screen readers, the tour pausing on keyboard
 focus, other widths (tablet).
+
+## 9zza. The teacher's class page, reorganised (2026-10-08)
+
+**Changed.**
+- `web/app/teacher/(dashboard)/class/page.tsx`: eight panels stacked in one long scroll became a
+  header, a **four-number snapshot** and **four tabs** (`web/components/tab-bar.tsx`, an accessible
+  tablist with arrow keys / Home / End; the tab is in the URL as `?tab=`, so a refresh or a shared link
+  lands on the same view):
+  - **Overview**: *Needs attention*, then the Teaching assistant, then the starting check -> end check;
+  - **Insights**: the class's most common mix-ups and concepts, and "Getting to know the class";
+  - **Students**: the table (class dropdown, password reset) and adding students;
+  - **Stories and AI**: personal-story review and "How the AI decided".
+- `web/components/class-overview.tsx` (new): the snapshot tiles (started, right first time, getting
+  to know you, end check) and **Needs attention**, derived in the browser from data the page already
+  loads (no new API, no new numbers): students who haven't started, gone quiet for 7+ days, first tries
+  that were wrong but "I'm sure", students who skim (3+ lessons, half under 30 s), students who haven't
+  answered the survey, and end-check stragglers. Each item names the students and opens the tab where
+  to look. A missing or failed piece just leaves its tile or item out.
+- `ClassChecksPanel` takes `onChanged`, so closing or opening the end check refreshes the snapshot.
+- `/teacher`: class cards got an icon, the student count and an arrow, with a hover lift.
+
+**Why.** For a teacher (and for a demo on stage) the question is "who needs me today?", and the old
+page answered it only after eight screens of scrolling. Now the answer is the first thing on the page.
+
+**Verified** in the browser on the demo class: the snapshot (23 of 25 started, 79% right first time, 23 of
+25 answered the survey, end check 20 of 23); five real attention items (2 not started, 8 sure-but-wrong,
+6 skimmers, 2 unsurveyed, 3 not finished); "Open" jumping to the right tab; arrow keys and Home; the
+URL carrying the tab; closing the end check updating the tile and dropping its item; 375 px with no
+sideways scroll on all four tabs. **Not checked:** screen readers, the light theme, a class with zero
+students, print layout of the credentials sheet after this change (the sheet is unchanged and still
+replaces the tabs when shown).
+
+**Learned.** The "skimmer" and "sure but wrong" rules are heuristics, shown as prompts to look, not
+verdicts: the wording says "may be rushing", not "is".
