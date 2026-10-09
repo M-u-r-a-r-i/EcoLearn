@@ -2600,3 +2600,17 @@ login (remembered per student in localStorage; the roadmap card still invites th
 **Checked in the browser:** skip-then-login lands on the roadmap, a fresh student still lands on `/start`; end-check
 ("needs start" state), 404, teacher account. **Not checked:** the credentials sheet and printed slips (it only appears
 after a password reset, and the demo class holds real accounts), the error page (needs a crash), end-check questions.
+
+
+## 9zzzzz. Teacher class dashboard redesign (2026-10-09)
+
+**Changed.** UI only. `teacher/(dashboard)/class/page.tsx` is now four tabs (Overview, Insights, Stories & AI,
+Students) instead of one 10,000 px scroll. Metric cards with icons and tones (`.dash-metric`), a before/after bar chart
+per idea in `class-checks.tsx` (the table moved into a collapsed "Idea by idea"), ranked misconceptions with share bars,
+per-interest cards, the AI guardrail pipeline as four stage cards, the teaching plan on a soft panel with a step
+timeline, and a student table with avatars, a mastered meter, coloured accuracy and card layout under 768 px
+(`.dtable`). New `.dash-*` / `.dbar*` / `.dmix*` / `.dpipe` / `.dtable` rules at the end of `app/ecolearn.css`
+(11 px minimum text, unlike the Replit original's 8-10 px).
+
+**Checked** in the browser on the demo class (desktop and 375 px): all four tabs. **Not checked:** the credentials sheet
+after a reset, an open end-check being toggled, the empty state of a brand-new class.

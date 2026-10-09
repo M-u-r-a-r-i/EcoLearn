@@ -10,9 +10,10 @@
 import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { BarChart3, Bot, Flag, Users } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
-import { PageHeading } from "@/components/ui-kit";
+import { Meter, PageHeading, Skeleton } from "@/components/ui-kit";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { TeachingAssistant } from "@/components/teaching-assistant";
 import { ClassStoriesPanel } from "@/components/class-stories";
@@ -42,6 +43,14 @@ export default function ClassPage() {
   );
 }
 
+type TabId = "overview" | "insights" | "ai" | "students";
+const TABS: { id: TabId; label: string; Icon: typeof Flag }[] = [
+  { id: "overview", label: "Overview", Icon: Flag },
+  { id: "insights", label: "Insights", Icon: BarChart3 },
+  { id: "ai", label: "Stories & AI", Icon: Bot },
+  { id: "students", label: "Students", Icon: Users },
+];
+
 function lastActive(iso: string | null): string {
   if (!iso) return "Not started";
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -50,6 +59,7 @@ function lastActive(iso: string | null): string {
 function ClassView() {
   const classId = useSearchParams().get("id") ?? "";
   const [version, setVersion] = useState(0);
+  const [tab, setTab] = useState<TabId>("overview");
   const detail = useFetch(`class:${classId}:${version}`, () => getClassDetail(classId));
   // Loaded separately so a slow or failed insights query never hides the
   // student list (and the password resets a teacher may urgently need).
@@ -60,7 +70,7 @@ function ClassView() {
   );
 
   const back = (
-    <Link href="/teacher" className="text-sm font-semibold text-primary hover:underline print:hidden">
+    <Link href="/teacher" className="back-link text-primary print:hidden">
       ← All classes
     </Link>
   );
@@ -70,8 +80,9 @@ function ClassView() {
       <main className="page-shell w-full flex-1">
         <div className="mx-auto w-full flex flex-col gap-4">
           {back}
-          <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
-          <div className="h-60 animate-pulse rounded-xl bg-muted" />
+          <div className="surface">
+            <Skeleton rows={6} />
+          </div>
         </div>
       </main>
     );
@@ -111,35 +122,68 @@ function ClassView() {
           />
         ) : (
           <>
-            <ClassChecksPanel classId={klass.class_id} />
-            <TeachingAssistant classId={klass.class_id} />
-            {insights.data ? (
-              <ClassInsightsPanel insights={insights.data} />
-            ) : insights.loading ? (
-              <div className="h-40 animate-pulse rounded-xl bg-muted" aria-label="Loading class insights" />
-            ) : (
-              <FormError message={insights.error ?? "Couldn't load the class insights."} />
-            )}
-            <ClassStoriesPanel classId={klass.class_id} />
-            <AiDecisionsPanel classId={klass.class_id} />
-            <StudentTable
-              students={students}
-              insights={insights.data?.students ?? []}
-              onReset={(credential) =>
-                setSheet({ title: `New password for ${credential.name}`, credentials: [credential] })
-              }
-              onLevelChanged={() => setVersion((v) => v + 1)}
-            />
-            <AddStudentsForm
-              classId={klass.class_id}
-              onAdded={(credentials) => {
-                setVersion((v) => v + 1);
-                setSheet({
-                  title: `${credentials.length} ${credentials.length === 1 ? "account" : "accounts"} added`,
-                  credentials,
-                });
-              }}
-            />
+            <div className="dash-tabs print:hidden" role="tablist" aria-label="Class dashboard">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  id={`tab-${t.id}`}
+                  aria-selected={tab === t.id}
+                  aria-controls="dash-panel"
+                  className="dash-tab"
+                  onClick={() => setTab(t.id)}
+                >
+                  <t.Icon size={15} aria-hidden /> {t.label}
+                </button>
+              ))}
+            </div>
+            <div id="dash-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="flex flex-col gap-8">
+              {tab === "overview" && (
+                <>
+                  <ClassChecksPanel classId={klass.class_id} />
+                  <TeachingAssistant classId={klass.class_id} />
+                </>
+              )}
+              {tab === "insights" &&
+                (insights.data ? (
+                  <ClassInsightsPanel insights={insights.data} />
+                ) : insights.loading ? (
+                  <div className="surface">
+                    <Skeleton rows={4} />
+                  </div>
+                ) : (
+                  <FormError message={insights.error ?? "Couldn't load the class insights."} />
+                ))}
+              {tab === "ai" && (
+                <>
+                  <ClassStoriesPanel classId={klass.class_id} />
+                  <AiDecisionsPanel classId={klass.class_id} />
+                </>
+              )}
+              {tab === "students" && (
+                <>
+                  <StudentTable
+                    students={students}
+                    insights={insights.data?.students ?? []}
+                    onReset={(credential) =>
+                      setSheet({ title: `New password for ${credential.name}`, credentials: [credential] })
+                    }
+                    onLevelChanged={() => setVersion((v) => v + 1)}
+                  />
+                  <AddStudentsForm
+                    classId={klass.class_id}
+                    onAdded={(credentials) => {
+                      setVersion((v) => v + 1);
+                      setSheet({
+                        title: `${credentials.length} ${credentials.length === 1 ? "account" : "accounts"} added`,
+                        credentials,
+                      });
+                    }}
+                  />
+                </>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -197,22 +241,27 @@ function StudentTable({
   }
 
   return (
-    <section className="flex flex-col gap-3 surface p-6">
-      <h2 className="display text-xl font-bold text-foreground">Students</h2>
+    <section className="surface panel flex flex-col gap-4">
+      <div className="dash-title">
+        <div>
+          <p className="eyebrow">Your classroom</p>
+          <h2 className="display text-2xl font-semibold text-foreground">Students</h2>
+        </div>
+        <span className="tag">{students.length} students</span>
+      </div>
       <FormError message={error} />
-      <div className="relative overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-muted-foreground">
+      <div className="dtable-wrap">
+        <table className="dtable">
+          <thead>
             <tr>
-              <th className="py-2 pr-4 font-semibold">Name</th>
-              <th className="py-2 pr-4 font-semibold">Username</th>
-              <th className="py-2 pr-4 font-semibold">Interest</th>
-              <th className="py-2 pr-4 font-semibold">Class</th>
-              <th className="py-2 pr-4 font-semibold">Mastered</th>
-              <th className="py-2 pr-4 font-semibold">Reading</th>
-              <th className="py-2 pr-4 font-semibold">Right first time</th>
-              <th className="py-2 pr-4 font-semibold">Last active</th>
-              <th className="py-2 font-semibold">
+              <th>Student</th>
+              <th>Interest</th>
+              <th>Class</th>
+              <th>Mastered</th>
+              <th>Reading</th>
+              <th>Right first time</th>
+              <th>Last active</th>
+              <th>
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -220,32 +269,56 @@ function StudentTable({
           <tbody>
             {students.map((s) => {
               const m = metricsFor.get(s.student_id);
+              const initials = s.name
+                .split(/\s+/)
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
               return (
-                <tr key={s.student_id} className="border-t border-border align-middle">
-                  <td className="py-2 pr-4 font-medium text-foreground">{s.name}</td>
-                  <td className="py-2 pr-4 font-mono">{s.username}</td>
-                  <td className="py-2 pr-4 capitalize">{s.interest}</td>
-                  <td className="py-2 pr-4">
+                <tr key={s.student_id}>
+                  <td>
+                    <span className="dstudent">
+                      <span className="davatar" aria-hidden>
+                        {initials}
+                      </span>
+                      <span>
+                        <b>{s.name}</b>
+                        <small>{s.username}</small>
+                      </span>
+                    </span>
+                  </td>
+                  <td data-label="Interest">
+                    <span className="dchip">{s.interest}</span>
+                  </td>
+                  <td data-label="Class">
                     <select
                       aria-label={`Class for ${s.name}`}
                       value={s.level}
                       disabled={busy !== null}
                       onChange={(e) => changeLevel(s.student_id, e.target.value)}
-                      className="h-8 rounded-md border border-input bg-card px-2 text-sm"
+                      className="h-9 rounded-xl border border-input bg-card px-2 text-sm"
                     >
                       <option value="Class 11">Class 11</option>
                       <option value="Class 12">Class 12</option>
                     </select>
                   </td>
-                  <td className="py-2 pr-4">
-                    {s.mastered}
-                    <span className="text-muted-foreground"> of {s.attempted} tried</span>
+                  <td data-label="Mastered">
+                    <span className="dprog">
+                      <span>
+                        <b>{s.mastered}</b>
+                        <span className="text-muted-foreground"> of {s.attempted} tried</span>
+                      </span>
+                      <Meter value={s.mastered} max={Math.max(s.attempted, 1)} label={`${s.name}: ${s.mastered} mastered`} />
+                    </span>
                   </td>
-                  <td className="py-2 pr-4">{m ? `${m.active_minutes} min` : "—"}</td>
-                  <td className="py-2 pr-4">
+                  <td data-label="Reading">{m ? `${m.active_minutes} min` : "—"}</td>
+                  <td data-label="Right first time">
                     {m && m.answered > 0 ? (
                       <>
-                        {pct(m.first_try_accuracy)}
+                        <span className={m.first_try_accuracy === null ? "" : m.first_try_accuracy >= 0.7 ? "tone-good" : m.first_try_accuracy >= 0.4 ? "tone-mid" : "tone-bad"}>
+                          {pct(m.first_try_accuracy)}
+                        </span>
                         <span className="text-muted-foreground">
                           {" "}
                           ({m.first_try_correct} of {m.answered})
@@ -255,8 +328,10 @@ function StudentTable({
                       "—"
                     )}
                   </td>
-                  <td className="py-2 pr-4 text-muted-foreground">{lastActive(s.last_active)}</td>
-                  <td className="py-2 text-right">
+                  <td data-label="Last active" className="text-muted-foreground">
+                    {lastActive(s.last_active)}
+                  </td>
+                  <td className="actions text-right">
                     {confirming === s.student_id ? (
                       <span className="inline-flex gap-2">
                         <Button
