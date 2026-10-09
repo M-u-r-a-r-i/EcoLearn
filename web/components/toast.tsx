@@ -66,7 +66,7 @@ export function Toaster({ children }: { children: ReactNode }) {
           return (
             <div
               key={t.id}
-              className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground shadow-card animate-in fade-in slide-in-from-bottom-2"
+              className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground shadow-card animate-in fade-in slide-in-from-bottom-2"
             >
               <I className={cn("mt-0.5 size-4 shrink-0", tone[t.tone])} aria-hidden />
               <span className="flex-1">{t.message}</span>

@@ -85,6 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getSession().then(signedIn, signedOut);
   }, [signedIn, signedOut]);
 
+  // The student's interest tints the whole UI (see [data-interest] in globals.css).
+  const interest = session?.role === "student" ? session.profile.interest : null;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (interest) root.dataset.interest = interest;
+    else delete root.dataset.interest;
+  }, [interest]);
+
   // Any request that comes back 401 later (expired cookie) signs the user out;
   // the route guard then sends them to the right login page.
   useEffect(() => {

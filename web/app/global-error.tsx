@@ -21,9 +21,9 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily: "system-ui, sans-serif",
-          background: "#FAFAFB",
-          color: "#1f2937",
+          fontFamily: "'Avenir Next', 'Trebuchet MS', system-ui, sans-serif",
+          background: "#f4f3ed",
+          color: "#202a27",
           textAlign: "center",
           padding: 16,
         }}
@@ -31,18 +31,19 @@ export default function GlobalError({
         <title>EcoLearn — something went wrong</title>
         <div style={{ maxWidth: 420 }}>
           <h1 style={{ fontSize: 28, marginBottom: 8 }}>EcoLearn hit a problem</h1>
-          <p style={{ color: "#6b7280", lineHeight: 1.5 }}>
+          <p style={{ color: "#667066", lineHeight: 1.5 }}>
             Your progress is saved. Try again, and if it keeps happening, tell your teacher.
           </p>
-          {error.digest && <p style={{ fontSize: 12, color: "#9ca3af" }}>Reference: {error.digest}</p>}
+          {error.digest && <p style={{ fontSize: 12, color: "#667066" }}>Reference: {error.digest}</p>}
           <button
             onClick={() => unstable_retry()}
             style={{
               marginTop: 16,
               padding: "10px 20px",
-              borderRadius: 10,
+              borderRadius: 13,
               border: "none",
-              background: "#4F46E5",
+              boxShadow: "0 5px 0 #1b5b48",
+              background: "#26745d",
               color: "white",
               fontSize: 16,
               fontWeight: 600,

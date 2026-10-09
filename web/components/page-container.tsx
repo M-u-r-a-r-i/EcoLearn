@@ -15,7 +15,7 @@ export function PageContainer({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("mx-auto w-full max-w-5xl px-6 py-12", className)}>
+    <div className={cn("mx-auto w-full max-w-[1200px] px-8 pt-8 pb-20 max-md:px-4 max-md:pt-6", className)}>
       {children}
     </div>
   );

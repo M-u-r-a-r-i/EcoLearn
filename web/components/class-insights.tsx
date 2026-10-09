@@ -35,7 +35,7 @@ export function ClassInsightsPanel({ insights }: { insights: ClassInsights }) {
   const { summary } = insights;
   if (summary.lessons_opened === 0 && summary.answers === 0) {
     return (
-      <section className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
+      <section className="surface !border-dashed p-6 text-sm text-muted-foreground">
         <h2 className="mb-1 text-lg font-bold text-foreground">Class insights</h2>
         Nothing to show yet. Once students open lessons and answer the checks, you&apos;ll see how
         long they read, how many get it right first time, and the misconceptions that come up most.
@@ -105,7 +105,7 @@ function SummaryTiles({ insights }: { insights: ClassInsights }) {
   return (
     <section aria-label="Headline numbers" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {tiles.map(({ Icon, label, value, note, tone }) => (
-        <div key={label} className="flex flex-col gap-1 rounded-xl border border-border bg-card p-4 shadow-soft">
+        <div key={label} className="flex flex-col gap-1 surface p-4">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <Icon className="size-3.5" aria-hidden />
             {label}
@@ -123,9 +123,9 @@ function Misconceptions({ items }: { items: MisconceptionInsight[] }) {
   const shown = showAll ? items : items.slice(0, MISCONCEPTIONS_SHOWN);
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-card">
+    <section className="flex flex-col gap-4 surface p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-bold text-foreground">What your class is getting wrong</h2>
+        <h2 className="display text-xl font-bold text-foreground">What your class is getting wrong</h2>
         <p className="text-sm text-muted-foreground">
           Every wrong option in a check was written to catch one specific misconception. These are the
           ones your students chose, most common first, counted once per student.
@@ -204,9 +204,9 @@ function HardestConcepts({ insights }: { insights: ClassInsights }) {
   const rows = insights.concepts.filter((c) => c.students_answered > 0 || c.students_opened > 0);
   if (rows.length === 0) return null;
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 shadow-card">
+    <section className="flex flex-col gap-3 surface p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-bold text-foreground">Concepts, hardest first</h2>
+        <h2 className="display text-xl font-bold text-foreground">Concepts, hardest first</h2>
         <p className="text-sm text-muted-foreground">
           &ldquo;Right first time&rdquo; counts each student&apos;s first answer only: after a wrong
           answer the app shows the right one, so a second try proves little.
@@ -259,8 +259,8 @@ function HardestConcepts({ insights }: { insights: ClassInsights }) {
 
 function ByInterest({ insights }: { insights: ClassInsights }) {
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 shadow-card">
-      <h2 className="text-lg font-bold text-foreground">By interest</h2>
+    <section className="flex flex-col gap-3 surface p-6">
+      <h2 className="display text-xl font-bold text-foreground">By interest</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="text-muted-foreground">

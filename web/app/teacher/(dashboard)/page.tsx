@@ -6,12 +6,12 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { ArrowRight, Users } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Field, FormError } from "@/components/auth-card";
 import { useAuth } from "@/components/auth-provider";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
-import { SectionHeading } from "@/components/section-heading";
+import { PageHeading, Skeleton } from "@/components/ui-kit";
 import {
   CredentialsSheet,
   InterestSelect,
@@ -37,13 +37,13 @@ export default function TeacherHomePage() {
   if (!teacher) return null; // RequireAuth guarantees a teacher
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex flex-col gap-8">
+    <main className="page-shell w-full flex-1">
+      <div className="teacher-home mx-auto flex w-full flex-col gap-8">
         <div className="print:hidden">
-          <SectionHeading
+          <PageHeading
             eyebrow="Teacher"
             title={`Welcome, ${teacher.name}`}
-            subtitle="Create a class from your list of students, print their sign-in slips, and reset a password when someone forgets theirs."
+            description="Create a class from your list of students, print their sign-in slips, and reset a password when someone forgets theirs."
           />
         </div>
 
@@ -65,7 +65,7 @@ export default function TeacherHomePage() {
             />
           </>
         )}
-      </PageContainer>
+      </div>
     </main>
   );
 }
@@ -81,8 +81,12 @@ function ClassList({
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold text-foreground">Your classes</h2>
-      {loading && <div className="h-20 animate-pulse rounded-xl bg-muted" />}
+      <p className="eyebrow">Your classes</p>
+      {loading && (
+        <div className="surface">
+          <Skeleton rows={2} />
+        </div>
+      )}
       {error && <FormError message={error} />}
       {classes && classes.length === 0 && (
         <p className="text-sm text-muted-foreground">
@@ -90,17 +94,28 @@ function ClassList({
         </p>
       )}
       {classes && classes.length > 0 && (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="class-grid">
           {classes.map((c) => (
             <li key={c.class_id}>
               <Link
                 href={`/teacher/class?id=${encodeURIComponent(c.class_id)}`}
-                className="flex flex-col gap-1 rounded-xl border border-border bg-card p-5 shadow-card transition-colors hover:border-primary"
+                className="surface class-card card-hover"
               >
-                <span className="font-bold text-foreground">{c.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {c.level} · {c.student_count} {c.student_count === 1 ? "student" : "students"}
-                </span>
+                <div className="class-card-head">
+                  <span className="class-art-icon" aria-hidden>
+                    <Users size={20} />
+                  </span>
+                  <span className="tag">{c.level}</span>
+                </div>
+                <h2 className="display">{c.name}</h2>
+                <p>Open the dashboard</p>
+                <div className="class-card-footer">
+                  <span>
+                    <Users size={13} aria-hidden /> {c.student_count}{" "}
+                    {c.student_count === 1 ? "student" : "students"}
+                  </span>
+                  <ArrowRight className="class-arrow" size={16} aria-hidden />
+                </div>
               </Link>
             </li>
           ))}
@@ -138,9 +153,9 @@ function NewClassForm({ onCreated }: { onCreated: (result: CredentialsResult) =>
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-card"
+      className="surface flex flex-col gap-6 p-6"
     >
-      <h2 className="text-lg font-bold text-foreground">Create a class</h2>
+      <h2 className="display text-xl font-bold text-foreground">Create a class</h2>
       <div className="grid gap-6 sm:grid-cols-2">
         <Field
           id="class-name"
@@ -155,9 +170,9 @@ function NewClassForm({ onCreated }: { onCreated: (result: CredentialsResult) =>
       <InterestSelect value={interest} onChange={setInterest} disabled={saving} />
       <RosterField value={roster} onChange={setRoster} disabled={saving} />
       <FormError message={error} />
-      <PrimaryButton type="submit" disabled={saving} className="self-start">
+      <Button type="submit" disabled={saving} className="self-start">
         {saving ? "Creating accounts… (a few seconds)" : "Create class and accounts"}
-      </PrimaryButton>
+      </Button>
     </form>
   );
 }

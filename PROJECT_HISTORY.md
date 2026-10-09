@@ -2521,3 +2521,72 @@ under a real reduced-motion setting, the signup-to-start hand-off with a brand-n
   same line): write `{n}{" "}quick`. The old code already did, and my rewrite re-introduced "8quick".
 - Several clicks fired in one JS tick all read the same stale `value`; real users can't, but a
   scripted test must pause between clicks.
+
+
+## 9zy. Replit design adopted as the house style: `ecolearn-style` skill (2026-10-08)
+
+**Changed.**
+- New project skill `.claude/skills/ecolearn-style/`: `SKILL.md` (tokens, component recipes, motion,
+  screen blueprints, porting rules, checklist) plus `reference/` (unmodified copies of the Replit
+  app's `index.css`, `screen-styles.css`, `ui-kit`, `experience`, student/study/teacher screens,
+  favicon).
+- `.gitignore`: `.claude/` became `.claude/*` + `!.claude/skills/`, so the skill is shared with the
+  teammate; launch.json and local permissions stay ignored.
+
+**Why.** The user designed the UI in Replit (`EcoLearn-Physics-Tutor.zip`, mock data only) and wants
+the whole product to follow that style. A skill makes every later session reuse the same tokens and
+classes instead of re-deriving the look.
+
+**Learned.** The Replit app is plain global CSS classes (warm green "field notes", dark default,
+per-interest `data-interest` accent), not Tailwind utilities; the current `web/` is indigo shadcn, so
+adopting it is a restyle screen by screen, not a patch. The zip itself is untracked; do not commit it.
+
+
+## 9zz. The whole web UI restyled to the Replit house style (2026-10-08)
+
+**Changed.** UI only, in `web/` (nothing under `src/`, `api/`, `tests/`, `data/`, `scripts/`; `lib/api.ts` untouched).
+- Tokens: `app/globals.css` maps shadcn variables onto the warm green palette, adds per-interest accents
+  (`html[data-interest]`, lighter in dark mode) and imports the new class-based `app/ecolearn.css`
+  (`@import ... layer(components)` so utilities still win). System fonts replace Inter.
+- Primitives restyled in place: `ui/button` (pressable), `card`, `badge`, `input`, `progress`, `dialog`.
+- New `components/ui-kit.tsx`; rewritten `site-nav.tsx` (top bar + mobile bottom nav), landing `app/page.tsx`,
+  `auth-card.tsx` (two-column auth), `interest-level-fields.tsx`, roadmap page (welcome strip, chapter map, side
+  cards), `roadmap-path.tsx`/`learning-plan.tsx`/`chapter-picker.tsx` colours and cards, lesson page + stepper +
+  personal-story, assessment/start/review/mix-ups/settings/teacher pages via a class codemod plus hand edits.
+- `auth-provider.tsx` sets `data-interest` on `<html>` (presentation only). Deleted unused `section-heading.tsx`.
+- `.gitignore` tracks `.claude/skills/` (skill `ecolearn-style`, see 9zy).
+
+**Why.** The user wants the whole product to look like their Replit design.
+
+**Verified.** `tsc --noEmit`, `npm run lint`, `npm run build` clean. In the browser on the demo DB: landing, signup,
+login, roadmap (desktop + 375 px), lesson (375 px), assessment question + wrong-answer result (light theme), mix-ups,
+review, settings, start (already-taken), teacher home and class dashboard. **Not checked:** end-check page, the
+teacher account page, error/404 pages, print slips, every dark/light pair, a screen reader.
+
+**Learned.**
+- An unlayered global stylesheet beats Tailwind's layered utilities; import house CSS into a lower layer.
+- A grid with no `grid-template-columns` sizes its implicit column to content: the roadmap aside overflowed until
+  it got `minmax(0,1fr)`.
+- `.dark`-less hard-coded light colours in ported CSS (e.g. `.continue-card .tag`) need dark twins.
+
+
+## 9zzz. Login lands on the starting check; the roadmap is a tree (2026-10-09)
+
+**Changed.** UI only (`web/`).
+- `lib/landing.ts` + `app/login/page.tsx`: after a student logs in, the page is the starting check (`/start`, hobbies
+  first) until it is taken, then an open end check (`/end-check`), otherwise the `?next=` page or the roadmap. The
+  "already logged in" redirect no longer races the submit.
+- New `components/roadmap-tree.tsx`; `roadmap/page.tsx` uses it instead of the chapter dropdown and the winding map:
+  chapters (solid rail, grouped by unit) > concepts (dashed orange branch) > lesson parts (dotted purple twig, each
+  opens `/lesson?...&step=N`). `lesson-stepper.tsx` takes `initialStep`. Removed `chapter-picker.tsx`, `PathMap`,
+  `StepSheet`.
+
+**Why.** User report (2026-10-08): login skipped the hobby step and landed on the assessment/roadmap; the dropdown of
+chapters felt wrong. Asked for chapters first, expanding into sub sections and sub-sub sections in different styles.
+
+**Not reproduced: reset password.** After a teacher's reset the new password was said not to work (only the demo one).
+`reset_student_password` + `authenticate_student` verified end to end on a temp DB (new works, old rejected). Likely
+causes: two API servers/databases at once (reset hit one, login the other), or the browser's saved-password autofill
+filling the old one. Open.
+
+**Learned.** A stale `.next` left by `npm run build` makes the next `next dev` 404 real routes: delete `.next`.

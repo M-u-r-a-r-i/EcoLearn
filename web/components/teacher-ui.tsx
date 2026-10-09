@@ -12,18 +12,17 @@
 import { useEffect, useState } from "react";
 
 import { LEVELS } from "@/components/interest-level-fields";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import { friendlyMessage, getInterests, type Interest, type StudentCredential } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 // Same look as components/ui/input.tsx, for <select> and <textarea>.
 export const CONTROL =
-  "w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none " +
+  "w-full min-w-0 rounded-xl border border-input bg-card px-3.5 py-2 text-base outline-none " +
   "transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 " +
-  "focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30";
+  "focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm";
 
-const LABEL = "text-sm font-semibold text-foreground";
+const LABEL = "text-xs font-bold text-foreground";
 
 export function InterestSelect({
   value,
@@ -60,7 +59,7 @@ export function InterestSelect({
       </label>
       <select
         id="interest"
-        className={cn(CONTROL, "h-9")}
+        className={cn(CONTROL, "h-12")}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled || interests === null}
@@ -97,7 +96,7 @@ export function LevelSelect({
       </label>
       <select
         id="level"
-        className={cn(CONTROL, "h-9")}
+        className={cn(CONTROL, "h-12")}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -167,8 +166,8 @@ export function CredentialsSheet({
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-card print:hidden">
-        <h2 className="text-lg font-bold text-foreground">{title}</h2>
+      <div className="flex flex-col gap-4 surface p-6 print:hidden">
+        <h2 className="display text-xl font-bold text-foreground">{title}</h2>
         <p
           role="alert"
           className="rounded-xl border border-brand-accent/40 bg-brand-accent/10 px-4 py-3 text-sm text-foreground"
@@ -198,9 +197,9 @@ export function CredentialsSheet({
           </table>
         </div>
         <div className="flex flex-wrap gap-3">
-          <PrimaryButton type="button" onClick={() => window.print()}>
+          <Button type="button" onClick={() => window.print()}>
             Print sign-in slips
-          </PrimaryButton>
+          </Button>
           <Button type="button" variant="outline" onClick={onDone}>
             {doneLabel}
           </Button>

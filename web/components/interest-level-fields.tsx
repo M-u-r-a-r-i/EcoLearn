@@ -7,6 +7,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
+
+import { InterestMark } from "@/components/ui-kit";
 
 import { friendlyMessage, getInterests, type Interest } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -49,13 +52,13 @@ export function InterestLevelFields({
 
   return (
     <>
-      <fieldset className="flex flex-col gap-2" disabled={disabled}>
-        <legend className="mb-2 text-sm font-semibold text-foreground">Learn through…</legend>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <fieldset className="field-group" disabled={disabled}>
+        <legend>Learn through…</legend>
+        {error && <p className="form-error">{error}</p>}
+        <div className="interest-pick-grid">
           {interests === null && !error
             ? Array.from({ length: 2 }, (_, i) => (
-                <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
+                <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />
               ))
             : interests?.map((opt) => (
                 <button
@@ -64,53 +67,47 @@ export function InterestLevelFields({
                   aria-pressed={interest === opt.id}
                   onClick={() => onInterestChange(opt.id)}
                   title={opt.description}
-                  className={cn(
-                    "rounded-xl border p-4 text-center transition-all",
-                    interest === opt.id
-                      ? "border-primary bg-primary/5 ring-2 ring-primary shadow-soft"
-                      : "border-border bg-card hover:border-primary/40 hover:shadow-soft",
-                  )}
+                  className={cn("interest-pick", interest === opt.id && "active")}
+                  style={{ minHeight: 64 }}
                 >
-                  <div className="text-3xl">{opt.emoji}</div>
-                  <div className="mt-2 text-sm font-semibold text-foreground">{opt.label}</div>
-                  {/* Say how much is written, rather than hiding half-done
-                      interests: a student can pick one and see the rest arrive. */}
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {opt.chapters_ready === opt.chapters_total
-                      ? "All chapters ready"
-                      : `${opt.chapters_ready} of ${opt.chapters_total} chapters ready`}
-                  </div>
+                  <InterestMark id={opt.id} emoji={opt.emoji} />
+                  <span className="flex min-w-0 flex-col text-left">
+                    <span className="text-[13px] font-bold leading-tight text-foreground">{opt.label}</span>
+                    {/* Say how much is written, rather than hiding half-done
+                        interests: a student can pick one and see the rest arrive. */}
+                    <span className="text-[11px] font-medium leading-tight text-muted-foreground">
+                      {opt.chapters_ready === opt.chapters_total
+                        ? "All chapters ready"
+                        : `${opt.chapters_ready} of ${opt.chapters_total} chapters`}
+                    </span>
+                  </span>
+                  {interest === opt.id && <Check size={15} aria-hidden />}
                 </button>
               ))}
         </div>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-2" disabled={disabled}>
-        <legend className="mb-2 text-sm font-semibold text-foreground">Your class</legend>
+      <fieldset className="field-group" disabled={disabled}>
+        <legend>Your class</legend>
         {levelLocked ? (
           <p className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{level}</span> · only your teacher can
             change your class.
           </p>
         ) : (
-        <div className="flex gap-3">
-          {LEVELS.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              aria-pressed={level === opt}
-              onClick={() => onLevelChange(opt)}
-              className={cn(
-                "flex-1 rounded-xl border p-3 font-semibold transition-all",
-                level === opt
-                  ? "border-primary bg-primary/5 ring-2 ring-primary text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40",
-              )}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
+          <div className="grade-picks">
+            {LEVELS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                aria-pressed={level === opt}
+                onClick={() => onLevelChange(opt)}
+                className={cn("grade-pick", level === opt && "active")}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
         )}
       </fieldset>
     </>

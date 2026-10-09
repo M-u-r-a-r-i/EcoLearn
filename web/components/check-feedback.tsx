@@ -15,16 +15,16 @@ import { cn } from "@/lib/utils";
 // fired once when the component appears. Hidden for reduced motion (globals.css).
 const PIECES = [
   { x: -150, y: -120, r: 260, d: 0.0, c: "bg-success" },
-  { x: -100, y: -170, r: -200, d: 0.05, c: "bg-amber-400" },
+  { x: -100, y: -170, r: -200, d: 0.05, c: "bg-[color:var(--gold)]" },
   { x: -60, y: -110, r: 320, d: 0.1, c: "bg-primary" },
   { x: -20, y: -190, r: -280, d: 0.02, c: "bg-brand-accent" },
   { x: 20, y: -130, r: 220, d: 0.08, c: "bg-success" },
   { x: 60, y: -180, r: -240, d: 0.04, c: "bg-primary" },
-  { x: 100, y: -115, r: 300, d: 0.12, c: "bg-amber-400" },
+  { x: 100, y: -115, r: 300, d: 0.12, c: "bg-[color:var(--gold)]" },
   { x: 150, y: -160, r: -180, d: 0.06, c: "bg-brand-accent" },
   { x: -130, y: -60, r: 200, d: 0.14, c: "bg-primary" },
   { x: 130, y: -70, r: -220, d: 0.16, c: "bg-success" },
-  { x: -80, y: -140, r: 360, d: 0.18, c: "bg-amber-400" },
+  { x: -80, y: -140, r: 360, d: 0.18, c: "bg-[color:var(--gold)]" },
   { x: 85, y: -145, r: -330, d: 0.2, c: "bg-primary" },
 ];
 
@@ -70,7 +70,7 @@ export function OptionReview({
           <li
             key={letter}
             className={cn(
-              "flex items-start gap-3 rounded-xl border p-3.5",
+              "flex items-start gap-3 rounded-[13px] border p-3.5",
               isRight && "border-success/50 bg-success/10",
               isMine && !isRight && "border-destructive/50 bg-destructive/10",
               !isRight && !isMine && "border-border bg-card opacity-60",
@@ -79,7 +79,7 @@ export function OptionReview({
             <span
               aria-hidden
               className={cn(
-                "flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                "flex size-7 shrink-0 items-center justify-center rounded-[9px] border text-sm font-bold",
                 isRight
                   ? "border-success bg-success text-success-foreground"
                   : isMine
@@ -127,7 +127,7 @@ export function MasteryTrack({ signal }: { signal: "not_yet" | "partial" | "mast
                 className={cn(
                   "flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold",
                   gold
-                    ? "border-amber-500 bg-amber-400 text-amber-950"
+                    ? "border-[color:var(--gold)] bg-[color:var(--gold)] text-[#4a3a0e]"
                     : on
                       ? "border-success bg-success text-success-foreground"
                       : "border-border bg-card text-muted-foreground",

@@ -34,8 +34,7 @@ import {
 import { useFetch } from "@/lib/use-fetch";
 import { Confetti, MasteryTrack, OptionReview } from "@/components/check-feedback";
 import { ConfidencePicker } from "@/components/confidence-picker";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
+import { Pill, Skeleton } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -173,18 +172,25 @@ function Assessment() {
   if (loading) {
     return (
       <Centered>
-        <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
-        <div className="h-40 w-full max-w-xl animate-pulse rounded-xl bg-muted" />
+        <div className="surface">
+          <Skeleton rows={4} />
+        </div>
       </Centered>
     );
   }
   if (loadError) {
     return (
       <Centered>
-        <p className="max-w-md text-muted-foreground">{loadError}</p>
-        <PrimaryButton asChild>
-          <Link href={roadmapHref}>← Back to roadmap</Link>
-        </PrimaryButton>
+        <div className="empty-state">
+          <span className="empty-spark" aria-hidden>
+            ✳
+          </span>
+          <h3>Nothing to check yet</h3>
+          <p>{loadError}</p>
+          <Button asChild>
+            <Link href={roadmapHref}>← Back to your path</Link>
+          </Button>
+        </div>
       </Centered>
     );
   }
@@ -194,14 +200,14 @@ function Assessment() {
     const right = result.correct;
     const mastered = result.mastery_signal === "mastered";
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex max-w-2xl flex-col gap-5">
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex max-w-2xl flex-col gap-5">
           {/* The verdict */}
           <section
             aria-live="polite"
             className={cn(
-              "relative overflow-hidden rounded-3xl border p-8 text-center shadow-card",
-              right ? "border-success/40 bg-gradient-to-b from-success/15 to-card" : "border-border bg-card",
+              "surface relative overflow-hidden p-8 text-center",
+              right && "!border-[color-mix(in_srgb,var(--brand)_45%,var(--line))] !bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))]",
             )}
           >
             {right && <Confetti />}
@@ -209,9 +215,9 @@ function Assessment() {
               className={cn(
                 "rm-pop mx-auto flex size-16 items-center justify-center rounded-full",
                 mastered
-                  ? "bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950"
+                  ? "bg-[#d9e9b0] text-[#3b713e] dark:bg-[#516b3e] dark:text-[#e1f3b3]"
                   : right
-                    ? "bg-success text-success-foreground"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-brand-accent/15 text-brand-accent",
               )}
             >
@@ -223,7 +229,7 @@ function Assessment() {
                 <Lightbulb className="size-8" />
               )}
             </div>
-            <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground">
+            <h1 className="display mt-4 text-3xl font-semibold text-foreground">
               {mastered ? "Mastered!" : right ? "Right!" : "Not quite, and that's useful"}
             </h1>
             <p className="mx-auto mt-2 max-w-md text-muted-foreground">
@@ -234,7 +240,7 @@ function Assessment() {
           </section>
 
           {/* The question, with what they chose and what was right */}
-          <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-card">
+          <section className="flex flex-col gap-4 surface p-5">
             <Markdown>{question}</Markdown>
             <OptionReview
               options={options}
@@ -244,9 +250,9 @@ function Assessment() {
           </section>
 
           {/* Why */}
-          <section className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-5 shadow-card">
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-              <Lightbulb className="size-4 text-brand-accent" aria-hidden /> Why
+          <section className="flex flex-col gap-2 surface p-5">
+            <h2 className="eyebrow flex items-center gap-2">
+              <Lightbulb className="size-4" aria-hidden /> Why
             </h2>
             <Markdown className="prose-sm">{result.feedback || "_No feedback returned._"}</Markdown>
             {result.missing_concepts.length > 0 && (
@@ -258,7 +264,7 @@ function Assessment() {
 
           {/* The road to mastered */}
           {right && (
-            <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
+            <section className="surface p-5">
               <MasteryTrack signal={mastered ? "mastered" : "partial"} />
               {!mastered && (
                 <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -271,28 +277,28 @@ function Assessment() {
           {/* What next */}
           <div className="flex flex-wrap gap-3">
             {right ? (
-              <PrimaryButton asChild>
+              <Button asChild>
                 <Link href={withChapter("/lesson", chapterId)}>
                   Continue to next concept <ArrowRight className="size-5" />
                 </Link>
-              </PrimaryButton>
+              </Button>
             ) : (
               <>
-                <PrimaryButton onClick={tryAgain}>
+                <Button onClick={tryAgain}>
                   <RotateCcw className="size-5" /> Try again
-                </PrimaryButton>
-                <Button variant="outline" size="lg" asChild className="h-12 rounded-xl px-5">
+                </Button>
+                <Button variant="outline" size="lg" asChild>
                   <Link href={lessonHref}>
                     <BookOpen className="size-4" /> Re-read the lesson
                   </Link>
                 </Button>
               </>
             )}
-            <Button variant="outline" size="lg" asChild className="h-12 rounded-xl px-5">
+            <Button variant="outline" size="lg" asChild>
               <Link href={roadmapHref}>See roadmap</Link>
             </Button>
           </div>
-        </PageContainer>
+        </div>
       </main>
     );
   }
@@ -302,9 +308,9 @@ function Assessment() {
     const tier = RESULT[result.mastery_signal] ?? RESULT.not_yet;
     const passed = result.score >= 2;
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex max-w-2xl flex-col gap-6">
-          <Card className={cn("shadow-card", tier.card)}>
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex max-w-2xl flex-col gap-6">
+          <Card className={cn(tier.card)}>
             <CardHeader>
               <CardTitle className={cn("flex items-center gap-2 text-xl", tier.accent)}>
                 <tier.Icon className="size-6" />
@@ -334,15 +340,15 @@ function Assessment() {
 
               <div className="flex flex-wrap gap-3">
                 {passed ? (
-                  <PrimaryButton asChild>
+                  <Button asChild>
                     <Link href={withChapter("/lesson", chapterId)}>
                       Continue to next concept <ArrowRight className="size-5" />
                     </Link>
-                  </PrimaryButton>
+                  </Button>
                 ) : (
-                  <PrimaryButton onClick={tryAgain}>
+                  <Button onClick={tryAgain}>
                     <RotateCcw className="size-5" /> Try again
-                  </PrimaryButton>
+                  </Button>
                 )}
                 {passed && (
                   <Button variant="outline" onClick={tryAgain}>
@@ -355,7 +361,7 @@ function Assessment() {
               </div>
             </CardContent>
           </Card>
-        </PageContainer>
+        </div>
       </main>
     );
   }
@@ -368,22 +374,19 @@ function Assessment() {
       : "Ready. Press Enter or tap Check.";
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-2xl flex-col gap-6">
-        <div className="flex flex-col gap-1">
-          <Link
-            href={lessonHref}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-2xl flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <Link href={lessonHref} className="back-link">
             ← Lesson
           </Link>
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-            Quick check
-          </span>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{conceptName}</h1>
+          <div className="mt-2">
+            <Pill>QUICK CHECK</Pill>
+          </div>
+          <h1 className="display text-3xl font-semibold text-foreground sm:text-4xl">{conceptName}</h1>
         </div>
 
-        <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6">
+        <section className="surface flex flex-col gap-5 p-5 sm:p-6">
           <Markdown>{question}</Markdown>
 
           {multipleChoice ? (
@@ -395,10 +398,10 @@ function Assessment() {
                 <label
                   key={letter}
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
+                    "flex cursor-pointer items-start gap-3 rounded-[13px] border p-3.5 transition-all duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
                     answer === letter
-                      ? "-translate-y-0.5 border-primary bg-primary/5 shadow-card ring-2 ring-primary"
-                      : "border-border bg-card hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft",
+                      ? "border-primary bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))]"
+                      : "border-border bg-card hover:-translate-y-px hover:border-[color-mix(in_srgb,var(--brand)_50%,var(--line))]",
                   )}
                 >
                   <input
@@ -411,10 +414,10 @@ function Assessment() {
                   />
                   <span
                     className={cn(
-                      "flex size-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors",
+                      "flex size-7 shrink-0 items-center justify-center rounded-[9px] font-heading text-xs font-bold transition-colors",
                       answer === letter
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border text-muted-foreground",
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground",
                     )}
                     aria-hidden
                   >
@@ -448,36 +451,34 @@ function Assessment() {
           )}
 
           {submitError && (
-            <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <p role="alert" className="inline-alert">
               {submitError}
             </p>
           )}
         </section>
 
         {/* The one action, always in reach, saying what's still needed. */}
-        <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/95 p-2.5 pl-4 shadow-card-hover backdrop-blur">
+        <div className="sticky bottom-20 z-20 flex items-center justify-between gap-3 rounded-[18px] border border-border bg-card/95 p-2.5 pl-4 shadow-card-hover backdrop-blur md:bottom-3">
           <span role="status" className="text-sm text-muted-foreground">
             {hint}
           </span>
-          <PrimaryButton
+          <Button
             onClick={handleSubmit}
             disabled={grading || !ready}
-            className="h-11 shrink-0 px-5"
+            className="shrink-0"
           >
             {grading ? "Checking…" : multipleChoice ? "Check my answer" : "Submit answer"}
-          </PrimaryButton>
+          </Button>
         </div>
-      </PageContainer>
+      </div>
     </main>
   );
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        {children}
-      </PageContainer>
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-6">{children}</div>
     </main>
   );
 }

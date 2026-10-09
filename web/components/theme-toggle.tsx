@@ -79,7 +79,7 @@ export function ThemeToggle() {
       onClick={() => write(next)}
       aria-label={`${LABEL[choice]}. Switch to ${next === "system" ? "device setting" : next}.`}
       title={LABEL[choice]}
-      className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring print:hidden"
+      className="theme-toggle print:hidden"
     >
       <Icon className="size-[1.1rem]" aria-hidden />
     </button>

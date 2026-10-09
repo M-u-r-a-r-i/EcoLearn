@@ -16,7 +16,6 @@ import { Bot, CheckCircle2, ListChecks, RefreshCw, ShieldCheck, Sparkles, XCircl
 import { FormError } from "@/components/auth-card";
 import { useToast } from "@/components/toast";
 import { Markdown } from "@/components/markdown";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import { friendlyMessage, generateClassPlan, getClassPlan, type ClassPlan } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
@@ -74,10 +73,10 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-card p-6 shadow-card print:hidden">
+    <section className="flex flex-col gap-4 surface p-6 print:hidden">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+          <h2 className="display flex items-center gap-2 text-xl font-bold text-foreground">
             <Bot className="size-5 text-primary" aria-hidden />
             Teaching assistant
           </h2>
@@ -101,9 +100,9 @@ export function TeachingAssistant({ classId }: { classId: string }) {
       ) : saved.loading && !fresh ? (
         <div className="h-24 animate-pulse rounded-xl bg-muted" aria-label="Loading the latest plan" />
       ) : !plan ? (
-        <PrimaryButton className="self-start" onClick={makePlan}>
+        <Button className="self-start" onClick={makePlan}>
           <Sparkles className="size-5" /> Plan my next lesson
-        </PrimaryButton>
+        </Button>
       ) : (
         <PlanView plan={plan} />
       )}

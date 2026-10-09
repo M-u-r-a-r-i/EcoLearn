@@ -45,15 +45,15 @@ export function CheckResultSummary({ comparison: c }: { comparison: CheckCompari
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-xl font-semibold text-foreground">{headline(c)}</p>
+      <p className="display text-2xl font-semibold text-foreground">{headline(c)}</p>
 
       <div className="grid gap-3 sm:grid-cols-3">
         {tiles.map((t) => {
           const better = t.good === "up" ? t.after > t.before : t.after < t.before;
           return (
-            <div key={t.label} className="rounded-xl border border-border bg-card p-4 shadow-soft">
+            <div key={t.label} className="surface p-4">
               <div className="text-sm text-muted-foreground">{t.label}</div>
-              <div className="mt-1 flex items-baseline gap-2 text-2xl font-bold text-foreground">
+              <div className="mt-1 flex items-baseline gap-2 font-heading text-2xl font-bold text-foreground">
                 <span className="text-muted-foreground">{t.before}</span>
                 <ArrowRight className="size-4 self-center text-muted-foreground" aria-label="to" />
                 <span className={cn(better && "text-success")}>{t.after}</span>
@@ -65,8 +65,8 @@ export function CheckResultSummary({ comparison: c }: { comparison: CheckCompari
       </div>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-bold text-foreground">Idea by idea</h2>
-        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+        <h2 className="display text-xl font-bold text-foreground">Idea by idea</h2>
+        <ul className="surface divide-y divide-border">
           {c.concepts.map((x) => (
             <li key={x.concept_id} className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between">
               <span className="font-medium text-foreground">{x.concept_name}</span>
@@ -81,7 +81,7 @@ export function CheckResultSummary({ comparison: c }: { comparison: CheckCompari
       </section>
 
       {review.length > 0 && (
-        <section className="flex flex-col gap-2 rounded-xl border border-primary/20 bg-primary/5 p-4">
+        <section className="flex flex-col gap-2 rounded-[18px] bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] p-4">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <RotateCcw className="size-4 text-primary" aria-hidden /> Worth another look
           </h2>

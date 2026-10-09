@@ -60,7 +60,7 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
   const hasConversation = messages.length > 0 || loading;
 
   return (
-    <Card className="border-primary/20 bg-card shadow-card">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <span className="flex size-7 items-center justify-center rounded-full bg-primary/10">
@@ -86,14 +86,14 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
               m.role === "user" ? (
                 <div
                   key={i}
-                  className="max-w-[85%] self-end rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
+                  className="max-w-[85%] self-end rounded-[18px] rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
                 >
                   {m.text}
                 </div>
               ) : (
                 <div
                   key={i}
-                  className="max-w-[90%] self-start rounded-2xl rounded-bl-sm border border-border bg-muted/40 px-4 py-3"
+                  className="max-w-[90%] self-start rounded-[18px] rounded-bl-sm border border-border bg-muted/40 px-4 py-3"
                 >
                   <Markdown className="prose-sm">{m.text}</Markdown>
                 </div>
@@ -102,7 +102,7 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
 
             {/* Thinking state — live call takes a few seconds */}
             {loading && (
-              <div className="flex max-w-[90%] items-center gap-2 self-start rounded-2xl rounded-bl-sm border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              <div className="flex max-w-[90%] items-center gap-2 self-start rounded-[18px] rounded-bl-sm border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                 <Sparkles className="size-4 animate-pulse text-primary" />
                 <span>Thinking</span>
                 <span className="inline-flex gap-0.5">

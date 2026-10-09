@@ -1,25 +1,36 @@
 // The top navigation bar, shown on every page (rendered once in the root
-// layout). Wordmark on the left; on the right, what depends on who's here:
-// logged out → Log in + Get Started; a student → Roadmap, Settings, their name
-// and Log out; a teacher → Classes, Account, their name and Log out.
-// A Client Component because it reads the auth state. Hidden when printing, so
-// a teacher's printed sign-in slips are just the slips.
+// layout). Brand lockup on the left; on the right, what depends on who's here:
+// logged out → Log in + Get Started; a student → My path, Mix-ups, Review,
+// Settings, their avatar and Log out; a teacher → Classes, Account, avatar and
+// Log out. On phones the links move to a bottom bar (the house style's mobile
+// nav). A Client Component because it reads the auth state. Hidden when
+// printing, so a teacher's printed sign-in slips are just the slips.
 
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { BookOpen, Target, Trophy, UserRound, Users } from "lucide-react";
 
 import { HOME, useAuth } from "@/components/auth-provider";
-import { PrimaryButton } from "@/components/primary-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
-const LINK = "text-sm font-semibold text-muted-foreground hover:text-foreground";
+const STUDENT_LINKS = [
+  { href: "/roadmap", label: "My path", icon: Target },
+  { href: "/mix-ups", label: "Mix-ups", icon: BookOpen },
+  { href: "/review", label: "Review", icon: Trophy },
+  { href: "/settings", label: "Settings", icon: UserRound },
+];
+const TEACHER_LINKS = [
+  { href: "/teacher", label: "Classes", icon: Users },
+  { href: "/teacher/account", label: "Account", icon: UserRound },
+];
 
 export function SiteNav() {
   const { status, role, student, teacher, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   async function handleLogout() {
     const wasTeacher = role === "teacher";
@@ -28,69 +39,85 @@ export function SiteNav() {
   }
 
   const name = student?.name ?? teacher?.name;
+  const links = role === "teacher" ? TEACHER_LINKS : STUDENT_LINKS;
+  const isHere = (href: string) =>
+    pathname === href || (href !== "/teacher" && pathname.startsWith(`${href}/`));
 
   return (
-    // sticky + backdrop-blur = the bar stays at the top and softly frosts content
-    // scrolling under it. border-border uses our hairline token.
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur print:hidden">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
-        {/* Wordmark — links home */}
+    <>
+      <header className="topbar sticky top-0 print:hidden">
         <Link
           href={status === "authenticated" && role ? HOME[role] : "/"}
-          className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground"
+          className="brand-lockup"
         >
-          <span className="text-xl" aria-hidden>🌱</span>
-          {/* On the narrowest phones the mark alone, so the links fit on one line. */}
-          <span className="hidden min-[400px]:inline">EcoLearn</span>
-          <span className="sr-only min-[400px]:hidden">EcoLearn</span>
+          <span className="brand-mark" aria-hidden>
+            e
+          </span>
+          <span>
+            ecolearn<span className="brand-period">.</span>
+          </span>
         </Link>
 
         {/* Nothing while loading, so logged-in users never see a flash of "Log in". */}
         {status === "authenticated" && name && (
-          <nav className="flex items-center gap-1.5 sm:gap-4">
-            {role === "student" ? (
-              <>
-                <Link href="/roadmap" className={LINK}>
-                  Roadmap
+          <>
+            <nav className="desktop-nav" aria-label="Main navigation">
+              {links.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="nav-link"
+                  aria-current={isHere(item.href) ? "page" : undefined}
+                >
+                  <item.icon size={16} aria-hidden />
+                  {item.label}
                 </Link>
-                <Link href="/mix-ups" className={LINK}>
-                  Mix-ups
-                </Link>
-                <Link href="/settings" className={LINK}>
-                  Settings
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/teacher" className={LINK}>
-                  Classes
-                </Link>
-                <Link href="/teacher/account" className={LINK}>
-                  Account
-                </Link>
-              </>
-            )}
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              Hi, <span className="font-semibold text-foreground">{name}</span>
-            </span>
-            <ThemeToggle />
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              Log out
-            </Button>
-          </nav>
+              ))}
+            </nav>
+            <div className="top-actions">
+              <ThemeToggle />
+              <Link
+                href={role === "teacher" ? "/teacher/account" : "/settings"}
+                className="avatar"
+                aria-label={`${name}: your account`}
+                title={name}
+              >
+                {name.slice(0, 1).toUpperCase()}
+              </Link>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                Log out
+              </Button>
+            </div>
+          </>
         )}
         {status === "unauthenticated" && (
-          <nav className="flex items-center gap-2 sm:gap-3">
+          <div className="top-actions">
             <ThemeToggle />
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" size="sm" asChild>
               <Link href="/login">Log in</Link>
             </Button>
-            <PrimaryButton asChild size="default" className="h-10 px-5 text-sm">
-              <Link href="/signup">Get Started</Link>
-            </PrimaryButton>
-          </nav>
+            <Button size="sm" asChild>
+              <Link href="/signup">Get started</Link>
+            </Button>
+          </div>
         )}
-      </div>
-    </header>
+      </header>
+
+      {status === "authenticated" && name && (
+        <nav className="mobile-nav print:hidden" aria-label="Main navigation">
+          {links.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="mobile-nav-item"
+              aria-current={isHere(item.href) ? "page" : undefined}
+            >
+              <item.icon size={18} aria-hidden />
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+      )}
+    </>
   );
 }

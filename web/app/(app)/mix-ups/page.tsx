@@ -12,7 +12,6 @@ import { ArrowRight, CheckCircle2, RotateCcw, Target } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
 import { Markdown } from "@/components/markdown";
-import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { getMixUps, type CheckSource, type MixUp, type MixUpStatus } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
@@ -59,13 +58,13 @@ export default function MixUpsPage() {
   const { data, error, loading } = useFetch("mix-ups", getMixUps);
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-3xl flex-col gap-8">
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-3xl flex-col gap-8">
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+          <span className="eyebrow">
             My mix-ups
           </span>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">What you&apos;ve fixed so far</h1>
+          <h1 className="display text-4xl font-semibold text-foreground">What you&apos;ve fixed so far</h1>
           <p className="text-muted-foreground">
             Every wrong answer in EcoLearn was written to catch one particular mix-up. Here are the ones
             you&apos;ve shown, and which you&apos;ve already put right.
@@ -77,7 +76,7 @@ export default function MixUpsPage() {
         ) : !data ? (
           <FormError message={error ?? "Couldn't load your mix-ups."} />
         ) : data.items.length === 0 ? (
-          <section className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
+          <section className="surface !border-dashed p-6 text-sm text-muted-foreground">
             No mix-ups yet. When a check shows one, it appears here — and moves to &ldquo;Fixed&rdquo; once you
             get a different question on it right.
             <Link href="/roadmap" className="mt-3 block font-semibold text-primary hover:underline">
@@ -88,7 +87,7 @@ export default function MixUpsPage() {
           <>
             <div className="grid grid-cols-3 gap-3">
               {GROUPS.map((g) => (
-                <div key={g.status} className="rounded-xl border border-border bg-card p-4 shadow-soft">
+                <div key={g.status} className="surface p-4">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <g.Icon className={cn("size-4", g.tone)} aria-hidden /> {g.title}
                   </div>
@@ -120,7 +119,7 @@ export default function MixUpsPage() {
             })}
           </>
         )}
-      </PageContainer>
+      </div>
     </main>
   );
 }
@@ -128,7 +127,7 @@ export default function MixUpsPage() {
 function MixUpRow({ m }: { m: MixUp }) {
   const fixed = m.status === "fixed";
   return (
-    <li className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <li className="flex flex-col gap-2 surface p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex flex-col gap-1">
         <span className="font-semibold text-foreground">
           {m.concept_name}

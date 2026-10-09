@@ -1,11 +1,24 @@
-// The shared frame for the login and signup pages: heading, a card, a footer
-// link, and the small form pieces both pages use.
+// The shared frame for the login, signup and teacher-login pages: the house-style
+// two-column layout (a sage art panel on desktop, the form on the right), plus the
+// small form pieces they all use.
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { PageContainer } from "@/components/page-container";
-import { SectionHeading } from "@/components/section-heading";
 import { Input } from "@/components/ui/input";
+
+function Brand() {
+  return (
+    <Link href="/" className="brand-lockup">
+      <span className="brand-mark" aria-hidden>
+        e
+      </span>
+      <span>
+        ecolearn<span className="brand-period">.</span>
+      </span>
+    </Link>
+  );
+}
 
 export function AuthCard({
   eyebrow,
@@ -21,19 +34,33 @@ export function AuthCard({
   children: ReactNode;
 }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex flex-1 flex-col items-center justify-center gap-8">
-        <SectionHeading
-          eyebrow={eyebrow}
-          title={title}
-          subtitle={subtitle}
-          className="items-center text-center"
-        />
-        <div className="flex w-full max-w-md flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-card">
-          {children}
+    <main className="auth-wrap flex-1">
+      <aside className="auth-art" aria-hidden>
+        <Brand />
+        <div className="auth-art-copy">
+          <div className="auth-big-mark">e</div>
+          <p className="eyebrow">Physics, in your element</p>
+          <h2 className="display">Learn it through what you love.</h2>
+          <span className="auth-equation">
+            <b>F</b> = m · a <span>→ a six, a corner, a pit stop</span>
+          </span>
         </div>
-        <p className="text-sm text-muted-foreground">{footer}</p>
-      </PageContainer>
+        <p className="auth-art-foot">Class 11–12 physics · CBSE &amp; ISC</p>
+      </aside>
+      <section className="auth-main">
+        <div className="auth-form-wrap">
+          <div className="auth-mobile-brand">
+            <Brand />
+          </div>
+          <div className="auth-topline">
+            <p className="eyebrow">{eyebrow}</p>
+            <h1 className="display">{title}</h1>
+            <p className="auth-copy">{subtitle}</p>
+          </div>
+          {children}
+          <p className="auth-switch">{footer}</p>
+        </div>
+      </section>
     </main>
   );
 }
@@ -53,7 +80,7 @@ export function Field({
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-sm font-semibold text-foreground">
+      <label htmlFor={id} className="text-xs font-bold text-foreground">
         {label}
       </label>
       <Input id={id} aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...inputProps} />

@@ -7,13 +7,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
 
 import { Field, FormError } from "@/components/auth-card";
 import { useAuth } from "@/components/auth-provider";
 import { InterestLevelFields } from "@/components/interest-level-fields";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
-import { SectionHeading } from "@/components/section-heading";
+import { PageHeading } from "@/components/ui-kit";
 import { changePassword, friendlyMessage, updateProfile } from "@/lib/api";
 
 const MIN_PASSWORD_LENGTH = 8; // mirrors src/auth/passwords.py; the API still checks
@@ -23,16 +22,16 @@ export default function SettingsPage() {
   if (!student) return null; // RequireAuth guarantees a student
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-xl flex-col gap-8">
-        <SectionHeading
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-xl flex-col gap-8">
+        <PageHeading
           eyebrow="Settings"
           title="Your account"
-          subtitle={student.username ? `Logged in as ${student.username}` : undefined}
+          description={student.username ? `Logged in as ${student.username}` : undefined}
         />
         <ProfileForm />
         <PasswordForm />
-      </PageContainer>
+      </div>
     </main>
   );
 }
@@ -77,9 +76,9 @@ function ProfileForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-card"
+      className="flex flex-col gap-6 surface p-6"
     >
-      <h2 className="text-lg font-bold text-foreground">Profile</h2>
+      <h2 className="display text-xl font-bold text-foreground">Profile</h2>
       <Field
         id="name"
         label="Your name"
@@ -98,9 +97,9 @@ function ProfileForm() {
       />
       <FormError message={error} />
       <Saved message={saved} />
-      <PrimaryButton type="submit" disabled={saving} className="self-start">
+      <Button type="submit" disabled={saving} className="self-start">
         {saving ? "Saving…" : "Save changes"}
-      </PrimaryButton>
+      </Button>
     </form>
   );
 }
@@ -142,9 +141,9 @@ function PasswordForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card"
+      className="flex flex-col gap-5 surface p-6"
     >
-      <h2 className="text-lg font-bold text-foreground">Change password</h2>
+      <h2 className="display text-xl font-bold text-foreground">Change password</h2>
       <Field
         id="current-password"
         label="Current password"
@@ -178,9 +177,9 @@ function PasswordForm() {
       />
       <FormError message={error} />
       <Saved message={saved} />
-      <PrimaryButton type="submit" disabled={saving} className="self-start">
+      <Button type="submit" disabled={saving} className="self-start">
         {saving ? "Changing…" : "Change password"}
-      </PrimaryButton>
+      </Button>
     </form>
   );
 }

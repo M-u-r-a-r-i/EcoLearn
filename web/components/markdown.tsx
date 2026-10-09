@@ -44,7 +44,7 @@ function LessonImage({ src, alt, title }: { src?: string | Blob; alt?: string; t
         src={mediaUrl(typeof src === "string" ? src : undefined)}
         alt={alt ?? ""}
         loading="lazy"
-        className="mx-auto my-0 max-h-[28rem] w-auto rounded-xl border border-border bg-white shadow-soft"
+        className="mx-auto my-0 max-h-[28rem] w-auto rounded-2xl border border-border bg-white shadow-soft"
       />
       {title && (
         <span className="mt-2 block text-center text-sm leading-snug text-muted-foreground">
@@ -68,7 +68,7 @@ export function Markdown({
     <div
       className={cn(
         "prose prose-slate max-w-none dark:prose-invert",
-        "prose-headings:font-semibold prose-headings:text-foreground",
+        "prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground",
         "prose-p:leading-relaxed prose-p:text-foreground/90",
         "prose-strong:text-foreground prose-li:text-foreground/90",
         "prose-a:text-primary prose-a:no-underline hover:prose-a:underline",

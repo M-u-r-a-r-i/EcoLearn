@@ -22,8 +22,7 @@ import { FormError } from "@/components/auth-card";
 import { Confetti } from "@/components/check-feedback";
 import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { LearningPlanSummary } from "@/components/learning-plan";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
+import { Skeleton } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import {
   friendlyMessage,
@@ -52,8 +51,9 @@ export default function StartPage() {
   if (diagnostic.loading) {
     return (
       <Shell>
-        <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
-        <div className="h-48 animate-pulse rounded-xl bg-muted" />
+        <div className="surface">
+          <Skeleton rows={4} />
+        </div>
       </Shell>
     );
   }
@@ -74,8 +74,8 @@ export default function StartPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-2xl flex-col gap-6">{children}</PageContainer>
+    <main className="page-shell start-shell mx-auto w-full flex-1">
+      <div className="flex flex-col gap-6">{children}</div>
     </main>
   );
 }
@@ -177,10 +177,8 @@ function StartingCheck({
     return (
       <Shell>
         <div className="flex flex-col gap-3">
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-            Your starting check
-          </span>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <span className="eyebrow">Your starting check</span>
+          <h1 className="display text-4xl font-semibold text-foreground sm:text-5xl">
             Let&apos;s find where you stand
           </h1>
           <p className="leading-relaxed text-muted-foreground">
@@ -196,19 +194,19 @@ function StartingCheck({
           ].map(({ Icon, title, text }, i) => (
             <li
               key={title}
-              className="rm-sheet flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 shadow-soft"
+              className="rm-sheet surface flex flex-col gap-1.5 p-4"
               style={{ animationDelay: `${i * 90}ms` }}
             >
               <Icon className="size-6 text-primary" aria-hidden />
-              <span className="font-semibold text-foreground">{title}</span>
+              <span className="font-heading font-bold text-foreground">{title}</span>
               <span className="text-sm text-muted-foreground">{text}</span>
             </li>
           ))}
         </ul>
         <div className="flex flex-wrap gap-3">
-          <PrimaryButton onClick={() => setStage("hobbies")}>
+          <Button onClick={() => setStage("hobbies")}>
             Let&apos;s go <ArrowRight className="size-5" />
-          </PrimaryButton>
+          </Button>
           <Button variant="ghost" asChild>
             <Link href="/roadmap">Skip for now</Link>
           </Button>
@@ -223,9 +221,9 @@ function StartingCheck({
         <StepLabel step={1} />
         <HobbyPicker options={diagnostic.hobby_options} value={hobbies} onChange={setHobbies} />
         <div className="flex gap-3">
-          <PrimaryButton onClick={() => setStage("questions")}>
+          <Button onClick={() => setStage("questions")}>
             {hobbies.length === 0 ? "Skip this" : "Next"} <ArrowRight className="size-5" />
-          </PrimaryButton>
+          </Button>
           <Button variant="ghost" onClick={() => setStage("intro")}>
             <ArrowLeft className="size-4" /> Back
           </Button>
@@ -255,7 +253,7 @@ function StartingCheck({
     <Shell>
       <StepLabel step={2} />
 
-      {/* Segmented progress: green = answered, indigo = here. */}
+      {/* Segmented progress: solid = answered, soft = here. */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">
@@ -276,16 +274,16 @@ function StartingCheck({
               className={cn(
                 "h-2 flex-1 rounded-full transition-colors duration-300",
                 i < index || (i === index && ready)
-                  ? "bg-success"
+                  ? "bg-primary"
                   : i === index
-                    ? "bg-primary"
-                    : "bg-muted",
+                    ? "bg-primary/45"
+                    : "bg-secondary",
               )}
             />
           ))}
         </div>
         {cheer && (
-          <p className="rm-sheet text-sm font-medium text-brand-accent" key={cheer}>
+          <p className="rm-sheet text-sm font-semibold text-primary" key={cheer}>
             {cheer}
           </p>
         )}
@@ -305,14 +303,14 @@ function StartingCheck({
       <FormError message={error} />
 
       {/* Back / Next, always in reach, saying what's still needed. */}
-      <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur">
-        <Button variant="ghost" size="lg" disabled={sending} onClick={goBack} className="h-11 rounded-xl px-4">
+      <div className="sticky bottom-20 z-20 flex items-center justify-between gap-3 rounded-[18px] border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur md:bottom-3">
+        <Button variant="ghost" disabled={sending} onClick={goBack}>
           <ArrowLeft className="size-4" /> Back
         </Button>
         <span role="status" className="hidden flex-1 text-center text-xs text-muted-foreground sm:block">
           {hint}
         </span>
-        <PrimaryButton onClick={goNext} disabled={!ready || sending} className="h-11 shrink-0 px-5">
+        <Button onClick={goNext} disabled={!ready || sending} className="shrink-0">
           {sending ? (
             "Building your plan…"
           ) : last ? (
@@ -324,7 +322,7 @@ function StartingCheck({
               Next <ArrowRight className="size-5" />
             </>
           )}
-        </PrimaryButton>
+        </Button>
       </div>
     </Shell>
   );
@@ -332,7 +330,7 @@ function StartingCheck({
 
 function StepLabel({ step }: { step: 1 | 2 }) {
   return (
-    <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+    <span className="eyebrow">
       Starting check · step {step} of 2 · {step === 1 ? "what you enjoy" : "where you stand"}
     </span>
   );
@@ -377,7 +375,7 @@ function HobbyPicker({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">What do you enjoy?</h1>
+        <h1 className="display text-4xl font-semibold text-foreground">What do you enjoy?</h1>
         <p className="text-muted-foreground">
           Tap a few. EcoLearn uses them to make examples feel like yours. Optional.
         </p>
@@ -394,10 +392,10 @@ function HobbyPicker({
                 disabled={!on && full}
                 onClick={() => toggle(o.id)}
                 className={cn(
-                  "relative flex w-full flex-col items-center gap-1 rounded-2xl border p-3 text-center text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
+                  "relative flex w-full flex-col items-center gap-1 rounded-[18px] border p-3 text-center text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
                   on
-                    ? "-translate-y-0.5 border-primary bg-primary/10 text-foreground shadow-card ring-2 ring-primary"
-                    : "border-border bg-card text-foreground hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-soft",
+                    ? "-translate-y-0.5 border-primary bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] text-primary"
+                    : "border-border bg-card text-foreground hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--brand)_50%,var(--line))]",
                 )}
               >
                 <span aria-hidden className={cn("text-3xl", on && "rm-pop")}>
@@ -419,7 +417,7 @@ function HobbyPicker({
               type="button"
               aria-pressed
               onClick={() => toggle(h)}
-              className="relative flex w-full flex-col items-center gap-1 rounded-2xl border border-primary bg-primary/10 p-3 text-center text-sm font-medium capitalize text-foreground ring-2 ring-primary"
+              className="relative flex w-full flex-col items-center gap-1 rounded-[18px] border border-primary bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] p-3 text-center text-sm font-semibold capitalize text-primary"
             >
               <span aria-hidden className="text-3xl">
                 ✨
@@ -454,7 +452,7 @@ function HobbyPicker({
               }
             }}
             placeholder="e.g. kite flying"
-            className="h-10 flex-1 rounded-lg border border-input bg-card px-3 text-sm text-foreground shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-11 flex-1 rounded-xl border border-input bg-card px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <Button type="button" variant="outline" onClick={addOwn}>
             Add
@@ -471,10 +469,10 @@ function Done({ plan }: { plan: LearningPlan }) {
     <Shell>
       <div className="relative flex flex-col gap-2">
         <Confetti />
-        <span className="rm-sheet flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+        <span className="rm-sheet eyebrow flex items-center gap-2">
           <Sparkles className="size-4" aria-hidden /> Your plan is ready
         </span>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="display text-4xl font-semibold text-foreground sm:text-5xl">
           Here&apos;s where you stand
         </h1>
       </div>
@@ -488,10 +486,10 @@ function AlreadyTaken() {
   return (
     <Shell>
       <div className="flex flex-col gap-2">
-        <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+        <span className="eyebrow flex items-center gap-2">
           <Compass className="size-4" aria-hidden /> Your starting check
         </span>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">You&apos;ve already taken it</h1>
+        <h1 className="display text-4xl font-semibold text-foreground">You&apos;ve already taken it</h1>
         <p className="text-muted-foreground">
           It&apos;s taken once, as your starting point. Your plan keeps updating as you answer lesson
           checks.
@@ -500,7 +498,9 @@ function AlreadyTaken() {
       {plan.data ? (
         <LearningPlanSummary plan={plan.data} />
       ) : (
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
+        <div className="surface">
+          <Skeleton rows={3} />
+        </div>
       )}
     </Shell>
   );

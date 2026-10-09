@@ -58,10 +58,10 @@ export function ClassChecksPanel({ classId }: { classId: string }) {
   const total = data.students.length;
 
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card print:hidden">
+    <section className="flex flex-col gap-5 surface p-6 print:hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-1">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+          <h2 className="display flex items-center gap-2 text-xl font-bold text-foreground">
             <Flag className="size-5 text-brand-accent" aria-hidden /> Starting check → end check
           </h2>
           <p className="max-w-2xl text-sm text-muted-foreground">

@@ -29,10 +29,12 @@ function typingInto(target: EventTarget | null): boolean {
   return el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
 }
 
-export function LessonStepper({ steps }: { steps: LessonStep[] }) {
-  const [index, setIndex] = useState(0);
+// `initialStep` lets the roadmap open the lesson at a given part (clamped to the steps there are).
+export function LessonStepper({ steps, initialStep = 0 }: { steps: LessonStep[]; initialStep?: number }) {
+  const start = Math.max(0, Math.min(steps.length - 1, Math.floor(initialStep) || 0));
+  const [index, setIndex] = useState(start);
   const [direction, setDirection] = useState<"next" | "prev">("next");
-  const [visited, setVisited] = useState<Set<number>>(() => new Set([0]));
+  const [visited, setVisited] = useState<Set<number>>(() => new Set([0, start]));
   const [all, setAll] = useState(false);
   const top = useRef<HTMLDivElement | null>(null);
   const moved = useRef(false);
@@ -89,7 +91,7 @@ export function LessonStepper({ steps }: { steps: LessonStep[] }) {
       {/* Progress: sticky under the site bar so it stays in reach while reading. */}
       <nav
         aria-label="Lesson steps"
-        className="sticky top-16 z-30 -mx-4 flex flex-col gap-1.5 border-b border-border bg-background/90 px-4 py-3 backdrop-blur"
+        className="sticky top-16 z-30 -mx-4 flex flex-col gap-1.5 border-b border-border bg-background/90 px-4 py-3 backdrop-blur max-md:top-[60px]"
       >
         <ol className="flex gap-1.5">
           {steps.map((s, i) => {
@@ -107,7 +109,7 @@ export function LessonStepper({ steps }: { steps: LessonStep[] }) {
                     className={cn(
                       "h-2 w-full rounded-full transition-colors duration-300 group-focus-visible:ring-2 group-focus-visible:ring-ring",
                       state === "now" && "bg-primary",
-                      state === "seen" && "bg-success",
+                      state === "seen" && "bg-primary/45",
                       state === "todo" && "bg-muted group-hover:bg-muted-foreground/30",
                     )}
                   />
@@ -143,13 +145,11 @@ export function LessonStepper({ steps }: { steps: LessonStep[] }) {
       </div>
 
       {/* Back / Next */}
-      <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur">
+      <div className="sticky bottom-20 z-20 flex items-center justify-between gap-3 rounded-[18px] border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur md:bottom-3">
         <Button
           variant="ghost"
-          size="lg"
           onClick={() => go(index - 1)}
           disabled={index === 0}
-          className="h-11 rounded-xl px-4"
         >
           <ArrowLeft className="size-4" /> Back
         </Button>
@@ -158,11 +158,11 @@ export function LessonStepper({ steps }: { steps: LessonStep[] }) {
           <kbd className="rounded border border-border px-1">→</kbd> to move
         </span>
         {next ? (
-          <Button size="lg" onClick={() => go(index + 1)} className="h-11 rounded-xl px-5 font-semibold">
+          <Button onClick={() => go(index + 1)}>
             {next.label} <ArrowRight className="size-4" />
           </Button>
         ) : (
-          <span className="flex items-center gap-1.5 px-3 text-sm font-semibold text-success">
+          <span className="flex items-center gap-1.5 px-3 text-sm font-semibold text-primary">
             <Check className="size-4" /> That&apos;s the lesson
           </span>
         )}

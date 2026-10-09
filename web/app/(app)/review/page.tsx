@@ -17,8 +17,6 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Clock, RotateCcw, XCircle } from "
 import { FormError } from "@/components/auth-card";
 import { CheckQuestion } from "@/components/check-question";
 import { Markdown } from "@/components/markdown";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import {
   friendlyMessage,
@@ -63,8 +61,8 @@ function Review() {
   return (
     <Shell>
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">Revision</span>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Make it stick</h1>
+        <span className="eyebrow">Revision</span>
+        <h1 className="display text-4xl font-semibold text-foreground">Make it stick</h1>
         <p className="text-muted-foreground">
           An idea counts as <span className="font-semibold text-foreground">mastered</span>{" "}once
           you&apos;ve answered two different questions on it right. These ones you&apos;ve got right
@@ -77,7 +75,7 @@ function Review() {
       ) : !queue.data ? (
         <FormError message={queue.error ?? "Couldn't load your revision list."} />
       ) : queue.data.due.length + queue.data.later.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
+        <section className="surface !border-dashed p-6 text-sm text-muted-foreground">
           Nothing to revise right now. When you get a lesson check right, the idea comes back here a
           day later with a new question.
           <Link href="/roadmap" className="mt-3 block font-semibold text-primary hover:underline">
@@ -101,8 +99,8 @@ function Review() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-2xl flex-col gap-6">{children}</PageContainer>
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-2xl flex-col gap-6">{children}</div>
     </main>
   );
 }
@@ -125,7 +123,7 @@ function ItemList({
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-bold text-foreground">
+      <h2 className="display text-xl font-bold text-foreground">
         {title} <span className="text-sm font-normal text-muted-foreground">· {items.length}</span>
       </h2>
       {note && <p className="text-sm text-muted-foreground">{note}</p>}
@@ -133,7 +131,7 @@ function ItemList({
         {items.map((i) => (
           <li
             key={i.concept_id}
-            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+            className="flex flex-col gap-2 surface p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
           >
             <div className="flex flex-col gap-0.5">
               <span className="font-semibold text-foreground">
@@ -205,8 +203,10 @@ function QuestionView({ conceptId, onBack }: { conceptId: string; onBack: () => 
       <>
         <section
           className={cn(
-            "flex flex-col gap-4 rounded-xl border p-6 shadow-card",
-            result.correct ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5",
+            "surface flex flex-col gap-4 p-6",
+            result.correct
+              ? "!border-success/40 !bg-success/5"
+              : "!border-destructive/40 !bg-destructive/5",
           )}
         >
           <h1
@@ -219,14 +219,14 @@ function QuestionView({ conceptId, onBack }: { conceptId: string; onBack: () => 
             {mastered ? `${question.data.concept_name}: mastered!` : result.correct ? "Right!" : "Not quite"}
           </h1>
           {result.mastery_note && <p className="text-sm text-foreground">{result.mastery_note}</p>}
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="surface p-4">
             <Markdown className="prose-sm">{result.feedback}</Markdown>
           </div>
         </section>
         <div className="flex flex-wrap gap-3">
-          <PrimaryButton onClick={onBack}>
+          <Button onClick={onBack}>
             <RotateCcw className="size-5" /> Back to revision
-          </PrimaryButton>
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/mix-ups">My mix-ups</Link>
           </Button>
@@ -239,10 +239,10 @@ function QuestionView({ conceptId, onBack }: { conceptId: string; onBack: () => 
     <>
       {back}
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+        <span className="eyebrow">
           New question · {question.data.chapter_name}
         </span>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">{question.data.concept_name}</h1>
+        <h1 className="display text-4xl font-semibold text-foreground">{question.data.concept_name}</h1>
       </div>
       <CheckQuestion
         question={question.data}
@@ -254,9 +254,9 @@ function QuestionView({ conceptId, onBack }: { conceptId: string; onBack: () => 
         allowUnsure={false}
       />
       <FormError message={error} />
-      <PrimaryButton className="self-start" onClick={check} disabled={!picked || !confidence || sending}>
+      <Button className="self-start" onClick={check} disabled={!picked || !confidence || sending}>
         {sending ? "Checking…" : "Check my answer"}
-      </PrimaryButton>
+      </Button>
     </>
   );
 }

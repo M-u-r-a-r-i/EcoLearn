@@ -12,9 +12,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { FormError } from "@/components/auth-card";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
-import { SectionHeading } from "@/components/section-heading";
+import { PageHeading } from "@/components/ui-kit";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
 import { TeachingAssistant } from "@/components/teaching-assistant";
 import { ClassStoriesPanel } from "@/components/class-stories";
@@ -69,22 +67,22 @@ function ClassView() {
 
   if (detail.loading) {
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex flex-col gap-4">
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex flex-col gap-4">
           {back}
           <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
           <div className="h-60 animate-pulse rounded-xl bg-muted" />
-        </PageContainer>
+        </div>
       </main>
     );
   }
   if (!detail.data) {
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex flex-col gap-4">
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex flex-col gap-4">
           {back}
           <FormError message={detail.error ?? "Class not found."} />
-        </PageContainer>
+        </div>
       </main>
     );
   }
@@ -93,14 +91,14 @@ function ClassView() {
   const started = students.filter((s) => s.attempted > 0).length;
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex flex-col gap-8">
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex flex-col gap-8">
         {back}
         <div className="print:hidden">
-          <SectionHeading
+          <PageHeading
             eyebrow={klass.level}
             title={klass.name}
-            subtitle={`${students.length} students · ${started} have started`}
+            description={`${students.length} students · ${started} have started`}
           />
         </div>
 
@@ -144,7 +142,7 @@ function ClassView() {
             />
           </>
         )}
-      </PageContainer>
+      </div>
     </main>
   );
 }
@@ -199,8 +197,8 @@ function StudentTable({
   }
 
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 shadow-card">
-      <h2 className="text-lg font-bold text-foreground">Students</h2>
+    <section className="flex flex-col gap-3 surface p-6">
+      <h2 className="display text-xl font-bold text-foreground">Students</h2>
       <FormError message={error} />
       <div className="relative overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -340,16 +338,16 @@ function AddStudentsForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-card"
+      className="flex flex-col gap-6 surface p-6"
     >
-      <h2 className="text-lg font-bold text-foreground">Add students</h2>
+      <h2 className="display text-xl font-bold text-foreground">Add students</h2>
       <InterestSelect value={interest} onChange={setInterest} disabled={saving} />
       <RosterField value={roster} onChange={setRoster} disabled={saving} />
       <FormError message={error} />
       <div className="flex gap-3">
-        <PrimaryButton type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving}>
           {saving ? "Creating accounts…" : "Create accounts"}
-        </PrimaryButton>
+        </Button>
         <Button type="button" variant="ghost" disabled={saving} onClick={() => setOpen(false)}>
           Cancel
         </Button>
