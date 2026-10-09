@@ -44,8 +44,8 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await login(username.trim(), password);
-      router.replace(await landingPath(next));
+      const profile = await login(username.trim(), password);
+      router.replace(await landingPath(next, profile.student_id));
     } catch (err) {
       setError(friendlyMessage(err));
       setLoading(false);

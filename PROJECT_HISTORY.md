@@ -2590,3 +2590,13 @@ causes: two API servers/databases at once (reset hit one, login the other), or t
 filling the old one. Open.
 
 **Learned.** A stale `.next` left by `npm run build` makes the next `next dev` 404 real routes: delete `.next`.
+
+
+## 9zzzz. "Skip for now" is remembered; accent paints before auth loads (2026-10-09)
+
+**Changed.** UI only. `lib/landing.ts`: a student who pressed "Skip for now" on `/start` is not sent back to it at every
+login (remembered per student in localStorage; the roadmap card still invites them). `auth-provider.tsx` +
+`theme-toggle.tsx` boot script remember the interest so the accent colour is right on the first paint.
+**Checked in the browser:** skip-then-login lands on the roadmap, a fresh student still lands on `/start`; end-check
+("needs start" state), 404, teacher account. **Not checked:** the credentials sheet and printed slips (it only appears
+after a password reset, and the demo class holds real accounts), the error page (needs a crash), end-check questions.

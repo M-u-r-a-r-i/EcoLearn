@@ -19,6 +19,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Clock, Compass, Route, Sparkles, Target } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { useAuth } from "@/components/auth-provider";
 import { Confetti } from "@/components/check-feedback";
 import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { LearningPlanSummary } from "@/components/learning-plan";
@@ -34,6 +35,7 @@ import {
   type HobbyOption,
   type LearningPlan,
 } from "@/lib/api";
+import { rememberSkippedCheck } from "@/lib/landing";
 import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +99,7 @@ function StartingCheck({
   diagnostic: Diagnostic;
   onDone: (plan: LearningPlan) => void;
 }) {
+  const { student } = useAuth();
   const questions = diagnostic.questions ?? [];
   const [stage, setStage] = useState<Stage>("intro");
   const [hobbies, setHobbies] = useState<string[]>(diagnostic.hobbies);
@@ -208,7 +211,9 @@ function StartingCheck({
             Let&apos;s go <ArrowRight className="size-5" />
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/roadmap">Skip for now</Link>
+            <Link href="/roadmap" onClick={() => student && rememberSkippedCheck(student.student_id)}>
+              Skip for now
+            </Link>
           </Button>
         </div>
       </Shell>

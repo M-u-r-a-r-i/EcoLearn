@@ -87,4 +87,4 @@ export function ThemeToggle() {
 }
 
 // Inlined into <head> by app/layout.tsx; runs before React, before paint.
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light"}catch(_){}`;
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light";var i=localStorage.getItem("ecolearn-interest");if(i&&/^[a-z_]+$/.test(i))e.dataset.interest=i}catch(_){}`;
