@@ -90,6 +90,72 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### SESSION HANDOFF 2026-10-10 — branch `design/frontend-v2` (read this first; it is NEWER than the state below)
+
+**Where the work is.** Branch **`design/frontend-v2`**, **committed locally, NOT pushed** (the remote has none of it; pushing
+needs the user's go-ahead). It contains `main` merged in (survey, landing, teacher snapshot) plus everything below. Run
+`git branch --show-current` first; `git log --oneline -12` shows the sequence ending at `97cef75` (plus this handoff commit).
+An untracked `EcoLearn-Physics-Tutor.zip` sits in the repo root: never commit it. A separate session works in `web-v2/`
+(leave it alone).
+
+**What this session did (UI only unless noted; each has a PROJECT_HISTORY entry, §9zy to §9zzzzzzz):**
+- **House style = the user's Replit design**, for the WHOLE web app. Skill: **`.claude/skills/ecolearn-style/`** (tracked;
+  read `SKILL.md` before any web work; `reference/` has the original Replit code). Tokens in `web/app/globals.css`, class
+  rules in `web/app/ecolearn.css`, blocks in `web/components/ui-kit.tsx`; shadcn primitives restyled in place; the
+  student's interest tints the app via `data-interest` on `<html>` (set in `auth-provider.tsx`, remembered in
+  localStorage so the first paint is right).
+- Restyled: landing (merged with main's copy + showcase), auth, roadmap, lesson, checks, starting check, mix-ups,
+  review, settings, survey, teacher home and class dashboard. **Roadmap = a tree** (`components/roadmap-tree.tsx`):
+  chapters > concepts > lesson parts; parts deep-link to `/lesson?...&step=N`.
+- **Teacher class page = main's page** (URL tabs, snapshot, needs-attention, profiles) with my student table and the
+  `.dash-*` dashboard classes; the check chart, misconception ranks and AI pipeline cards live in `class-checks`,
+  `class-insights`, `ai-decisions`.
+- **Login lands on `/start`** until the starting check is taken ("Skip for now" is remembered per device), then an open
+  `/end-check`, else the roadmap (`web/lib/landing.ts`). The survey gate then sends un-surveyed students to `/welcome`.
+- **Backend change (only one):** `src/agents/teacher_agent.py` `call()` drops undeclared tool arguments (Gemini adds `reason`).
+
+**Live AI is configured and was verified once** (§9zzzzzzz). `.env` (gitignored; never print the keys) has
+`LLM_BASE_URL=http://localhost:20128/v1` (OmniRoute), `LLM_API_KEY` (an OmniRoute key), and `LLM_MODEL` / `LLM_CRITIC_MODEL`
+= **`gemini/gemini-3.1-flash-lite`**. A real personal story (draft 1 passed rules and critic, ~18 s) and a real teacher plan
+(`source: agent`, ~23 s) were produced on temp databases. **Model findings:** `gemini-2.5-flash` = "no active credentials",
+`2.5-flash-lite` closed to new users, `3.8-flash` times out, `3-flash-preview` truncates JSON (thinking eats the token
+budget). Never use OmniRoute's `auto/...` models (they mix in keyless scraped pools). The old `GEMINI_API_KEY` in `.env` is
+rejected: set it empty. OmniRoute: `set OMNIROUTE_SERVER_HOST=127.0.0.1` then `omniroute` (dashboard `localhost:20128`;
+the user reset its data folder once; the dashboard password is theirs).
+
+**How to run (the user runs their own servers; NEVER stop them):** API
+`venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000` (add `$env:ECOLEARN_PROGRESS_DB="data\demo.db"` for the
+demo class), web `cd web; npm run dev` (port 3000). The user's API on :8000 normally uses THEIR real database, so demo
+logins (`aarav.k`, `aditya.v`, `demo.teacher`; password in `scripts/seed_demo.py`) only work when the API is started with the
+demo DB. If the ports are taken, verify with `tsc`, lint, the tests and read-only pages instead of logging in.
+
+**Verified at the last full run (post-merge):** all 24 Python test files plus the persistence pair pass, 642 lessons valid,
+`tsc` and lint clean. **Failing:** `scripts/load_test.py` p95 about 4.7 s (30 logins ~5 s each, 0 errors; this branch's
+commits change no backend code except the one agent fix; investigate with the machine note below). **Not done after the
+merge:** `npm run build` (it would clobber the user's running dev server: stop it first, then delete `web/.next` before
+running `next dev` again).
+
+**Open items, in priority order (the user picks):**
+1. Browser-check the merged screens against the demo DB: `/welcome` survey, teacher snapshot / needs-attention / profiles,
+   the sign-in slips after a password reset, end-check questions, the error page, the light theme everywhere, phone width.
+2. **Push the branch** (needs the user's go-ahead) and decide how it joins `main`.
+3. **Signup/hobby clarity** (the user was confused: they chose the hobby "Space & stars" but the interest defaulted to
+   cricket, so they got cricket lessons): no pre-selected interest, one line saying interest = lessons and hobbies = story,
+   and a "your story is being written" note on the lesson. No space lessons exist; only the five interests have lessons.
+4. **Password-reset report not reproduced** (the new password "didn't work", the demo password did). Backend verified OK.
+   Likely two API servers/databases at once, or browser autofill. Test once with one server and saved passwords cleared.
+5. Live AI robustness: a second working fallback model, an "AI is up" check, require the story's `limit` field (it came
+   back empty once), pre-warm stories for a demo class.
+6. Load-test p95. 7. Consent/privacy note, DB backups, deploy config (CORS origins are hardcoded to localhost:3000; the
+   cookie is SameSite=lax so site and API must share one domain). 8. README, Streamlit, accessibility pass, automated web
+   tests, finishing motorsport (7 of 14 chapters) and smartphones (13 of 14).
+
+**Gotchas learned this session:** a stale `web/.next` after `npm run build` makes `next dev` 404 real routes (delete it);
+unlayered global CSS beats Tailwind utilities (the house CSS is imported with `layer(components)`); a CSS grid without
+`grid-template-columns` sizes to its content (give it `minmax(0,1fr)`); the browser pane's screenshots are flaky (prefer
+`javascript_tool` DOM checks); shell heredocs with apostrophes can fail here (write a script file instead); the Windows
+console needs `PYTHONUTF8=1` for the tests.
+
 ### Current state (everything committed and pushed to `main`; last commit `b4aea3f`, 2026-10-08)
 
 **Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`**. A teammate (GitHub `M-u-r-a-r-i`)
