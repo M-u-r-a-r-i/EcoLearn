@@ -225,14 +225,29 @@ function StartingCheck({
       <Shell>
         <StepLabel step={1} />
         <HobbyPicker options={diagnostic.hobby_options} value={hobbies} onChange={setHobbies} />
-        <div className="flex gap-3">
-          <Button onClick={() => setStage("questions")}>
-            {hobbies.length === 0 ? "Skip this" : "Next"} <ArrowRight className="size-5" />
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Hobbies are what makes the stories yours, so "Next" waits for at least one. */}
+          <Button onClick={() => setStage("questions")} disabled={hobbies.length === 0}>
+            Next <ArrowRight className="size-5" />
           </Button>
           <Button variant="ghost" onClick={() => setStage("intro")}>
             <ArrowLeft className="size-4" /> Back
           </Button>
+          {hobbies.length === 0 && (
+            <button
+              type="button"
+              onClick={() => setStage("questions")}
+              className="ml-auto min-h-10 text-xs font-semibold text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              I&apos;d rather not say
+            </button>
+          )}
         </div>
+        {hobbies.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Pick at least one, and your lessons will open with a story about it.
+          </p>
+        )}
       </Shell>
     );
   }
