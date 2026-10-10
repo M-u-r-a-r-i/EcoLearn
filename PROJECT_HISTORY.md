@@ -2614,3 +2614,224 @@ timeline, and a student table with avatars, a mastered meter, coloured accuracy 
 
 **Checked** in the browser on the demo class (desktop and 375 px): all four tabs. **Not checked:** the credentials sheet
 after a reset, an open end-check being toggled, the empty state of a brand-new class.
+## 9zy. "Getting to know you": the first-login survey (2026-10-08)
+
+**Changed.**
+- **Survey** (`data/survey.yaml`, editable content; `src/learner/survey.py`; table `learner_survey`):
+  12 questions in five parts (what you enjoy; your hobbies, honestly; how you like to learn; focus
+  and energy; you and physics). Fixed options only: **no free text about a child**. Every question is
+  skippable; taken once (a repeat is a 409). Hobby depth is asked for the first two hobbies picked
+  (how close they are, and what they could explain), so "level of understanding of his hobby" needs
+  no per-hobby authoring and works for all 20 hobbies. Concentration is self-reported (how long they
+  can study, how much the mind wanders, what distracts them).
+- **First sign-in:** `WelcomeGate` in the `(app)` layout sends a student who hasn't answered to
+  `/welcome`; afterwards the page offers the starting check. The gate fails open (API down =
+  the student sees the page they asked for). The starting check skips its hobby step when hobbies
+  already came from the survey (and never overwrites them: it sends the stored list).
+- **What the answers change (deterministic, no model):**
+  - lesson page (`prefs` in the next-lesson envelope): one page vs step by step ("fast" pace), a
+    gentle stretch nudge after the span they chose (only counts visible time), "Try an example"
+    before "The idea" for students who learn by trying, a kind line for those nervous about physics;
+  - personal story: the hobby they know best is tried first, and coarse notes (novice hobby = no
+    jargon; expert = real terms; nervous = warm tone; short focus = short) go into the writer's prompt;
+  - teacher: `Getting to know the class` panel (distributions + per student plain-English lines) with
+    **what a student said about focus beside what their lesson views show** (median reading minutes,
+    skim share), so a teacher sees when the two disagree. Teachers get summary lines, never raw answers.
+  - everything is presentation or ordering: nothing is hidden or locked, and the student is told
+    on the last screen exactly what will change.
+- Demo seeder: 23 students answer (own random stream, so the checks didn't change); the two who
+  haven't taken the starting check (`ananya.r`, `aditya.v`) are also un-surveyed, so logging in as
+  either shows the real first-sign-in flow.
+- Tests: `tests/test_survey.py` (50 checks). Existing suites pass.
+
+**Why.** The user wants the first thing a student does to *understand the student*, not to test
+them, so later content can match their level. Static lessons can't be rewritten per student, so
+"matching" means the things that can adapt cheaply and honestly (which hobby, how much jargon,
+how long and in what order a lesson is shown, how kind the tone is). The survey stores the traits
+so later adaptation (difficulty, pace of the path) reads the same data.
+
+**Honest limits.**
+- Self-report is not measurement. It is shown beside observed reading and the teacher decides.
+- No pilot evidence yet that these adaptations help; the pilot can compare, e.g., break-nudge
+  students' lesson completion. Don't claim an effect.
+- Concentration/feelings about physics are mildly sensitive for minors: teacher-visible only, kept
+  as category ids, never sent to a model as raw answers (only the coarse notes above).
+- Students can't retake it yet (a Settings "update my answers" is a candidate next step).
+
+**Verified** in the browser on the demo class: a never-signed-in student logs in and lands on
+`/welcome`; the gate bounces `/roadmap` back; all five parts with a constant "Part n of 5"; the
+summary screen; the hand-off to `/start` skipping hobbies; his lesson showing the example before
+the idea and the kind line; the teacher panel ("24 of 25 answered", per-student lines).
+**Not checked:** screen readers, light theme, the break nudge firing (it needs 5 real minutes),
+phone width of `/welcome`, the "all on one page" default (a "fast" student).
+
+**Learned.** The folder was on another session's branch (`design/frontend-v2`) when I came to
+commit after a shutdown: always `git branch --show-current` before committing, and stage files by
+name when untracked folders (`web-v2/`) are around.
+
+## 9zz. The landing page (2026-10-08)
+
+**Changed.**
+- `web/app/page.tsx` (rewritten; still a Server Component) + `web/components/landing/{interest-showcase,
+  reveal,hero-actions}.tsx` (small client pieces). Sections: hero ("Physics, through the thing you already
+  love", Class 11 & 12, CBSE and ISC, Get started / Log in); **"Same physics. Your world."**, an
+  interactive showcase where picking cricket / football / gaming / smartphones / motorsport re-tells a real
+  physics idea through it, recolours the card, tours itself every 6 s until the visitor picks (not at
+  all under reduced motion, paused on hover or focus); How it works (4 steps: about you, the check, your
+  roadmap, learn-check-remember); "Built to understand, not to rank" (mix-ups, AI stories named as AI,
+  fair grading); For teachers (with an illustration labelled "made-up numbers"); a closing call to action.
+  Logged-in visitors see a way back to their own home instead of Get started.
+- The five showcase examples are checked physics with the arithmetic in comments (0.16 kg x 25 m/s = 4;
+  R = 20^2 sin 90 / 9.8 = 40.8 m; v = g t = 19.6; I^2 R = 4 x 0.1 = 0.4 W; m v^2 / r = 8000 N), and each
+  names a concept that exists in the curriculum (Linear momentum, Projectile motion, Equations of
+  motion, Electrical power, Dynamics of circular motion). Labelled "a taste of a lesson, not the lesson".
+- `Reveal`: sections fade up on scroll with no React state (an effect marks the element, an
+  IntersectionObserver flips it); the hidden state exists only under no-preference motion and only once JS
+  has run, so without JS or with reduced motion everything is simply visible. CSS in `globals.css`.
+- Page title/description now say "Physics, through the thing you love" (were generic "learn anything").
+
+**Why.** The landing page was the generic first thing a judge or a parent sees; it said nothing about
+physics. It now explains the product in about ten seconds and demonstrates the thesis instead of
+describing it.
+
+**Claims policy (keep it).** Every sentence is something the app does today. Deliberately NOT said:
+"free" (pricing undecided), "the AI grades you" (grading is multiple choice, no model), "no personal
+data" (we hold names: "as little as we can"), any user numbers or results (no pilot yet).
+
+**Verified** in the browser: hero, the showcase (each interest changes question, concept, numbers and
+the pressed chip), the reveal on scroll, 375 px (no sideways scroll), the light theme.
+**Not checked:** logged-in view of the hero buttons, screen readers, the tour pausing on keyboard
+focus, other widths (tablet).
+
+## 9zza. The teacher's class page, reorganised (2026-10-08)
+
+**Changed.**
+- `web/app/teacher/(dashboard)/class/page.tsx`: eight panels stacked in one long scroll became a
+  header, a **four-number snapshot** and **four tabs** (`web/components/tab-bar.tsx`, an accessible
+  tablist with arrow keys / Home / End; the tab is in the URL as `?tab=`, so a refresh or a shared link
+  lands on the same view):
+  - **Overview**: *Needs attention*, then the Teaching assistant, then the starting check -> end check;
+  - **Insights**: the class's most common mix-ups and concepts, and "Getting to know the class";
+  - **Students**: the table (class dropdown, password reset) and adding students;
+  - **Stories and AI**: personal-story review and "How the AI decided".
+- `web/components/class-overview.tsx` (new): the snapshot tiles (started, right first time, getting
+  to know you, end check) and **Needs attention**, derived in the browser from data the page already
+  loads (no new API, no new numbers): students who haven't started, gone quiet for 7+ days, first tries
+  that were wrong but "I'm sure", students who skim (3+ lessons, half under 30 s), students who haven't
+  answered the survey, and end-check stragglers. Each item names the students and opens the tab where
+  to look. A missing or failed piece just leaves its tile or item out.
+- `ClassChecksPanel` takes `onChanged`, so closing or opening the end check refreshes the snapshot.
+- `/teacher`: class cards got an icon, the student count and an arrow, with a hover lift.
+
+**Why.** For a teacher (and for a demo on stage) the question is "who needs me today?", and the old
+page answered it only after eight screens of scrolling. Now the answer is the first thing on the page.
+
+**Verified** in the browser on the demo class: the snapshot (23 of 25 started, 79% right first time, 23 of
+25 answered the survey, end check 20 of 23); five real attention items (2 not started, 8 sure-but-wrong,
+6 skimmers, 2 unsurveyed, 3 not finished); "Open" jumping to the right tab; arrow keys and Home; the
+URL carrying the tab; closing the end check updating the tile and dropping its item; 375 px with no
+sideways scroll on all four tabs. **Not checked:** screen readers, the light theme, a class with zero
+students, print layout of the credentials sheet after this change (the sheet is unchanged and still
+replaces the tabs when shown).
+
+**Learned.** The "skimmer" and "sure but wrong" rules are heuristics, shown as prompts to look, not
+verdicts: the wording says "may be rushing", not "is".
+
+## 9zzb. "Update my answers" (2026-10-08)
+
+**Changed.**
+- **Backend.** `PUT /api/survey` -> `platform_api.update_survey`: validated exactly like the first
+  submission (nothing changes if it's refused), replaces the answers, traits and hobbies, and bumps a
+  `revision`. It needs a first survey (otherwise a 400, "Answer the first questions first"). The
+  current answers stay in `learner_survey` (`updated_at`, `revision` added as additive columns); every
+  set it replaces goes to a new **`learner_survey_history`** table, so the pilot can see how students
+  change (e.g. focus over a term) while the app and the teacher only ever use the current set.
+  `completed_at` stays the time of the first answers. `GET /api/survey` now always sends the questions
+  (public content) and, once taken, the student's own answers (to prefill the form), `updated_at` and
+  `revision`. An empty update clears the hobbies: that is the student's choice.
+- **Frontend.** Settings has an **"About you"** card: the same plain sentences the survey ended with
+  ("here's what we'll do with this"), when it was last updated, and an **Update my answers** button.
+  `/settings/about` reuses `SurveyFlow` in `mode="edit"`: no intro, every part pre-filled, the last
+  screen says "Saved / Here's what changes now" (no confetti, no "take the check" step). If the student
+  changes which hobbies are first, answers about hobbies no longer in the first two are dropped before
+  sending (the server refuses them).
+- **Teacher.** A student's row says "Updated their answers on <date>"; never the history.
+- Tests: `tests/test_survey.py` is now 70 checks (replace, history, refused update changes nothing,
+  clear, PUT over HTTP, the teacher sees only the flag). All other suites pass.
+
+**Why.** People change (and a mis-tapped answer at 8 a.m. shouldn't shape a term). Because lessons
+now adapt to the survey, a stale answer has a real cost, so changing it must be easy and visible.
+The history is for the pilot's evidence, not for display.
+
+**Verified** in the browser on the demo class (`aarav.k`): Settings shows his sentences; the edit flow
+opens pre-filled with no intro; dropping his first hobby and adding Music kept Kabaddi's old answers
+and started Music blank; saving replaced the answers (focus short -> long), the page and Settings
+showed the new sentences and "Last updated Oct 8, 2026"; the server held revision 1 with the old set
+(badminton, kabaddi, short focus) as revision 0 in the history.
+**Not checked:** phone width of `/settings/about`, screen readers, the light theme, the teacher row's
+"Updated" line in the browser (covered by the HTTP test).
+
+**Limits.** No limit on how often someone updates (each is a history row). The history has no reader
+yet beyond `store.get_survey_history`: an export for the pilot report is the obvious next step.
+
+## 9zzc. End-to-end walkthrough of the student flow (2026-10-08)
+
+A full pass in the browser against a fresh demo database (a never-signed-in student, `ananya.r`),
+running `main` from a separate git worktree (the main folder was on the `design/frontend-v2` branch,
+and ports 8000/3000 belonged to the user's own servers, so the test copy used 8100/3100, with a
+temporary extra CORS origin that was discarded, not committed).
+
+**Passed:** landing page -> Log in -> first sign-in lands on `/welcome` -> all five survey parts
+(interests Football, Video games, Music; depth questions for the first two) -> "here's what we'll do"
+-> the starting check, skipping hobbies, 8 questions by keyboard -> plan reveal (1 known, 5 mix-ups,
+2 not sure) -> roadmap (ring, locks, plan card) -> lesson (all six steps, the kind line for a student
+who said physics is stressful, image, help chat) -> 👍 -> the check (wrong: red/green replay, Try again;
+right: confetti and the road to mastered) -> "Continue" -> the roadmap (Position Done, Distance next, 1 of
+11) -> Mix-ups (6 items, maths rendered), Review, End check, Settings (read-only class, About you),
+the update-answers form (prefilled) -> Log out (session ended, nav reset, a protected page redirects to
+login with `?next=`) -> logging back in goes straight to the roadmap with progress kept, no survey again.
+
+**Found and fixed:** roadmap step labels read with a doubled full stop ("Finish Position first..") for a
+screen reader: the sentence's own full stop plus the one the label added.
+
+**Tooling learned:** Turbopack refuses a `node_modules` junction that points outside the project
+("Symlink is invalid, it points out of the filesystem root"): run such a copy with `next dev --webpack`.
+The preview tool only starts servers whose `cwd` is inside the project root.
+Remove a `mklink /J` junction with `rmdir` (it removes the link only) BEFORE deleting a worktree.
+
+**Not covered:** the teacher side (checked separately in 9zza), the light theme, screen readers, a
+phone-width pass of every page in one go.
+
+## 9zzd. Handoff refresh (2026-10-08)
+
+`AGENTS.md` §2 now describes the app as of `b4aea3f`: the full student flow (first-sign-in survey ->
+starting check -> roadmap -> lesson -> check -> settings with "update my answers"), the teacher's tabbed
+class page, the new landing page, where each piece lives, the honest "not verified" list, a rewritten
+next-actions list, and **machine notes for the next session**: a separate design session shares the folder
+on `design/frontend-v2` (check the branch before editing; `main` is the truth), how to test `main` from a
+git worktree on ports 8100/3100 (and the Turbopack junction / `--webpack` and `rmdir`-before-removal
+gotchas), the demo logins (`ananya.r` / `aditya.v` never sign in; the password is the constant in
+`scripts/seed_demo.py`), and the design-session merge as an open thread. Memory notes added:
+the user's own servers must not be stopped; a long interrupted run means do the walkthrough instead.
+
+
+## 9zzzzzz. Merged `main` into the restyled branch (2026-10-10)
+
+**Merged.** `main`'s survey ("getting to know you", `/welcome`, welcome gate, break nudge, settings > about), landing
+page, teacher class snapshot / needs-attention / profiles / tab bar, and the backend behind them.
+
+**Conflicts and how they were settled.**
+- Landing (`app/page.tsx`): my Replit hero and sections, with `main`'s honest copy, steps, "what makes it different",
+  the interest showcase and the login-aware `HeroActions` (restyled).
+- Teacher class page: `main`'s page (URL tabs, `ClassSnapshot`, `NeedsAttention`, `ClassProfilesPanel`) as the base,
+  with my student table and heading; `tab-bar.tsx`, `class-overview.tsx` restyled to the dashboard classes.
+- Starting check: `main`'s flow (skips the hobby step when the survey has hobbies; shared `hobby-picker.tsx`, now
+  restyled). My "Next waits for a hobby" edit stays only on the fallback hobby step.
+- Lesson page + stepper: both `initialStep` (roadmap deep link) and `initialAll` (survey preference); the "take your
+  time" note kept. `roadmap-path.tsx`: mine (the tree replaced `PathMap`, where `main`'s full-stop fix lived).
+- Restyled the new survey, profile, about-you and showcase files with the house classes; the mobile top bar hides
+  "Log in" under 480 px so the page no longer scrolls sideways.
+
+**Checked.** `tsc`, lint, full Python suite (incl. `test_survey`), lesson validator. **Not checked in a browser:**
+the survey screens, teacher snapshot and profiles (the running API on :8000 is the user's own database, so no demo
+login was available), and `npm run build` (not run: it would overwrite the dev server's `.next`).

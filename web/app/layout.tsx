@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EcoLearn — Learn through what you love",
+  title: "EcoLearn — Physics, through the thing you love",
   description:
-    "EcoLearn personalises every lesson to a student's passions, turning the things they love into the way they learn.",
+    "A personal tutor for Class 11 and 12 Physics (CBSE and ISC). It finds your mix-ups and teaches every idea through cricket, football, gaming, phones or cars.",
 };
 
 export default function RootLayout({

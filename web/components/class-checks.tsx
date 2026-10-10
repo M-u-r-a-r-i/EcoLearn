@@ -27,7 +27,13 @@ import {
 import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
 
-export function ClassChecksPanel({ classId }: { classId: string }) {
+export function ClassChecksPanel({
+  classId,
+  onChanged,
+}: {
+  classId: string;
+  onChanged?: () => void; // so the page's snapshot can refresh
+}) {
   const loaded = useFetch(`checks:${classId}`, () => getClassChecks(classId));
   // After open/close, the response replaces what was loaded.
   const [updated, setUpdated] = useState<ClassChecks | null>(null);
@@ -40,6 +46,7 @@ export function ClassChecksPanel({ classId }: { classId: string }) {
     setError(null);
     try {
       setUpdated(await setClassEndCheck(classId, open));
+      onChanged?.();
     } catch (err) {
       setError(friendlyMessage(err));
     } finally {

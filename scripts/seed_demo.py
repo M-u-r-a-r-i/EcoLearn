@@ -9,7 +9,7 @@ It writes to data/demo.db, never to data/progress.db, so the pilot's numbers sta
 It refuses to touch the pilot database even if you point it there.
 
 What it makes: one teacher, one Class 11 class of 25 students (cricket / football /
-gaming), each with a starting check, lessons read and checked, mix-ups with
+gaming), each with a "getting to know you" survey and a starting check, lessons read and checked, mix-ups with
 "how sure are you?", 👍/👎, revision answers, and (for most of the class) the end
 check; plus personal stories with decision trails and a teaching-assistant plan.
 
@@ -89,11 +89,13 @@ def main() -> int:
     from src import platform_api as api  # noqa: E402
     from src.auth import passwords  # noqa: E402
     from src.content import lesson_service  # noqa: E402
-    from src.learner import diagnostic, personal_story  # noqa: E402
+    from src.learner import diagnostic, personal_story, survey as survey_mod  # noqa: E402
     from src.path import engine  # noqa: E402
     from src.progress import store  # noqa: E402
 
     rng = random.Random(SEED)
+    # The survey draws from its OWN stream, so adding it didn't change the class's checks.
+    srng = random.Random(SEED + 1)
     now = datetime.now(tz=timezone.utc)
     conn = store._connect()
 
@@ -170,6 +172,33 @@ def main() -> int:
                 confs[q["concept_id"]] = sure
         return picks, confs
 
+
+    def survey_answers(p: dict) -> dict:
+        """What this fictional student says about themselves (leans on their ability)."""
+        a = p["ability"]
+        out: dict = {"hobbies": p["hobbies"]}
+        depth = {}
+        know = {}
+        for h in p["hobbies"][:2]:
+            depth[h] = srng.choices(["watch", "follow", "play_fun", "play_regular", "compete"],
+                                    [2, 3, 4, 3, 1])[0]
+            know[h] = srng.sample(["rules", "tactics", "equipment", "numbers", "history"],
+                                  srng.randint(0, 4))
+        if depth:
+            out["hobby_depth"], out["hobby_know"] = depth, {h: k for h, k in know.items() if k}
+        out["first_step"] = srng.choice(["story", "picture", "try", "rule"])
+        out["pace"] = srng.choices(["step_by_step", "steady", "fast"], [3, 4, 2])[0]
+        out["session_length"] = srng.choices(["m5", "m10", "m20", "m30"], [2, 4, 3, 1])[0]
+        out["focus_drift"] = srng.choices(["stays", "some", "often"], [2, 4, 3])[0]
+        out["distractions"] = srng.sample(["phone", "noise", "thoughts", "tired", "bored"],
+                                          srng.randint(1, 3))
+        feel = ["love", "ok"] if a > 0.7 else ["nervous", "dread"] if a < 0.45 else ["ok", "nervous", "love"]
+        out["physics_feel"] = srng.choice(feel)
+        out["maths_comfort"] = srng.choice(["strong", "mostly"] if a > 0.6 else ["shaky", "struggle", "mostly"])
+        out["trips"] = srng.choice(["ideas", "formulas", "numericals", "wording"])
+        out["goal"] = srng.choice(["pass", "marks", "entrance", "curious"])
+        return out
+
     # ---- starting checks ----------------------------------------------------
     hobby_ids_valid = {h["id"] for h in diagnostic.hobby_options()}
     for p in people:
@@ -185,6 +214,11 @@ def main() -> int:
         chosen = diagnostic.choose_questions(profile["level"], profile["interest"],
                                              diagnostic.form_for(sid))
         picks, confs = take_check(p, chosen, {})
+        rng_minutes = 1  # the survey, a minute after the account was made
+        # "Getting to know you" came first, as it does for a real student.
+        api.submit_survey(sid, survey_answers(p))
+        run_sql("UPDATE learner_survey SET completed_at = ? WHERE student_id = ?",
+                (_iso(t0 + timedelta(minutes=rng_minutes)), sid))
         api.submit_diagnostic(sid, picks, p["hobbies"], confs)
         at = _iso(t0 + timedelta(minutes=rng.randint(4, 9)))
         run_sql("UPDATE diagnostic_answers SET answered_at = ? WHERE student_id = ?", (at, sid))

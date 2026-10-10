@@ -9,23 +9,27 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { BarChart3, Bot, Flag, Users } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { FormError } from "@/components/auth-card";
-import { Meter, PageHeading, Skeleton } from "@/components/ui-kit";
 import { ClassInsightsPanel, pct } from "@/components/class-insights";
+import { ClassSnapshot, NeedsAttention, type ClassTab } from "@/components/class-overview";
+import { TabBar, type TabDef } from "@/components/tab-bar";
 import { TeachingAssistant } from "@/components/teaching-assistant";
+import { ClassProfilesPanel } from "@/components/class-profiles";
 import { ClassStoriesPanel } from "@/components/class-stories";
 import { ClassChecksPanel } from "@/components/class-checks";
 import { AiDecisionsPanel } from "@/components/ai-decisions";
 import { CredentialsSheet, InterestSelect, RosterField } from "@/components/teacher-ui";
 import { Button } from "@/components/ui/button";
+import { Meter, PageHeading, Skeleton } from "@/components/ui-kit";
 import {
   addStudents,
   friendlyMessage,
+  getClassChecks,
   getClassDetail,
   getClassInsights,
+  getClassProfiles,
   resetStudentPassword,
   setStudentLevel,
   type ClassStudent,
@@ -43,27 +47,35 @@ export default function ClassPage() {
   );
 }
 
-type TabId = "overview" | "insights" | "ai" | "students";
-const TABS: { id: TabId; label: string; Icon: typeof Flag }[] = [
-  { id: "overview", label: "Overview", Icon: Flag },
-  { id: "insights", label: "Insights", Icon: BarChart3 },
-  { id: "ai", label: "Stories & AI", Icon: Bot },
-  { id: "students", label: "Students", Icon: Users },
-];
-
 function lastActive(iso: string | null): string {
   if (!iso) return "Not started";
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+const TAB_IDS: ClassTab[] = ["overview", "insights", "students", "ai"];
+
 function ClassView() {
-  const classId = useSearchParams().get("id") ?? "";
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const classId = params.get("id") ?? "";
+  // The tab rides in the URL too, so a refresh or a shared link lands on the same view.
+  const tab: ClassTab = TAB_IDS.find((t) => t === params.get("tab")) ?? "overview";
+  function setTab(next: ClassTab) {
+    const q = new URLSearchParams(params);
+    q.set("tab", next);
+    router.replace(`${pathname}?${q}`, { scroll: false });
+  }
+
   const [version, setVersion] = useState(0);
-  const [tab, setTab] = useState<TabId>("overview");
+  const [checksVersion, setChecksVersion] = useState(0);
   const detail = useFetch(`class:${classId}:${version}`, () => getClassDetail(classId));
-  // Loaded separately so a slow or failed insights query never hides the
-  // student list (and the password resets a teacher may urgently need).
+  // Loaded separately so a slow or failed query never hides the student list (and the
+  // password resets a teacher may urgently need). The snapshot and "Needs attention"
+  // use whatever has arrived; a failure just leaves its part out.
   const insights = useFetch(`insights:${classId}:${version}`, () => getClassInsights(classId));
+  const checks = useFetch(`checks-top:${classId}:${version}:${checksVersion}`, () => getClassChecks(classId));
+  const profiles = useFetch(`profiles-top:${classId}:${version}`, () => getClassProfiles(classId));
   // Logins to show once: from a reset or from adding students.
   const [sheet, setSheet] = useState<{ title: string; credentials: StudentCredential[] } | null>(
     null,
@@ -78,7 +90,7 @@ function ClassView() {
   if (detail.loading) {
     return (
       <main className="page-shell w-full flex-1">
-        <div className="mx-auto w-full flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           {back}
           <div className="surface">
             <Skeleton rows={6} />
@@ -90,7 +102,7 @@ function ClassView() {
   if (!detail.data) {
     return (
       <main className="page-shell w-full flex-1">
-        <div className="mx-auto w-full flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           {back}
           <FormError message={detail.error ?? "Class not found."} />
         </div>
@@ -99,18 +111,19 @@ function ClassView() {
   }
 
   const { class: klass, students } = detail.data;
-  const started = students.filter((s) => s.attempted > 0).length;
+  const tabs: TabDef<ClassTab>[] = [
+    { id: "overview", label: "Overview" },
+    { id: "insights", label: "Insights" },
+    { id: "students", label: "Students", count: students.length },
+    { id: "ai", label: "Stories and AI" },
+  ];
 
   return (
     <main className="page-shell w-full flex-1">
-      <div className="mx-auto w-full flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         {back}
         <div className="print:hidden">
-          <PageHeading
-            eyebrow={klass.level}
-            title={klass.name}
-            description={`${students.length} students · ${started} have started`}
-          />
+          <PageHeading eyebrow={klass.level} title={klass.name} description={`${students.length} students`} />
         </div>
 
         {sheet ? (
@@ -122,45 +135,53 @@ function ClassView() {
           />
         ) : (
           <>
-            <div className="dash-tabs print:hidden" role="tablist" aria-label="Class dashboard">
-              {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  id={`tab-${t.id}`}
-                  aria-selected={tab === t.id}
-                  aria-controls="dash-panel"
-                  className="dash-tab"
-                  onClick={() => setTab(t.id)}
-                >
-                  <t.Icon size={15} aria-hidden /> {t.label}
-                </button>
-              ))}
-            </div>
-            <div id="dash-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="flex flex-col gap-8">
+            <ClassSnapshot
+              students={students}
+              insights={insights.data}
+              checks={checks.data}
+              profiles={profiles.data}
+            />
+            <TabBar tabs={tabs} value={tab} onChange={setTab} label="Class sections" />
+
+            <div
+              key={tab}
+              role="tabpanel"
+              id={`panel-${tab}`}
+              aria-labelledby={`tab-${tab}`}
+              className="rm-sheet flex flex-col gap-8"
+            >
               {tab === "overview" && (
                 <>
-                  <ClassChecksPanel classId={klass.class_id} />
+                  <NeedsAttention
+                    students={students}
+                    insights={insights.data}
+                    checks={checks.data}
+                    profiles={profiles.data}
+                    onOpenTab={setTab}
+                  />
                   <TeachingAssistant classId={klass.class_id} />
+                  <ClassChecksPanel
+                    classId={klass.class_id}
+                    onChanged={() => setChecksVersion((v) => v + 1)}
+                  />
                 </>
               )}
-              {tab === "insights" &&
-                (insights.data ? (
-                  <ClassInsightsPanel insights={insights.data} />
-                ) : insights.loading ? (
-                  <div className="surface">
-                    <Skeleton rows={4} />
-                  </div>
-                ) : (
-                  <FormError message={insights.error ?? "Couldn't load the class insights."} />
-                ))}
-              {tab === "ai" && (
+
+              {tab === "insights" && (
                 <>
-                  <ClassStoriesPanel classId={klass.class_id} />
-                  <AiDecisionsPanel classId={klass.class_id} />
+                  {insights.data ? (
+                    <ClassInsightsPanel insights={insights.data} />
+                  ) : insights.loading ? (
+                    <div className="surface">
+                      <Skeleton rows={4} />
+                    </div>
+                  ) : (
+                    <FormError message={insights.error ?? "Couldn't load the class insights."} />
+                  )}
+                  <ClassProfilesPanel classId={klass.class_id} />
                 </>
               )}
+
               {tab === "students" && (
                 <>
                   <StudentTable
@@ -181,6 +202,13 @@ function ClassView() {
                       });
                     }}
                   />
+                </>
+              )}
+
+              {tab === "ai" && (
+                <>
+                  <ClassStoriesPanel classId={klass.class_id} />
+                  <AiDecisionsPanel classId={klass.class_id} />
                 </>
               )}
             </div>
@@ -413,9 +441,9 @@ function AddStudentsForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-6 surface p-6"
+      className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-card"
     >
-      <h2 className="display text-xl font-bold text-foreground">Add students</h2>
+      <h2 className="text-lg font-bold text-foreground">Add students</h2>
       <InterestSelect value={interest} onChange={setInterest} disabled={saving} />
       <RosterField value={roster} onChange={setRoster} disabled={saving} />
       <FormError message={error} />

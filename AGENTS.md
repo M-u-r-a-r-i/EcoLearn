@@ -90,48 +90,60 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
-### Current state (everything committed and pushed; last code commit `e920f30`, 2026-10-03)
+### Current state (everything committed and pushed to `main`; last commit `b4aea3f`, 2026-10-08)
 
 **Repo:** github.com/Niranjan-207/EcoLearn, branch **`main`**. A teammate (GitHub `M-u-r-a-r-i`)
 also pushes lesson batches — always `git pull --ff-only` first.
 
-**What a student does today** (all verified in a browser):
-sign up (2 steps) → **`/start`: the starting check** (hobbies + 8 questions with "not sure", taken
-once, its result a learning plan) → **roadmap** (chapter picker marks "coming soon" chapters;
-concepts tagged "Know it?" / "Focus"; "Next up" follows the personal recommendation) → **lesson**
-("Your story" for their hobby when one exists, the original story in a box, a "Something wrong with
-this story?" report button, 👍/👎, active reading time recorded) → **multiple-choice check**
-(misconception feedback) → progress. Plus settings, a dark/light/device theme toggle, error and 404
-pages. When the teacher opens it, **`/end-check`**: the same 8 ideas with new questions, and a
-before → after (fixed mix-ups, ideas learned since "not sure", what slipped). Every check asks
-**"How sure are you?"** after an option is picked, and **`/mix-ups`** lists each misconception as
-to fix / check again / fixed (fixed = right on a *different* question about the idea).
-**Mastered needs two different questions right** (§9zn): one right answer is "cleared" (the path
-moves on), and **`/review`** asks a fresh question (another interest's check) about a day later.
+**What a student does today** (the whole flow was walked end to end in a browser on 2026-10-08, §9zzc):
+**log in** (teachers create the accounts) → **first sign-in: `/welcome`, "getting to know you"**
+(§9zy: hobbies and how well they know them, focus, how they like to learn, feelings about physics;
+fixed options only, every question skippable, taken once; a gate in the `(app)` layout sends any student
+who hasn't answered it there; it fails open) → **`/start`: the starting check** (8 questions with "not
+sure", taken once, its result a learning plan; skips the hobby step when the survey already has hobbies)
+→ **roadmap** (a level map: Done ✓ green, Mastered ✓ gold, Next up, Locked, Coming soon; **chapters are
+never locked but concepts open in order**; a student sees only their own class's chapters) → **lesson**
+(a run of steps: story, idea, worked example, where it breaks, takeaway, check; "show everything on one
+page"; shaped by the survey: one page for fast readers, a stretch nudge, example first for those who
+learn by trying, a kind line for nervous students; "Your story" for their hobby, a report button, 👍/👎,
+active reading time recorded) → **multiple-choice check** (A-D keys, "How sure are you?", right = confetti
+and the road to mastered, wrong = red/green replay framed as "what to fix") → progress. Plus
+**Settings** (name, interest, the class read-only, **"About you" with "Update my answers"**, §9zzb; the old
+answers go to a history table), a dark/light/device theme toggle, error and 404 pages, and a new
+**landing page** that says what the product is (§9zz). When the teacher opens it, **`/end-check`**: the
+same 8 ideas with new questions, and a before → after. **`/mix-ups`** lists each misconception as to fix
+/ check again / fixed. **Mastered needs two different questions right** (§9zn): one right answer is
+"cleared" (the path moves on), and **`/review`** asks a fresh question about a day later.
+**Only a teacher can move a student between Class 11 and Class 12** (§9zt).
 
 **What a teacher does today:** accounts are created on the server only
 (`venv\Scripts\python.exe scripts\create_teacher.py --name "…" --username …`). A teacher creates a
-class from pasted names (printable login slips, passwords shown once) and resets passwords (which
-also lifts a login lockout). **`/teacher/class`** has:
-- the **Teaching assistant**, a tool-calling agent that plans the next lesson; it sees students
-  only as S1, S2…, and falls back to a labelled rules plan;
-- **insights**: first-try accuracy, the most common misconceptions (counted per student, with how
-  many were sure of it), "sure but wrong", concepts hardest-first, and results by interest;
-- **starting check → end check**: open/close the end check; before → after right answers and
-  mix-ups over paired answers, studied vs not-studied ideas (a rough control), per idea and per
-  student;
-- **personal stories**: read, hide or restore them, with students' reports first;
-- **How the AI decided** (§9zp): the story guardrail pipeline with this class's counts (drafts,
-  rule-check rejections, critic rejections, shown), safe fallbacks, human review, teaching-
-  assistant plans by AI vs rules fallback, model calls, and a decision log with each story's
-  step-by-step trail and reasons;
-- the students table.
+class from pasted names (printable login slips, passwords shown once), resets passwords (which also lifts a
+login lockout) and sets each student's class (Class 11/12). **`/teacher/class`** (§9zza) has a four-number
+snapshot, then four URL-addressable tabs (`?tab=`):
+- **Overview**: **Needs attention** (derived in the browser: students who haven't started, gone quiet,
+  "sure but wrong" first tries, skimmers, un-surveyed students, end-check stragglers), the **Teaching
+  assistant** (a tool-calling agent that plans the next lesson; students appear only as S1, S2…; a labelled
+  rules plan is the fallback) and the **starting check → end check** (open/close it; before → after right
+  answers and mix-ups over paired answers; studied vs not-studied as a rough control);
+- **Insights**: first-try accuracy, the most common misconceptions (counted per student, with how many were
+  sure), concepts hardest-first, results by interest, and **"Getting to know the class"** (what students said
+  about themselves next to how they actually read);
+- **Students**: the table (class dropdown, password reset) and adding students;
+- **Stories and AI**: personal stories (read, hide or restore; students' reports first) and **How the AI
+  decided** (§9zp: the story guardrail pipeline with this class's counts, safe fallbacks, plans by AI vs
+  rules, model calls, and a decision log with each story's step-by-step trail).
 
 **Where things live** (each with its `PROJECT_HISTORY.md` entry):
 
 | Area | Files | § |
 |---|---|---|
 | Boundary (all logic) | `src/platform_api.py` | — |
+| **"Getting to know you" survey** (first login: hobbies + depth, focus, how they learn, feelings about physics; drives lesson prefs, story notes, teacher profile) | `data/survey.yaml`, `src/learner/survey.py`, `platform_api.{get_survey,submit_survey,get_class_learner_profiles}`, `web/app/(app)/welcome`, `web/components/{survey-flow,welcome-gate,break-nudge,class-profiles}.tsx` | 9zy |
+| Concept locks, class level (teacher-only), Done/Mastered ticks | `platform_api._concept_locks`, `_require_chapter_for_level`, `set_student_level`; `web/components/roadmap-path.tsx` | 9zt |
+| Update my answers (survey history) | `platform_api.update_survey`, `store.update_survey`, `learner_survey_history`; `web/app/(app)/settings/about`, `web/components/about-you-card.tsx` | 9zzb |
+| Demo dataset (a separate DB, fictional class) | `scripts/seed_demo.py --reset`, `tests/test_seed_demo.py` | 9zr |
+| Redesigned screens (roadmap, lesson, check, start, welcome, landing, teacher class) | `web/components/{roadmap-path,lesson-stepper,check-feedback,survey-flow,class-overview,tab-bar,landing/*}.tsx` | 9zu-9zza |
 | Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
 | Mastery from evidence + revision queue | `learner_plan.mastery_evidence`, `platform_api` §"Mastery from evidence", `web/app/(app)/review` | 9zn |
 | "How the AI decided" (decision trails) | `personal_story.generate` (trail), `platform_api.get_class_ai_decisions`, `web/components/ai-decisions.tsx` | 9zp |
@@ -166,42 +178,73 @@ next batch (the batch procedure is below). Famous images: `data/media/famous/`, 
 - The end check's two forms are different lessons' checks on the same concept, written
   independently, not psychometrically matched. Counterbalancing cancels a difference in difficulty
   on average across a class; it doesn't make one student's two forms equal (§9zl).
-- The landing page (`web/app/page.tsx`) is generic and says nothing about physics. `README.md` is
-  out of date. Streamlit doesn't have any of the October features.
+- `README.md` is out of date (the landing page is done: §9zz). Streamlit doesn't have any of the October features.
 - Phase 2 lesson formats (`challenge`, `misconception`): 2 of 70 batches.
+- **No pilot evidence yet** that the survey-driven adaptations help; don't claim an effect. The
+  demo dataset (58% -> 77%) is INVENTED: never quote it. The survey history table has no reader yet
+  (an export into `scripts/pilot_report.py` is the obvious next step).
+- Not checked in a browser: screen readers, the light theme on most new screens, a phone-width pass of
+  every page together, the stretch nudge actually firing (needs real minutes), a student whose pace is
+  "fast" (one-page default).
 
 ### -> YOUR NEXT ACTION: ask the user which of these to do (they choose the order)
 
 **Prioritise by the judging weights** (Innovation 30, Technology readiness 20, Commercial 15,
 Education 15, Presentation 10, Demo 10). Content volume alone scores little.
 
-**Done since the 2026-10-02 handoff** (the pre-pilot list agreed with the user on 2026-10-02):
-end check with counterbalanced forms (§9zl) → "My mix-ups" + "How sure are you?" (§9zm) →
-two-question mastery + revision queue + AI usage/cost log (§9zn) → "How the AI decided" (§9zp).
+**Done since the 2026-10-02 handoff:** end check (§9zl) -> mix-ups + "how sure are you?" (§9zm) ->
+two-question mastery, revision queue, AI usage log (§9zn) -> "How the AI decided" (§9zp) -> **demo dataset**
+(§9zr) -> **Done/Mastered ticks, concept locks, teacher-only class** (§9zt) -> **UI redesign, screen by
+screen** (roadmap §9zu, lesson §9zv, check §9zw, starting check §9zx, **landing page** §9zz, **teacher class
+page** §9zza) -> **"getting to know you" survey** (§9zy) and **update my answers** (§9zzb) -> an **end-to-end
+walkthrough** of the student flow (§9zzc).
 
-**The user's stated order now:** they set up **OmniRoute** themselves first (they asked to be
-reminded), *then* the **pre-pilot cleanup**. Don't start either without them.
+**The user's stated order:** they set up **OmniRoute** themselves first (they asked to be reminded), *then*
+the **pre-pilot cleanup**. Don't start either without them.
 
-Candidates in between or after, by value for the finals (the user picks):
-1. ~~"How the AI decided" panel~~ **done 2026-10-03 (§9zp).**
-2. ~~**Demo dataset**~~ **done 2026-10-03 (§9zr): `scripts/seed_demo.py --reset`, then run the API with `ECOLEARN_PROGRESS_DB=data\demo.db`.** Original idea: a script filling a *separate* DB (`ECOLEARN_PROGRESS_DB=
-   data/demo.db`) with a realistic class (~25 students, starting + end checks, lessons, mix-ups,
-   confidence, revision), so the dashboards are full on stage and pilot data stays clean. ~1 day.
-3. **Doubt chat without grpc** (Readiness, Demo): it depends on chromadb → grpc, which Windows
-   Application Control blocks here, and takes ~2 min. With 249 concepts an in-process numpy
-   search over the existing MiniLM embeddings would remove grpc. Moving it onto `src/llm` would
-   also give it token counts in the usage log. ~1 day.
-4. **Landing page** (`web/app/page.tsx` says nothing about physics). ~½ day.
-5. **Dev-only error detail** on `web/app/error.tsx` (show `error.message` when
-   `process.env.NODE_ENV === "development"`), see Open threads 3. ~15 min.
-6. **Local GPU backend** (the user has an **RTX 3090, 24 GB**): Ollama / llama.cpp / vLLM exposes
-   an OpenAI-compatible URL, so `src/llm` needs only `LLM_BASE_URL` + `LLM_MODEL`. A private,
-   always-available alternative (or OmniRoute upstream) to free cloud tiers for stories and the
-   teaching assistant. The user's call; it's M1a's plan done small.
-7. Later: teacher report + "assign concepts", interactive simulations, phone check of every
-   student page, the remaining lesson batches (scope question below).
+Candidates (the user picks), by value for the finals:
+1. **A live AI run** (Technology readiness): once OmniRoute (or a Gemini key / the RTX 3090) works, run one
+   real story and one real teaching-assistant plan, see how free models fail, and capture one real run so the
+   "How the AI decided" panel shows real calls instead of zeros. No live AI has ever run.
+2. **Run the full automated suite on `main`** (the user stopped one such run on 2026-10-08, so it hasn't
+   been re-run since the survey and update work; every suite passed when last run, 70 survey checks).
+3. **Teacher-side walkthrough** like the student one: create a class, print slips, reset a password, log out.
+4. **A profiler / coaching-note agent** (Innovation): today's "profiler" is rules (`learner_plan`,
+   `survey`), not an agent. A small agent over the survey + progress that writes a privacy-safe note per
+   student for the teacher, with a rules fallback, is ~1 day. Present the rules honestly meanwhile.
+5. **Survey history into the pilot report** (`scripts/pilot_report.py`), and more adaptations from the
+   traits (check difficulty, pacing of the path) once there is evidence.
+6. **Doubt chat without grpc** (~1 day): chromadb -> grpc is blocked by Windows Application Control, so
+   `ask_help` answers 503 here; an in-process numpy search over the existing embeddings would fix it, and
+   moving it onto `src/llm` would add token counts to the usage log.
+7. **Dev-only error detail** on `web/app/error.tsx` (~15 min); a **local GPU backend** (RTX 3090 via
+   `LLM_BASE_URL` + `LLM_MODEL`); the **design-session merge** (below); later: teacher report + "assign
+   concepts", interactive simulations, the remaining lesson batches (scope question below).
 
 ### Machine issues to raise with the user
+
+- **Two Claude sessions share this folder.** A separate **design session** works on the branch
+  **`design/frontend-v2`** (a copy of the web app in `web-v2/`, three design directions; see
+  `docs/frontend-design-prompt.md`; the user will merge a chosen design later, over the unchanged
+  `web/lib/api.ts` contract). The working folder `D:\Projects\EcoLearn` is often checked out on THAT
+  branch, so it then lacks everything from 2026-10-04 onward. **Always run `git branch --show-current`
+  before editing or committing.** `main` is the truth and is pushed. Stage files by name (an untracked
+  `web-v2/` may be present); never commit it to `main`.
+- **To test `main` while the folder is on the design branch, use a worktree** (done on 2026-10-08):
+  `git worktree add .claude/wt-main main` (already exists; `.claude/` is gitignored) and a `mklink /J
+  web\node_modules D:\Projects\EcoLearn\web\node_modules` junction. Turbopack refuses that junction
+  ("points out of the filesystem root"), so run it with `next dev --webpack`. The preview tool only starts
+  servers whose `cwd` is inside the project root, and refuses ports already taken by the user's own
+  servers (8000/3000 are usually the user's): use 8100/3100, which needs one extra CORS origin in
+  `api/main.py` (a TEMPORARY edit; never commit it; the launch entries `api-main` / `web-main` are in
+  `.claude/launch.json`). **Remove the junction with `rmdir` BEFORE removing the worktree**, or Windows may
+  follow it and delete the real `node_modules`.
+- **Demo logins** (demo database only, `scripts/seed_demo.py --reset`, then run the API with
+  `ECOLEARN_PROGRESS_DB=data\demo.db`): teacher `demo.teacher`; students `aarav.k` (everything done),
+  and **`ananya.r` / `aditya.v`, who have never signed in** (they see the first-sign-in survey and the
+  starting check). The shared password is the `DEMO_PASSWORD` constant in `scripts/seed_demo.py` (a
+  throwaway; the file is the only place it is written). Seeding is deterministic. Testing writes into the
+  demo DB: reseed afterwards.
 
 - **OmniRoute is not installed** (nothing on `localhost:20128`, checked 2026-10-02). **The user
   asked to be reminded to set it up.** Installing a global npm package is their step. Until then
@@ -249,6 +292,10 @@ Candidates in between or after, by value for the finals (the user picks):
    and `/roadmap` render for a new class student. Likely a browser tab opened before the day's
    changes (stale dev chunks); a hard refresh should fix it. If it recurs, ask for the red console
    line under the error and the URL. Candidate fix: item 5 in the next-action list.
+
+4. **The design session's merge.** When the user picks a direction, merge it into `web/` with no backend
+   change; keep every function in `web/lib/api.ts`. After merging, re-run the web checks and click through
+   every screen (the redesigned ones above were built in `web/`, so a new design replaces them).
 
 ### Open with the user, don't decide alone
 
@@ -505,6 +552,7 @@ venv\Scripts\python.exe tests\test_mastery.py             # two-question mastery
 venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost per student
 venv\Scripts\python.exe tests\test_ai_decisions.py        # decision trails, "How the AI decided"
 venv\Scripts\python.exe tests\test_concept_locks.py       # concept locks, class level (teacher only)
+venv\Scripts\python.exe tests\test_survey.py              # "getting to know you": validation, traits, prefs, HTTP
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

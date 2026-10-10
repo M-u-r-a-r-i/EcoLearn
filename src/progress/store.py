@@ -163,6 +163,41 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         )
         """
     )
+    # "Getting to know you" (2026-10-08): the first-login survey. `answers` is the cleaned
+    # submission and `traits` what src/learner/survey.py derived from it, both JSON. One row
+    # per student; `version` is data/survey.yaml's version at the time they answered.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS learner_survey (
+            student_id    TEXT PRIMARY KEY,
+            version       INTEGER NOT NULL,
+            answers       TEXT NOT NULL,
+            traits        TEXT NOT NULL,
+            completed_at  TEXT NOT NULL
+        )
+        """
+    )
+    # A student may update their answers later (2026-10-08). The row keeps the CURRENT
+    # answers (what the app and the teacher use); every answer set it replaces goes to
+    # learner_survey_history, so the pilot can see how students change. Additive columns.
+    survey_columns = {row["name"] for row in conn.execute("PRAGMA table_info(learner_survey)")}
+    if "updated_at" not in survey_columns:
+        conn.execute("ALTER TABLE learner_survey ADD COLUMN updated_at TEXT")
+    if "revision" not in survey_columns:
+        conn.execute("ALTER TABLE learner_survey ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS learner_survey_history (
+            student_id  TEXT NOT NULL,
+            revision    INTEGER NOT NULL,
+            version     INTEGER NOT NULL,
+            answers     TEXT NOT NULL,
+            traits      TEXT NOT NULL,
+            saved_at    TEXT NOT NULL,
+            PRIMARY KEY (student_id, revision)
+        )
+        """
+    )
     # Personal stories (2026-10-02, layer 3): one per student × concept, written
     # by the story agent and checked by the critic agent. `lesson_hash` ties a
     # story to the lesson text it was based on, so editing the lesson (or the
@@ -1270,6 +1305,135 @@ def get_learner_profile(student_id: str) -> dict[str, Any]:
     return {"hobbies": json.loads(row["hobbies"]),
             "diagnostic_completed_at": row["diagnostic_completed_at"],
             "end_check_completed_at": row["end_check_completed_at"]}
+
+
+def get_survey(student_id: str) -> dict[str, Any] | None:
+    """The student's survey row ({version, answers, traits, completed_at}), or None."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM learner_survey WHERE student_id = ?", (student_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return _survey_row(row) if row else None
+
+
+def _survey_row(row: sqlite3.Row) -> dict[str, Any]:
+    return {"student_id": row["student_id"], "version": row["version"],
+            "answers": json.loads(row["answers"]), "traits": json.loads(row["traits"]),
+            "completed_at": row["completed_at"], "updated_at": row["updated_at"],
+            "revision": row["revision"]}
+
+
+def list_surveys(student_ids: list[str]) -> dict[str, dict[str, Any]]:
+    """{student_id: survey row} for those who have taken it."""
+    if not student_ids:
+        return {}
+    conn = _connect()
+    try:
+        marks = ",".join("?" * len(student_ids))
+        rows = conn.execute(
+            f"SELECT * FROM learner_survey WHERE student_id IN ({marks})", student_ids
+        ).fetchall()
+    finally:
+        conn.close()
+    return {r["student_id"]: _survey_row(r) for r in rows}
+
+
+def save_survey(
+    student_id: str,
+    version: int,
+    answers: dict[str, Any],
+    traits: dict[str, Any],
+    hobbies: list[str],
+) -> str:
+    """Store the survey and the hobbies it collected, in ONE transaction. Returns the time.
+
+    The hobbies go to `learner_profiles` (where the starting check and the story writer
+    already read them) without touching the starting check's own completion time.
+    """
+    completed_at = _now_iso()
+    conn = _connect()
+    try:
+        with conn:
+            conn.execute(
+                "INSERT INTO learner_survey (student_id, version, answers, traits, completed_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (student_id, version, json.dumps(answers, ensure_ascii=False),
+                 json.dumps(traits, ensure_ascii=False), completed_at),
+            )
+            if hobbies:
+                conn.execute(
+                    """
+                    INSERT INTO learner_profiles (student_id, hobbies) VALUES (?, ?)
+                    ON CONFLICT(student_id) DO UPDATE SET hobbies = excluded.hobbies
+                    """,
+                    (student_id, json.dumps(hobbies)),
+                )
+    finally:
+        conn.close()
+    return completed_at
+
+
+def update_survey(
+    student_id: str,
+    version: int,
+    answers: dict[str, Any],
+    traits: dict[str, Any],
+    hobbies: list[str],
+) -> bool:
+    """Replace a student's survey answers, keeping the old set in the history. False if none yet.
+
+    One transaction: the previous answers go to `learner_survey_history` under their revision
+    number, the row takes the new ones, and the hobbies follow (an empty list clears them:
+    the student chose that). `completed_at` stays the time of the FIRST answers.
+    """
+    now = _now_iso()
+    conn = _connect()
+    try:
+        with conn:
+            old = conn.execute(
+                "SELECT * FROM learner_survey WHERE student_id = ?", (student_id,)
+            ).fetchone()
+            if old is None:
+                return False
+            conn.execute(
+                "INSERT INTO learner_survey_history "
+                "(student_id, revision, version, answers, traits, saved_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (student_id, old["revision"], old["version"], old["answers"], old["traits"],
+                 old["updated_at"] or old["completed_at"]),
+            )
+            conn.execute(
+                "UPDATE learner_survey SET version = ?, answers = ?, traits = ?, updated_at = ?, "
+                "revision = revision + 1 WHERE student_id = ?",
+                (version, json.dumps(answers, ensure_ascii=False),
+                 json.dumps(traits, ensure_ascii=False), now, student_id),
+            )
+            conn.execute(
+                """
+                INSERT INTO learner_profiles (student_id, hobbies) VALUES (?, ?)
+                ON CONFLICT(student_id) DO UPDATE SET hobbies = excluded.hobbies
+                """,
+                (student_id, json.dumps(hobbies)),
+            )
+    finally:
+        conn.close()
+    return True
+
+
+def get_survey_history(student_id: str) -> list[dict[str, Any]]:
+    """Earlier answer sets for a student, oldest first (each {revision, answers, traits, saved_at})."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM learner_survey_history WHERE student_id = ? ORDER BY revision",
+            (student_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [{"revision": r["revision"], "version": r["version"], "answers": json.loads(r["answers"]),
+             "traits": json.loads(r["traits"]), "saved_at": r["saved_at"]} for r in rows]
 
 
 def save_diagnostic(

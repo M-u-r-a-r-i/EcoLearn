@@ -1,4 +1,5 @@
-// Settings page (/settings) — change name, interest and class, and the password.
+// Settings page (/settings) — change name and interest, update your "getting to know you"
+// answers (/settings/about), and the password. (The class is the teacher's to change.)
 //
 // Two independent forms, each with its own saving state and message, so a
 // failed password change never throws away an edited profile (and vice versa).
@@ -10,6 +11,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 
 import { Field, FormError } from "@/components/auth-card";
+import { AboutYouCard } from "@/components/about-you-card";
 import { useAuth } from "@/components/auth-provider";
 import { InterestLevelFields } from "@/components/interest-level-fields";
 import { PageHeading } from "@/components/ui-kit";
@@ -30,6 +32,7 @@ export default function SettingsPage() {
           description={student.username ? `Logged in as ${student.username}` : undefined}
         />
         <ProfileForm />
+        <AboutYouCard />
         <PasswordForm />
       </div>
     </main>

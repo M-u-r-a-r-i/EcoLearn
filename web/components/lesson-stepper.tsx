@@ -29,13 +29,22 @@ function typingInto(target: EventTarget | null): boolean {
   return el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
 }
 
-// `initialStep` lets the roadmap open the lesson at a given part (clamped to the steps there are).
-export function LessonStepper({ steps, initialStep = 0 }: { steps: LessonStep[]; initialStep?: number }) {
+// `initialStep` lets the roadmap open the lesson at a given part (clamped to the steps there are);
+// `initialAll` shows everything on one page (for students who prefer to scroll).
+export function LessonStepper({
+  steps,
+  initialStep = 0,
+  initialAll = false,
+}: {
+  steps: LessonStep[];
+  initialStep?: number;
+  initialAll?: boolean;
+}) {
   const start = Math.max(0, Math.min(steps.length - 1, Math.floor(initialStep) || 0));
   const [index, setIndex] = useState(start);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [visited, setVisited] = useState<Set<number>>(() => new Set([0, start]));
-  const [all, setAll] = useState(false);
+  const [all, setAll] = useState(initialAll);
   const top = useRef<HTMLDivElement | null>(null);
   const moved = useRef(false);
 

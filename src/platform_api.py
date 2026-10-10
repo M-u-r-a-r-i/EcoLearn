@@ -57,7 +57,7 @@ from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
-from src.learner import diagnostic, personal_story
+from src.learner import diagnostic, personal_story, survey
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
@@ -1181,6 +1181,132 @@ def submit_end_check(
     return get_end_check(student_id)
 
 
+# ---------------------------------------------------------------------------
+# "Getting to know you" (2026-10-08): the first-login survey
+# ---------------------------------------------------------------------------
+
+def get_survey(student_id: str) -> dict[str, Any]:
+    """The survey for this student.
+
+    Returns:
+        {"taken": bool, "completed_at": iso | None,
+         "sections": [...], "questions": [...], "hobby_options": [...], "hobbies": [...],
+         "traits": {...}, "answers": {...}, "updated_at": iso | None, "revision": int
+                                   (once taken: their answers, so a form can be prefilled,
+                                    and what those answers mean)}
+    """
+    _require_student(student_id)
+    row = store.get_survey(student_id)
+    # The questions are public content and are always sent: answering AND updating need them.
+    out = {
+        "sections": survey.sections(), "questions": survey.questions(),
+        "hobby_options": diagnostic.hobby_options(),
+    }
+    if row is not None:
+        return {**out, "taken": True, "completed_at": row["completed_at"],
+                "updated_at": row["updated_at"], "revision": row["revision"],
+                "traits": row["traits"], "answers": row["answers"], "hobbies": row["answers"].get("hobbies", [])}
+    return {**out, "taken": False, "completed_at": None,
+            "hobbies": store.get_learner_profile(student_id)["hobbies"]}
+
+
+def submit_survey(student_id: str, answers: dict[str, Any]) -> dict[str, Any]:
+    """Validate and store the survey (once), keep the hobbies, derive the traits.
+
+    Every question may be skipped: an empty submission is allowed and stores neutral traits.
+
+    Returns: get_survey(student_id) after saving ("taken": True, with the traits).
+
+    Raises:
+        ConflictError: already taken.
+        EcoLearnError: an unknown question or option, too many choices, or bad hobbies.
+    """
+    _require_student(student_id)
+    if store.get_survey(student_id) is not None:
+        raise ConflictError("You've already answered these.")
+    cleaned = survey.clean(answers)
+    traits = survey.derive_traits(cleaned)
+    store.save_survey(student_id, survey.version(), cleaned, traits, cleaned.get("hobbies", []))
+    return get_survey(student_id)
+
+
+def update_survey(student_id: str, answers: dict[str, Any]) -> dict[str, Any]:
+    """Replace the student's survey answers (they changed their mind, or grew).
+
+    The old set is kept in the history, never shown to the teacher. Validated exactly like
+    the first time; if anything is wrong, nothing changes.
+
+    Returns: get_survey(student_id) after saving.
+
+    Raises:
+        EcoLearnError: not answered yet (do that first), or an invalid submission.
+    """
+    _require_student(student_id)
+    if store.get_survey(student_id) is None:
+        raise EcoLearnError("Answer the first questions before you update them.")
+    cleaned = survey.clean(answers)
+    traits = survey.derive_traits(cleaned)
+    store.update_survey(student_id, survey.version(), cleaned, traits, cleaned.get("hobbies", []))
+    return get_survey(student_id)
+
+
+def get_class_learner_profiles(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """The class's "getting to know you" results, for the teacher.
+
+    Returns:
+        {"summary": {taken, total, focus: {short, medium, long}, pace: {...},
+                     physics_feel: {...}, hobby_level: {novice, fan, player, expert}},
+         "students": [{student_id, name, taken, summary: [lines], focus_span, hobby_level,
+                       observed: {views, median_minutes, skim_share}}]}
+    Observed reading (from lesson views) sits next to what the student said, so a teacher can
+    see when the two disagree. Students who haven't taken it yet are listed with taken False.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    students = store.list_class_students(class_id)
+    ids = [s["student_id"] for s in students]
+    surveys = store.list_surveys(ids)
+    views = store.get_activity(ids)["views"]
+    by_student: dict[str, list[dict[str, Any]]] = {}
+    for v in views:
+        by_student.setdefault(v["student_id"], []).append(v)
+
+    focus: dict[str, int] = {"short": 0, "medium": 0, "long": 0}
+    pace: dict[str, int] = {}
+    feel: dict[str, int] = {}
+    level: dict[str, int] = {lvl: 0 for lvl in survey.HOBBY_LEVELS}
+    rows = []
+    for s in students:
+        row = surveys.get(s["student_id"])
+        observed = survey.observed_reading(by_student.get(s["student_id"], []))
+        if row is None:
+            rows.append({"student_id": s["student_id"], "name": s["name"], "taken": False,
+                         "summary": [], "focus_span": None, "hobby_level": None,
+                         "observed": observed})
+            continue
+        t = row["traits"]
+        focus[t["focus"]["span"]] += 1
+        if t["learning"].get("pace"):
+            pace[t["learning"]["pace"]] = pace.get(t["learning"]["pace"], 0) + 1
+        if t["physics"].get("feel"):
+            feel[t["physics"]["feel"]] = feel.get(t["physics"]["feel"], 0) + 1
+        top = next(iter(t["hobby_levels"].values()), None)
+        if top:
+            level[top["level"]] += 1
+        rows.append({"student_id": s["student_id"], "name": s["name"], "taken": True,
+                     "summary": t["summary"], "focus_span": t["focus"]["span"],
+                     "hobby_level": top["level"] if top else None, "observed": observed,
+                     "updated_at": row["updated_at"]})
+    return {
+        "summary": {"taken": len(surveys), "total": len(students), "focus": focus,
+                    "pace": pace, "physics_feel": feel, "hobby_level": level},
+        "students": rows,
+    }
+
+
 def _class_gains(student_ids: list[str]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     """(metrics.check_gains, {student_id: compare}) for these students."""
     start_rows = store.get_diagnostic_answers(student_ids)
@@ -1339,6 +1465,10 @@ def get_next_lesson(
             )
         else:
             envelope["lesson"] = lesson.model_dump()
+            # How this student likes lessons shaped (survey.lesson_prefs): defaults when
+            # they haven't answered. Presentation only: nothing is hidden or locked.
+            saved = store.get_survey(student_id)
+            envelope["prefs"] = survey.lesson_prefs(saved["traits"] if saved else None)
             # Authored lessons carry their own sections and a multiple-choice
             # check. Send those alongside the legacy fields: the web app renders
             # section by section (so it can collapse the worked example) and

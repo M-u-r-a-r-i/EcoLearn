@@ -93,7 +93,7 @@ export function SiteNav() {
         {status === "unauthenticated" && (
           <div className="top-actions">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="max-[480px]:hidden">
               <Link href="/login">Log in</Link>
             </Button>
             <Button size="sm" asChild>
