@@ -34,6 +34,7 @@ the first user message, which works for every model (Gemma has no system role
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import re
@@ -258,6 +259,11 @@ class ClassToolbox:
         if method is None:
             result: dict[str, Any] = {"error": f"Unknown tool {name!r}."}
         else:
+            # Some models (Gemini through an OpenAI-compatible gateway) add an undeclared
+            # argument such as "reason" to every call. Drop what the tool doesn't take,
+            # rather than failing a call that is otherwise fine.
+            accepted = set(inspect.signature(method).parameters)
+            args = {k: v for k, v in args.items() if k in accepted}
             try:
                 result = method(**args)
             except TypeError as exc:

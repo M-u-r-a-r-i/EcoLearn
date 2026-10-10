@@ -2835,3 +2835,24 @@ page, teacher class snapshot / needs-attention / profiles / tab bar, and the bac
 **Checked.** `tsc`, lint, full Python suite (incl. `test_survey`), lesson validator. **Not checked in a browser:**
 the survey screens, teacher snapshot and profiles (the running API on :8000 is the user's own database, so no demo
 login was available), and `npm run build` (not run: it would overwrite the dev server's `.next`).
+
+
+## 9zzzzzzz. First live AI run: OmniRoute + Gemini (2026-10-10)
+
+**Changed.** `.env` (gitignored): `LLM_BASE_URL` (OmniRoute), `LLM_MODEL` and `LLM_CRITIC_MODEL` =
+`gemini/gemini-3.1-flash-lite`, `LLM_API_KEY` (an OmniRoute key). `src/agents/teacher_agent.py`: `call()` drops
+arguments a tool doesn't declare (Gemini via OmniRoute adds an undeclared `reason` to every tool call, which made
+every tool answer "Bad arguments").
+
+**Verified live (temp databases, nothing real touched).** A personal story for a cricket student with the hobby
+"space" on the concept `speed`: status ready, rules + critic passed on draft 1, ~18 s. A teaching-assistant plan:
+source `agent`, ~23 s, read the class overview. `tests/test_teacher_agent.py`: 28/28.
+
+**Learned.**
+- Model choice matters. `gemini-2.5-flash` answered "no active credentials" (free-tier access), `2.5-flash-lite` is
+  closed to new users, `3.8-flash` timed out, and `3-flash-preview` truncates JSON (its "thinking" eats the token
+  budget). `gemini-3.1-flash-lite` is the one that worked end to end.
+- Do not use OmniRoute's `auto/...` models: the list mixes real providers with keyless web-scraped pools.
+- The old `GEMINI_API_KEY` is still rejected; with it set, the agent chain adds a slow failing fallback. Set it empty.
+- The story's "limit" field came back empty once: the guard doesn't require it. Not fixed.
+- The first plan run before the fix took 95 s and fell back to rules: always check `source`.
