@@ -90,6 +90,47 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### SESSION HANDOFF 2026-10-11 (newest; read this first, then the 2026-10-10 block below it)
+
+**Branch.** Work lives on **`design/frontend-v2`**, pushed to GitHub, NOT merged into `main` (open question for the user:
+PR `design/frontend-v2` into `main`). Always `git checkout design/frontend-v2 && git pull` first. Never commit the
+untracked `EcoLearn-Physics-Tutor.zip` or `.agents/` (a duplicate of the tracked `.claude/skills/ecolearn-style`).
+
+**Set up on a new laptop (nothing secret is in git):**
+1. `git clone https://github.com/Niranjan-207/EcoLearn.git`, `cd EcoLearn`, `git checkout design/frontend-v2`.
+2. `python -m venv venv`, `venv\Scripts\pip install -r requirements.txt`; `cd web && npm install`;
+   create `web/.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`.
+3. Create `.env` from `.env.example` (gitignored). Without any `LLM_*` the app works and every AI feature uses its fallback.
+   For live AI: `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL=gemini/gemini-3.1-flash-lite`, `LLM_FALLBACK_MODELS=gemini/gemini-3.7-flash`
+   (the user runs OmniRoute on their own PC; ask them for a key or use your own Gemini key via
+   `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`). Leave `GEMINI_API_KEY` empty.
+4. Demo data (a separate database, fictional class): `venv\Scripts\python.exe scripts\seed_demo.py --reset`, then start the API with
+   `ECOLEARN_PROGRESS_DB=data\demo.db`. In `cmd`: `set ECOLEARN_PROGRESS_DB=data\demo.db` then
+   `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`; web: `cd web && npm run dev`.
+   Logins: teacher `demo.teacher`, students `aarav.k`, `ananya.r`, `aditya.v`; the password is `DEMO_PASSWORD` in `scripts/seed_demo.py`.
+
+**Done this session (each has a PROJECT_HISTORY entry, 9zzzzzzzz to 9zzzzzzzzzzz):** signup no longer pre-selects an
+interest and explains interest vs hobbies; the teaching assistant shows its REAL steps live (polls
+`GET /api/teacher/classes/{id}/plan/progress`); `/teacher/class` no longer crashes without `?id=`; live-AI robustness
+(fallback model, `llm.health()` + "AI is up" badge + `scripts/ai_check.py`, `scripts/prewarm_stories.py`); **load test
+fixed: bcrypt cost 10** (p95 4.6 s to 1.5 s, PASS). An interactive system map was published as a private Claude artifact
+(not in the repo).
+
+**Verified:** all 24 deterministic test files + 642 lessons valid; load test PASS; tsc and lint clean. Browser-checked on
+the demo DB: login, `/welcome` gate, all four teacher tabs, the AI badge, a live teaching-assistant plan.
+
+**Open items, in priority order (user picks; they asked to continue tomorrow):**
+1. **AI evaluation harness** (pass rate, critic rejections, cost per student) + read the 3 failed demo stories
+   (`neel.d`, `riya.k`, `zoya.k` in the demo DB; see "How the AI decided").
+2. **Profiler / coaching-note agent** (rules fallback) for the teacher.
+3. Survey history into `scripts/pilot_report.py`; verify `data/llm_prices.yaml`; unit-economics page.
+4. AI safety card + draft consent note (a school or lawyer must review).
+5. Remaining browser checks: phone width, light theme, a real signup, login slips after a reset, end-check questions.
+6. **Deploy** (parked by the user): one small VPS + Caddy (same domain for web and `/api`), `ECOLEARN_ENV=production`,
+   `ECOLEARN_JWT_SECRET`, one uvicorn worker (SQLite + in-memory rate limits/progress), nightly DB backup; CORS origins are
+   still hardcoded to localhost in `api/main.py`. Free option for a demo: your PC + a Cloudflare Tunnel.
+7. Decide: merge to `main`; the display name; scope (finish motorsport/smartphones or cut); famous images (Volta, Faraday, Joule need approval).
+
 ### SESSION HANDOFF 2026-10-10 — branch `design/frontend-v2` (read this first; it is NEWER than the state below)
 
 **Where the work is.** Branch **`design/frontend-v2`**, **committed locally, NOT pushed** (the remote has none of it; pushing
