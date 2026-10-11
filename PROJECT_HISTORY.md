@@ -2856,3 +2856,17 @@ source `agent`, ~23 s, read the class overview. `tests/test_teacher_agent.py`: 2
 - The old `GEMINI_API_KEY` is still rejected; with it set, the agent chain adds a slow failing fallback. Set it empty.
 - The story's "limit" field came back empty once: the guard doesn't require it. Not fixed.
 - The first plan run before the fix took 95 s and fell back to rules: always check `source`.
+
+
+## 9zzzzzzzz. Signup / hobby clarity (2026-10-11)
+
+**Changed.** `web/components/interest-level-fields.tsx`: no interest is pre-selected any more (it silently defaulted to
+the first, cricket); one line under "Learn through…" says interest = what lessons are taught through, hobbies = the
+short personal story. `web/app/signup/page.tsx`: step-2 subtitle reworded. `hobby-picker.tsx` and `survey-flow.tsx`
+blurbs say hobbies shape the story, lessons stay in the chosen interest. The "being written" note already exists in
+`personal-story.tsx` (pending state), so it was not added again.
+
+**Why.** A user chose the hobby "Space & stars", got cricket lessons and was confused. Space has no lessons; only the
+five interests do.
+
+**Checked.** `tsc`, lint. Not checked in a browser (the user's servers are running; signup screens unseen).

@@ -21,7 +21,7 @@ export function HobbyPicker({
   value,
   onChange,
   heading = "What do you enjoy?",
-  blurb = "Tap a few. EcoLearn uses them to make examples feel like yours. Optional.",
+  blurb = "Tap a few. Your lessons stay in the interest you chose; your hobbies shape the short personal story at the start of each lesson. Optional.",
 }: {
   options: HobbyOption[];
   value: string[];

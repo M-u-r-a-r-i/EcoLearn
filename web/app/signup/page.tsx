@@ -91,7 +91,7 @@ export default function SignupPage() {
       subtitle={
         step === 1
           ? "No email needed — just a username and password."
-          : "We'll teach every lesson through what you love."
+          : "Choose the subject your lessons are taught through, and your class."
       }
       footer={
         <>

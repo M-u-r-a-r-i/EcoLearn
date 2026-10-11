@@ -242,7 +242,7 @@ export function SurveyFlow({
             value={hobbies}
             onChange={(next) => set("hobbies", next)}
             heading="What do you enjoy?"
-            blurb="Tap a few. Tap your favourites first: we'll ask about the first two."
+            blurb="Tap a few, favourites first (we'll ask about the first two). Your lessons stay in the interest you chose; hobbies shape the personal story at the start of each lesson."
           />
         )}
 

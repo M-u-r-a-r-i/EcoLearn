@@ -40,20 +40,23 @@ export function InterestLevelFields({
   useEffect(() => {
     getInterests().then(
       (list) => {
+        // Nothing is pre-selected: a silent default made students learn cricket
+        // without ever choosing it. Signup keeps its button disabled until they pick.
         setInterests(list);
-        // Pick the first one if nothing valid is selected yet.
-        if (list.length > 0 && !list.some((i) => i.id === interest)) onInterestChange(list[0].id);
       },
       (err) => setError(friendlyMessage(err)),
     );
     // Run once: the list doesn't change while the form is open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
       <fieldset className="field-group" disabled={disabled}>
         <legend>Learn through…</legend>
+        <p className="text-sm text-muted-foreground">
+          Pick one. Your lessons are taught through it. Your hobbies (next) shape the short story
+          at the start of each lesson.
+        </p>
         {error && <p className="form-error">{error}</p>}
         <div className="interest-pick-grid">
           {interests === null && !error
