@@ -2331,6 +2331,17 @@ def _plan_progress_start(class_id: str) -> dict[str, Any]:
     return run
 
 
+def get_ai_status(teacher_id: str, *, force: bool = False) -> dict[str, Any]:
+    """Is the live AI answering? For the teacher's status badge (cached a minute).
+
+    Returns the `llm.health` dict. `configured: False` is normal (every AI feature
+    then uses its non-AI fallback); `up: False` with `configured: True` means the
+    gateway or every model in the chain is down right now.
+    """
+    get_teacher_profile(teacher_id)
+    return llm.health(force=force)
+
+
 def get_class_plan_progress(teacher_id: str, class_id: str) -> dict[str, Any]:
     """What the teaching assistant is doing right now for this class's plan.
 

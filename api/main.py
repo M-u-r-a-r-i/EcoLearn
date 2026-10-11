@@ -474,6 +474,12 @@ def teacher_class_plan(
     return api.get_class_plan(teacher_id, class_id)
 
 
+@app.get("/api/teacher/ai-status")
+def teacher_ai_status(teacher_id: str = Depends(get_current_teacher_id)) -> dict:
+    """Is the live AI answering right now (cached for a minute)?"""
+    return api.get_ai_status(teacher_id)
+
+
 @app.get("/api/teacher/classes/{class_id}/plan/progress")
 def teacher_plan_progress(
     class_id: str, teacher_id: str = Depends(get_current_teacher_id)

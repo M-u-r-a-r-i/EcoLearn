@@ -477,6 +477,19 @@ export function getClassPlan(classId: string): Promise<ClassPlan | null> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`);
 }
 
+export interface AiStatus {
+  configured: boolean;
+  up: boolean;
+  model: string | null;
+  primary: string | null;
+  on_fallback: boolean;
+  latency_ms: number | null;
+}
+
+export function getAiStatus(): Promise<AiStatus> {
+  return request("/api/teacher/ai-status");
+}
+
 export interface PlanProgress {
   running: boolean;
   stage: string;

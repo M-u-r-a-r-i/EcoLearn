@@ -21,12 +21,34 @@ import { Skeleton } from "@/components/ui-kit";
 import {
   friendlyMessage,
   generateClassPlan,
+  getAiStatus,
   getClassPlan,
   getClassPlanProgress,
   type ClassPlan,
   type PlanProgress,
 } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
+
+// A small "is the AI up?" badge. Not being up is fine (rules write the plan), but a
+// teacher about to demo should know before pressing the button.
+function AiStatusBadge() {
+  const status = useFetch("ai-status", () => getAiStatus());
+  const s = status.data;
+  if (!s) return null;
+  const [tone, text] = !s.configured
+    ? ["text-muted-foreground", "AI not set up: plans are written by rules"]
+    : !s.up
+      ? ["text-destructive", "AI is not answering: plans fall back to rules"]
+      : s.on_fallback
+        ? ["text-brand-accent", "AI up, on a backup model"]
+        : ["text-success", "AI is up"];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${tone}`} role="status">
+      <span aria-hidden className="size-2 rounded-full bg-current" />
+      {text}
+    </span>
+  );
+}
 
 function when(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -84,6 +106,8 @@ export function TeachingAssistant({ classId }: { classId: string }) {
           </p>
           <h2 className="display text-2xl font-semibold text-foreground">A useful next lesson</h2>
           <p className="dash-sub">
+            <AiStatusBadge />
+            <br />
             Reads what your class did — the misconceptions they chose, who&apos;s stuck, who
             hasn&apos;t started — and plans your next lesson.
           </p>

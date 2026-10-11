@@ -112,9 +112,11 @@ export function LessonStory({
         <div className="story-analogy">
           <b>In {story.hobby.toLowerCase()} terms</b>
           <Markdown className="prose-sm">{story.analogy}</Markdown>
-          <span className="text-muted-foreground">
-            <strong className="text-foreground">Where the comparison stops:</strong> {story.limit}
-          </span>
+          {story.limit?.trim() && (
+            <span className="text-muted-foreground">
+              <strong className="text-foreground">Where the comparison stops:</strong> {story.limit}
+            </span>
+          )}
         </div>
         <p className="story-limit">
           <ShieldCheck className="size-3.5" aria-hidden />

@@ -2889,3 +2889,25 @@ The crash: `/teacher/class` with no id fell through to the class-list route, who
 progress endpoint returned real steps after a live run (gemini-3.1-flash-lite via OmniRoute). Not captured: a
 screenshot of the list growing (the browser pane was hidden, which throttles timers). Personal stories still show
 only "Writing a ___ version…" while pending: the same feed could be added (trail is saved only at the end today).
+
+
+## 9zzzzzzzzzz. Live AI robustness (2026-10-11)
+
+**Changed.** `.env` (gitignored): `LLM_FALLBACK_MODELS=gemini/gemini-3.7-flash`; the rejected old `GEMINI_API_KEY`
+emptied. `src/llm/client.py`: `health()` (one tiny call down the chain, first answer wins, cached 60 s; 30 s timeout)
+and a `timeout` argument on `_post`. Boundary `get_ai_status` + `GET /api/teacher/ai-status`; a status badge on the
+teaching-assistant card ("AI is up" / "on a backup model" / "not answering" / "not set up"). `scripts/ai_check.py`
+(exit 0 only if a model answers) and `scripts/prewarm_stories.py --class <name|id> --concepts N` (writes the next N
+story-capable concepts per student with the live writer + critic; skips current ones). Lesson page hides "Where the
+comparison stops" when `limit` is blank. Tests: health (backup, cache, all down) and blank-`limit` rejection.
+
+**Why.** One model going down shouldn't leave the stage demo on rules; a teacher should see the AI's state before
+pressing the button; stories can be written ahead of a class so nobody waits ~20 s.
+
+**Learned.**
+- Probed the user's own `gemini/` models via OmniRoute: `3.7-flash` works (~16 s), `3.1-pro-preview` times out (60 s),
+  `2.5-pro` 404. OmniRoute lists 478 models; only the `gemini/` ones use the user's key, the rest are third-party pools.
+- The "empty limit" worry: `guard_problems` already rejects a missing or blank `limit` (the earlier empty value was
+  a wrong key in a check script); now pinned by a test.
+- A story only exists for concepts whose domain fits one of the student's hobbies, so "the first N concepts" often has
+  none; the pre-warm script counts only concepts that can take a story.
