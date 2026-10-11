@@ -87,7 +87,7 @@ function ClassView() {
     </Link>
   );
 
-  if (detail.loading) {
+  if (classId && detail.loading) {
     return (
       <main className="page-shell w-full flex-1">
         <div className="flex flex-col gap-4">
@@ -99,7 +99,8 @@ function ClassView() {
       </main>
     );
   }
-  if (!detail.data) {
+  // No ?id= (or an answer without students) means there is no such class to show.
+  if (!classId || !detail.data || !Array.isArray(detail.data.students)) {
     return (
       <main className="page-shell w-full flex-1">
         <div className="flex flex-col gap-4">

@@ -477,6 +477,17 @@ export function getClassPlan(classId: string): Promise<ClassPlan | null> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`);
 }
 
+export interface PlanProgress {
+  running: boolean;
+  stage: string;
+  steps: { summary: string; ok: boolean }[];
+}
+
+// What the assistant is doing right now; poll while generateClassPlan runs.
+export function getClassPlanProgress(classId: string): Promise<PlanProgress> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan/progress`);
+}
+
 export function generateClassPlan(classId: string): Promise<ClassPlan> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`, {
     method: "POST",

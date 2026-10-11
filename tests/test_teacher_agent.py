@@ -172,6 +172,13 @@ def test_loop_and_privacy(teacher, class_id, info) -> None:
     stored = sqlite3.connect(_DB).execute("SELECT markdown FROM class_plans").fetchone()[0]
     check("[S1]" in stored and "Aarav" not in stored, "the stored plan keeps aliases, not names")
 
+    live = api.get_class_plan_progress(teacher["teacher_id"], class_id)
+    check(live["running"] is False and live["stage"].startswith("Asking scripted")
+          and [s["summary"] for s in live["steps"]] == [s["summary"] for s in plan["steps"]],
+          "the progress feed holds the run's real steps and stage")
+    check(not [s for s in private_strings(info) if s in json.dumps(live)],
+          "the progress feed has no names")
+
     again = api.generate_class_plan(teacher["teacher_id"], class_id, models=[ScriptedModel("x", [])])
     check(again["reused"] is True and again["plan_id"] == plan["plan_id"],
           "a second request within a minute reuses the plan")

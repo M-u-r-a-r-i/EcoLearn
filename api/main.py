@@ -474,6 +474,14 @@ def teacher_class_plan(
     return api.get_class_plan(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/plan/progress")
+def teacher_plan_progress(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """What the assistant is doing right now (poll while the plan is being made)."""
+    return api.get_class_plan_progress(teacher_id, class_id)
+
+
 @app.post("/api/teacher/classes/{class_id}/plan")
 def teacher_generate_plan(
     class_id: str, teacher_id: str = Depends(get_current_teacher_id)

@@ -18,17 +18,15 @@ import { useToast } from "@/components/toast";
 import { Markdown } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui-kit";
-import { friendlyMessage, generateClassPlan, getClassPlan, type ClassPlan } from "@/lib/api";
+import {
+  friendlyMessage,
+  generateClassPlan,
+  getClassPlan,
+  getClassPlanProgress,
+  type ClassPlan,
+  type PlanProgress,
+} from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
-
-const WORKING_STEPS = [
-  "Looking at the class overview…",
-  "Reading the most common misconceptions…",
-  "Checking concepts and prerequisites…",
-  "Reading the lessons' key takeaways…",
-  "Reviewing each student's activity…",
-  "Writing the plan…",
-];
 
 function when(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -38,7 +36,7 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   const saved = useFetch(`plan:${classId}`, () => getClassPlan(classId));
   const [fresh, setFresh] = useState<ClassPlan | null>(null);
   const [working, setWorking] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
+  const [progress, setProgress] = useState<PlanProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
@@ -47,13 +45,17 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   async function makePlan() {
     setWorking(true);
     setError(null);
-    setStepIndex(0);
-    // The run is one request, so these steps are a guide to what it's doing,
-    // not a live feed; the real steps are listed under the finished plan.
-    const timer = setInterval(
-      () => setStepIndex((i) => Math.min(i + 1, WORKING_STEPS.length - 1)),
-      2500,
-    );
+    setProgress(null);
+    // The run is one slow request, so ask the server what it has really done so
+    // far every second: each line below is a tool call the assistant just made.
+    const timer = setInterval(async () => {
+      try {
+        const p = await getClassPlanProgress(classId);
+        if (p.running) setProgress(p);
+      } catch {
+        // a missed poll just means the list updates a second later
+      }
+    }, 1000);
     try {
       const made = await generateClassPlan(classId);
       setFresh(made);
@@ -94,9 +96,25 @@ export function TeachingAssistant({ classId }: { classId: string }) {
       </div>
 
       {working ? (
-        <div className="dplan flex items-center gap-3 text-sm text-foreground" role="status">
-          <Sparkles className="size-5 shrink-0 animate-pulse text-primary" aria-hidden />
-          {WORKING_STEPS[stepIndex]}
+        <div className="dplan flex flex-col gap-3 text-sm text-foreground" role="status" aria-live="polite">
+          <div className="flex items-center gap-3">
+            <Sparkles className="size-5 shrink-0 animate-pulse text-primary" aria-hidden />
+            {progress?.stage || "Getting the class data ready…"}
+          </div>
+          {progress && progress.steps.length > 0 && (
+            <ol className="dsteps">
+              {progress.steps.map((step, i) => (
+                <li key={i}>
+                  {step.ok ? (
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                  ) : (
+                    <XCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  )}
+                  <span>{step.summary}</span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       ) : saved.loading && !fresh ? (
         <div className="dplan">

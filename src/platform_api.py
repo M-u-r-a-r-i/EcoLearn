@@ -43,6 +43,7 @@ from __future__ import annotations
 import os
 import re
 import sqlite3
+import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -2318,6 +2319,38 @@ def get_class_plan(teacher_id: str, class_id: str) -> dict[str, Any] | None:
     return _render_plan(plan, class_id) if plan else None
 
 
+_PLAN_RUNS: dict[str, dict[str, Any]] = {}
+_PLAN_RUNS_LOCK = threading.Lock()
+
+
+def _plan_progress_start(class_id: str) -> dict[str, Any]:
+    run: dict[str, Any] = {"running": True, "stage": "Getting the class data ready",
+                           "steps": []}
+    with _PLAN_RUNS_LOCK:
+        _PLAN_RUNS[class_id] = run
+    return run
+
+
+def get_class_plan_progress(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """What the teaching assistant is doing right now for this class's plan.
+
+    Polled by the page while `generate_class_plan` runs. Kept in this server's
+    memory only (one process), and holds the last run until the next one starts.
+
+    Returns: {running: bool, stage: str, steps: [{summary, ok}]}. Before any run
+    since the server started: {running: False, stage: "", steps: []}.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    run = _PLAN_RUNS.get(class_id)
+    if run is None:
+        return {"running": False, "stage": "", "steps": []}
+    return {"running": run["running"], "stage": run["stage"], "steps": list(run["steps"])}
+
+
 def generate_class_plan(
     teacher_id: str, class_id: str, *, models: list[Any] | None = None
 ) -> dict[str, Any]:
@@ -2343,8 +2376,17 @@ def generate_class_plan(
             return {**_render_plan(latest, class_id), "reused": True}
 
     toolbox, aliases = _class_toolbox(teacher_id, class_id)
-    with llm.usage_context(feature="teacher_agent", class_id=class_id):
-        result = teacher_agent.plan_class(toolbox, models)
+    # Live progress for the page to poll while this (slow) request runs: what the
+    # agent has really done so far. Only concept names and counts, never students.
+    run = _plan_progress_start(class_id)
+    toolbox.on_step = lambda step: run["steps"].append(
+        {"summary": step["summary"], "ok": step["ok"]})
+    try:
+        with llm.usage_context(feature="teacher_agent", class_id=class_id):
+            result = teacher_agent.plan_class(
+                toolbox, models, on_stage=lambda text: run.__setitem__("stage", text))
+    finally:
+        run["running"] = False
     saved = store.save_class_plan(
         class_id, teacher_id, result["source"], result["model"], result["markdown"],
         result["trace"], aliases, result["note"],

@@ -2870,3 +2870,22 @@ blurbs say hobbies shape the story, lessons stay in the chosen interest. The "be
 five interests do.
 
 **Checked.** `tsc`, lint. Not checked in a browser (the user's servers are running; signup screens unseen).
+
+
+## 9zzzzzzzzz. Live progress while the teaching assistant works; class page guard (2026-10-11)
+
+**Changed.** `teacher_agent.py`: `ClassToolbox.on_step` (called after each real tool call) and `plan_class(on_stage=)`
+("Asking <model>…", "didn't work out, trying the next", "Writing the plan from fixed rules").
+`platform_api.py`: `get_class_plan_progress` + an in-memory per-class run record filled by `generate_class_plan`
+(steps carry concept names only, never students). `api/main.py`: `GET /api/teacher/classes/{id}/plan/progress`.
+`web/lib/api.ts` `getClassPlanProgress`; `teaching-assistant.tsx` polls it every second and lists the real steps,
+replacing the timed ticker. `tests/test_teacher_agent.py`: 30 checks (progress feed matches the run, no names).
+`class/page.tsx`: a missing `?id=` (or a response with no `students`) shows "Class not found" instead of crashing.
+
+**Why.** The plan takes 20+ s and the card showed a fake timed ticker. Now each line is something the assistant did.
+The crash: `/teacher/class` with no id fell through to the class-list route, whose answer had no `students`.
+
+**Checked.** Browser against the demo DB: login, `/welcome` gate, all four teacher tabs render real data; the
+progress endpoint returned real steps after a live run (gemini-3.1-flash-lite via OmniRoute). Not captured: a
+screenshot of the list growing (the browser pane was hidden, which throttles timers). Personal stories still show
+only "Writing a ___ version…" while pending: the same feed could be added (trail is saved only at the end today).
