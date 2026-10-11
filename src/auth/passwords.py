@@ -25,6 +25,8 @@ measure the UTF-8 encoding, not `len(password)`.
 
 from __future__ import annotations
 
+import os
+
 import bcrypt
 
 from src.errors import EcoLearnError
@@ -36,10 +38,23 @@ MAX_PASSWORD_BYTES = 72
 # hashing. (Deliberately not a complexity rule — length beats character classes.)
 MIN_PASSWORD_LENGTH = 8
 
+# bcrypt's work factor: each +1 doubles the time. 10 is OWASP's floor for bcrypt (~0.12 s here);
+# the library default of 12 took ~0.4 s here, and a class of 30 logging in at the same moment
+# saturated the CPU for ~4 s (load test p95 4.6 s; the CPU gave nothing past 4 parallel checks).
+# Logins are also rate limited and passwords are issued or reset by a teacher. Raise it
+# (ECOLEARN_BCRYPT_ROUNDS, 10 to 14) on a stronger server. Existing hashes keep the cost they
+# were made with (it is stored inside the hash), so changing this never locks anyone out.
+def _rounds() -> int:
+    try:
+        return min(14, max(10, int(os.environ.get("ECOLEARN_BCRYPT_ROUNDS", "10"))))
+    except ValueError:
+        return 10
+
+
 # A real bcrypt hash of a throwaway value, used only by `dummy_verify` to burn
-# the same ~100ms an actual verification costs when the username is unknown. Built
+# the same time an actual verification costs when the username is unknown. Built
 # once at import so the cost isn't paid twice on that path.
-_DUMMY_HASH = bcrypt.hashpw(b"ecolearn-dummy-password", bcrypt.gensalt()).decode("utf-8")
+_DUMMY_HASH = bcrypt.hashpw(b"ecolearn-dummy-password", bcrypt.gensalt(_rounds())).decode("utf-8")
 
 
 def validate_password(password: str) -> None:
@@ -83,13 +98,13 @@ def hash_password(password: str) -> str:
     """Validate then hash a password, returning the hash as a str for SQLite.
 
     The returned string carries its own salt and cost factor (bcrypt's
-    `$2b$12$...` format), so nothing else needs storing alongside it.
+    `$2b$10$...` format), so nothing else needs storing alongside it.
 
     Raises:
         EcoLearnError: if the password fails `validate_password`.
     """
     validate_password(password)
-    digest = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    digest = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(_rounds()))
     return digest.decode("utf-8")
 
 

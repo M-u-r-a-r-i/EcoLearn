@@ -2911,3 +2911,22 @@ pressing the button; stories can be written ahead of a class so nobody waits ~20
   a wrong key in a check script); now pinned by a test.
 - A story only exists for concepts whose domain fits one of the student's hobbies, so "the first N concepts" often has
   none; the pre-warm script counts only concepts that can take a story.
+
+
+## 9zzzzzzzzzzz. Load test p95 fixed: bcrypt cost 10 (2026-10-11)
+
+**Changed.** `src/auth/passwords.py`: new hashes use bcrypt cost 10 (env `ECOLEARN_BCRYPT_ROUNDS`, clamped 10 to 14; the
+dummy hash for unknown usernames uses the same cost). Existing hashes keep their own cost (it is stored in the hash).
+
+**Why.** `scripts/load_test.py` failed at p95 4.6 s with 0 errors. Cause measured, not guessed: logins were 30 of 413
+requests but took p50 5.8 s; one bcrypt check cost 0.39 s at the default cost 12, and 30 checks took 15 s on one thread,
+4.2 s on 4, 4.1 s on 16 or 30: this machine gives no scaling past about 4 parallel checks, so a class logging in at the
+same instant saturates the CPU and every other request waits behind it (chapters, session and insights p95 were all
+inflated by it). Cost 10 is 4x cheaper. After: p95 1.47 s, login p50 1.3 s, 0 errors.
+
+**Learned.**
+- The earlier "depends on the machine's state" (§9zn) was this: a slower or busier CPU makes the herd of logins worse.
+- Trade-off, stated plainly: cost 10 is the OWASP floor, not the old default. Mitigations are rate limiting and
+  teacher-issued or teacher-reset passwords; raise `ECOLEARN_BCRYPT_ROUNDS` on a stronger server.
+- Accounts made before this change (for example the demo DB, seeded at cost 12) still log in at the old cost until
+  reseeded or reset.
