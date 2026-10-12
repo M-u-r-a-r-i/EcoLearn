@@ -664,6 +664,8 @@ venv\Scripts\python.exe tests\test_llm_usage.py           # AI usage log, cost p
 venv\Scripts\python.exe tests\test_ai_decisions.py        # decision trails, "How the AI decided"
 venv\Scripts\python.exe tests\test_concept_locks.py       # concept locks, class level (teacher only)
 venv\Scripts\python.exe tests\test_survey.py              # "getting to know you": validation, traits, prefs, HTTP
+venv\Scripts\python.exe tests\test_pilot_survey.py        # survey in the pilot report: history, changes, said vs shown
+venv\Scripts\python.exe tests\test_coaching_agent.py       # coaching notes: rules, model checks, privacy, storage
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson
