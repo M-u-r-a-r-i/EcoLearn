@@ -56,6 +56,7 @@ _CRITIC_PROMPT = _PROJECT_ROOT / "prompts" / "personal_story_critic.txt"
 
 READY, NO_FIT, FAILED, ERROR = "ready", "no_fit", "failed", "error"
 MAX_ATTEMPTS = 2
+_FORMAT_RETRIES = 2  # extra calls when the reply isn't JSON (they don't count as attempts)
 # After a connection error (gateway down, rate limit), wait before trying again.
 RETRY_AFTER_ERROR = timedelta(minutes=30)
 # Word limits, a little looser than the prompt's, so near-misses aren't wasted.
@@ -225,9 +226,19 @@ def generate(student_id: str, concept_id: str) -> dict[str, Any] | None:
     attempt = 0
     try:
         for attempt in range(1, MAX_ATTEMPTS + 1):
-            result = chat(messages, role="main", temperature=0.7, max_tokens=900)
-            model = result.model
-            draft = parse_json_object(result.text)
+            # A reply that isn't JSON at all is a transport hiccup more than a bad draft (seen live:
+            # 3 of 25 demo stories died on it, yet the same prompt parsed 3 of 3 a day later), so it
+            # gets up to two more tries without using up a real attempt, and the start of the reply is
+            # kept in the trail so the cause can be diagnosed next time.
+            for _try in range(1 + _FORMAT_RETRIES):
+                result = chat(messages, role="main", temperature=0.7, max_tokens=900)
+                model = result.model
+                draft = parse_json_object(result.text)
+                if draft is not None:
+                    break
+                snippet = " ".join((result.text or "").split())[:120]
+                step(attempt, "format", False,
+                     [f"Not a JSON object ({len(result.text or '')} characters): {snippet!r}"], model)
             if draft is not None and draft.get("fit") is False:
                 step(attempt, "fit", False, ["The writer found no honest link to this hobby."], model)
                 store.save_personal_story({**row, "status": NO_FIT, "model": model,
@@ -235,7 +246,6 @@ def generate(student_id: str, concept_id: str) -> dict[str, Any] | None:
                 return store.get_personal_story(student_id, concept_id)
             if draft is None:
                 problems = ["The answer wasn't a JSON object."]
-                step(attempt, "format", False, problems, model)
             else:
                 problems = guard_problems(draft)
                 step(attempt, "rules", not problems, problems, model)

@@ -188,6 +188,25 @@ def test_guards_and_critic() -> None:
           "lengths and links are guarded")
 
 
+def test_format_retry() -> None:
+    print("\n[4b] an unparseable reply is retried without using up an attempt")
+    sid, _ = student(["badminton"])
+    ps.chat = Script("Sure! Here you go (no JSON, sorry)", draft(), PASS)
+    api.get_personal_story(sid, "second_law")
+    row = store.get_personal_story(sid, "second_law")
+    steps = [t["step"] for t in row["trail"]]
+    check(row["status"] == "ready" and row["attempts"] == 1,
+          "a garbled reply, then a good draft: ready on attempt 1")
+    check(steps[0] == "format" and "no JSON" in row["trail"][0]["problems"][0],
+          "the trail keeps the start of the garbled reply")
+    sid2, _ = student(["badminton"])
+    ps.chat = Script(*["nope"] * 6)
+    api.get_personal_story(sid2, "second_law")
+    row = store.get_personal_story(sid2, "second_law")
+    check(row["status"] == "failed" and [t["step"] for t in row["trail"]].count("format") == 6,
+          "garbled replies every time: 3 tries on each of 2 attempts, then failed (pre-written story shown)")
+
+
 def test_errors_and_cache() -> None:
     print("\n[5-6] errors and the cache")
     sid, _ = student(["badminton"])
@@ -306,6 +325,7 @@ def main() -> None:
     test_hobby_choice()
     test_happy_path()
     test_guards_and_critic()
+    test_format_retry()
     test_errors_and_cache()
     test_llm_client()
     test_http()

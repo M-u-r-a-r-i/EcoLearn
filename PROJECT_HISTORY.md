@@ -2930,3 +2930,27 @@ inflated by it). Cost 10 is 4x cheaper. After: p95 1.47 s, login p50 1.3 s, 0 er
   teacher-issued or teacher-reset passwords; raise `ECOLEARN_BCRYPT_ROUNDS` on a stronger server.
 - Accounts made before this change (for example the demo DB, seeded at cost 12) still log in at the old cost until
   reseeded or reset.
+
+
+## 9zzzzzzzzzzzz. Story AI evaluation harness; unparseable replies retried (2026-10-13)
+
+**Changed.** `scripts/eval_stories.py` (new): runs the real writer and critic on N deterministic student/interest/hobby/
+concept cases on a TEMPORARY database and prints ready rate, first-draft rate, failures by step and reason, latency,
+calls/tokens/cost per story and three stories to read; `--out` saves it. `docs/eval-stories-sample.md`: a 6-case run.
+`src/learner/personal_story.py`: a reply that isn't JSON is retried up to 2 more times WITHOUT using up one of the 2
+drafts, and the trail keeps the first 120 characters of the reply. `tests/test_personal_story.py`: 42 checks.
+
+**Why.** Three of 25 demo stories failed (`neel.d`, `riya.k`, `zoya.k`): 7 of their 9 failed steps were "answer wasn't
+a JSON object". The same prompt parsed 3 of 3 a day later, so it is intermittent. The trail didn't keep the reply, so
+the cause couldn't be read; now it can. In the sample run the new retry fired once and rescued the story.
+
+**Measured (6 cases, gemini-3.1-flash-lite, 2026-10-13; a SAMPLE, not a result to quote).** 6 of 6 ready, 4 of 6 on the
+first draft; critic rejections were correct physics catches (analogy mixing up distance and speed); median 12 s, p95 32 s;
+2.8 model calls and ~3.3k in / 0.8k out tokens per story; Rs 0.27 per story at the reference price, using
+`llm_prices.yaml`, which still has unverified prices. Run with `--cases 30` for numbers worth quoting.
+
+**Learned.**
+- The critic passed one weak "limit" sentence ("the scoreboard only tracks points"): the human spot-check in the
+  report is worth keeping.
+- If OmniRoute is down, every case ends as "error" and the report says so ("All models failed ... ConnectError"):
+  run `scripts/ai_check.py` first. OmniRoute stops when the session that started it ends.
