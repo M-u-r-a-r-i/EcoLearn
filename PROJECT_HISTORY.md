@@ -3019,3 +3019,29 @@ models in use (22 checks). `docs/eval-stories-sample.md` cost row recomputed.
 - Do not model the fallback `gemini-3.7-flash` as cheaper than 3.8: it is the same model after routing, and its price
   doubles on 2027-01-01.
 - Not modelled: batch (about half price), flex, priority and context caching. The USD to INR rate (88) is rounded.
+
+
+## 9zzzzzzzzzzzzzzzz. Unit-economics page (2026-10-13)
+
+**Changed.** `docs/unit-economics.html` (new, self-contained, also published as a private Claude artifact): an interactive
+page for the pitch's commercial-viability slide. Inputs (class size, students, concepts per month, share getting a story,
+plans and coaching runs per class, doubt-chat questions, model, USD to INR, price per student, server and other fixed
+costs) give: AI cost per student per month, all-in cost, margin, break-even students, a stacked split of where the rupees
+go, cost per student as the school grows (chart), and the same usage on five Gemini models. Every input is tagged
+Measured, Estimate or Your assumption. `scripts/prewarm_stories.py` now imports `platform_api`, which connects the AI
+usage log: its calls were NOT being logged before (18 stories written, only 3 story calls in the log).
+
+**Measured token counts used** (live runs, gemini-3.1-flash-lite): a story 3,289 in / 812 out (6 stories, 2.8 calls
+each); a class plan 5,754 / 824 (4 plans, 3 calls each); coaching notes 218 / 217 per student per run (one run, 25
+students). The doubt chat is an ESTIMATE (2,500 / 400): it doesn't log tokens.
+
+**Result with the defaults** (30 per class, 300 students, 20 concepts a month, 85% with a story, Rs 100 a month price, Rs
+2,700 fixed): AI about Rs 3.79 per student per month (stories Rs 3.05 of it); all-in Rs 13; margin Rs 87; break-even 29
+students. On 3.8 Flash from 2027-01-01 the AI cost is about Rs 20, still small beside the price. Hosting, support and
+people are the real cost, not AI.
+
+**Learned.**
+- The AI cost per student is small and mostly stories; the fixed costs dominate until a few hundred students.
+- The token counts come from few runs. Treat the AI cost as the right size, not exact, until the pilot's
+  `pilot_report.py` gives a measured cost per student.
+- The price per student (Rs 100) is a placeholder assumption, NOT market research; do not quote it as pricing.

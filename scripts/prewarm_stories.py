@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src import llm  # noqa: E402
+from src import platform_api  # noqa: E402,F401  (importing it connects the AI usage log, so these calls are counted)
 from src.content import lesson_service  # noqa: E402
 from src.learner import personal_story as ps  # noqa: E402
 from src.path import engine  # noqa: E402
