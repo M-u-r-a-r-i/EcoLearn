@@ -2954,3 +2954,28 @@ first draft; critic rejections were correct physics catches (analogy mixing up d
   report is worth keeping.
 - If OmniRoute is down, every case ends as "error" and the report says so ("All models failed ... ConnectError"):
   run `scripts/ai_check.py` first. OmniRoute stops when the session that started it ends.
+
+
+## 9zzzzzzzzzzzzz. Coaching-note agent (2026-10-13)
+
+**Changed.** `src/agents/coaching_agent.py` + `prompts/coaching_agent.txt` (new): a short note per student for the
+teacher (what stands out, the evidence it rests on, one thing to try). A "case file" per student holds only coarse
+facts (counts, fixed-option survey answers, names of concepts mixed up). Model calls go in batches of 8 through
+`src/llm`; every note is validated (evidence must be facts the student has, no labelling words, no name or username,
+length, no links) and anything rejected, missing or failed gets a deterministic RULES note for that student. Each note
+is labelled AI or Rules. `store.py`: additive `coaching_notes` table. `platform_api.py`: `get_coaching_notes`,
+`generate_coaching_notes` (reuses a run under a minute old; aliases S1.. match the teacher agent's). `api/main.py`:
+`GET/POST /api/teacher/classes/{id}/coaching`. Web: `components/coaching-notes.tsx` on the Insights tab (cards
+alphabetical), `api.ts` types. `tests/test_coaching_agent.py`: 56 checks.
+
+**Why.** Closes the teacher loop: observe (insights), plan the class (teacher agent), coach the individual (this). It
+answers "the profiler is rules, not an agent" honestly: an agent with guardrails and a rules floor. **User decision
+2026-10-13: a fourth live-AI place** (AGENTS.md non-negotiable 3 updated).
+
+**Checked.** Live on the demo class (25 students, gemini-3.1-flash-lite via OmniRoute): 4 batches, ~55 s, all notes AI,
+each citing evidence, nothing identifying in the request. `tsc`, lint, and the teacher, teacher-agent, metrics, auth,
+usage, decisions, survey and story tests pass.
+
+**Learned.** The notes read a little alike ("This student ...") and mention a survey mood ("reports feeling dread")
+plainly: acceptable for a teacher, but worth a human read before the pilot. No per-note human-rated quality score yet;
+`scripts/eval_stories.py` is the model for an evaluation of these.

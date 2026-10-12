@@ -474,6 +474,22 @@ def teacher_class_plan(
     return api.get_class_plan(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/coaching")
+def teacher_coaching_notes(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict | None:
+    """The latest coaching notes (a short note per student), or null if none yet."""
+    return api.get_coaching_notes(teacher_id, class_id)
+
+
+@app.post("/api/teacher/classes/{class_id}/coaching")
+def teacher_make_coaching_notes(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """Write coaching notes for the class (takes seconds: live model calls, rules as the fallback)."""
+    return api.generate_coaching_notes(teacher_id, class_id)
+
+
 @app.get("/api/teacher/ai-status")
 def teacher_ai_status(teacher_id: str = Depends(get_current_teacher_id)) -> dict:
     """Is the live AI answering right now (cached for a minute)?"""

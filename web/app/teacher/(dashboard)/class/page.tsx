@@ -17,6 +17,7 @@ import { ClassSnapshot, NeedsAttention, type ClassTab } from "@/components/class
 import { TabBar, type TabDef } from "@/components/tab-bar";
 import { TeachingAssistant } from "@/components/teaching-assistant";
 import { ClassProfilesPanel } from "@/components/class-profiles";
+import { CoachingNotesPanel } from "@/components/coaching-notes";
 import { ClassStoriesPanel } from "@/components/class-stories";
 import { ClassChecksPanel } from "@/components/class-checks";
 import { AiDecisionsPanel } from "@/components/ai-decisions";
@@ -179,6 +180,7 @@ function ClassView() {
                   ) : (
                     <FormError message={insights.error ?? "Couldn't load the class insights."} />
                   )}
+                  <CoachingNotesPanel classId={klass.class_id} />
                   <ClassProfilesPanel classId={klass.class_id} />
                 </>
               )}

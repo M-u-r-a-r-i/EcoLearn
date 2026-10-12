@@ -50,7 +50,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from src.agents import teacher_agent  # stdlib-only at import; the SDK loads lazily
+from src.agents import coaching_agent, teacher_agent  # stdlib-only at import; the SDK loads lazily
 from src.agents.assessor import grade_answer
 from src.agents.polisher import polish_explanation
 from src.auth import credentials, passwords
@@ -2403,6 +2403,115 @@ def generate_class_plan(
         result["trace"], aliases, result["note"],
     )
     return {**_render_plan(saved, class_id), "reused": False}
+
+
+# ---------------------------------------------------------------------------
+# Coaching notes (2026-10-13): a short note per student, for the teacher.
+# A fourth live-AI feature, added at the user's request; the model sees only
+# S1, S2... and coarse facts (src/agents/coaching_agent.py), and every student
+# gets a rules note whenever the AI is off, fails or breaks a rule.
+# ---------------------------------------------------------------------------
+
+_COACHING_REUSE_SECONDS = 60
+
+
+def _student_aliases(class_id: str) -> dict[str, str]:
+    """{"S1": student_id, ...} numbered the same way as the teacher agent's plans."""
+    roster = sorted(store.list_class_students(class_id),
+                    key=lambda s: (s["created_at"], s["username"] or ""))
+    return {f"S{n}": s["student_id"] for n, s in enumerate(roster, start=1)}
+
+
+def _coaching_cases(teacher_id: str, class_id: str, aliases: dict[str, str]) -> dict[str, dict[str, Any]]:
+    insights = get_class_insights(teacher_id, class_id)
+    rows = {r["student_id"]: r for r in insights["students"]}
+    ids = list(aliases.values())
+    surveys = store.list_surveys(ids)
+    activity = store.get_activity(ids)
+    views: dict[str, list[dict[str, Any]]] = {}
+    for v in activity["views"]:
+        views.setdefault(v["student_id"], []).append(v)
+    wrong: dict[str, dict[str, bool]] = {}   # student -> concept name -> was ever sure
+    for a in activity["answers"]:
+        if a["correct"]:
+            continue
+        concept = engine.find_concept(a["concept_id"])
+        name = concept.name if concept else a["concept_id"]
+        seen = wrong.setdefault(a["student_id"], {})
+        seen[name] = seen.get(name, False) or a.get("confidence") == "sure"
+    now = datetime.now(tz=timezone.utc)
+    cases = {}
+    for alias, sid in aliases.items():
+        row = rows.get(sid) or {}
+        last = row.get("last_active")
+        days = (now - datetime.fromisoformat(last)).days if last else None
+        mix_ups = sorted(({"concept": c, "sure": s} for c, s in wrong.get(sid, {}).items()),
+                         key=lambda m: (not m["sure"], m["concept"]))
+        survey_row = surveys.get(sid)
+        cases[alias] = coaching_agent.build_case(
+            row, survey_row["traits"] if survey_row else None,
+            survey.observed_reading(views.get(sid, [])), mix_ups, days)
+    return cases
+
+
+def _render_coaching(run: dict[str, Any], class_id: str) -> dict[str, Any]:
+    """A stored run as the teacher sees it: aliases replaced by current names, in S order."""
+    names = {s["student_id"]: s["name"] for s in store.list_class_students(class_id)}
+    students = []
+    for alias in sorted(run["notes"], key=lambda a: int(a[1:])):
+        sid = run["aliases"].get(alias)
+        if sid not in names:
+            continue  # a student removed since the run
+        students.append({"student_id": sid, "name": names[sid], "alias": alias, **run["notes"][alias]})
+    return {"run_id": run["run_id"], "created_at": run["created_at"], "source": run["source"],
+            "model": run["model"], "note": run["note"], "students": students}
+
+
+def get_coaching_notes(teacher_id: str, class_id: str) -> dict[str, Any] | None:
+    """The latest coaching notes for this class, or None if none were made yet.
+
+    Returns: {run_id, created_at, source: "agent"|"mixed"|"rules", model, note,
+              students: [{student_id, name, alias, note, evidence: [field], next_step,
+                          source: "ai"|"rules"}]}
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    run = store.get_latest_coaching_notes(class_id)
+    return _render_coaching(run, class_id) if run else None
+
+
+def generate_coaching_notes(teacher_id: str, class_id: str, *,
+                            chat: Any = None) -> dict[str, Any]:
+    """Write a note per student (AI first, rules for anything the AI misses) and store it.
+
+    A run made in the last minute is returned as it is, with "reused": True. `chat` is for
+    tests; by default the live model chain (src/llm) is used, or rules when it is off.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    latest = store.get_latest_coaching_notes(class_id)
+    if latest is not None:
+        age = (datetime.now(tz=timezone.utc) - datetime.fromisoformat(latest["created_at"])).total_seconds()
+        if age < _COACHING_REUSE_SECONDS:
+            return {**_render_coaching(latest, class_id), "reused": True}
+    aliases = _student_aliases(class_id)
+    cases = _coaching_cases(teacher_id, class_id, aliases)
+    roster = store.list_class_students(class_id)
+    forbidden = ([s["name"] for s in roster]
+                 + [part for s in roster for part in s["name"].split() if len(part) > 2]
+                 + [s["username"] for s in roster if s["username"]])
+    use = chat if chat is not None else llm.chat
+    with llm.usage_context(feature="coaching_agent", class_id=class_id):
+        result = coaching_agent.coach_class(cases, forbidden, use, chat is not None or llm.is_configured())
+    saved = store.save_coaching_notes(class_id, teacher_id, result["source"], result["model"],
+                                      result["notes"], aliases, result["trail"], result["note"])
+    return {**_render_coaching(saved, class_id), "reused": False}
 
 
 def llm_prices() -> dict[str, Any]:

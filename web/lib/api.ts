@@ -477,6 +477,38 @@ export function getClassPlan(classId: string): Promise<ClassPlan | null> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`);
 }
 
+// Coaching notes: a short, privacy-safe note per student for the teacher (AI first, rules as the fallback).
+export interface CoachingNote {
+  student_id: string;
+  name: string;
+  alias: string;
+  note: string;
+  evidence: string[];
+  next_step: string;
+  source: "ai" | "rules";
+}
+
+export interface CoachingRun {
+  run_id: number;
+  created_at: string;
+  source: "agent" | "mixed" | "rules";
+  model: string | null;
+  note: string | null;
+  students: CoachingNote[];
+  reused?: boolean;
+}
+
+export function getCoachingNotes(classId: string): Promise<CoachingRun | null> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/coaching`);
+}
+
+export function generateCoachingNotes(classId: string): Promise<CoachingRun> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/coaching`, {
+    method: "POST",
+    timeoutMs: LIVE_TIMEOUT_MS, // live model calls, in batches
+  });
+}
+
 export interface AiStatus {
   configured: boolean;
   up: boolean;

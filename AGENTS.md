@@ -81,9 +81,10 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
   batches, human reading of pilot chapters.
 - **Check questions are multiple choice**, each wrong option mapped to a misconception, graded with
   **no LLM call**.
-- **Live AI is allowed in exactly three places** (2026-10-02): the doubt chat (`ask_help`), the
-  **teacher agent** (`generate_class_plan`) and **personal stories** (background only). Each has a
-  non-AI fallback. Anything else stays pre-generated (non-negotiable 3).
+- **Live AI is allowed in exactly four places** (three on 2026-10-02, a fourth on 2026-10-13): the doubt chat
+  (`ask_help`), the **teacher agent** (`generate_class_plan`), **personal stories** (background only) and the
+  **coaching notes** (`generate_coaching_notes`, teacher-triggered, §9zzzzzzzzzzzzz). Each has a non-AI fallback.
+  Anything else stays pre-generated (non-negotiable 3).
 - **New agents call models through `src/llm/`**, an OpenAI-compatible client. **For now: OmniRoute
   and free models; the user will buy a Gemini API key once it works as planned** (then it's a
   config change: Gemini's OpenAI-compatible URL).
@@ -521,7 +522,9 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
    it costs nothing at student scale and can't take anything down. **Second exception (user
    request, 2026-10-02): personal stories** (§9ze) — written in the background, never blocking a
    page, cached per student × concept, critic-checked, and the reviewed story is always shown when
-   anything fails. Any further live call needs the user's say-so.
+   anything fails. **Third exception (user request, 2026-10-13): coaching notes**
+   (`generate_coaching_notes`, §9zzzzzzzzzzzzz) — teacher-triggered, students as S1, S2…, a rules note per
+   student whenever the AI is off, fails or breaks a rule. Any further live call needs the user's say-so.
 4. **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
    **global across the subject**; a new chapter must continue the numbering (18, 19, …) or
    prerequisite validation rejects it.

@@ -151,6 +151,25 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_plans_class ON class_plans(class_id, plan_id)")
+    # Coaching notes (2026-10-13): one set of per-student notes per run. Stored with aliases
+    # (S1, S2...) only, like plans: names are filled in when a teacher views them.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS coaching_notes (
+            run_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_id    TEXT NOT NULL,
+            teacher_id  TEXT NOT NULL,
+            created_at  TEXT NOT NULL,
+            source      TEXT NOT NULL,
+            model       TEXT,
+            notes       TEXT NOT NULL,
+            aliases     TEXT NOT NULL,
+            trail       TEXT NOT NULL,
+            note        TEXT
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_coaching_class ON coaching_notes(class_id, run_id)")
     # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
     # are a baseline taken before any lesson, and mixing them into the lesson
     # answers would muddy the pilot's "right first time" number.
@@ -1285,6 +1304,41 @@ def get_latest_class_plan(class_id: str) -> dict[str, Any] | None:
     plan["trace"] = json.loads(plan["trace"])
     plan["aliases"] = json.loads(plan["aliases"])
     return plan
+
+
+def save_coaching_notes(class_id: str, teacher_id: str, source: str, model: str | None,
+                        notes: dict[str, Any], aliases: dict[str, str],
+                        trail: list[dict[str, Any]], note: str | None) -> dict[str, Any]:
+    """Store one run of coaching notes; `notes` and `aliases` are keyed by S1, S2..."""
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO coaching_notes (class_id, teacher_id, created_at, source, model, notes, "
+            "aliases, trail, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (class_id, teacher_id, _now_iso(), source, model, json.dumps(notes, ensure_ascii=False),
+             json.dumps(aliases), json.dumps(trail, ensure_ascii=False), note),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_latest_coaching_notes(class_id) or {}
+
+
+def get_latest_coaching_notes(class_id: str) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM coaching_notes WHERE class_id = ? ORDER BY run_id DESC LIMIT 1",
+            (class_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    run = dict(row)
+    for key in ("notes", "aliases", "trail"):
+        run[key] = json.loads(run[key])
+    return run
 
 
 # ---------------------------------------------------------------------------
