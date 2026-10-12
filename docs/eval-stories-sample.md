@@ -11,7 +11,7 @@ Models: gemini-3.1-flash-lite. 6 cases on a temporary database.
 | Time per story, median / p95 | 12 s / 32 s |
 | Model calls per story | 2.8 (failed calls: 0) |
 | Tokens per story (in / out) | 3289 / 812 |
-| Cost per story at the reference price | Rs 0.27 |
+| Cost per story at the reference price | Rs 0.18 (recomputed on 2026-10-13 with the verified 3.1 flash-lite price; the run printed 0.27 on an older reference) |
 
 ## Where drafts failed
 - critic: 2

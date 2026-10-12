@@ -2515,7 +2515,7 @@ def generate_coaching_notes(teacher_id: str, class_id: str, *,
 
 
 def llm_prices() -> dict[str, Any]:
-    """data/llm_prices.yaml (prices entered from memory: verify before quoting)."""
+    """data/llm_prices.yaml (Google's paid-tier list prices, checked 2026-10-13: re-check before quoting)."""
     import yaml
 
     from src.file_cache import cached_parse

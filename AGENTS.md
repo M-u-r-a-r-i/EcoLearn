@@ -283,7 +283,8 @@ next batch (the batch procedure is below). Famous images: `data/media/famous/`, 
   2026-10-03 under the old one-answer rule keep their status.
 - The AI usage log has tokens for `src/llm` calls only; the doubt chat (older google-genai
   pipeline) and the teacher agent's Gemini fallback log no tokens. `data/llm_prices.yaml` was
-  typed from memory: verify before quoting a ₹ figure.
+  verified 2026-10-13 against Google's pricing page (paid-tier list prices); re-check before quoting, and note that
+  gemini-3.8-flash doubles on 2027-01-01.
 - The end check's two forms are different lessons' checks on the same concept, written
   independently, not psychometrically matched. Counterbalancing cancels a difference in difficulty
   on average across a class; it doesn't make one student's two forms equal (§9zl).

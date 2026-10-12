@@ -75,7 +75,9 @@ def print_report(report: dict, top: int) -> None:
         if t["calls_without_tokens"]:
             print(f"  {t['calls_without_tokens']} calls report no tokens (the doubt chat's older "
                   "pipeline), so they aren't in the ₹ figures.")
-        print("  Prices: data/llm_prices.yaml, entered from memory. Verify before quoting.")
+        print("  Prices: data/llm_prices.yaml, Google's paid-tier list prices (checked 2026-10-13; re-check "
+              "before the finals). On a free tier nothing is billed, so these are what the same usage "
+              "WOULD cost.")
 
     g = report["check_gains"]
     print(f"\nStarting check → end check  ({g['students_finished']} of {g['students_started']} "

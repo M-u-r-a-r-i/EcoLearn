@@ -2996,3 +2996,26 @@ whether they change their minds, with one command, next to how they really read.
 
 **Learned.** "Said vs shown" is an association across a handful of students, and the report says so in the output
 (it is NOT evidence that an adaptation helps). On the demo database the numbers are INVENTED: never quote them.
+
+
+## 9zzzzzzzzzzzzzzz. LLM prices verified against Google's pricing page (2026-10-13)
+
+**Changed.** `data/llm_prices.yaml`: checked on https://ai.google.dev/gemini-api/docs/pricing (paid tier, Standard, per 1M
+tokens): gemini-3.1-flash-lite 0.25 in / 1.50 out (the model in use; was missing, so its cost showed as 0);
+gemini-3.8-flash and 3.6-flash 0.75 / 3.75 through 2026-12-31 and 1.50 / 7.50 from 2027-01-01; gemini-3.7-flash is
+DEPRECATED and routed by Google to 3.8, so it is priced like 3.8; the 2.5 entries were already right (flash 0.30/2.50,
+flash-lite 0.10/0.40, pro 1.25/10.00 up to 200k). `reference_model` is now gemini-3.1-flash-lite (was 2.5-flash).
+`pilot_report.py` and `eval_stories.py` no longer say "from memory"; `tests/test_llm_usage.py` pins the prices of the
+models in use (22 checks). `docs/eval-stories-sample.md` cost row recomputed.
+
+**Why.** The pitch will quote a cost per student. The file priced neither model the app uses.
+
+**Learned.**
+- A story costs about Rs 0.18 (3.3k tokens in, 0.8k out on 3.1 flash-lite), not the Rs 0.27 printed earlier (that used
+  the old reference, 2.5 flash).
+- These are list prices for a PAID key. Through OmniRoute on a free tier nothing is billed, so "actual" in the report is
+  what the same usage WOULD cost; the report now says so. The free tier also lets Google use the data to improve its
+  products, which matters for a pilot on children: the paid tier does not.
+- Do not model the fallback `gemini-3.7-flash` as cheaper than 3.8: it is the same model after routing, and its price
+  doubles on 2027-01-01.
+- Not modelled: batch (about half price), flex, priority and context caching. The USD to INR rate (88) is rounded.

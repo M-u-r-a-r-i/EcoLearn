@@ -10,8 +10,8 @@ stories to read by hand. `--out report.md` also saves it.
 
 Cases are chosen deterministically (same command, same cases), so two runs on two
 models are comparable. Needs a working AI: check with scripts\ai_check.py first.
-The cost uses data/llm_prices.yaml, whose prices were typed from memory: verify
-them before quoting a rupee figure.
+The cost uses data/llm_prices.yaml (Google's paid-tier list prices, checked 2026-10-13):
+it is what the same calls WOULD cost on a paid key, not a bill (a free tier bills nothing).
 """
 from __future__ import annotations
 
