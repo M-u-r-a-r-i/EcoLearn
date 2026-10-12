@@ -2979,3 +2979,20 @@ usage, decisions, survey and story tests pass.
 **Learned.** The notes read a little alike ("This student ...") and mention a survey mood ("reports feeling dread")
 plainly: acceptable for a teacher, but worth a human read before the pilot. No per-note human-rated quality score yet;
 `scripts/eval_stories.py` is the model for an evaluation of these.
+
+
+## 9zzzzzzzzzzzzzz. Survey history in the pilot report (2026-10-13)
+
+**Changed.** `src/progress/metrics.py`: `survey_fields`, `survey_changes`, `survey_report` (pure functions).
+`platform_api.pilot_report()` gains a `survey` section (`_pilot_survey`): who answered, what students said (fixed-option
+traits, tallied), how many updated their answers and which fields moved (`from` and `to`), every replaced answer set
+plus the current one, and "said vs shown" (grouped by what they said about focus, pace and feeling about physics: median
+minutes per lesson, share of skimmed lessons, first-try accuracy). `scripts/pilot_report.py`: a printed "Getting to
+know you" section and three CSVs (`survey.csv`, `survey_history.csv`, `survey_changes.csv`), pseudonymised like the rest.
+`tests/test_pilot_survey.py`: 22 checks.
+
+**Why.** The survey history table had no reader. The pilot can now report how students describe themselves, and
+whether they change their minds, with one command, next to how they really read.
+
+**Learned.** "Said vs shown" is an association across a handful of students, and the report says so in the output
+(it is NOT evidence that an adaptation helps). On the demo database the numbers are INVENTED: never quote them.

@@ -2523,6 +2523,30 @@ def llm_prices() -> dict[str, Any]:
     return cached_parse(path, lambda p: yaml.safe_load(p.read_text(encoding="utf-8")), "llm_prices")
 
 
+def _pilot_survey(students: list[dict[str, Any]], student_alias: dict[str, str],
+                  insights: dict[str, Any]) -> dict[str, Any]:
+    """The survey section of `pilot_report`: pseudonymised, fixed-option answers only."""
+    ids = [s["student_id"] for s in students]
+    surveys = store.list_surveys(ids)
+    stats = {r["student_id"]: r for r in insights["students"]}  # already re-keyed by alias
+    views: dict[str, list[dict[str, Any]]] = {}
+    for v in store.get_activity(None)["views"]:
+        views.setdefault(v["student_id"], []).append(v)
+    entries, history = [], {}
+    for sid, row in surveys.items():
+        if sid not in student_alias:
+            continue
+        a = student_alias[sid]
+        entries.append({
+            "student_id": a, "revision": row["revision"], "saved_at": row["updated_at"] or row["completed_at"],
+            "traits": row["traits"], "observed": survey.observed_reading(views.get(sid, [])),
+            "first_try_correct": (stats.get(a) or {}).get("first_try_correct"),
+            "answered": (stats.get(a) or {}).get("answered")})
+        history[a] = store.get_survey_history(sid)
+    entries.sort(key=lambda e: e["student_id"])
+    return metrics.survey_report(entries, history, len(students))
+
+
 def pilot_report() -> dict[str, Any]:
     """Everything the pilot recorded, across all classes, with no names in it.
 
@@ -2536,7 +2560,8 @@ def pilot_report() -> dict[str, Any]:
          "students": [{student, class, interest, level, created_at}],
          "views": [...], "answers": [...], "ratings": [...],
          "diagnostic": [...], "end_check": [...], "check_gains": {...},
-         "stories": [...]}  — pseudonymised rows.
+         "stories": [...], "survey": {taken, total, distributions, said_vs_shown, rows, history,
+         changes, ...}}  — pseudonymised rows.
     """
     students = store.list_all_students()
     class_alias: dict[str | None, str | None] = {None: None}
@@ -2592,6 +2617,9 @@ def pilot_report() -> dict[str, Any]:
         # AI-written personal stories, with whether students reported them and
         # whether teachers hid them: the evidence on the AI layer's quality.
         "stories": alias(store.list_personal_stories(list(student_alias))),
+        # The survey: what students said about themselves, how it changed when they updated
+        # their answers, and how it lines up with how they actually read and answered.
+        "survey": _pilot_survey(students, student_alias, insights),
     }
 
 
