@@ -3140,3 +3140,27 @@ the answered path was tested with a stand-in.
   and a keyword can be wrong). The card now lists this as a decision for the school before the pilot.
 - Still not done: the chat doesn't judge whether a question is about physics; English only; the pipeline's own
   prompt-injection resistance is untested (it needs the pipeline running).
+
+
+## 9zzzzzzzzzzzzzzzzzzzz. Consent note draft (2026-10-13)
+
+**Changed.** `docs/consent-note.md` (new): Part A for the school and a lawyer (blanks to fill, five decisions, what the product
+cannot yet do, legal points to check, a table tying each statement to its evidence in the code and tests); Part B the note
+for parents and guardians; Part C a page for students; Part D the consent form with a student assent line.
+
+**Why.** The pilot is on minors in India. Parental consent is expected by India's DPDP Act (section 9: under-18s, parental
+consent, no tracking or behavioural monitoring) and the exemption for educational institutions is narrow and unclear for an edtech
+platform; the product records behaviour (reading time, skimming, mix-ups, a needs-attention list), so the draft ASSUMES
+consent is needed. The sources disagree on dates and rule numbers; a lawyer must read the gazetted text.
+
+**Learned.**
+- The note can only promise what the software does today. Missing: **delete a student's data** (no function exists; by
+  hand in the database), **export a student's data**, a **per-student switch for the AI parts**, and a **counsellor
+  alert**. The draft says deletion is done on request by the operator, offers no switch, and gives Option 1 (nobody is told).
+  Build these before the pilot, then update the note.
+- "The AI never receives a name" was too strong: EcoLearn never sends names from its records, but a child can type their own
+  name into a help-chat question. The note says so.
+- A parent-facing note must say the lessons were prepared in advance WITH AI help and checked by software (not "written by
+  people"). A person has not read every lesson.
+- Not done: translation into the families' language, and a Word version (the school will want to edit and print one; the
+  Markdown can be pasted into Word).
