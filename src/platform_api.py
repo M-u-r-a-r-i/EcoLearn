@@ -2516,6 +2516,114 @@ def generate_coaching_notes(teacher_id: str, class_id: str, *,
     return {**_render_coaching(saved, class_id), "reused": False}
 
 
+# ---------------------------------------------------------------------------
+# A family's data requests (2026-10-13). For the operator, never exposed over HTTP: a person on the
+# team checks who is asking, then runs scripts/export_student.py or scripts/delete_student.py.
+# ---------------------------------------------------------------------------
+
+def find_student_id(username: str) -> str:
+    """The student id for a username (how a request from a family is turned into an id).
+
+    Raises:
+        NotFoundError: no such student.
+    """
+    record = store.get_student_by_username(username)
+    if record is None:
+        raise NotFoundError(f"No student with the username {username!r}.")
+    return record["student_id"]
+
+
+def export_student_data(student_id: str) -> dict[str, Any]:
+    """Everything EcoLearn holds about one student, as plain data a person can read.
+
+    Returns:
+        {"account": {name, username, interest, level, class, created_at},
+         "tables": {table: [rows]}   every row about them, by table, JSON parsed; no password hash,
+         "readable": {...}           the same, in words: concept names instead of ids,
+         "class_notes": [...]        any teacher-assistant coaching note about them,
+         "plans_that_included_them": int}   class plans in which they were one of the labelled students
+
+    Raises:
+        NotFoundError: no such student.
+    """
+    profile = store.get_student(student_id)
+    if profile is None:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    class_id = store.get_student_class_id(student_id)
+    klass = store.get_class(class_id) if class_id else None
+    raw = store.export_student_rows(student_id)
+    tables = raw["tables"]
+
+    def concept_name(concept_id: str) -> str:
+        concept = engine.find_concept(concept_id)
+        return concept.name if concept else concept_id
+
+    def named(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [{**r, "concept": concept_name(r["concept_id"])} if "concept_id" in r else r for r in rows]
+
+    answers = tables.get("answers", [])
+    survey_row = (tables.get("learner_survey") or [None])[0]
+    readable = {
+        "lessons_opened": sorted({concept_name(v["concept_id"]) for v in tables.get("lesson_views", [])}),
+        "minutes_actively_read": round(sum(int(v.get("active_seconds") or 0)
+                                           for v in tables.get("lesson_views", [])) / 60, 1),
+        "lesson_check_answers": {"total": len(answers), "right": sum(1 for a in answers if a.get("correct"))},
+        "progress": [{"concept": concept_name(p["concept_id"]), "status": p.get("status"),
+                      "attempts": p.get("attempts")} for p in tables.get("progress", [])],
+        "hobbies": ((tables.get("learner_profiles") or [{}])[0].get("hobbies")),
+        "survey_summary": (survey_row or {}).get("traits", {}).get("summary") if survey_row else None,
+        "survey_updates": len(tables.get("learner_survey_history", [])),
+        "starting_check_questions_answered": len(tables.get("diagnostic_answers", [])),
+        "end_check_questions_answered": len(tables.get("end_check_answers", [])),
+        "revision_answers": len(tables.get("review_answers", [])),
+        "personal_stories": [{"concept": concept_name(p["concept_id"]), "hobby": p.get("hobby"),
+                              "status": p.get("status"), "story": p.get("story"),
+                              "analogy": p.get("analogy"), "limit": p.get("limit_text")}
+                             for p in tables.get("personal_stories", [])],
+        "help_chat_outcomes": _count_by(tables.get("help_events", []), "outcome"),
+        "ai_model_calls_logged": len(tables.get("llm_calls", [])),
+    }
+    return {
+        "account": {"name": profile["name"], "username": profile["username"], "interest": profile["interest"],
+                    "level": profile["level"], "class": klass["name"] if klass else None,
+                    "created_at": profile["created_at"]},
+        "tables": {name: named(rows) for name, rows in tables.items()},
+        "readable": readable,
+        "class_notes": raw["class_notes"],
+        "plans_that_included_them": raw["plans_that_included_them"],
+    }
+
+
+def _count_by(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for r in rows:
+        out[str(r.get(key))] = out.get(str(r.get(key)), 0) + 1
+    return out
+
+
+def delete_student(student_id: str) -> dict[str, Any]:
+    """Permanently erase a student and everything about them. This cannot be undone.
+
+    Removes the account and every row tied to it, in one transaction; the AI usage log keeps its token
+    counts but loses the link to the child; the student's label and note in class plans and coaching
+    notes are removed. Old copies of the database file (backups) are NOT touched: that is the
+    operator's to handle.
+
+    Returns:
+        {"deleted": {table: rows}, "anonymised": {table: rows}, "edited": {...},
+         "remaining": {"table.column": rows}}  `remaining` must be empty: it is a search of the whole
+        database for the student's id after the erase.
+
+    Raises:
+        NotFoundError: no such student.
+    """
+    result = store.erase_student(student_id)
+    if not result:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    result["remaining"] = store.find_student_traces(student_id)
+    return result
+
+
 def llm_prices() -> dict[str, Any]:
     """data/llm_prices.yaml (Google's paid-tier list prices, checked 2026-10-13: re-check before quoting)."""
     import yaml

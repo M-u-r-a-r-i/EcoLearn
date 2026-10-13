@@ -38,25 +38,36 @@ this part). Where the product cannot yet do something the note would naturally p
    - **Option 2 (a person is told).** The school's counsellor is alerted, for example by a daily count or by name. **This is not built.** It needs
      work on the software and a clear policy on who acts, how fast, and what is recorded. Do not choose it until that exists.
 3. **How long to keep the data.** Suggested: delete personal data `[3] months` after the pilot ends, keep only de-identified
-   totals. The software has no delete function yet (see "Cannot yet do").
+   totals. The operator erases a student with `scripts/delete_student.py` (built 2026-10-13, see "Built, with limits"). It
+   cannot reach **backups or earlier copies of the database**, so the retention rule must say how long those are kept.
 4. **Hosting and the AI service.** Where the server runs, and whether the AI service is on a paid plan. Google states its
    free tier may use data to improve its products and its paid tier does not (pricing page, checked 2026-10-13). Use a
    paid plan for children's data, confirm in writing where data is processed, and fill in `[Provider terms]`.
 5. **Whether a family can say no to the AI parts and still take part.** Today they cannot (see "Cannot yet do"). Decide
    whether that is acceptable, or whether the pilot waits for the switch.
 
+### Built, with limits (2026-10-13)
+
+- **Erasing a student:** `scripts/delete_student.py --username X --export DIR --confirm`. It is a dry run unless `--confirm` is
+  given. It removes the account and every row tied to it in one all-or-nothing step, then searches the whole database to prove
+  nothing is left. The AI usage log keeps its token counts but loses the link to the child; the student's label and note in class
+  plans are removed. **Not touched: backups and any earlier copy of the database.**
+- **Showing a family what is held:** `scripts/export_student.py --username X --out DIR`: a plain-language summary and the full
+  data as JSON. The password is never included.
+- **Both are run by a person on the operator's team**, not by a family or a teacher through the app. Who runs them, how identity is
+  checked, and how fast is for the operator and school to decide (the note has a `[number]` of days). Tested by
+  `tests/test_student_data_rights.py`: every table that holds a student id is covered, and the test fails if a new one is added.
+
 ### Things the product cannot yet do (build them, or remove the promise)
 
 | The note would like to promise | The software today | Needed |
 |---|---|---|
-| "We will delete your child's data on request" | There is no function that deletes a student. It would be done by hand in the database. | A tested `delete a student` function that removes every table's rows for that student and says what it removed |
-| "You can see what we hold about your child" | No export. | A function that lists a student's data in plain language |
 | "We can switch off the AI parts for your child" | The AI features are switched off for everyone at once (leave `LLM_MODEL` and `GEMINI_API_KEY` empty). There is no per-student setting. The teacher can hide an AI story. | A per-student AI switch |
 | "A counsellor will be told" | Not built (decision 2). | Software and a policy |
 | "Only [Operator]'s named staff can read your child's data" | Anyone with the database file can. The pilot report replaces names with codes, but the database itself is not encrypted. | Access rules for the server, and ideally an encrypted disk |
 
-The note in Part B is written so that it is **true today**: it says deletion is done "on request by [Operator]" and does not
-promise a switch. Update it once the functions above exist.
+The note in Part B is written so that it is **true today**: it offers a copy and deletion on request (built), and does not promise
+a per-student switch or a counsellor alert. Update it when those exist.
 
 ### Legal points to check with a lawyer
 
@@ -89,6 +100,7 @@ gazetted text.
 | The only typed text that reaches the AI is a short hobby label and a help-chat question | the same tests; `src/learner/help_guard.py` |
 | Help-chat questions are checked, rate-limited and never stored | `src/learner/help_guard.py`, `tests/test_help_guard.py` |
 | A student can report a story, a teacher can hide it | `tests/test_story_review.py` |
+| A family can be shown, and can have deleted, everything held about their child | `scripts/export_student.py`, `scripts/delete_student.py`, `tests/test_student_data_rights.py` (backups are not covered) |
 | AI is not used for marks | Grading is multiple choice against an answer key (`tests/test_mcq_grading.py`) |
 | The lessons were prepared in advance with AI help and checked by software | `PROJECT_HISTORY.md`; `scripts/validate_lessons.py`. A person has not read every lesson |
 | Pilot results are reported without names | `scripts/pilot_report.py` (pseudonyms S001...), `tests/test_pilot_survey.py` |
@@ -162,8 +174,9 @@ suggests talking to a trusted adult, and gives the free helpline Tele-MANAS (144
 **Your choices and rights**
 - **Taking part is voluntary.** If you say no, or later change your mind, there is no effect on your child's marks or place
   at school.
-- You can **ask to see, correct, or delete** your child's data, or withdraw your consent at any time, by contacting
-  `[Contact]`. `[Operator]` will act on a deletion request within `[number]` days.
+- You can **ask to see** what we hold about your child (we will give you a copy in plain words), **ask us to correct it**, or
+  **ask us to delete it**, or withdraw your consent, at any time, by contacting `[Contact]`. We act within `[number]` days.
+  Deleting is permanent. Copies in backups are removed when the backups `[are deleted or expire after (number) days]`.
 - You can complain to `[Grievance contact]`.
 
 **How long we keep it.** Until `[Retention]`, or sooner if you ask. After that we keep only totals with no names.

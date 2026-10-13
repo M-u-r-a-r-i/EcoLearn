@@ -1871,3 +1871,140 @@ def help_event_counts(student_ids: list[str]) -> dict[str, Any]:
         elif r["outcome"] in out:
             out[r["outcome"]] += r["n"]
     return out
+
+
+# ---------------------------------------------------------------------------
+# A student's data: export it, erase it (2026-10-13)
+#
+# Both work from the live schema, not from a hand-kept list: every table with a `student_id` column is
+# included, so a table added later is covered without anyone remembering to update this. Two kinds of
+# table need care and are handled by name:
+#   * `llm_calls` is usage accounting. Erasing a student sets its student_id to NULL (the cost totals
+#     stay true, the link to the child goes).
+#   * `class_plans` and `coaching_notes` belong to a class, not a student. They keep a JSON map from a
+#     label ("S3") to a student id. Erasing removes that student's label (and, for coaching notes, their
+#     note), so what remains can no longer be tied to them.
+# Neither function is reachable over HTTP: they are for the operator (scripts/export_student.py,
+# scripts/delete_student.py), acting on a request from a family.
+# ---------------------------------------------------------------------------
+
+_ANONYMISE_TABLES = ("llm_calls",)
+_NEVER_EXPORT = {("students", "password_hash")}
+
+
+def _student_tables(conn: sqlite3.Connection) -> list[str]:
+    names = [r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")]
+    return [n for n in names
+            if "student_id" in [c[1] for c in conn.execute(f'PRAGMA table_info("{n}")')]]
+
+
+def _readable(value: Any) -> Any:
+    """JSON stored in a text column, parsed; anything else unchanged."""
+    if isinstance(value, str) and value[:1] in ("{", "["):
+        try:
+            return json.loads(value)
+        except ValueError:
+            return value
+    return value
+
+
+def export_student_rows(student_id: str) -> dict[str, Any]:
+    """Every row about one student, by table, plus their note in any class coaching run.
+
+    Returns {"tables": {table: [row dict, ...]}, "class_notes": [{"made": iso, "note": {...}}],
+             "plans_that_included_them": int}. The password hash is never included.
+    """
+    conn = _connect()
+    try:
+        tables: dict[str, list[dict[str, Any]]] = {}
+        for name in _student_tables(conn):
+            rows = conn.execute(f'SELECT * FROM "{name}" WHERE student_id = ?', (student_id,)).fetchall()
+            if rows:
+                tables[name] = [
+                    {k: _readable(r[k]) for k in r.keys() if (name, k) not in _NEVER_EXPORT}
+                    for r in rows]
+        class_notes, plans = [], 0
+        for r in conn.execute("SELECT created_at, notes, aliases FROM coaching_notes ORDER BY run_id"):
+            aliases = json.loads(r["aliases"])
+            alias = next((a for a, sid in aliases.items() if sid == student_id), None)
+            note = json.loads(r["notes"]).get(alias) if alias else None
+            if note:
+                class_notes.append({"made": r["created_at"], "note": note})
+        for r in conn.execute("SELECT aliases FROM class_plans"):
+            if student_id in json.loads(r["aliases"]).values():
+                plans += 1
+    finally:
+        conn.close()
+    return {"tables": tables, "class_notes": class_notes, "plans_that_included_them": plans}
+
+
+def find_student_traces(student_id: str) -> dict[str, int]:
+    """Where a student's id still appears anywhere in the database: {"table.column": rows}.
+
+    Used to prove an erase left nothing behind. Empty means clean.
+    """
+    conn = _connect()
+    try:
+        found: dict[str, int] = {}
+        names = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")]
+        for name in names:
+            for col in conn.execute(f'PRAGMA table_info("{name}")'):
+                n = conn.execute(f'SELECT COUNT(*) FROM "{name}" WHERE CAST("{col[1]}" AS TEXT) LIKE ?',
+                                 (f"%{student_id}%",)).fetchone()[0]
+                if n:
+                    found[f"{name}.{col[1]}"] = n
+    finally:
+        conn.close()
+    return found
+
+
+def erase_student(student_id: str) -> dict[str, Any]:
+    """Remove a student and everything about them, in one transaction. False-y if they don't exist.
+
+    Returns {"deleted": {table: rows}, "anonymised": {table: rows}, "edited": {"coaching_notes": n,
+             "class_plans": n}}. Nothing is left half-done: any error rolls the whole thing back.
+    """
+    conn = _connect()
+    try:
+        with conn:
+            if conn.execute("SELECT 1 FROM students WHERE student_id = ?", (student_id,)).fetchone() is None:
+                return {}
+            deleted: dict[str, int] = {}
+            anonymised: dict[str, int] = {}
+            tables = _student_tables(conn)
+            for name in tables:
+                if name in _ANONYMISE_TABLES:
+                    n = conn.execute(f'UPDATE "{name}" SET student_id = NULL WHERE student_id = ?',
+                                     (student_id,)).rowcount
+                    if n:
+                        anonymised[name] = n
+                elif name != "students":
+                    n = conn.execute(f'DELETE FROM "{name}" WHERE student_id = ?', (student_id,)).rowcount
+                    if n:
+                        deleted[name] = n
+            edited = {"coaching_notes": 0, "class_plans": 0}
+            for table, has_notes in (("coaching_notes", True), ("class_plans", False)):
+                key = "run_id" if has_notes else "plan_id"
+                for r in conn.execute(f"SELECT {key} AS k, aliases{', notes' if has_notes else ''} FROM {table}").fetchall():
+                    aliases = json.loads(r["aliases"])
+                    gone = [a for a, sid in aliases.items() if sid == student_id]
+                    if not gone:
+                        continue
+                    for a in gone:
+                        del aliases[a]
+                    if has_notes:
+                        notes = json.loads(r["notes"])
+                        for a in gone:
+                            notes.pop(a, None)
+                        conn.execute(f"UPDATE {table} SET aliases = ?, notes = ? WHERE {key} = ?",
+                                     (json.dumps(aliases), json.dumps(notes, ensure_ascii=False), r["k"]))
+                    else:
+                        conn.execute(f"UPDATE {table} SET aliases = ? WHERE {key} = ?",
+                                     (json.dumps(aliases), r["k"]))
+                    edited[table] += 1
+            deleted["students"] = conn.execute("DELETE FROM students WHERE student_id = ?", (student_id,)).rowcount
+    finally:
+        conn.close()
+    return {"deleted": deleted, "anonymised": anonymised, "edited": edited}

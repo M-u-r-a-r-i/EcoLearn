@@ -127,8 +127,9 @@ the demo DB: login, `/welcome` gate, all four teacher tabs, the AI badge, a live
 3. Survey history in `scripts/pilot_report.py` is DONE (§9zzzzzzzzzzzzzz); still to do: verify
    `data/llm_prices.yaml`; unit-economics page.
 4. AI safety card (`docs/ai-safety-card.html`) and DRAFT consent note (`docs/consent-note.md`): a school and a lawyer must
-   review them. **Build before the pilot, because the note depends on them:** delete-a-student and export-a-student functions,
-   a per-student AI switch, and the school's decision on alerting a counsellor (Part A of the note).
+   review them. Delete-a-student and export-a-student are DONE (`scripts/delete_student.py`, `scripts/export_student.py`,
+   §9zzzzzzzzzzzzzzzzzzzzz; backups are not covered). **Still to build before the pilot, because the note depends on them:** a
+   per-student AI switch, and the school's decision on alerting a counsellor (Part A of the note).
 5. Remaining browser checks: phone width, light theme, a real signup, login slips after a reset, end-check questions.
 6. **Deploy** (parked by the user): one small VPS + Caddy (same domain for web and `/api`), `ECOLEARN_ENV=production`,
    `ECOLEARN_JWT_SECRET`, one uvicorn worker (SQLite + in-memory rate limits/progress), nightly DB backup; CORS origins are
@@ -670,6 +671,7 @@ venv\Scripts\python.exe tests\test_survey.py              # "getting to know you
 venv\Scripts\python.exe tests\test_pilot_survey.py        # survey in the pilot report: history, changes, said vs shown
 venv\Scripts\python.exe tests\test_coaching_agent.py       # coaching notes: rules, model checks, privacy, storage
 venv\Scripts\python.exe tests\test_help_guard.py            # doubt chat front door: screen, rate limit, nothing stored
+venv\Scripts\python.exe tests\test_student_data_rights.py   # export and erase a student: every table, no trace left, all-or-nothing
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

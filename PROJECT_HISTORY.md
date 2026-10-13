@@ -3164,3 +3164,34 @@ consent is needed. The sources disagree on dates and rule numbers; a lawyer must
   people"). A person has not read every lesson.
 - Not done: translation into the families' language, and a Word version (the school will want to edit and print one; the
   Markdown can be pasted into Word).
+
+
+## 9zzzzzzzzzzzzzzzzzzzzz. Export and erase a student's data (2026-10-13)
+
+**Changed.** `src/progress/store.py`: `export_student_rows`, `erase_student`, `find_student_traces`. They work from the LIVE schema:
+every table with a `student_id` column is included, so a table added later is covered without anyone remembering. Special cases:
+`llm_calls` is unlinked (student_id set to NULL) so cost totals stay true; `class_plans` and `coaching_notes` keep a JSON map from
+a label (S3) to a student id, so erasing removes that label (and, for coaching notes, the note). One transaction: any failure rolls
+the whole erase back. `platform_api.py`: `find_student_id`, `export_student_data` (every row by table, plus a readable block with
+concept names; never the password hash), `delete_student` (returns counts and a `remaining` search of the whole database, which must
+be empty); never exposed over HTTP. `scripts/export_student.py` (plain-language Markdown plus complete JSON) and
+`scripts/delete_student.py` (a dry run unless `--confirm`; `--export DIR` writes the family's copy first; exits 2 if any trace
+remains). `docs/consent-note.md` updated: deletion and export are now built, with their limits.
+
+**Why.** The consent note promised a family could see and delete their child's data, and no function existed.
+
+**Checked.** `tests/test_student_data_rights.py` (37 checks): a student with a row in EVERY student table (the test fails if a new
+table isn't covered, on purpose); export has every table, no password hash, none of a classmate's data; erase leaves no trace of the
+id, name or username in any column of any table (a scan independent of the code under test); sign-in and an old session cookie stop
+working; a classmate's rows are byte-for-byte unchanged; class notes and plans still read; a forced failure part-way leaves the
+student fully intact; the scripts' dry run changes nothing, `--confirm` exports then erases, an unknown username is refused.
+Also the teacher, agent, story, coaching, survey, help-guard, auth, mastery, end-check, plan, usage, persistence tests pass.
+
+**Learned.**
+- BACKUPS and earlier copies of the database still hold the data after an erase. The retention rule and the consent note must
+  say how long they are kept. The script says so every time.
+- Deletion is run by a person on the operator's team after checking who is asking. There is no button for teachers or families,
+  on purpose (a mistaken click is permanent). A teacher-facing request flow is a later decision.
+- Class plans keep their text (written about the class, with labels like S3); only the label-to-student link is removed, so the
+  text can no longer be tied to the child.
+- Still not built: a per-student switch for the AI parts, a counsellor alert, an encrypted disk.
