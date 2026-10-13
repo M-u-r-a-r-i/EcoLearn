@@ -1,0 +1,469 @@
+<title>EcoLearn System Map</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a header with two views. Architecture = layered diagram (people, web, API, boundary, domain, data) with a
+   detail panel beside it; Journeys = a step rail with the same panel. Both can light up a path in the diagram. */
+:root {
+  --bg: #f3f6f7;
+  --surface: #ffffff;
+  --ink: #12222b;
+  --muted: #566a75;
+  --line: #d3dde1;
+  --accent: #0b7a75;       /* teal: selection and primary actions */
+  --accent-soft: #d9f0ee;
+  --c-people: #6b5bd2;
+  --c-web: #0b7a75;
+  --c-api: #2563c9;
+  --c-bound: #12222b;
+  --c-domain: #5b6b78;
+  --c-data: #b7791f;
+  --ai: #b83a7a;           /* anything that calls a live model */
+  --ai-soft: #fbe4f0;
+  --dim: 0.28;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d171c; --surface: #15232a; --ink: #e5eef1; --muted: #93a8b2; --line: #28404a;
+    --accent: #3cc4bb; --accent-soft: #123b3a;
+    --c-people: #9b8dfa; --c-web: #3cc4bb; --c-api: #6fa3f5; --c-bound: #e5eef1; --c-domain: #9db0bb; --c-data: #e0a94a;
+    --ai: #f07db8; --ai-soft: #3a1a2c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d171c; --surface: #15232a; --ink: #e5eef1; --muted: #93a8b2; --line: #28404a;
+  --accent: #3cc4bb; --accent-soft: #123b3a;
+  --c-people: #9b8dfa; --c-web: #3cc4bb; --c-api: #6fa3f5; --c-bound: #e5eef1; --c-domain: #9db0bb; --c-data: #e0a94a;
+  --ai: #f07db8; --ai-soft: #3a1a2c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.5; padding-inline: 16px; }
+.wrap { max-width: 1240px; margin-inline: auto; padding-block: 20px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 18px; }
+h1 { font-family: var(--f-display); font-size: clamp(26px, 4vw, 38px); line-height: 1.05; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 62ch; margin: 6px 0 0; }
+.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+.tabs button { font: 600 14px var(--f-body); color: var(--muted); background: none; border: 0; padding: 8px 14px; border-radius: 7px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] .tabs button[aria-selected="true"], :root:not([data-theme="light"]) .tabs button[aria-selected="true"] { color: #05211f; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+@media (max-width: 960px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+/* trace bar */
+.trace { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.trace h2, .panel h2 { font-family: var(--f-display); font-size: 17px; margin: 0 0 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--f-body); border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.steps { margin-top: 10px; display: grid; gap: 8px; }
+.step-now { display: flex; gap: 10px; align-items: baseline; }
+.step-n { font: 600 12px var(--f-mono); color: var(--accent); white-space: nowrap; }
+.step-text { min-width: 0; }
+.step-text b { display: block; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn { font: 600 13px var(--f-body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.primary, :root:not([data-theme="light"]) .btn.primary { color: #05211f; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+/* diagram */
+.diagram { position: relative; display: grid; gap: 10px; }
+.layer { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: stretch; }
+@media (max-width: 560px) { .layer { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+.layer-label { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding-top: 10px; }
+.layer-label i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--lc); }
+.nodes { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.node { flex: 1 1 150px; min-width: 0; max-width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; cursor: pointer; font: inherit; color: inherit; transition: opacity .15s, border-color .15s, box-shadow .15s; position: relative; }
+.node:hover { border-color: var(--lc); }
+.node .nm { display: flex; gap: 6px; align-items: center; font-weight: 600; font-size: 13px; }
+.node .nm span { min-width: 0; overflow-wrap: anywhere; }
+.node .sb { color: var(--muted); font-size: 12px; margin-top: 2px; overflow-wrap: anywhere; }
+.dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--lc); }
+.ai-pill { flex: none; font: 600 10px var(--f-mono); background: var(--ai-soft); color: var(--ai); border-radius: 4px; padding: 1px 5px; letter-spacing: 0.04em; }
+.node.sel { border-color: var(--lc); box-shadow: 0 0 0 2px var(--lc); }
+.node.link { border-color: var(--lc); }
+.node.lit { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.diagram.focus .node:not(.sel):not(.link):not(.lit) { opacity: var(--dim); }
+svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.wire { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+.wire.faint { stroke-width: 1.5; opacity: 0.7; stroke-dasharray: 4 4; }
+.wire.ai { stroke: var(--ai); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; margin-top: 12px; }
+
+/* panel */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+@media (max-width: 960px) { .panel { position: static; max-height: none; } }
+.panel .kicker { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.panel h2 { font-size: 20px; margin: 2px 0 6px; }
+.panel p { margin: 0 0 10px; }
+.panel h3 { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 14px 0 6px; }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { font: 400 12px var(--f-mono); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; overflow-wrap: anywhere; }
+.tag.btn-tag { cursor: pointer; color: var(--ink); }
+.tag.btn-tag:hover { border-color: var(--accent); }
+.tag.ai { background: var(--ai-soft); color: var(--ai); border-color: transparent; }
+.list { margin: 0; padding-left: 18px; }
+.list li { margin-bottom: 3px; }
+.empty { color: var(--muted); }
+
+/* journeys */
+.who { display: flex; gap: 6px; margin-bottom: 12px; }
+.rail { display: grid; gap: 8px; }
+.jstep { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; font: inherit; color: inherit; }
+.jstep[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.jn { font: 600 13px var(--f-mono); color: var(--accent); background: var(--accent-soft); border-radius: 50%; width: 30px; height: 30px; display: grid; place-items: center; }
+.jt { font-family: var(--f-display); font-size: 16px; font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.jr { color: var(--muted); font-family: var(--f-mono); font-size: 12px; }
+.jd { color: var(--muted); margin-top: 2px; }
+.themebtn { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>EcoLearn system map</h1>
+      <p class="lede">Click any box to see what it does, which files it lives in and what it talks to. Trace a real request through every layer, or follow a student or teacher through the product.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="View">
+      <button role="tab" id="tab-arch" aria-selected="true" aria-controls="view">Architecture</button>
+      <button role="tab" id="tab-journey" aria-selected="false" aria-controls="view">User journeys</button>
+    </div>
+  </header>
+  <div id="view"></div>
+</div>
+<button class="btn themebtn" id="themebtn" type="button">Theme</button>
+
+<script>
+/* ============================== DATA ============================== */
+const LAYERS = [
+  { id: "people",   name: "People",     color: "var(--c-people)" },
+  { id: "web",      name: "Web app",    color: "var(--c-web)" },
+  { id: "api",      name: "API",        color: "var(--c-api)" },
+  { id: "boundary", name: "Boundary",   color: "var(--c-bound)" },
+  { id: "domain",   name: "Domain code", color: "var(--c-domain)" },
+  { id: "data",     name: "Data and AI", color: "var(--c-data)" },
+];
+
+const N = {
+  student: { layer: "people", name: "Student", sub: "Class 11 or 12, CBSE or ISC", does: "Logs in with a username and password a teacher made (or signs up), takes a starting check, follows a roadmap of lessons and answers multiple-choice checks.", links: ["w_public","w_student"] },
+  teacher: { layer: "people", name: "Teacher", sub: "Creates classes, plans lessons", does: "Accounts are created on the server only. Makes a class from pasted names, prints login slips, resets passwords, sets Class 11 or 12, reads class data and asks the teaching assistant for a plan.", links: ["w_teacher"] },
+
+  w_public:  { layer: "web", name: "Landing, login, signup", sub: "web/app/page.tsx, login, signup", files: ["web/app/page.tsx","web/app/login/","web/app/signup/","web/components/landing/"], does: "The public pages. Signup has two steps: account, then interest and class. No interest is pre-selected. No email is collected because the pilot students are minors.", routes: ["POST /api/auth/register","POST /api/auth/login","GET /api/interests"], links: ["w_lib","w_shell"] },
+  w_student: { layer: "web", name: "Student app", sub: "web/app/(app)/*", files: ["web/app/(app)/welcome","start","roadmap","lesson","assessment","review","mix-ups","end-check","settings"], does: "Everything a signed-in student sees: the first-login survey, starting check, roadmap tree, lesson stepper, check questions, revision, mix-ups, end check and settings. A gate in the layout sends students who skipped the survey to /welcome.", routes: ["GET /api/roadmap","GET /api/next-lesson","POST /api/assessment","GET /api/survey","POST /api/diagnostic","GET /api/personal-story"], links: ["w_lib","w_shell"] },
+  w_teacher: { layer: "web", name: "Teacher app", sub: "web/app/teacher/*", files: ["web/app/teacher/login","web/app/teacher/(dashboard)/page.tsx","web/app/teacher/(dashboard)/class/page.tsx","web/components/teaching-assistant.tsx"], does: "Teacher home (class list, create a class) and the class page with four URL tabs: Overview (needs attention, teaching assistant, end check), Insights, Students, Stories and AI.", routes: ["GET /api/teacher/classes","GET /api/teacher/classes/{id}/insights","POST /api/teacher/classes/{id}/plan"], links: ["w_lib","w_shell"] },
+  w_lib:     { layer: "web", name: "web/lib/api.ts", sub: "The only door to the server", files: ["web/lib/api.ts","web/lib/use-fetch.ts"], does: "Every call to the server goes through one typed file. It sends the session cookie, checks response.ok, turns errors into friendly messages and gives slow AI calls a longer timeout.", links: ["a_auth","a_student","a_checks","a_story","a_help","a_teacher"] },
+  w_shell:   { layer: "web", name: "App shell and style", sub: "auth-provider, landing.ts, ui-kit", files: ["web/components/auth-provider.tsx","web/lib/landing.ts","web/components/ui-kit.tsx","web/app/ecolearn.css"], does: "Knows who is signed in and where to send them after login (starting check, open end check, then roadmap). Holds the Replit-based house style; the student's interest tints the whole app.", links: ["w_lib"] },
+  streamlit: { layer: "web", name: "Streamlit (legacy)", sub: "app.py", files: ["app.py","src/ui/"], does: "The older interface. It does not use HTTP: it imports the boundary directly, which is why the boundary must stay free of web code. It has none of the October features.", links: ["boundary"] },
+
+  a_auth:    { layer: "api", name: "Auth routes", sub: "/api/auth/*, /api/profile", files: ["api/main.py","api/ratelimit.py"], routes: ["POST /api/auth/register","POST /api/auth/login","POST /api/auth/logout","GET /api/auth/session","POST /api/auth/change-password","PATCH /api/profile","POST /api/teacher/login"], does: "Logs people in and out and sets the session cookie. Login attempts are rate limited per account and address; a teacher's password reset also lifts a lockout.", links: ["boundary"] },
+  a_student: { layer: "api", name: "Learning routes", sub: "roadmap, lessons, checks", files: ["api/main.py"], routes: ["GET /api/chapters","GET /api/interests","GET /api/roadmap","GET /api/next-lesson","POST /api/assessment","POST /api/lesson-views","POST /api/lesson-views/{id}/time","POST /api/lesson-ratings","GET /api/revision","POST /api/revision","GET /api/mix-ups"], does: "Serves chapters and the roadmap, the next lesson, records reading time and thumbs, grades check answers and serves revision questions and mix-ups.", links: ["boundary"] },
+  a_checks:  { layer: "api", name: "Check and survey routes", sub: "starting check, end check, survey", files: ["api/main.py"], routes: ["GET/POST /api/diagnostic","GET/POST /api/end-check","GET/POST/PUT /api/survey","GET /api/learning-plan"], does: "The starting check (taken once, becomes a learning plan), the end check (opened by the teacher) and the first-login survey with its later updates.", links: ["boundary"] },
+  a_story:   { layer: "api", name: "Personal story routes", sub: "/api/personal-story", files: ["api/main.py"], routes: ["GET /api/personal-story","POST /api/personal-story/report"], does: "Returns the student's story for a concept (ready, pending or none) and lets a student report one. Asking for a story can start the AI writing it in the background.", links: ["boundary"], ai: true },
+  a_help:    { layer: "api", name: "Doubt chat route", sub: "POST /api/help", files: ["api/main.py"], routes: ["POST /api/help"], does: "Answers a student's question from the lesson text. Slow, and answers 503 on this Windows machine because the vector database's grpc library is blocked.", links: ["boundary"], ai: true },
+  a_teacher: { layer: "api", name: "Teacher routes", sub: "/api/teacher/*", files: ["api/main.py"], routes: ["GET/POST /api/teacher/classes","GET /api/teacher/classes/{id}","POST .../students","GET .../insights","GET .../checks","POST .../end-check","GET .../stories","GET .../ai-decisions","GET .../profiles","GET/POST .../plan","GET .../plan/progress","GET /api/teacher/ai-status","POST /api/teacher/students/{id}/reset-password","POST /api/teacher/students/{id}/level","POST /api/teacher/stories/{sid}/{cid}/visibility"], does: "Everything a teacher does. Every route is checked for a teacher session and that the class belongs to that teacher.", links: ["boundary"], ai: true },
+
+  boundary:  { layer: "boundary", name: "src/platform_api.py", sub: "All logic lives behind this one file", files: ["src/platform_api.py"], does: "The architectural rule. Every interface (web API, Streamlit) calls only this file, and it returns plain JSON-serializable dicts: no model objects cross it. It does the orchestration: who owns what, which rule applies, which module to ask. Examples: get_survey, submit_survey, set_student_level, get_class_ai_decisions, generate_class_plan, get_class_plan_progress, get_ai_status, get_personal_story.", links: ["d_auth","d_content","d_path","d_learner","d_story","d_agent","d_metrics","d_store","d_rag","d_llm"] },
+
+  d_auth:    { layer: "domain", name: "Accounts and passwords", sub: "src/auth/", files: ["src/auth/"], does: "Hashes passwords with bcrypt and checks them. Accounts are a username and password only, with no email. New student ids look like stu_ plus a random hex string.", links: ["d_store"] },
+  d_content: { layer: "domain", name: "Lesson service", sub: "src/content/lesson_service.py", files: ["src/content/lesson_service.py"], does: "Reads the pre-written lessons and shapes them for students (story, idea, worked example, where it breaks, takeaway, check). Knows which concepts have a lesson for an interest. Parsed files and scans are cached, so never mutate what it returns.", links: ["f_lessons","d_path"] },
+  d_path:    { layer: "domain", name: "Curriculum and path", sub: "src/curriculum/, src/path/engine.py", files: ["src/curriculum/","src/path/engine.py"], does: "The syllabus (29 chapters, 249 concepts) and the roadmap rules: concepts open in order, chapters are never locked, Done and Mastered ticks. Concept ids are never renamed.", links: ["f_curr"] },
+  d_learner: { layer: "domain", name: "Learner model", sub: "src/learner/ diagnostic, plan, survey", files: ["src/learner/diagnostic.py","src/learner/plan.py","src/learner/survey.py"], does: "Grades the starting check with no AI (each wrong option maps to a misconception), builds the learning plan, handles the survey and the traits that shape lessons. Mastery needs two different questions right.", links: ["f_diag","f_survey","d_store"] },
+  d_story:   { layer: "domain", name: "Personal story agents", sub: "src/learner/personal_story.py", files: ["src/learner/personal_story.py","prompts/personal_story_writer.txt","prompts/personal_story_critic.txt"], does: "A writer model drafts a short story around one hobby. Rules check it (word limits, no digits, no links, all three fields present), then a second critic model checks it against the reviewed lesson. Up to three drafts. Anything that fails leaves the lesson's own story in place. Cached per student and concept.", links: ["d_llm","d_store","d_content"], ai: true },
+  d_agent:   { layer: "domain", name: "Teacher agent", sub: "src/agents/teacher_agent.py", files: ["src/agents/teacher_agent.py","prompts/teacher_agent.txt"], does: "A tool-calling agent that reads one class through five read-only tools (overview, misconceptions, concept, takeaway, students) and writes a five-section plan. Students appear as S1, S2... so names never reach the model. Falls back to a labelled rules plan.", links: ["d_llm","d_metrics","d_store"], ai: true },
+  d_llm:     { layer: "domain", name: "LLM client", sub: "src/llm/client.py", files: ["src/llm/client.py"], does: "One OpenAI-compatible client with a fallback chain (LLM_MODEL, then LLM_FALLBACK_MODELS). Logs every call, tokens and latency to a usage sink, and has a one-minute-cached health() check. Off when LLM_MODEL is empty.", links: ["x_omni","d_store"], ai: true },
+  d_metrics: { layer: "domain", name: "Metrics", sub: "src/progress/metrics.py", files: ["src/progress/metrics.py","scripts/pilot_report.py"], does: "Class insights, before and after gains for the end check, ranked misconceptions and AI cost per student. The agent and the dashboard read the same numbers.", links: ["d_store"] },
+  d_store:   { layer: "domain", name: "Progress store", sub: "src/progress/store.py", files: ["src/progress/store.py"], does: "All database access. Migrations are additive: tables are created and columns added inside _connect(), so older data keeps working.", links: ["db"] },
+  d_rag:     { layer: "domain", name: "Doubt chat pipeline", sub: "src/rag/, src/pipeline.py", files: ["src/rag/","src/pipeline.py"], does: "Looks up the relevant lesson passages in a local vector index and asks a model to answer from them. Older code that talks to Google's SDK directly.", links: ["x_chroma","x_gemini"], ai: true },
+
+  db:        { layer: "data", name: "SQLite progress.db", sub: "16 tables", files: ["data/progress.db (local, gitignored)"], tables: ["students","teachers","classes","progress","lesson_views","answers","lesson_ratings","diagnostic_answers","end_check_answers","review_answers","learner_profiles","learner_survey","learner_survey_history","personal_stories","class_plans","llm_calls"], does: "Accounts, classes, progress, every answer, reading time, survey answers and history, stories with their decision trails, teaching-assistant plans and every model call. ECOLEARN_PROGRESS_DB points the server at a different file (the demo uses data/demo.db).", links: [] },
+  f_lessons: { layer: "data", name: "Authored lessons", sub: "642 files, 14 chapters x 5 interests", files: ["{concept}__{interest}.json","data/media/famous/"], does: "Pre-written, reviewed lessons with images and check questions. Written by Claude Code sessions straight to files, validated by scripts/validate_lessons.py. Check questions are multiple choice with each wrong option mapped to a misconception.", links: [] },
+  f_curr:    { layer: "data", name: "Curriculum YAML", sub: "physics.yaml, content_scope.yaml", files: ["data/curriculum/physics.yaml","data/content_scope.yaml","data/interests.yaml"], does: "The full syllabus and the agreed content scope. Every concept carries which boards (CBSE, ISC) it applies to.", links: [] },
+  f_diag:    { layer: "data", name: "Starting check bank", sub: "diagnostic.yaml", files: ["data/diagnostic.yaml"], does: "The 8-question starting check and the end-check forms, with hobbies and distractor-to-misconception mapping.", links: [] },
+  f_survey:  { layer: "data", name: "Survey definition", sub: "survey.yaml", files: ["data/survey.yaml"], does: "The fixed options for the first-login questions. Taps only, every question skippable.", links: [] },
+  x_omni:    { layer: "data", name: "OmniRoute gateway", sub: "localhost:20128", files: [".env: LLM_BASE_URL, LLM_MODEL"], does: "A local gateway the user runs. Today it forwards to the user's Gemini key: gemini-3.1-flash-lite first, gemini-3.7-flash as backup. Moving to the paid Gemini API later is a config change.", links: ["x_gemini"], ai: true },
+  x_gemini:  { layer: "data", name: "Gemini models", sub: "external", files: [], does: "The model provider. Live AI is allowed in exactly three places: the doubt chat, the teacher agent and personal stories. Each has a non-AI fallback.", links: [], ai: true },
+  x_chroma:  { layer: "data", name: "Vector index", sub: "chroma_db/", files: ["chroma_db/ (rebuilt with src/rag/build_index.py)"], does: "Embeddings of the lesson text for the doubt chat. Local and gitignored.", links: [] },
+};
+
+/* Each trace is an ordered path of boxes, one caption per step. */
+const TRACES = {
+  login: { name: "Log in", steps: [
+    ["student", "A student types a username and password"],
+    ["w_public", "The login page calls login() in api.ts"],
+    ["w_lib", "api.ts sends POST /api/auth/login with credentials"],
+    ["a_auth", "The rate limiter counts the attempt, then the route calls the boundary"],
+    ["boundary", "platform_api checks the account and returns the profile as a plain dict"],
+    ["d_auth", "bcrypt compares the password hash"],
+    ["d_store", "The store looks up the student row"],
+    ["db", "students table read. The API sets the session cookie and the web app chooses the first screen: survey, starting check, open end check, or roadmap"],
+  ]},
+  lesson: { name: "Open a lesson", steps: [
+    ["student", "A student opens a concept from the roadmap"],
+    ["w_student", "The lesson page asks for the next lesson and the personal story"],
+    ["w_lib", "GET /api/next-lesson and GET /api/personal-story"],
+    ["a_student", "The learning route resolves who is asking from the cookie"],
+    ["boundary", "platform_api picks the concept and checks it is open"],
+    ["d_path", "The path engine applies the unlock rules"],
+    ["d_content", "The lesson service shapes the reviewed lesson for this student"],
+    ["f_lessons", "The authored lesson file is read (cached). Nothing is generated"],
+    ["d_story", "In parallel, the story module sees no story yet and starts one in the background"],
+    ["d_llm", "A writer model drafts, rules check, a critic model verifies (up to three tries)"],
+    ["x_omni", "The call goes out through the local gateway"],
+    ["db", "The result and its decision trail are saved. The page polls and swaps the story in; the lesson's own story stays one click away"],
+  ]},
+  check: { name: "Answer a check", steps: [
+    ["student", "A student picks an option and says how sure they are"],
+    ["w_student", "The check page posts the chosen option"],
+    ["w_lib", "POST /api/assessment"],
+    ["a_student", "The learning route passes it on"],
+    ["boundary", "platform_api grades it against the lesson's answer key. No AI call"],
+    ["f_lessons", "The correct option and the misconception behind each wrong option come from the lesson file"],
+    ["d_learner", "Mastery rule: two different questions right makes a concept mastered; one right makes it cleared"],
+    ["db", "answers and progress are written. A wrong answer is replayed as what to fix and shows up in Mix-ups"],
+  ]},
+  plan: { name: "Teacher makes a plan", steps: [
+    ["teacher", "A teacher presses Plan my next lesson"],
+    ["w_teacher", "The teaching assistant card starts the request and polls progress every second"],
+    ["w_lib", "POST /api/teacher/classes/{id}/plan, and GET .../plan/progress"],
+    ["a_teacher", "The route checks this is the teacher's own class"],
+    ["boundary", "platform_api builds the toolbox with students as S1, S2... and records live progress"],
+    ["d_agent", "The agent calls its five read-only tools; each call appears on the card as it happens"],
+    ["d_metrics", "The tools read the same numbers as the dashboard"],
+    ["d_llm", "The model decides which tool to call next, then writes the five-section plan"],
+    ["x_omni", "Requests go through the gateway to Gemini; if the first model fails the chain moves on"],
+    ["db", "The plan is saved with its trace, names are filled in on the server, and a plan under a minute old is reused. If every model fails, a labelled rules plan is written instead"],
+  ]},
+  doubt: { name: "Ask a doubt", steps: [
+    ["student", "A student asks a question about a lesson"],
+    ["w_student", "The chat box sends it"],
+    ["w_lib", "POST /api/help (long timeout)"],
+    ["a_help", "The route passes it to the boundary"],
+    ["boundary", "platform_api imports the pipeline only when needed, so a blocked library cannot take the API down"],
+    ["d_rag", "The pipeline searches the lesson passages, then asks a model"],
+    ["x_chroma", "Nearest passages come from the local vector index"],
+    ["x_gemini", "A model answers from those passages. On this machine the vector library is blocked, so the API answers 503"],
+  ]},
+};
+
+/* Journeys: what the person sees, what is called, what is written. */
+const JOURNEYS = {
+  student: { name: "Student", steps: [
+    { t: "Sign in", route: "/login", d: "A teacher-made username and password, or self sign-up.", screen: "Login form. Too many wrong tries locks the account for a while.", api: ["POST /api/auth/login"], fn: "platform_api login", writes: ["students (last login)"], ai: "none", trace: "login", nodes: ["w_public","a_auth","boundary","d_auth","db"] },
+    { t: "Getting to know you", route: "/welcome", d: "Hobbies, how well they know them, focus, how they like to learn, feelings about physics.", screen: "Five parts of taps, about four minutes, every question optional, taken once. New students are sent here by a gate in the app layout.", api: ["GET /api/survey","POST /api/survey"], fn: "get_survey, submit_survey", writes: ["learner_survey","learner_profiles"], ai: "none", trace: null, nodes: ["w_student","a_checks","boundary","d_learner","f_survey","db"] },
+    { t: "Starting check", route: "/start", d: "Eight questions with a Not sure option, taken once. The result becomes a learning plan.", screen: "Questions, then a plan that skips what they know and points at the mix-ups to fix. Skippable per device.", api: ["GET /api/diagnostic","POST /api/diagnostic","GET /api/learning-plan"], fn: "diagnostic grading, learning plan", writes: ["diagnostic_answers","learner_profiles"], ai: "none", trace: null, nodes: ["w_student","a_checks","boundary","d_learner","f_diag","db"] },
+    { t: "Roadmap", route: "/roadmap", d: "A tree: chapters, then concepts, then the parts of each lesson.", screen: "Done and Mastered ticks, Next up, Locked and Coming soon. Chapters never lock; concepts open in order. Students see only their own class's chapters.", api: ["GET /api/roadmap","GET /api/chapters","GET /api/interests"], fn: "roadmap and concept locks", writes: [], ai: "none", trace: null, nodes: ["w_student","a_student","boundary","d_path","f_curr","f_lessons"] },
+    { t: "Lesson", route: "/lesson", d: "A story, the idea, a worked example, where it breaks, the takeaway, then the check.", screen: "Stepper, or everything on one page. Shaped by the survey. A personal story about their hobby on top, with the reviewed story in a collapsible box. Report and thumbs buttons.", api: ["GET /api/next-lesson","GET /api/personal-story","POST /api/lesson-views","POST /api/lesson-views/{id}/time","POST /api/lesson-ratings"], fn: "lesson view, get_personal_story", writes: ["lesson_views","lesson_ratings","personal_stories","llm_calls"], ai: "Live AI in the background: the personal story", trace: "lesson", nodes: ["w_student","a_student","a_story","boundary","d_content","d_story","d_llm","x_omni","db"] },
+    { t: "Check question", route: "/assessment", d: "Multiple choice with How sure are you? A to D keys.", screen: "Right answer: confetti and the road to mastered. Wrong: a red and green replay framed as what to fix.", api: ["POST /api/assessment"], fn: "check grading (no AI)", writes: ["answers","progress"], ai: "none", trace: "check", nodes: ["w_student","a_student","boundary","d_learner","f_lessons","db"] },
+    { t: "Review and mix-ups", route: "/review, /mix-ups", d: "A fresh question about a day later, and a list of each misconception.", screen: "Mix-ups are grouped as to fix, check again or fixed. Mastered needs two different questions right.", api: ["GET /api/revision","GET /api/revision/question","POST /api/revision","GET /api/mix-ups"], fn: "revision queue, mix-up history", writes: ["review_answers","progress"], ai: "none", trace: null, nodes: ["w_student","a_student","boundary","d_learner","db"] },
+    { t: "End check", route: "/end-check", d: "Opens only when the teacher opens it. The same eight ideas with new questions.", screen: "Ends with a before and after comparison for that student.", api: ["GET /api/end-check","POST /api/end-check"], fn: "end check forms (counterbalanced)", writes: ["end_check_answers"], ai: "none", trace: null, nodes: ["w_student","a_checks","boundary","d_learner","f_diag","db"] },
+    { t: "Ask a doubt", route: "(chat box)", d: "A question answered from the lesson text.", screen: "Slow, and unavailable on this machine for now.", api: ["POST /api/help"], fn: "ask_help", writes: [], ai: "Live AI: the doubt chat", trace: "doubt", nodes: ["w_student","a_help","boundary","d_rag","x_chroma","x_gemini"] },
+    { t: "Settings", route: "/settings", d: "Name, interest, and the About you answers.", screen: "The class is read-only: only a teacher can move a student between Class 11 and 12. Updating survey answers keeps the old ones in a history table.", api: ["PATCH /api/profile","PUT /api/survey","POST /api/auth/change-password"], fn: "update_survey", writes: ["students","learner_survey","learner_survey_history"], ai: "none", trace: null, nodes: ["w_student","a_auth","a_checks","boundary","d_store","db"] },
+  ]},
+  teacher: { name: "Teacher", steps: [
+    { t: "Sign in", route: "/teacher/login", d: "Teacher accounts are made on the server with a script.", screen: "A separate login page. There is no public teacher signup.", api: ["POST /api/teacher/login"], fn: "teacher login", writes: ["teachers"], ai: "none", trace: "login", nodes: ["w_teacher","a_auth","boundary","d_auth","db"] },
+    { t: "Create a class", route: "/teacher", d: "Paste student names; the app makes usernames and passwords.", screen: "Printable login slips. Passwords are shown once.", api: ["POST /api/teacher/classes","POST /api/teacher/classes/{id}/students"], fn: "class and student creation", writes: ["classes","students"], ai: "none", trace: null, nodes: ["w_teacher","a_teacher","boundary","d_auth","db"] },
+    { t: "Overview", route: "/teacher/class?tab=overview", d: "A four-number snapshot and who needs attention.", screen: "Needs attention is worked out in the browser: students who have not started, gone quiet, are sure but wrong, skim, skipped the survey or have not finished the end check.", api: ["GET /api/teacher/classes/{id}","GET .../insights","GET .../checks","GET .../profiles"], fn: "class insights", writes: [], ai: "none", trace: null, nodes: ["w_teacher","a_teacher","boundary","d_metrics","db"] },
+    { t: "Teaching assistant", route: "/teacher/class?tab=overview", d: "Plans the next lesson from the class's data.", screen: "A live list of what the assistant is really doing, an AI is up badge, and the finished plan with its steps. A labelled rules plan if the AI is down.", api: ["POST .../plan","GET .../plan/progress","GET /api/teacher/ai-status"], fn: "generate_class_plan, get_class_plan_progress, get_ai_status", writes: ["class_plans","llm_calls"], ai: "Live AI: the teacher agent (students appear only as S1, S2...)", trace: "plan", nodes: ["w_teacher","a_teacher","boundary","d_agent","d_metrics","d_llm","x_omni","db"] },
+    { t: "Insights", route: "?tab=insights", d: "First-try accuracy, common misconceptions, hardest concepts, results by interest.", screen: "Plus Getting to know the class: what students said about themselves next to how they actually read.", api: ["GET .../insights","GET .../profiles"], fn: "class insights, learner profiles", writes: [], ai: "none", trace: null, nodes: ["w_teacher","a_teacher","boundary","d_metrics","db"] },
+    { t: "Students", route: "?tab=students", d: "The student table.", screen: "Reset a password (also lifts a lockout), move a student between Class 11 and 12, add students.", api: ["POST .../reset-password","POST .../level","POST .../students"], fn: "reset password, set_student_level", writes: ["students"], ai: "none", trace: null, nodes: ["w_teacher","a_teacher","boundary","d_auth","db"] },
+    { t: "Stories and AI", route: "?tab=ai", d: "Read, hide or restore each personal story; see how the AI decided.", screen: "Students' reports come first. The decision log shows each story's rule and critic steps, safe fallbacks, plans by AI versus rules and model calls.", api: ["GET .../stories","POST .../visibility","GET .../ai-decisions"], fn: "get_class_ai_decisions", writes: ["personal_stories"], ai: "Reads what the AI wrote; calls nothing", trace: null, nodes: ["w_teacher","a_teacher","boundary","d_story","db"] },
+    { t: "Open the end check", route: "?tab=overview", d: "Switch the end check on or off for the class.", screen: "After it is open and taken, a before and after chart appears for paired answers.", api: ["POST .../end-check","GET .../checks"], fn: "set_class_end_check", writes: ["classes"], ai: "none", trace: null, nodes: ["w_teacher","a_teacher","boundary","d_metrics","db"] },
+  ]},
+};
+
+/* ============================== STATE AND HELPERS ============================== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const layerOf = (id) => LAYERS.find((l) => l.id === N[id].layer);
+let view = "arch";
+let selected = "boundary";
+let trace = null, traceStep = 0, playing = null;
+let who = "student", jIndex = 0;
+let litNodes = null;   // set when a journey step highlights a path
+
+function chipsFor(list, cls = "tag") { return list.map((x) => `<span class="${cls}">${esc(x)}</span>`).join(""); }
+
+/* ============================== PANEL ============================== */
+function nodePanel(id) {
+  const n = N[id], L = layerOf(id);
+  const links = (n.links || []).map((l) => `<button class="tag btn-tag" data-go="${l}">${esc(N[l].name)}</button>`).join("");
+  const from = Object.keys(N).filter((k) => (N[k].links || []).includes(id)).map((l) => `<button class="tag btn-tag" data-go="${l}">${esc(N[l].name)}</button>`).join("");
+  return `<div class="kicker" style="color:${L.color}">${esc(L.name)}${n.ai ? ' <span class="ai-pill">AI</span>' : ""}</div>
+    <h2>${esc(n.name)}</h2><p>${esc(n.does)}</p>
+    ${n.files && n.files.length ? `<h3>Where it lives</h3><div class="tags">${chipsFor(n.files)}</div>` : ""}
+    ${n.routes ? `<h3>Routes</h3><div class="tags">${chipsFor(n.routes)}</div>` : ""}
+    ${n.tables ? `<h3>Tables</h3><div class="tags">${chipsFor(n.tables)}</div>` : ""}
+    ${links ? `<h3>Talks to</h3><div class="tags">${links}</div>` : ""}
+    ${from ? `<h3>Called by</h3><div class="tags">${from}</div>` : ""}`;
+}
+
+function journeyPanel() {
+  const s = JOURNEYS[who].steps[jIndex];
+  return `<div class="kicker">${esc(JOURNEYS[who].name)} · step ${jIndex + 1} of ${JOURNEYS[who].steps.length}</div>
+    <h2>${esc(s.t)}</h2><p>${esc(s.d)}</p>
+    <h3>What they see</h3><p>${esc(s.screen)}</p>
+    <h3>Calls</h3><div class="tags">${chipsFor(s.api)}</div>
+    <h3>Boundary function</h3><div class="tags">${chipsFor([s.fn])}</div>
+    <h3>Writes</h3>${s.writes.length ? `<div class="tags">${chipsFor(s.writes)}</div>` : '<p class="empty">Nothing is saved.</p>'}
+    <h3>AI</h3>${s.ai === "none" ? '<p class="empty">No AI on this step.</p>' : `<div class="tags"><span class="tag ai">${esc(s.ai)}</span></div>`}
+    <h3>Behind the scenes</h3>
+    <div class="ctrls"><button class="btn primary" id="see-arch">${s.trace ? "Trace it through the system" : "Show it in the architecture"}</button></div>`;
+}
+
+/* ============================== ARCHITECTURE VIEW ============================== */
+function renderArch() {
+  const lay = LAYERS.map((L) => `
+    <div class="layer" style="--lc:${L.color}">
+      <div class="layer-label"><i></i>${esc(L.name)}</div>
+      <div class="nodes">${Object.keys(N).filter((k) => N[k].layer === L.id).map((k) => {
+        const n = N[k];
+        return `<button class="node" data-id="${k}" style="--lc:${L.color}">
+          <div class="nm"><i class="dot"></i><span>${esc(n.name)}</span>${n.ai ? '<em class="ai-pill" style="font-style:normal">AI</em>' : ""}</div>
+          <div class="sb">${esc(n.sub)}</div></button>`;
+      }).join("")}</div>
+    </div>`).join("");
+
+  $("#view").innerHTML = `<div class="main">
+    <div>
+      <section class="trace" aria-label="Trace a request">
+        <h2>Trace a request</h2>
+        <div class="chips" id="chips">${Object.keys(TRACES).map((k) => `<button class="chip" data-trace="${k}" aria-pressed="false">${esc(TRACES[k].name)}</button>`).join("")}</div>
+        <div class="steps" id="steps" aria-live="polite"><span class="empty">Pick a request to watch it travel through the layers, or click any box.</span></div>
+      </section>
+      <div class="diagram" id="diagram">${lay}<svg class="wires" id="wires" aria-hidden="true"></svg></div>
+      <div class="legend"><span>Click a box for details</span><span>Teal outline: on the current path</span><span><em class="ai-pill" style="font-style:normal">AI</em> calls a live model</span><span>Pink line: an AI call</span></div>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </div>`;
+  paintArch();
+}
+
+function wire(a, b, cls) {
+  const d = $("#diagram"), ra = $(`[data-id="${a}"]`, d), rb = $(`[data-id="${b}"]`, d);
+  if (!ra || !rb) return "";
+  const O = d.getBoundingClientRect(), A = ra.getBoundingClientRect(), B = rb.getBoundingClientRect();
+  const cx = (r) => r.left - O.left + r.width / 2, top = (r) => r.top - O.top, bot = (r) => r.bottom - O.top, cy = (r) => r.top - O.top + r.height / 2;
+  let x1, y1, x2, y2, path;
+  if (Math.abs(cy({ top: A.top, height: A.height }) - cy({ top: B.top, height: B.height })) < 8) {
+    const left = A.left < B.left; x1 = left ? A.right - O.left : A.left - O.left; x2 = left ? B.left - O.left : B.right - O.left; y1 = y2 = cy({ top: A.top, height: A.height });
+    path = `M${x1},${y1} L${x2},${y2}`;
+  } else {
+    const down = A.top < B.top;
+    x1 = cx(A); y1 = down ? bot(A) : top(A); x2 = cx(B); y2 = down ? top(B) : bot(B);
+    const m = (y1 + y2) / 2; path = `M${x1},${y1} C${x1},${m} ${x2},${m} ${x2},${y2}`;
+  }
+  return `<path class="wire ${cls || ""}" d="${path}"/>`;
+}
+
+function paintArch() {
+  const d = $("#diagram");
+  if (!d) return;
+  d.querySelectorAll(".node").forEach((el) => el.classList.remove("sel", "link", "lit"));
+  let wires = "";
+  const path = trace ? TRACES[trace].steps.slice(0, traceStep + 1).map((s) => s[0]) : litNodes;
+  if (path) {
+    d.classList.add("focus");
+    path.forEach((id) => $(`[data-id="${id}"]`, d)?.classList.add("lit"));
+    if (trace) {
+      const ids = path;
+      for (let i = 1; i < ids.length; i++) wires += wire(ids[i - 1], ids[i], N[ids[i]].ai && N[ids[i - 1]].ai ? "ai" : "");
+    } else {
+      N.boundary && path.forEach((id, i) => { if (i) wires += wire(path[i - 1], id, ""); });
+    }
+  } else {
+    d.classList.add("focus");
+    $(`[data-id="${selected}"]`, d)?.classList.add("sel");
+    (N[selected].links || []).forEach((l) => { $(`[data-id="${l}"]`, d)?.classList.add("link"); wires += wire(selected, l, "faint"); });
+    Object.keys(N).filter((k) => (N[k].links || []).includes(selected)).forEach((k) => { $(`[data-id="${k}"]`, d)?.classList.add("link"); wires += wire(k, selected, "faint"); });
+  }
+  $("#wires").innerHTML = wires;
+  paintSteps();
+  $("#panel").innerHTML = trace ? tracePanel() : nodePanel(selected);
+}
+
+function tracePanel() {
+  const cur = TRACES[trace].steps[traceStep][0];
+  return nodePanel(cur);
+}
+
+function paintSteps() {
+  const box = $("#steps");
+  $("#chips").querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.trace === trace)));
+  if (!trace) { box.innerHTML = '<span class="empty">Pick a request to watch it travel through the layers, or click any box.</span>'; return; }
+  const T = TRACES[trace], s = T.steps[traceStep];
+  box.innerHTML = `<div class="step-now"><span class="step-n">${traceStep + 1} / ${T.steps.length}</span>
+      <div class="step-text"><b>${esc(N[s[0]].name)}</b>${esc(s[1])}</div></div>
+    <div class="ctrls">
+      <button class="btn" id="prev" ${traceStep === 0 ? "disabled" : ""}>Back</button>
+      <button class="btn primary" id="next" ${traceStep === T.steps.length - 1 ? "disabled" : ""}>Next step</button>
+      <button class="btn" id="play">${playing ? "Pause" : "Play"}</button>
+      <button class="btn" id="clear">Clear</button>
+    </div>`;
+}
+
+function stopPlay() { if (playing) { clearInterval(playing); playing = null; } }
+function setTrace(k) { stopPlay(); trace = k; traceStep = 0; litNodes = null; paintArch(); }
+
+/* ============================== JOURNEY VIEW ============================== */
+function renderJourney() {
+  const J = JOURNEYS[who];
+  $("#view").innerHTML = `<div class="main">
+    <div>
+      <div class="who" role="group" aria-label="Who">${Object.keys(JOURNEYS).map((k) => `<button class="chip" data-who="${k}" aria-pressed="${k === who}">${esc(JOURNEYS[k].name)}</button>`).join("")}</div>
+      <div class="rail">${J.steps.map((s, i) => `<button class="jstep" data-j="${i}" ${i === jIndex ? 'aria-current="true"' : ""}>
+        <span class="jn">${i + 1}</span>
+        <span><span class="jt">${esc(s.t)} <span class="jr">${esc(s.route)}</span>${s.ai !== "none" && !/^Reads/.test(s.ai) ? '<span class="ai-pill">AI</span>' : ""}</span>
+        <span class="jd" style="display:block">${esc(s.d)}</span></span></button>`).join("")}</div>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite">${journeyPanel()}</aside>
+  </div>`;
+}
+
+/* ============================== EVENTS ============================== */
+function setView(v) {
+  stopPlay(); view = v;
+  $("#tab-arch").setAttribute("aria-selected", String(v === "arch"));
+  $("#tab-journey").setAttribute("aria-selected", String(v === "journey"));
+  v === "arch" ? renderArch() : renderJourney();
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "tab-arch") { trace = null; litNodes = null; return setView("arch"); }
+  if (t.id === "tab-journey") return setView("journey");
+  if (t.id === "themebtn") {
+    const root = document.documentElement, dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = root.dataset.theme || (dark ? "dark" : "light");
+    root.dataset.theme = cur === "dark" ? "light" : "dark"; return paintArch && view === "arch" && paintArch();
+  }
+  if (t.classList.contains("node")) { stopPlay(); trace = null; litNodes = null; selected = t.dataset.id; return paintArch(); }
+  if (t.dataset.go) { stopPlay(); trace = null; litNodes = null; selected = t.dataset.go; if (view !== "arch") setView("arch"); else paintArch(); return; }
+  if (t.dataset.trace) return setTrace(trace === t.dataset.trace ? null : t.dataset.trace);
+  if (t.id === "next") { traceStep++; return paintArch(); }
+  if (t.id === "prev") { traceStep--; return paintArch(); }
+  if (t.id === "clear") { stopPlay(); trace = null; litNodes = null; return paintArch(); }
+  if (t.id === "play") {
+    if (playing) { stopPlay(); return paintSteps(); }
+    if (traceStep >= TRACES[trace].steps.length - 1) traceStep = 0;
+    playing = setInterval(() => { if (traceStep >= TRACES[trace].steps.length - 1) { stopPlay(); } else traceStep++; paintArch(); }, 1500);
+    return paintArch();
+  }
+  if (t.dataset.who) { who = t.dataset.who; jIndex = 0; return renderJourney(); }
+  if (t.dataset.j) { jIndex = +t.dataset.j; return renderJourney(); }
+  if (t.id === "see-arch") {
+    const s = JOURNEYS[who].steps[jIndex];
+    view = "arch"; $("#tab-arch").setAttribute("aria-selected", "true"); $("#tab-journey").setAttribute("aria-selected", "false");
+    renderArch();
+    if (s.trace) setTrace(s.trace); else { trace = null; litNodes = s.nodes; paintArch(); }
+    $("#diagram").scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+});
+addEventListener("resize", () => view === "arch" && paintArch());
+try { document.fonts && document.fonts.ready.then(() => view === "arch" && paintArch()); } catch (_) {}
+renderArch();
+</script>
