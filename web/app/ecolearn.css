@@ -225,3 +225,6 @@ a.side-action{text-decoration:none;color:inherit}
 .dash-tab[aria-selected="true"]{background:var(--surface);color:var(--brand);box-shadow:0 2px 8px rgba(51,67,51,.1)}
 @media(max-width:767px){.dash-tabs{top:64px}}
 @media(min-width:900px){.dash-metrics.six{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* A step slides in by 28px; its pre-animation position must not leave scrollable overflow behind on a phone. clip (not hidden) keeps position:sticky working. */
+.page-shell{overflow-x:clip}

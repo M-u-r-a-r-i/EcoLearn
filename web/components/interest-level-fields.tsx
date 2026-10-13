@@ -54,7 +54,7 @@ export function InterestLevelFields({
       <fieldset className="field-group" disabled={disabled}>
         <legend>Learn through…</legend>
         <p className="text-sm text-muted-foreground">
-          Pick one. Your lessons are taught through it. Your hobbies (next) shape the short story
+          Pick one. Your lessons are taught through it. Your hobbies shape the short story
           at the start of each lesson.
         </p>
         {error && <p className="form-error">{error}</p>}

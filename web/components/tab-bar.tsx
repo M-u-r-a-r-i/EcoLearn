@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,16 @@ export function TabBar<T extends string>({
   label: string;
 }) {
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // On a phone the strip scrolls sideways. Bring the open tab into view (a link straight to ?tab=ai would
+  // otherwise leave its own tab half off-screen). Horizontal only; the page itself is never scrolled.
+  useEffect(() => {
+    const el = refs.current[value];
+    const strip = el?.parentElement;
+    if (!el || !strip) return;
+    const left = el.offsetLeft - (strip.clientWidth - el.offsetWidth) / 2;
+    strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [value]);
 
   function onKey(e: KeyboardEvent, index: number) {
     const last = tabs.length - 1;

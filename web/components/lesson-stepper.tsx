@@ -112,7 +112,7 @@ export function LessonStepper({
                   onClick={() => go(i)}
                   aria-current={i === index ? "step" : undefined}
                   aria-label={`Step ${i + 1} of ${steps.length}: ${s.label}`}
-                  className="group flex w-full flex-col gap-1 focus-visible:outline-none"
+                  className="group -my-2.5 flex w-full flex-col gap-1 py-2.5 focus-visible:outline-none"
                 >
                   <span
                     className={cn(

@@ -405,7 +405,7 @@ export function whatWeHeard(
         ? { emoji: "🌱", text: `New to ${name}? Your ${name} examples will use plain words and explain any terms.` }
         : info.level === "expert"
           ? { emoji: "🏆", text: `You know ${name} well, so your examples will use its real terms and skip the basics.` }
-          : { emoji: "🎯", text: `Your examples will be built around ${name}, pitched at someone who knows it.` },
+          : { emoji: "🎯", text: `Your examples will be built around ${name}.` },
     );
   }
   if (t.focus.span === "short") {

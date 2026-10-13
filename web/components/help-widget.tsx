@@ -125,6 +125,7 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
             placeholder="e.g. Why is displacement a vector but distance isn't?"
             disabled={loading}
             aria-label="Ask a question"
+            maxLength={600}
           />
           <Button
             type="submit"

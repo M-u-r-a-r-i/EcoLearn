@@ -3075,3 +3075,35 @@ poor analogy; "online casino" would have shown that label over a badminton story
   data to improve Google's products) and use a paid key for the pilot; the consent note; a person reading the pilot
   chapters; fairness testing; an outside child-safety review. Rerun `eval_stories.py` and `redteam_stories.py` after any
   model change.
+
+
+## 9zzzzzzzzzzzzzzzzzz. Browser check of the merged screens, and what it fixed (2026-10-13)
+
+**Checked** (demo database, in the browser pane; phone 375 px, light theme unless noted): signup (two steps, no interest
+pre-selected, the explainer, button disabled until a choice, then the survey gate), the survey including the own-hobby box,
+the starting-check page, roadmap, settings, a full lesson (6 steps, live personal story for an own hobby), the wrong-answer
+check feedback, mix-ups, review, the end check (all 8 questions and the before/after result, as `kabir.s`), and the teacher
+home plus all four class tabs. Teacher password reset: the slip shows once with a print button; the old password then
+answers 401 and the new one 200 (the earlier "new password didn't work" report was NOT reproduced; likely two servers or
+databases at once). Not checked: the dark theme on the new screens, a screen reader, a real phone (the pane emulates one).
+
+**Found and fixed.**
+1. `/teacher/*` returned 404 on a fresh `next dev` while student routes were fine: a stale `web/.next` (Turbopack cache).
+   Deleting `web/.next` and restarting fixed it. Same gotcha as §7; if `/teacher` ever 404s, delete `web/.next`.
+2. `hobby-picker.tsx`: the own-hobby box now refuses unsuitable labels where they are typed (same list as the server's
+   `_UNSUITABLE_HOBBY_RE`); before, the error appeared only at the last survey step, four screens away.
+3. `interest-level-fields.tsx`: the explainer said "Your hobbies (next)…", which is wrong in Settings. Reworded.
+4. `survey-flow.tsx`: a student who skipped the depth questions was told their examples were "pitched at someone who knows
+   it". Now neutral.
+5. `ecolearn.css`: `.page-shell{overflow-x:clip}`. A step slides in from 28 px right, and its start position stayed in
+   the page's scrollable width (387 vs 375 px) after the animation ended. `clip` keeps `position:sticky` working.
+6. `lesson-stepper.tsx`: the step dots were an 8 px tall tap target on a phone; invisible padding makes it about 28 px
+   without moving the layout.
+7. `help-widget.tsx`: the question box stops at 600 characters, matching the server's limit.
+8. `tab-bar.tsx`: on a phone the open tab is scrolled into view (a link to `?tab=ai` left its tab half off-screen).
+
+**Learned.**
+- Measure width AFTER animations settle, and treat a `scrollWidth` that returns to the viewport width after any DOM
+  change as a stale layout, then confirm with a real scroll attempt and the animation's end state.
+- A hidden browser pane reports a 0 px viewport; use a screenshot or the emulated size for layout checks.
+- `scripts/seed_demo.py --reset` was rerun afterwards: the check created a test student and changed one password.

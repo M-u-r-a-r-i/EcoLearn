@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 export const MAX_HOBBIES = 8;
 const MAX_OWN = 2;
 const OWN_HOBBY = /^[A-Za-z][A-Za-z &'-]{1,23}$/;
+// Mirrors the server's block list (src/learner/diagnostic.py, _UNSUITABLE_HOBBY_RE) so a student hears about it
+// where they typed it, not four screens later when the survey is sent. The server is still the authority.
+const UNSUITABLE_HOBBY =
+  /(?<![a-z])(gambl|bet(s|ting)?(?![a-z])|casino|poker|lotter|vap(e|es|ing)(?![a-z])|smok|cigar|drug|weed(?![a-z])|alcohol|beer|wine(?![a-z])|whisk|vodka|drunk|bomb|weapon|guns?(?![a-z])|sex|porn|nude|dating|kiss|kill|suicid|self.?harm|hurt.?my|ignore|instruction|prompt|jailbreak)/i;
 
 export function HobbyPicker({
   options,
@@ -45,6 +49,10 @@ export function HobbyPicker({
     if (!label) return;
     if (!OWN_HOBBY.test(label)) {
       setOwnError("Keep it short: letters and spaces, up to 24 characters.");
+      return;
+    }
+    if (UNSUITABLE_HOBBY.test(label)) {
+      setOwnError("That one can't be used for lessons. Pick one from the list, or type a different one.");
       return;
     }
     if (ownOnes.length >= MAX_OWN || full) {
