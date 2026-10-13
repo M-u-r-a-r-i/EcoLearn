@@ -121,7 +121,7 @@ export function LessonStory({
         <p className="story-limit">
           <ShieldCheck className="size-3.5" aria-hidden />
           Written for you by EcoLearn&apos;s AI from this lesson, and checked by a second AI. The
-          lesson below was written and reviewed by people.
+          lesson below was prepared in advance and checked; it is the same for everyone.
         </p>
         <ReportStory
           conceptId={conceptId}

@@ -28,7 +28,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Import your existing backend UNCHANGED. Because we run uvicorn from the project
 # root, Python can find the `src` package, exactly like the Streamlit app does.
@@ -155,7 +155,8 @@ class HelpRequest(BaseModel):
     """Body for POST /api/help. The student comes from the session cookie."""
 
     concept_id: str
-    question: str
+    # A student's own words go to a live model: keep them to a question, not an essay (600 characters).
+    question: str = Field(min_length=1, max_length=600)
 
 
 class LessonViewRequest(BaseModel):

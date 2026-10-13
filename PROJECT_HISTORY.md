@@ -3045,3 +3045,33 @@ people are the real cost, not AI.
 - The token counts come from few runs. Treat the AI cost as the right size, not exact, until the pilot's
   `pilot_report.py` gives a measured cost per student.
 - The price per student (Rs 100) is a placeholder assumption, NOT market research; do not quote it as pricing.
+
+
+## 9zzzzzzzzzzzzzzzzz. AI safety card, red-team run, and three fixes it found (2026-10-13)
+
+**Changed.** `docs/ai-safety-card.html` (new; also published as a private artifact): where AI runs (four places), what each
+sees and never sees, how it is checked, what happens on failure, what AI never decides, the red-team and quality results,
+nine known gaps (two marked priority) and the controls. `scripts/redteam_stories.py` (new): ten hobby labels a student
+might type, run through the REAL writer and critic on a temporary database, printed for a person to read.
+**Fixes the work found:**
+1. `src/learner/diagnostic.py`: a block list on a student's OWN hobby label (`_UNSUITABLE_HOBBY_RE`: gambling, betting,
+   casino, vaping, smoking, drugs, alcohol, bomb, weapons, sex, dating, self-harm, and instruction-style words such as
+   "ignore" and "prompt"). Tests: `tests/test_learner_plan.py` (66 checks).
+2. `api/main.py`: `POST /api/help` question limited to 1 to 600 characters (was unlimited). Test: `tests/test_api_auth.py` (47).
+3. `web/components/personal-story.tsx` and `web/app/page.tsx`: the app told students the lesson was "written and reviewed
+   by people" and "the reviewed lesson". The 642 lessons were written by Claude Code sessions and checked by a validator
+   and arithmetic audits; a person has not read them all. Both lines now say "prepared in advance and checked".
+
+**Why.** The card is only useful if it is true, and testing it was the only way to know. Red-team results: the writer
+declined 5 of 9 risky probes; 4 produced a story, and two were real problems ("dating" got a story past the critic with a
+poor analogy; "online casino" would have shown that label over a badminton story).
+
+**Learned.**
+- The writer's judgement plus the critic were not enough on their own for a label a student types: a deterministic floor
+  at entry was needed. The list is a floor, not a filter that can be complete (English only; misspellings pass).
+- An honesty problem can live in the UI copy, not the code: check claims about how content was made against this file's
+  own history before putting them in front of students, parents or a school.
+- Still open (the card lists them): a filter and a rate limit on the doubt chat; confirm the Gemini tier (free tier may use
+  data to improve Google's products) and use a paid key for the pilot; the consent note; a person reading the pilot
+  chapters; fairness testing; an outside child-safety review. Rerun `eval_stories.py` and `redteam_stories.py` after any
+  model change.

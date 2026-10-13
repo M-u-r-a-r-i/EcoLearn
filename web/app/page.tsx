@@ -71,7 +71,7 @@ const DIFFERENT = [
   {
     Icon: Sparkles,
     title: "Stories from your world",
-    text: "A short story about your own hobby sits on top of every lesson. It is written by AI, checked by a second AI, and clearly labelled. The reviewed lesson is always there.",
+    text: "A short story about your own hobby sits on top of every lesson. It is written by AI, checked by a second AI, and clearly labelled. The lesson, prepared in advance and checked, is always there.",
   },
   {
     Icon: ShieldCheck,

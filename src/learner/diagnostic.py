@@ -41,6 +41,15 @@ MAX_OWN_HOBBIES = 2
 # A hobby of the student's own: a short label, letters and a few separators
 # only, so nothing that reads like a sentence about a child is stored.
 _OWN_HOBBY_RE = re.compile(r"^[A-Za-z][A-Za-z &'\-]{1,23}$")
+# A label that reaches the story AI and is shown to the student as "their hobby", so it must be
+# suitable for school. A deterministic block, because a red-team run (scripts/redteam_stories.py,
+# 2026-10-13) showed the writer and critic alone let "dating" through to a story and put "online casino"
+# over a badminton one. This list is a floor, not a filter that can be complete: the critic is the
+# second layer, and a teacher can hide any story.
+_UNSUITABLE_HOBBY_RE = re.compile(
+    r"(?<![a-z])(gambl|bet(s|ting)?(?![a-z])|casino|poker|lotter|vap(e|es|ing)(?![a-z])|smok|cigar|drug|weed(?![a-z])|"
+    r"alcohol|beer|wine(?![a-z])|whisk|vodka|drunk|bomb|weapon|guns?(?![a-z])|sex|porn|nude|dating|kiss|"
+    r"kill|suicid|self.?harm|hurt.?my|ignore|instruction|prompt|jailbreak)", re.IGNORECASE)
 
 
 def load_config() -> dict[str, Any]:
@@ -268,6 +277,10 @@ def clean_hobbies(hobbies: list[str] | None) -> list[str]:
             if not _OWN_HOBBY_RE.match(value):
                 raise EcoLearnError(
                     "Hobbies of your own must be short: letters and spaces, up to 24 characters."
+                )
+            if _UNSUITABLE_HOBBY_RE.search(value):
+                raise EcoLearnError(
+                    "That one can't be used for lessons. Pick a hobby from the list, or type a different one."
                 )
             own += 1
             item = value.lower()

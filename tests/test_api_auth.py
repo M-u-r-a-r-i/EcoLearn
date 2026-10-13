@@ -201,6 +201,18 @@ def test_learning_needs_session() -> None:
     check(nxt.status_code == 200 and "status" in nxt.json(), "next-lesson with session → 200 (cached, no LLM)")
 
 
+def test_help_limits() -> None:
+    print("\n[8] the doubt chat takes a question, not an essay")
+    c = new_client()
+    c.post("/api/auth/register", json={**ADA, "username": "help_limits"})
+    check(c.post("/api/help", json={"concept_id": "second_law", "question": "x" * 601}).status_code == 422,
+          "a 601-character question → 422 (never reaches a model)")
+    check(c.post("/api/help", json={"concept_id": "second_law", "question": ""}).status_code == 422,
+          "an empty question → 422")
+    check(new_client().post("/api/help", json={"concept_id": "second_law", "question": "why?"}).status_code == 401,
+          "no session → 401")
+
+
 def main() -> None:
     student_id = test_register_and_me()
     test_login()
@@ -209,6 +221,7 @@ def main() -> None:
     test_session_actions()
     test_public_curriculum()
     test_learning_needs_session()
+    test_help_limits()
     print(f"\nALL {_checks} CHECKS PASSED")
 
 
