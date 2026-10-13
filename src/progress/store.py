@@ -170,6 +170,20 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_coaching_class ON coaching_notes(class_id, run_id)")
+    # Doubt-chat outcomes (2026-10-13): what happened to a question, never what it said. A child's words are
+    # not stored; a teacher sees counts only. outcome: answered | blocked | rate_limited | failed.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS help_events (
+            event_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id  TEXT NOT NULL,
+            at          TEXT NOT NULL,
+            outcome     TEXT NOT NULL,
+            reason      TEXT
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_help_student ON help_events(student_id, event_id)")
     # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
     # are a baseline taken before any lesson, and mixing them into the lesson
     # answers would muddy the pilot's "right first time" number.
@@ -1824,3 +1838,36 @@ def list_class_plans(class_id: str) -> list[dict[str, Any]]:
     finally:
         conn.close()
     return [{**dict(r), "trace": json.loads(r["trace"])} for r in rows]
+
+
+def record_help_event(student_id: str, outcome: str, reason: str | None = None) -> None:
+    """Log what happened to a doubt-chat question. Never the question itself."""
+    conn = _connect()
+    try:
+        conn.execute("INSERT INTO help_events (student_id, at, outcome, reason) VALUES (?, ?, ?, ?)",
+                     (student_id, _now_iso(), outcome, reason))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def help_event_counts(student_ids: list[str]) -> dict[str, Any]:
+    """{asked, answered, failed, rate_limited, blocked: {reason: n}} over these students."""
+    out: dict[str, Any] = {"asked": 0, "answered": 0, "failed": 0, "rate_limited": 0, "blocked": {}}
+    if not student_ids:
+        return out
+    conn = _connect()
+    try:
+        marks = ",".join("?" * len(student_ids))
+        rows = conn.execute(
+            f"SELECT outcome, reason, COUNT(*) n FROM help_events WHERE student_id IN ({marks}) "
+            "GROUP BY outcome, reason", student_ids).fetchall()
+    finally:
+        conn.close()
+    for r in rows:
+        out["asked"] += r["n"]
+        if r["outcome"] == "blocked":
+            out["blocked"][r["reason"] or "other"] = out["blocked"].get(r["reason"] or "other", 0) + r["n"]
+        elif r["outcome"] in out:
+            out[r["outcome"]] += r["n"]
+    return out

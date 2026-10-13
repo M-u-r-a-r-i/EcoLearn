@@ -33,7 +33,7 @@ from pydantic import BaseModel, Field
 # Import your existing backend UNCHANGED. Because we run uvicorn from the project
 # root, Python can find the `src` package, exactly like the Streamlit app does.
 from src import platform_api as api
-from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
+from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError, TooManyRequestsError
 
 from api.ratelimit import limiter, too_many_message
 from api.security import (
@@ -85,6 +85,7 @@ def _error(code: int):
 app.add_exception_handler(NotFoundError, _error(status.HTTP_404_NOT_FOUND))
 app.add_exception_handler(ConflictError, _error(status.HTTP_409_CONFLICT))
 app.add_exception_handler(AuthError, _error(status.HTTP_401_UNAUTHORIZED))
+app.add_exception_handler(TooManyRequestsError, _error(status.HTTP_429_TOO_MANY_REQUESTS))
 app.add_exception_handler(EcoLearnError, _error(status.HTTP_400_BAD_REQUEST))
 app.add_exception_handler(ValueError, _error(status.HTTP_400_BAD_REQUEST))
 # A live-LLM failure (e.g. the grader is out of quota) raises RuntimeError with a

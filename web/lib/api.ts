@@ -445,6 +445,8 @@ export interface AiDecisions {
     critic_checks: number;
     critic_rejections: number;
   };
+  // The doubt chat, counts only: what students typed is never stored.
+  help?: { asked: number; answered: number; failed: number; rate_limited: number; blocked: Record<string, number> };
   plans: { total: number; agent: number; rules: number; latest_note: string | null };
   calls: {
     total: number;
@@ -1033,8 +1035,10 @@ export interface HelpResponse {
   concept_id: string;
   concept_name: string;
   answer: string; // markdown
-  verdict: string;
+  verdict: string; // "BLOCKED" when our own checks stopped the question (answer then holds a kind message)
   attempts: number;
+  blocked?: boolean;
+  reason?: string;
 }
 
 export function askHelp(conceptId: string, question: string): Promise<HelpResponse> {

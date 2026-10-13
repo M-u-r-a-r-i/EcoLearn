@@ -44,3 +44,7 @@ class ConflictError(EcoLearnError):
 
 class AuthError(EcoLearnError):
     """Authentication failed — bad credentials, or no/invalid session."""
+
+
+class TooManyRequestsError(EcoLearnError):
+    """The caller is asking too fast (the doubt chat's per-student limit). Maps to HTTP 429."""

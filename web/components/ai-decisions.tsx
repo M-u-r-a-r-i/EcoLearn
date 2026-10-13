@@ -107,6 +107,13 @@ function Tiles({ d }: { d: AiDecisions }) {
       note: `${s.reported} reported by students, ${s.hidden_by_teacher} hidden by you`,
     },
     {
+      label: "Doubt chat",
+      value: d.help?.asked ?? 0,
+      note: d.help?.asked
+        ? `${d.help.answered} answered, ${Object.values(d.help.blocked).reduce((a, b) => a + b, 0)} stopped by safety checks, ${d.help.rate_limited} slowed down${d.help.failed ? `, ${d.help.failed} couldn't be answered` : ""}`
+        : "no questions yet (counts only; what students type is never kept)",
+    },
+    {
       label: "Teaching assistant",
       value: d.plans.total,
       note: d.plans.total

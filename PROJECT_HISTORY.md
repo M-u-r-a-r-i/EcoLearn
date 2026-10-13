@@ -3107,3 +3107,36 @@ databases at once). Not checked: the dark theme on the new screens, a screen rea
   change as a stale layout, then confirm with a real scroll attempt and the animation's end state.
 - A hidden browser pane reports a 0 px viewport; use a screenshot or the emulated size for layout checks.
 - `scripts/seed_demo.py --reset` was rerun afterwards: the check created a test student and changed one password.
+
+
+## 9zzzzzzzzzzzzzzzzzzz. The doubt chat's front door: screen, rate limit, counts only (2026-10-13)
+
+**Changed.** `src/learner/help_guard.py` (new): `screen(question)` stops, BEFORE any model sees it, self-harm, personal
+details (phone, email, link, address), unsuitable requests (sexual content, how-to for weapons or drugs, wanting to
+hurt someone, gambling), instruction-style attacks ("ignore your rules", "show your prompt"), and empty or over-600-
+character questions; each gets a short kind reply. `HelpLimiter`: per student 5 questions per 10 minutes, 30 a day, one
+in flight at a time (env-tunable, in memory like the login limiter). `platform_api.ask_help` now runs screen then limiter,
+then the pipeline (`_answer_help`); a stopped question returns the usual keys with `verdict: "BLOCKED"`, `blocked: true`
+and a `reason`; a flood raises the new `TooManyRequestsError` (HTTP 429, `src/errors.py`, `api/main.py`). Self-harm is
+checked first and is never rate-limited away. `store.py`: additive `help_events` table (outcome and reason only; the
+question text is never stored) and `help_event_counts`; `get_class_ai_decisions` gains `help` counts, shown as a "Doubt
+chat" tile (counts only). Web: `help-widget.tsx` shows the server's own message on an error (before: a generic "couldn't
+reach the tutor"); `api.ts` types. Safety card updated. `tests/test_help_guard.py`: 42 checks.
+
+**Why.** The doubt chat is the one place a child's own words go straight to a live model, and the safety card listed it as
+the weakest layer. Everything above costs no model call.
+
+**Checked.** In the real chat on the demo database: an instruction-style probe got "I can only answer physics questions";
+a self-harm test message got the support reply (also while rate-limited); a flood got "try again in about 8 minutes"; the
+teacher tile showed counts and none of the words. The live pipeline itself is still unavailable on this machine (503), so
+the answered path was tested with a stand-in.
+
+**Learned.**
+- A screen for questions must not reuse the hobby block list: physics legitimately says "bomb calorimeter", "fired from a
+  gun", "alcohol thermometer", "my phone screen". The question screen targets intent (how to MAKE a bomb, wanting to hurt
+  someone), and a 12-question physics set in the tests guards against blocking real questions.
+- The sentence "my phone" must not be a personal-details trigger: students on the smartphones track ask about their phones.
+- OPEN, and the school's to decide: nobody is told when a student writes something about self-harm (the text isn't stored
+  and a keyword can be wrong). The card now lists this as a decision for the school before the pilot.
+- Still not done: the chat doesn't judge whether a question is about physics; English only; the pipeline's own
+  prompt-injection resistance is untested (it needs the pipeline running).

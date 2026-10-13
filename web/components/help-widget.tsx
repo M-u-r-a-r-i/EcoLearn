@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, SendHorizontal } from "lucide-react";
 
-import { askHelp } from "@/lib/api";
+import { ApiError, askHelp } from "@/lib/api";
 import { Markdown } from "@/components/markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,14 +44,14 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
     try {
       const res = await askHelp(conceptId, question);
       setMessages((prev) => [...prev, { role: "assistant", text: res.answer }]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "_Sorry, I couldn't reach the tutor just now. Please make sure the backend is running and try again._",
-        },
-      ]);
+    } catch (err) {
+      // The server's own words when it has some (too many questions in a row, the chat not available on
+      // this server); the generic line only when the request never got an answer at all.
+      const text =
+        err instanceof ApiError && err.detail
+          ? err.detail
+          : "Sorry, I couldn't reach the tutor just now. Please check your connection and try again.";
+      setMessages((prev) => [...prev, { role: "assistant", text: `_${text}_` }]);
     } finally {
       setLoading(false);
     }
