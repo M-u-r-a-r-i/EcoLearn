@@ -159,11 +159,13 @@ def _validate(alias: str, value: Any, case: dict[str, Any], forbidden: list[str]
 
 
 def coach_class(cases: dict[str, dict[str, Any]], forbidden: list[str],
-                chat: Callable[..., Any] | None, models_on: bool) -> dict[str, Any]:
+                chat: Callable[..., Any] | None, models_on: bool,
+                rules_only: set[str] | frozenset[str] = frozenset()) -> dict[str, Any]:
     """Notes for every alias in `cases`.
 
     `chat` is llm.chat (or a test stand-in); `models_on` False skips the model at once.
     `forbidden` are strings no note may contain (the class's real names and usernames).
+    `rules_only` are aliases whose AI switch is off: their case never goes to the model.
 
     Returns {"notes": {alias: {note, evidence, next_step, source: "ai"|"rules"}},
              "source": "agent"|"rules"|"mixed", "model": str|None,
@@ -174,10 +176,11 @@ def coach_class(cases: dict[str, dict[str, Any]], forbidden: list[str],
     model_used: str | None = None
     problem: str | None = None
     aliases = list(cases)
+    to_model = [a for a in aliases if a not in rules_only]
     if models_on and chat is not None:
         prompt = _PROMPT_PATH.read_text(encoding="utf-8")
-        for start in range(0, len(aliases), BATCH):
-            batch = aliases[start:start + BATCH]
+        for start in range(0, len(to_model), BATCH):
+            batch = to_model[start:start + BATCH]
             payload = {a: cases[a] for a in batch}
             message = (f"{prompt}\n\n---\nCASE FILES (JSON):\n"
                        f"{json.dumps(payload, ensure_ascii=False)}\n\nWrite the JSON now.")
@@ -212,7 +215,14 @@ def coach_class(cases: dict[str, dict[str, Any]], forbidden: list[str],
     elif source == "rules":
         note = "The AI assistant couldn't be reached, so these notes were made by fixed rules."
     elif source == "mixed":
-        note = (f"{len(notes) - ai_count} of {len(notes)} notes use fixed rules: the AI's note "
-                "was missing or didn't pass the checks.")
+        failed = len(to_model) - ai_count
+        parts = []
+        if failed:
+            parts.append(f"{failed} because the AI's note was missing or didn't pass the checks")
+        if rules_only:
+            parts.append(f"{len(rules_only & set(aliases))} because the student's AI is switched off")
+        note = f"{len(notes) - ai_count} of {len(notes)} notes use fixed rules: " + "; ".join(parts) + "."
+    if models_on and rules_only and source == "rules" and not to_model:
+        note = "Every student here has the AI switched off, so these notes were made by fixed rules."
     return {"notes": notes, "source": source, "model": model_used if ai_count else None,
             "trail": trail, "note": note, "failed": problem}

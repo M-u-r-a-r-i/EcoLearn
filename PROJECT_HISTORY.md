@@ -3195,3 +3195,56 @@ Also the teacher, agent, story, coaching, survey, help-guard, auth, mastery, end
 - Class plans keep their text (written about the class, with labels like S3); only the label-to-student link is removed, so the
   text can no longer be tied to the child.
 - Still not built: a per-student switch for the AI parts, a counsellor alert, an encrypted disk.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzz. A per-student AI switch (2026-10-14)
+
+**Changed.** `src/progress/store.py`: an additive `students.ai_enabled` column (default 1), `set_student_ai`, `ai_disabled_ids`; the
+profile and the class list carry `ai_enabled`. `platform_api.py`: `set_student_ai(teacher_id, ...)` (own class only) and
+`operator_set_student_ai`; with the switch off, `personal_story._context` returns None (no story written or shown), `ask_help` answers
+with the lesson's key idea and makes no model call, `generate_coaching_notes` passes the student as `rules_only` (their case never
+goes to the model), and `_class_toolbox` builds the teaching assistant's insights without them (labels still numbered over the whole
+class) and the plan's note says how many were left out. `get_class_insights` now wraps `_class_insights(..., exclude=)`.
+`api/main.py`: `POST /api/teacher/students/{id}/ai`. Web: an "AI on / AI off" select per student on the Students tab, with a line
+saying what it does; the help widget says when the AI is off. `scripts/set_student_ai.py` for the operator; the export shows the
+switch. `docs/consent-note.md` (Parts A to D, including an optional box on the form) and `docs/ai-safety-card.html` updated.
+
+**Why.** The consent note could not offer families a no to the AI parts; the only switch was server-wide. A blocker for the pilot.
+
+**Checked.** `tests/test_ai_switch.py` (41 checks with the doubt tutor below), every other deterministic test, the load test (PASS),
+`tsc` and lint. Browser, demo DB: the teacher switched a student off (POST 200, kept after reload); that student's help chat came back
+`AI_OFF` with the lesson's key idea and the lesson page showed the "switched off" line; the demo DB was reseeded afterwards.
+
+**Learned.**
+- "Off" has to mean off everywhere a model sees the student, not just the student's own screens: the class plan and coaching notes
+  read their data too. The teaching assistant now never sees them; their coaching note is rules-only.
+- It does not reach back: a story or note written before the switch stays stored until the student is erased.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzz. The doubt chat, rebuilt on src/llm (2026-10-14)
+
+**Changed.** New `src/learner/doubt_tutor.py` and `prompts/doubt_tutor.txt`: one model call through `src/llm`, grounded in the lesson
+the student is reading (physics, worked example, where the picture breaks, takeaway), asking for `{"on_topic", "answer"}`. Rules check
+the reply (readable JSON, 20 to 260 words, no link or email, not the student's full name or username). Off topic gets a fixed
+redirect; anything else that fails, a model error, no model configured, or the student's AI switch off gets the lesson's key idea and
+a nudge to the teacher. `platform_api._answer_help` uses it (a `_help_chat` hook for tests); the old `src/pipeline` import and
+`polish_explanation` are gone from the boundary; it never raises the 503 any more. `help_events` gains the outcomes `fallback`,
+`off_topic`, `ai_off` (counted in `help_event_counts` and shown in "How the AI decided"). `tests/test_help_guard.py` now stands in for
+the model call instead of the pipeline.
+
+**Why.** The old generate -> critic -> polish pipeline needed chromadb (grpc is blocked by Windows Application Control here, so the
+chat answered 503), slept 13 s between calls (about two minutes per answer), and called google-genai directly, so the usage log had no
+tokens for it. The lesson the student is on is better grounding than a vector search over a general corpus, and needs no index.
+
+**Checked.** `tests/test_ai_switch.py`: the message holds the lesson's sections and the question once, never the name or username;
+off topic, not-JSON, too short, a link, a full name, and a model error each fall back; no model configured falls back with no call; the
+call is in the usage log as `doubt_chat` with its tokens; the words are never stored. `tests/test_help_guard.py` (42) passes.
+
+**Learned.**
+- Not yet run on a live model (OmniRoute was not running). Before the pilot: start it and try a handful of real questions, including
+  off-topic ones, since the topic refusal is the model's judgement.
+- No second model checks the physics now. That trades a critic for speed (one call, a few seconds) and for working at all on this
+  machine; the safety card says so.
+- Single name parts are not used as a leak check: a student called Ray would turn every optics answer into a fallback.
+- `src/pipeline.py` and `src/rag/` are still used by the old lesson generator (`src/content/generate_lessons.py`, `iterate.py`,
+  `tests/test_pipeline.py`); not removed. Streamlit's help box calls `ask_help`, so it gets the new tutor too.

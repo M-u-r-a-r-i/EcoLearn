@@ -131,6 +131,7 @@ export interface StudentProfile {
   interest: string;
   level: string;
   created_at: string;
+  ai_enabled?: boolean; // false when a teacher switched the AI features off for this student
 }
 
 export interface RegisterInput {
@@ -230,6 +231,7 @@ export interface ClassStudent {
   interest: string;
   level: string;
   created_at: string;
+  ai_enabled?: boolean; // the per-student AI switch (true by default)
   attempted: number; // concepts tried at least once
   mastered: number;
   last_active: string | null; // ISO time of the latest attempt, null if none yet
@@ -300,6 +302,14 @@ export function setStudentLevel(studentId: string, level: string): Promise<{ stu
   return request(`/api/teacher/students/${encodeURIComponent(studentId)}/level`, {
     method: "POST",
     body: { level },
+  });
+}
+
+// The per-student AI switch: off = no personal stories, no AI help chat, left out of AI notes and plans.
+export function setStudentAi(studentId: string, enabled: boolean): Promise<{ student_id: string; ai_enabled: boolean }> {
+  return request(`/api/teacher/students/${encodeURIComponent(studentId)}/ai`, {
+    method: "POST",
+    body: { enabled },
   });
 }
 
@@ -446,7 +456,16 @@ export interface AiDecisions {
     critic_rejections: number;
   };
   // The doubt chat, counts only: what students typed is never stored.
-  help?: { asked: number; answered: number; failed: number; rate_limited: number; blocked: Record<string, number> };
+  help?: {
+    asked: number;
+    answered: number;
+    failed: number;
+    rate_limited: number;
+    fallback?: number; // the lesson's key idea shown instead (AI off, failed, or its reply failed a check)
+    off_topic?: number;
+    ai_off?: number; // students whose AI switch is off
+    blocked: Record<string, number>;
+  };
   plans: { total: number; agent: number; rules: number; latest_note: string | null };
   calls: {
     total: number;
@@ -1035,7 +1054,10 @@ export interface HelpResponse {
   concept_id: string;
   concept_name: string;
   answer: string; // markdown
-  verdict: string; // "BLOCKED" when our own checks stopped the question (answer then holds a kind message)
+  // "PASS" (an AI answer that passed the checks), "OFF_TOPIC", "FALLBACK" (the lesson's key idea, because
+  // the AI was off or failed), "AI_OFF" (this student's AI switch is off), "BLOCKED" (our own checks stopped it)
+  verdict: string;
+  source?: "ai" | "rules";
   attempts: number;
   blocked?: boolean;
   reason?: string;

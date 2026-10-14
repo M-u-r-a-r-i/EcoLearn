@@ -1,8 +1,9 @@
 // "Stuck? Ask for help" widget, embedded in the lesson page.
 //
-// It calls the LIVE pipeline (POST /api/help), which is slow (a few seconds),
-// so it keeps its own little conversation and shows a "thinking" state while the
-// request is in flight. The student can ask follow-ups without leaving the page.
+// It calls the live tutor (POST /api/help: one model call grounded in this lesson, a few seconds),
+// so it keeps its own little conversation and shows a "thinking" state while the request is in
+// flight. When the AI is off (for this student, or on the server) the answer is the lesson's key
+// idea, so the chat never just fails. The student can ask follow-ups without leaving the page.
 
 "use client";
 
@@ -10,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles, SendHorizontal } from "lucide-react";
 
 import { ApiError, askHelp } from "@/lib/api";
+import { useAuth } from "@/components/auth-provider";
 import { Markdown } from "@/components/markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,8 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const { student } = useAuth();
+  const aiOff = student?.ai_enabled === false;
 
   // Auto-scroll the conversation to the newest message.
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -74,8 +78,9 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
         {/* Friendly empty state */}
         {!hasConversation && (
           <p className="text-sm text-muted-foreground">
-            Ask anything about this concept — I&apos;ll explain it another way,
-            grounded in your interest. You can keep asking follow-ups right here.
+            {aiOff
+              ? "The AI tutor is switched off for your account. You can still ask: you'll get this lesson's key idea, and your teacher is always happy to help."
+              : "Ask anything about this concept — I'll explain it another way, using this lesson and your interest. You can keep asking follow-ups right here. Don't type personal details, like your name or phone number."}
           </p>
         )}
 

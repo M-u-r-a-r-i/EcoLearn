@@ -32,6 +32,7 @@ import {
   getClassInsights,
   getClassProfiles,
   resetStudentPassword,
+  setStudentAi,
   setStudentLevel,
   type ClassStudent,
   type StudentCredential,
@@ -267,6 +268,20 @@ function StudentTable({
     }
   }
 
+  // The per-student AI switch, for a family that says no to the AI parts.
+  async function changeAi(studentId: string, enabled: boolean) {
+    setError(null);
+    setBusy(studentId);
+    try {
+      await setStudentAi(studentId, enabled);
+      onLevelChanged();
+    } catch (err) {
+      setError(friendlyMessage(err));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   if (students.length === 0) {
     return <p className="text-sm text-muted-foreground">No students in this class yet.</p>;
   }
@@ -280,6 +295,11 @@ function StudentTable({
         </div>
         <span className="tag">{students.length} students</span>
       </div>
+      <p className="text-sm text-muted-foreground">
+        <b>AI off</b> is for a family that says no to the AI parts: no personal stories, the help chat shows the
+        lesson&apos;s key idea instead of asking the AI, and the student is left out of the AI&apos;s notes and plans.
+        Lessons, checks and progress work the same.
+      </p>
       <FormError message={error} />
       <div className="dtable-wrap">
         <table className="dtable">
@@ -288,6 +308,7 @@ function StudentTable({
               <th>Student</th>
               <th>Interest</th>
               <th>Class</th>
+              <th>AI</th>
               <th>Mastered</th>
               <th>Reading</th>
               <th>Right first time</th>
@@ -332,6 +353,18 @@ function StudentTable({
                     >
                       <option value="Class 11">Class 11</option>
                       <option value="Class 12">Class 12</option>
+                    </select>
+                  </td>
+                  <td data-label="AI">
+                    <select
+                      aria-label={`AI features for ${s.name}`}
+                      value={s.ai_enabled === false ? "off" : "on"}
+                      disabled={busy !== null}
+                      onChange={(e) => changeAi(s.student_id, e.target.value === "on")}
+                      className="h-9 rounded-xl border border-input bg-card px-2 text-sm"
+                    >
+                      <option value="on">AI on</option>
+                      <option value="off">AI off</option>
                     </select>
                   </td>
                   <td data-label="Mastered">

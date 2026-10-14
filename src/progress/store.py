@@ -442,6 +442,11 @@ def _migrate_students(conn: sqlite3.Connection) -> None:
     # legacy students. A teacher may reset a password only within their own classes.
     if "class_id" not in existing:
         conn.execute("ALTER TABLE students ADD COLUMN class_id TEXT")
+    # The per-student AI switch (2026-10-14): 0 means none of this student's data goes to a model
+    # and none of the AI features run for them. On (1) by default; a teacher or the operator turns
+    # it off when a family says no to the AI parts.
+    if "ai_enabled" not in existing:
+        conn.execute("ALTER TABLE students ADD COLUMN ai_enabled INTEGER NOT NULL DEFAULT 1")
 
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username "
@@ -686,6 +691,7 @@ def _student_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         "created_at": row["created_at"],
         # Nullable: legacy name-only students have no username.
         "username": row["username"],
+        "ai_enabled": bool(row["ai_enabled"]) if "ai_enabled" in row.keys() else True,
     }
 
 
@@ -797,6 +803,29 @@ def update_student_profile(
             conn.close()
 
     return get_student(student_id)
+
+
+def set_student_ai(student_id: str, enabled: bool) -> bool:
+    """Turn the AI features on or off for one student. False if there is no such student."""
+    conn = _connect()
+    try:
+        cursor = conn.execute("UPDATE students SET ai_enabled = ? WHERE student_id = ?",
+                              (1 if enabled else 0, student_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def ai_disabled_ids(student_ids: list[str] | None = None) -> set[str]:
+    """The students (of `student_ids`, or all) whose AI switch is off."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT student_id FROM students WHERE ai_enabled = 0").fetchall()
+    finally:
+        conn.close()
+    off = {r["student_id"] for r in rows}
+    return off if student_ids is None else off & set(student_ids)
 
 
 def update_student_password(student_id: str, password_hash: str) -> bool:
@@ -1068,6 +1097,7 @@ def list_class_students(class_id: str) -> list[dict[str, Any]]:
         rows = conn.execute(
             """
             SELECT s.student_id, s.name, s.username, s.interest, s.level, s.created_at,
+                   s.ai_enabled,
                    COUNT(p.concept_id)                                   AS attempted,
                    COALESCE(SUM(CASE WHEN p.status = ? THEN 1 END), 0)   AS mastered,
                    MAX(p.last_seen)                                      AS last_active
@@ -1084,6 +1114,7 @@ def list_class_students(class_id: str) -> list[dict[str, Any]]:
     return [
         {"student_id": r["student_id"], "name": r["name"], "username": r["username"],
          "interest": r["interest"], "level": r["level"], "created_at": r["created_at"],
+         "ai_enabled": bool(r["ai_enabled"]),
          "attempted": r["attempted"], "mastered": r["mastered"],
          "last_active": r["last_active"]}
         for r in rows
@@ -1852,8 +1883,11 @@ def record_help_event(student_id: str, outcome: str, reason: str | None = None) 
 
 
 def help_event_counts(student_ids: list[str]) -> dict[str, Any]:
-    """{asked, answered, failed, rate_limited, blocked: {reason: n}} over these students."""
-    out: dict[str, Any] = {"asked": 0, "answered": 0, "failed": 0, "rate_limited": 0, "blocked": {}}
+    """{asked, answered, failed, rate_limited, fallback, off_topic, ai_off, blocked: {reason: n}}
+    over these students. "fallback": the lesson's key idea was shown because the AI was off, failed
+    or its reply failed a check; "ai_off": the student's own AI switch is off (2026-10-14)."""
+    out: dict[str, Any] = {"asked": 0, "answered": 0, "failed": 0, "rate_limited": 0,
+                           "fallback": 0, "off_topic": 0, "ai_off": 0, "blocked": {}}
     if not student_ids:
         return out
     conn = _connect()

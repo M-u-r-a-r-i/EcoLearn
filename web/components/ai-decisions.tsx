@@ -110,7 +110,7 @@ function Tiles({ d }: { d: AiDecisions }) {
       label: "Doubt chat",
       value: d.help?.asked ?? 0,
       note: d.help?.asked
-        ? `${d.help.answered} answered, ${Object.values(d.help.blocked).reduce((a, b) => a + b, 0)} stopped by safety checks, ${d.help.rate_limited} slowed down${d.help.failed ? `, ${d.help.failed} couldn't be answered` : ""}`
+        ? `${d.help.answered} answered, ${Object.values(d.help.blocked).reduce((a, b) => a + b, 0)} stopped by safety checks, ${d.help.rate_limited} slowed down${d.help.fallback ? `, ${d.help.fallback} given the lesson's key idea instead` : ""}${d.help.off_topic ? `, ${d.help.off_topic} not about physics` : ""}${d.help.ai_off ? `, ${d.help.ai_off} from students with the AI off` : ""}${d.help.failed ? `, ${d.help.failed} couldn't be answered` : ""}`
         : "no questions yet (counts only; what students type is never kept)",
     },
     {

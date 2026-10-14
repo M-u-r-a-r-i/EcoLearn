@@ -570,6 +570,20 @@ def teacher_set_level(
     return api.set_student_level(teacher_id, student_id, payload.level)
 
 
+class AiSwitch(BaseModel):
+    enabled: bool
+
+
+@app.post("/api/teacher/students/{student_id}/ai")
+def teacher_set_ai(
+    student_id: str,
+    payload: AiSwitch,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Turn the AI features on or off for one student (a family that says no to the AI parts)."""
+    return api.set_student_ai(teacher_id, student_id, payload.enabled)
+
+
 # ---------------------------------------------------------------------------
 # Curriculum. Public on purpose: the syllabus and the interest list aren't
 # secrets, and the signup page needs the interests before anyone has logged in.

@@ -30,7 +30,8 @@ def render_markdown(data: dict) -> str:
              " matching `.json` file. The password is never shown: only a scrambled copy is kept.", "",
              "## Account", f"- Name: {a['name']}", f"- Username: {a['username']}", f"- Class: {a['level']}"
              + (f", group {a['class']}" if a["class"] else ""), f"- Lesson topic: {a['interest']}",
-             f"- Account made: {a['created_at']}", ""]
+             f"- Account made: {a['created_at']}",
+             f"- AI features: {'on' if a.get('ai_enabled', True) else 'switched off for this student'}", ""]
     lines += ["## Hobbies and survey", f"- Hobbies: {', '.join(r['hobbies']) if r['hobbies'] else 'none given'}"]
     if r["survey_summary"]:
         lines += [f"- {s}" for s in r["survey_summary"]]

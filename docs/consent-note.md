@@ -43,8 +43,8 @@ this part). Where the product cannot yet do something the note would naturally p
 4. **Hosting and the AI service.** Where the server runs, and whether the AI service is on a paid plan. Google states its
    free tier may use data to improve its products and its paid tier does not (pricing page, checked 2026-10-13). Use a
    paid plan for children's data, confirm in writing where data is processed, and fill in `[Provider terms]`.
-5. **Whether a family can say no to the AI parts and still take part.** Today they cannot (see "Cannot yet do"). Decide
-   whether that is acceptable, or whether the pilot waits for the switch.
+5. **Whether a family can say no to the AI parts and still take part.** They can since 2026-10-14 (see "Built, with
+   limits"). Decide how a family says so: the optional box on the form in Part D, or a request to `[Contact]`.
 
 ### Built, with limits (2026-10-13)
 
@@ -54,7 +54,12 @@ this part). Where the product cannot yet do something the note would naturally p
   plans are removed. **Not touched: backups and any earlier copy of the database.**
 - **Showing a family what is held:** `scripts/export_student.py --username X --out DIR`: a plain-language summary and the full
   data as JSON. The password is never included.
-- **Both are run by a person on the operator's team**, not by a family or a teacher through the app. Who runs them, how identity is
+- **Switching the AI off for one student** (2026-10-14): the teacher's Students tab ("AI off"), or
+  `scripts/set_student_ai.py --username X --off` by the operator. With it off, nothing about the student is sent to an AI service: no
+  personal story is written or shown, the help chat answers with the lesson's own key idea, their teacher note is written by fixed rules,
+  and the class plan leaves them out. Lessons, quizzes and progress work the same (none use AI). Tested by `tests/test_ai_switch.py`.
+  It does not reach back: a story or note written before the switch stays stored until the student is erased.
+- **Export and erase are run by a person on the operator's team**, not by a family or a teacher through the app. Who runs them, how identity is
   checked, and how fast is for the operator and school to decide (the note has a `[number]` of days). Tested by
   `tests/test_student_data_rights.py`: every table that holds a student id is covered, and the test fails if a new one is added.
 
@@ -62,12 +67,11 @@ this part). Where the product cannot yet do something the note would naturally p
 
 | The note would like to promise | The software today | Needed |
 |---|---|---|
-| "We can switch off the AI parts for your child" | The AI features are switched off for everyone at once (leave `LLM_MODEL` and `GEMINI_API_KEY` empty). There is no per-student setting. The teacher can hide an AI story. | A per-student AI switch |
 | "A counsellor will be told" | Not built (decision 2). | Software and a policy |
 | "Only [Operator]'s named staff can read your child's data" | Anyone with the database file can. The pilot report replaces names with codes, but the database itself is not encrypted. | Access rules for the server, and ideally an encrypted disk |
 
-The note in Part B is written so that it is **true today**: it offers a copy and deletion on request (built), and does not promise
-a per-student switch or a counsellor alert. Update it when those exist.
+The note in Part B is written so that it is **true today**: it offers a copy and deletion on request and switching off the AI
+parts (built), and does not promise a counsellor alert. Update it when that exists.
 
 ### Legal points to check with a lawyer
 
@@ -100,6 +104,7 @@ gazetted text.
 | The only typed text that reaches the AI is a short hobby label and a help-chat question | the same tests; `src/learner/help_guard.py` |
 | Help-chat questions are checked, rate-limited and never stored | `src/learner/help_guard.py`, `tests/test_help_guard.py` |
 | A student can report a story, a teacher can hide it | `tests/test_story_review.py` |
+| The AI parts can be switched off for one child, and then nothing about them is sent to an AI service | `scripts/set_student_ai.py`, the teacher's Students tab, `tests/test_ai_switch.py` |
 | A family can be shown, and can have deleted, everything held about their child | `scripts/export_student.py`, `scripts/delete_student.py`, `tests/test_student_data_rights.py` (backups are not covered) |
 | AI is not used for marks | Grading is multiple choice against an answer key (`tests/test_mcq_grading.py`) |
 | The lessons were prepared in advance with AI help and checked by software | `PROJECT_HISTORY.md`; `scripts/validate_lessons.py`. A person has not read every lesson |
@@ -159,6 +164,10 @@ theme, are kept in your child's own browser.
 3. a **class plan** for the teacher; and
 4. the **short notes** for the teacher.
 
+**You can say no to the AI parts** and your child can still take part: tick the box on the form or tell `[Contact]`, and
+their teacher switches them off. Then nothing about your child is sent to an AI service; they get the lesson's own story, and the help
+chat shows the lesson's key idea instead of an AI answer. Lessons, quizzes and progress work the same.
+
 The lessons and quiz questions were prepared in advance, with the help of AI, and checked by software `[and read by
 (who)]`. **AI does not mark or grade anything.** Quiz answers are checked against an answer key.
 
@@ -201,6 +210,7 @@ suggests talking to a trusted adult, and gives the free helpline Tele-MANAS (144
   Your question is sent to an AI service so it can answer. EcoLearn doesn't send your name.
 - If you are ever upset or worried, talk to an adult you trust: a parent, a teacher or the school counsellor. You can call
   **14416** (Tele-MANAS, free, any time). In danger right now, call **112**.
+- Your family can ask for the AI parts to be switched off for you. Everything else works the same.
 - You can say no, or stop, any time. It won't affect your marks.
 
 ---
@@ -215,6 +225,8 @@ Parent or guardian:
 - [ ] I agree that my child may take part in the EcoLearn pilot, and that the information described in the note may be kept
       and used as described, including sending the questions my child types in the help chat to the AI service named in the
       note.
+- [ ] **Optional:** I would like the AI parts switched off for my child (no AI story, no AI help chat, not included in the
+      AI's notes or class plans). My child can still use the lessons and quizzes.
 - [ ] I understand I can change my mind at any time by contacting `[Contact]`, and that this will not affect my child's
       place or marks at school.
 

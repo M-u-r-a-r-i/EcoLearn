@@ -91,7 +91,17 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
-### SESSION HANDOFF 2026-10-13 (newest; read this first. The 2026-10-11 and 2026-10-10 blocks below are older and are superseded where they conflict)
+### UPDATE 2026-10-14 (on top of the 2026-10-13 handoff below)
+
+Done (PROJECT_HISTORY, the last two entries): **a per-student AI switch** (teacher's Students tab "AI on/off", or
+`scripts/set_student_ai.py --username X --off`; off = no story, the help chat gives the lesson's key idea, rules-only coaching note,
+left out of the teaching assistant) and **the doubt chat rebuilt on `src/llm`** (`src/learner/doubt_tutor.py`: one call grounded in
+the student's own lesson, rule checks, a non-AI fallback; no chromadb, so it no longer answers 503 here and its tokens are logged).
+Consent note and safety card updated. New test: `tests/test_ai_switch.py`. **Not yet run on a live model**: start OmniRoute and try a
+few real questions (including off-topic ones) before the pilot. Open item 2 below is now only the access/encryption plan (and the
+optional request flow); the "doubt chat is broken on this machine" notes further down are out of date.
+
+### SESSION HANDOFF 2026-10-13 (read this next. The 2026-10-11 and 2026-10-10 blocks below are older and are superseded where they conflict)
 
 **Where the work is.** Branch **`design/frontend-v2`**, everything committed AND pushed (HEAD `5026fe2` at the time of writing). It is
 NOT merged into `main` (open decision for the user: a PR from `design/frontend-v2`, link
@@ -744,6 +754,7 @@ venv\Scripts\python.exe tests\test_pilot_survey.py        # survey in the pilot 
 venv\Scripts\python.exe tests\test_coaching_agent.py       # coaching notes: rules, model checks, privacy, storage
 venv\Scripts\python.exe tests\test_help_guard.py            # doubt chat front door: screen, rate limit, nothing stored
 venv\Scripts\python.exe tests\test_student_data_rights.py   # export and erase a student: every table, no trace left, all-or-nothing
+venv\Scripts\python.exe tests\test_ai_switch.py             # per-student AI switch + the doubt tutor (grounding, checks, fallbacks)
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

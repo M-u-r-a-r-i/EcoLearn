@@ -125,6 +125,8 @@ def _context(student_id: str, concept_id: str) -> dict[str, Any] | None:
     concept = engine.find_concept(concept_id)
     if profile is None or concept is None:
         return None
+    if not profile.get("ai_enabled", True):
+        return None  # the student's AI switch is off (2026-10-14): no story is written or shown
     chapters = {c["id"]: c for c in engine.list_chapters()}
     domain = chapters.get(concept.chapter_id, {}).get("domain")
     saved = store.get_survey(student_id)
