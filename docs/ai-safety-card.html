@@ -141,11 +141,12 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); 
       <dt>What the AI sees</dt><dd>Per student, labelled S1, S2: counts (lessons, checks, right first time), days quiet, share of lessons skimmed, a few chosen survey answers (focus, pace, how they feel about physics, maths comfort), and the names of concepts they mixed up. No free text from a student.</dd>
       <dt>How it is checked</dt><dd>Each note must cite fields the student really has, stay within 45 words, contain no name or username, no link, and none of a list of labelling words (diagnoses, "lazy", "gifted" and similar). A note that fails is replaced by a rules note for that student.</dd>
       <dt>What the teacher sees</dt><dd>Every card says AI or Rules, and lists its evidence. The page says these are suggestions to check, not a verdict on a child.</dd>
+      <dt>Actions (2026-10-14)</dt><dd>A note may propose one action from a fixed list: put a concept back in the student's revision list, or check in with them. The AI may only name a concept from that student's own mix-ups; anything else is dropped. <b>Nothing happens to a student until the teacher clicks to approve it</b>; then our own code (no AI) carries it out, and the card shows the outcome (the student got the new question right, not yet, or was active again).</dd>
     </dl></div>
   </details>
 
   <h2>What AI never decides</h2>
-  <p>Grades and mastery (multiple choice against an answer key; two different questions right counts as mastered), the learning path and which concept opens next, who "needs attention" on the teacher's page (fixed rules), and accounts and passwords. None of these call a model. The lesson text and check questions were written in advance, not for each student (see the first gap below).</p>
+  <p>Grades and mastery (multiple choice against an answer key; two different questions right counts as mastered), the learning path and which concept opens next, the student's own profile on their "About me" page (fixed rules over their survey answers, reading and checks, with each line's evidence; the student can switch any line off), who "needs attention" on the teacher's page (fixed rules), and accounts and passwords. None of these call a model. The lesson text and check questions were written in advance, not for each student (see the first gap below).</p>
 
   <h2>The four layers on a personal story</h2>
   <div class="pipe" role="list">

@@ -91,6 +91,14 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### UPDATE 2026-10-18, later: branch `feature/open-learner-profile` (open a PR into `main`)
+
+The profiler, improved (PROJECT_HISTORY, last entry): `src/learner/profiler.py` turns survey answers AND behaviour into insights with
+evidence; students see them on `/about-me` and can say "that's not me"; behaviour corrects the survey (skimming fast readers go step by
+step), "sure but wrong" adds a check-before-you-pick line and sooner revision; mastered ideas come back to keep them fresh (7/21/63 days);
+coaching notes propose an action the teacher approves, carried out by rules, with the outcome shown. All rules except the existing AI
+coaching note. Load test fails today on `main` too (machine state).
+
 ### UPDATE 2026-10-18 (READ THIS FIRST; it corrects the blocks below where they say "not merged" or "work on the branch")
 
 **`design/frontend-v2` is merged into `main`.** The user opened and merged **PR #1** on GitHub (merge commit `3e941bb`, 2026-10-18). `main` is
@@ -786,6 +794,7 @@ venv\Scripts\python.exe tests\test_coaching_agent.py       # coaching notes: rul
 venv\Scripts\python.exe tests\test_help_guard.py            # doubt chat front door: screen, rate limit, nothing stored
 venv\Scripts\python.exe tests\test_student_data_rights.py   # export and erase a student: every table, no trace left, all-or-nothing
 venv\Scripts\python.exe tests\test_ai_switch.py             # per-student AI switch + the doubt tutor (grounding, checks, fallbacks)
+venv\Scripts\python.exe tests\test_learner_profile.py        # open learner profile, sooner/refresh revision, teacher-approved coaching actions
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

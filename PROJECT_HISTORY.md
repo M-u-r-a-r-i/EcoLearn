@@ -3265,3 +3265,48 @@ housekeeping (the old `.claude/wt-main` worktree holds `main`; remove its `node_
   `.../pull/new/<branch>` link and a title and description.
 - "The profiler" means two things: the student profile (plain rules from the survey, starting check and behaviour; this is what changes a student's day)
   and the coaching-note agent (AI, teacher-only; students never see it). The AI part does not change what a student sees.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzz. The open learner profile, behaviour-aware adaptations, teacher-approved coaching actions (2026-10-18)
+
+Branch `feature/open-learner-profile` (from `main` after PR #1), for a pull request.
+
+**Changed.**
+- `src/learner/profiler.py` (new, rules only): every adaptation is an INSIGHT `{id, kind: said|shown, title, detail, evidence, effect,
+  active}`. Said (the survey): `pace_fast`, `example_first`, `break_nudge`, `gentle`. Shown (behaviour): `pace_check` (said fast, but skims
+  half the lessons AND is under half right first time over 4+ tries: lessons go step by step), `skimming` (info only), `sure_wrong` (a
+  third or more of 3+ "sure" answers wrong, at least two: a "check before you pick" line and sooner revision), `doing_well` (said physics
+  is stressful, 70%+ right first time over 5+). Sure-but-wrong concepts stay "sooner" until right on a DIFFERENT question. A dismissal
+  switches the effect off. `platform_api._profile`, `get_learner_profile`, `set_insight`; the lesson envelope's prefs now come from
+  the profile (adds `slow_down`). Store: `insight_dismissals`.
+- Revision queue (`get_revision`, `_revision_target`): items gain `kind`: `teacher` (approved by the teacher, due now, first; falls back to
+  the student's own lesson check when no unseen question is left), `partial` (half the wait when sure-but-wrong), `refresh` (mastered:
+  back after 7, 21, 63 days; 2 after a wrong answer; mastery is never taken away, as `best_score` is a maximum).
+- Coaching actions: `coaching_agent` notes carry an `action` (`revise` a concept from the student's own mix-ups, or `check_in`);
+  `rules_action`, `clean_action` (a model's concept outside the case file is dropped, the note kept); prompt updated.
+  `platform_api.apply_coaching_action` (own class only), `_render_coaching` adds `action`, `actions_taken` with outcomes and a
+  `follow_through` count. Store: `coaching_actions`; `submit_revision` closes an open one with the result.
+- API: `GET/POST /api/profile/insights[/{id}]`, `POST /api/teacher/classes/{id}/coaching/actions`.
+- Web: new `/about-me` page ("What EcoLearn thinks about you", grouped "What you did" / "What you told us", "That's not me" / Undo) and a
+  nav link; the lesson check shows "Before you pick…" when `slow_down`; Review tags "From your teacher" / "Keep it fresh"; coaching
+  cards get an approve button, the outcome lines and a follow-through line.
+- `docs/consent-note.md` (two new rows of what is kept, the student page), `docs/ai-safety-card.html` (actions; the profile is not AI).
+
+**Why.** The user asked to improve "the profiler": the profile was what students said once, behaviour changed nothing for them, they
+never saw it, and the AI notes stopped at the teacher. Now behaviour corrects the survey, the student sees and can overrule every line
+(an open learner model), and the agent's suggestion becomes an action a teacher approves and the system measures.
+
+**Checked.** `tests/test_learner_profile.py` (55 checks: every rule and threshold, dismissals, prefs, sooner and refresh timing, actions
+and their privacy rule, ownership, outcomes, HTTP). `test_mastery`, `test_survey` and `test_student_data_rights` updated for the new
+behaviour (a mastered idea now waits as a keep-it-fresh question; prefs carry `slow_down`; the two new tables are erased and exported).
+All deterministic tests pass; `tsc` and lint clean. Browser, demo data on a temporary copy (ports 8100/3100, the user's servers left
+alone): Aarav's profile (3 said + "sure but wrong", 3 of 8), dismiss and undo, the check's "Before you pick" line, Review's "Keep it
+fresh"; the teacher approved a rules note's "revise", it topped Aarav's list as "From your teacher", he answered, and the card showed
+"Done: right" with follow-through 1/1. Phone width (375 px, no sideways scroll, five nav items), light and dark.
+
+**Learned.**
+- The load test FAILS today on this branch AND on `main` (p95 2.0 to 3.3 s; machine state, as on 2026-10-03). Building the profile adds
+  about 5 ms to a 26 ms lesson load (measured in one process); worth caching per request if the pilot server is small.
+- "Sure but wrong, then right on the same question" is still a firm mix-up: the right answer came straight after the explanation.
+- Nothing here is evidence that the adaptations help. The pilot should randomise one of them to find out.
+- Not done: `npm run build`; a screen reader; the teacher never sees a student's dismissals (on purpose, for now).

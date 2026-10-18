@@ -105,6 +105,7 @@ gazetted text.
 | Help-chat questions are checked, rate-limited and never stored | `src/learner/help_guard.py`, `tests/test_help_guard.py` |
 | A student can report a story, a teacher can hide it | `tests/test_story_review.py` |
 | The AI parts can be switched off for one child, and then nothing about them is sent to an AI service | `scripts/set_student_ai.py`, the teacher's Students tab, `tests/test_ai_switch.py` |
+| A child sees what EcoLearn worked out about them and why, and can switch each line off; it is rules, not AI | `src/learner/profiler.py`, the "About me" page, `tests/test_learner_profile.py` |
 | A family can be shown, and can have deleted, everything held about their child | `scripts/export_student.py`, `scripts/delete_student.py`, `tests/test_student_data_rights.py` (backups are not covered) |
 | AI is not used for marks | Grading is multiple choice against an answer key (`tests/test_mcq_grading.py`) |
 | The lessons were prepared in advance with AI help and checked by software | `PROJECT_HISTORY.md`; `scripts/validate_lessons.py`. A person has not read every lesson |
@@ -144,6 +145,8 @@ changed.
 | Short notes for the teacher, written by the AI or by fixed rules, about how each student is getting on | To help the teacher support each student |
 | What happened to each question they asked in the help chat (answered, stopped, or too many), but **not** the words | To keep the chat safe |
 | When they last used EcoLearn | To help the teacher see who needs a nudge |
+| A few short lines worked out from the above, by fixed rules and not by AI, such as "you're often sure of an answer that turns out wrong", with the reason for each. Your child sees them on an "About me" page and can switch any of them off; we keep which ones they switched off | To shape lessons and revision, openly |
+| Revision questions their teacher chose to add for them, and whether they got them right | So the teacher can follow up |
 
 **What we do not collect:** an email address, a phone number, a home address, photos, voice, location, or contacts.
 Ordinary technical logs are kept by the server `[Hosting: say what, and for how long]`. Small settings, such as light or dark
@@ -203,6 +206,8 @@ suggests talking to a trusted adult, and gives the free helpline Tele-MANAS (144
 - EcoLearn is a physics tutor. Your teacher made your account. You don't need an email.
 - It remembers your name, class, what you answer, how long you read, and what you say in the "getting to know you" questions.
   You can skip any of those questions. Your teacher sees a **summary** of the survey, not your exact answers.
+- The "About me" page shows what EcoLearn has worked out about how you learn, and why. If something isn't you, press
+  "That's not me" and it stops.
 - Some bits are written by **AI**: a short story about one of your hobbies, answers in the help chat, and notes for your
   teacher. AI can get things wrong. If a story seems wrong or odd, press "Something wrong with this story?". AI never gives
   you a mark.

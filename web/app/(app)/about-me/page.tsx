@@ -165,7 +165,7 @@ function InsightCard({
         {insight.effect}
       </p>
       <div>
-        <Button variant="outline" size="sm" disabled={busy} onClick={() => onToggle(insight)}>
+        <Button variant="outline" disabled={busy} onClick={() => onToggle(insight)}>
           {insight.active ? (
             <>
               <ThumbsDown className="size-4" aria-hidden /> That&apos;s not me
