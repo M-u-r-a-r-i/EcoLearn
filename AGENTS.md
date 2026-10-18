@@ -91,6 +91,37 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### UPDATE 2026-10-18 (READ THIS FIRST; it corrects the blocks below where they say "not merged" or "work on the branch")
+
+**`design/frontend-v2` is merged into `main`.** The user opened and merged **PR #1** on GitHub (merge commit `3e941bb`, 2026-10-18). `main` is
+now the truth and contains everything described below: the restyled frontend, the four live-AI features, the safety card, the consent-note draft,
+export and erase a student, the per-student AI switch, and the doubt chat rebuilt on `src/llm`. Work on `main` (or a short branch and a PR). Anything
+below that says "NOT merged into `main`", "always check out `design/frontend-v2`", or describes a design session sharing the folder is out of date.
+
+**Git housekeeping to do once:**
+- The primary folder `D:\Projects\EcoLearn` may still be on the old branch `design/frontend-v2` (it is `main` minus the merge commit). Bring it
+  level with `git fetch && git merge --ff-only origin/main`, or switch it to `main`.
+- `main` cannot be checked out there while the old worktree `.claude/wt-main` exists (it holds `main`). Either work from that worktree, or remove it:
+  `rmdir` its `web\node_modules` junction FIRST (otherwise Windows may follow it and delete the real `node_modules`), then `git worktree remove`.
+- `gh` (the GitHub CLI) is NOT installed on this machine and the browser pane is not signed in to GitHub, so a PR cannot be opened from here: give the
+  user the link `https://github.com/Niranjan-207/EcoLearn/pull/new/<branch>` and a ready title and description.
+- Untracked and never committed: `EcoLearn-Physics-Tutor.zip`, `.agents/`.
+
+**What "the profiler" is, in case the user asks (they did on 2026-10-18).** Two different things:
+1. **The student profile: plain rules, no AI.** From the survey and the starting check, `survey.lesson_prefs` sets how a lesson behaves (one page for fast
+   readers, a stretch nudge after their stated study length, "Try an example" first for those who learn by trying, a kind line for nervous students),
+   `survey.story_notes` and `order_hobbies` shape their personal story (plain words for newcomers, warm tone for nervous students), and the starting
+   check builds the learning plan (skips what they know, points at mix-ups). Nothing is locked or hidden. These are our rules, not learned, and there is
+   NO pilot evidence yet that they help.
+2. **The coaching-note agent: AI, teacher-facing only** (`src/agents/coaching_agent.py`). It turns a small case file per student (counts, days quiet,
+   skim share, a few chosen survey answers, names of concepts mixed up; never a name) into a short note for the teacher with evidence and one thing to try.
+   Students never see the notes and nothing else reads them: it does not change the roadmap, the lessons or any grade. Its effect on a student is only
+   indirect (a teacher may check in). The consent note says survey moods are used.
+
+**Still open** (unchanged, in the 2026-10-13 block): the school's decision on counsellor alerts; the display name; scope (motorsport and smartphones);
+famous images; hosting; an access and encryption plan for the server and backups; a person reads the pilot chapters; a lawyer reads the consent note;
+a live-model trial of the rebuilt doubt chat (start OmniRoute, try real questions including off-topic ones).
+
 ### UPDATE 2026-10-14 (on top of the 2026-10-13 handoff below)
 
 Done (PROJECT_HISTORY, the last two entries): **a per-student AI switch** (teacher's Students tab "AI on/off", or

@@ -3248,3 +3248,20 @@ call is in the usage log as `doubt_chat` with its tokens; the words are never st
 - Single name parts are not used as a leak check: a student called Ray would turn every optics answer into a fallback.
 - `src/pipeline.py` and `src/rag/` are still used by the old lesson generator (`src/content/generate_lessons.py`, `iterate.py`,
   `tests/test_pipeline.py`); not removed. Streamlit's help box calls `ask_help`, so it gets the new tutor too.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzz. design/frontend-v2 merged into main (2026-10-18)
+
+**Changed.** The user opened and merged PR #1 on GitHub (merge commit `3e941bb`): `main` now contains the whole frontend redesign, the four
+live-AI features, the safety card, the consent-note draft, export and erase a student, the per-student AI switch and the doubt chat rebuilt on
+`src/llm`. `AGENTS.md` gained an "UPDATE 2026-10-18" block at the top of section 2 that corrects the older "not merged" notes, lists the git
+housekeeping (the old `.claude/wt-main` worktree holds `main`; remove its `node_modules` junction before removing the worktree), and explains what
+"the profiler" is.
+
+**Why.** The handoff must not send the next session to a branch that no longer carries the truth.
+
+**Learned.**
+- `gh` is not installed here and the browser pane is not signed in to GitHub, so a pull request cannot be opened from this machine: hand the user the
+  `.../pull/new/<branch>` link and a title and description.
+- "The profiler" means two things: the student profile (plain rules from the survey, starting check and behaviour; this is what changes a student's day)
+  and the coaching-note agent (AI, teacher-only; students never see it). The AI part does not change what a student sees.
