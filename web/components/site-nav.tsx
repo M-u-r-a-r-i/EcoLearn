@@ -1,6 +1,6 @@
 // The top navigation bar, shown on every page (rendered once in the root
 // layout). Brand lockup on the left; on the right, what depends on who's here:
-// logged out → Log in + Get Started; a student → My path, Mix-ups, Review,
+// logged out → Log in + Get Started; a student → My path, Mix-ups, Review, About me,
 // Settings, their avatar and Log out; a teacher → Classes, Account, avatar and
 // Log out. On phones the links move to a bottom bar (the house style's mobile
 // nav). A Client Component because it reads the auth state. Hidden when
@@ -10,7 +10,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Target, Trophy, UserRound, Users } from "lucide-react";
+import { BookOpen, Sparkles, Target, Trophy, UserRound, Users } from "lucide-react";
 
 import { HOME, useAuth } from "@/components/auth-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -20,6 +20,7 @@ const STUDENT_LINKS = [
   { href: "/roadmap", label: "My path", icon: Target },
   { href: "/mix-ups", label: "Mix-ups", icon: BookOpen },
   { href: "/review", label: "Review", icon: Trophy },
+  { href: "/about-me", label: "About me", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: UserRound },
 ];
 const TEACHER_LINKS = [

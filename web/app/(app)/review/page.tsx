@@ -137,6 +137,8 @@ function ItemList({
               <span className="font-semibold text-foreground">
                 {i.concept_name}
                 {i.chapter_name && <span className="ml-2 text-xs font-normal text-muted-foreground">{i.chapter_name}</span>}
+                {i.kind === "teacher" && <span className="tag ml-2">From your teacher</span>}
+                {i.kind === "refresh" && <span className="tag ml-2">Keep it fresh</span>}
               </span>
               <span className="text-sm text-muted-foreground">{i.reason}</span>
               {!i.due && (

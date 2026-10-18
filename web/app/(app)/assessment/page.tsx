@@ -389,6 +389,13 @@ function Assessment() {
         <section className="surface flex flex-col gap-5 p-5 sm:p-6">
           <Markdown>{question}</Markdown>
 
+          {/* The profile's "sure but wrong" insight (About me): a calm nudge, never a block. */}
+          {multipleChoice && next.data?.prefs?.slow_down && (
+            <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              Before you pick: read each option once more. The wrong ones are written to feel right.
+            </p>
+          )}
+
           {multipleChoice ? (
             // One radio group, so arrow keys move between options and a screen
             // reader announces "2 of 4". Visually: big tappable cards.

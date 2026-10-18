@@ -507,6 +507,21 @@ export interface CoachingNote {
   evidence: string[];
   next_step: string;
   source: "ai" | "rules";
+  // What the note proposes; nothing happens until the teacher approves it.
+  action?: { type: "revise"; concept: string; concept_id: string } | { type: "check_in" } | null;
+  actions_taken?: CoachingAction[];
+}
+
+export interface CoachingAction {
+  action_id: number;
+  kind: "revise" | "check_in";
+  concept_id: string | null;
+  concept_name: string | null;
+  created_at: string;
+  done_at: string | null;
+  correct: boolean | null;
+  status: "waiting" | "right" | "wrong" | "active_since" | "quiet_since";
+  outcome: string;
 }
 
 export interface CoachingRun {
@@ -517,6 +532,20 @@ export interface CoachingRun {
   note: string | null;
   students: CoachingNote[];
   reused?: boolean;
+  follow_through?: { approved: number; done: number; right: number; came_back: number; check_ins: number };
+}
+
+// The teacher approves a coaching note's suggestion; the server carries it out by rules.
+export function applyCoachingAction(
+  classId: string,
+  studentId: string,
+  kind: "revise" | "check_in",
+  conceptId?: string,
+): Promise<CoachingAction> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/coaching/actions`, {
+    method: "POST",
+    body: { student_id: studentId, kind, concept_id: conceptId ?? null },
+  });
 }
 
 export function getCoachingNotes(classId: string): Promise<CoachingRun | null> {
@@ -774,6 +803,7 @@ export interface RevisionItem {
   concept_name: string;
   chapter_id: string;
   chapter_name: string | null;
+  kind?: "teacher" | "partial" | "refresh"; // asked by the teacher, not mastered yet, or keep-it-fresh
   reason: string;
   due_at: string;
   due: boolean;
@@ -1000,6 +1030,43 @@ export interface LessonPrefs {
   break_after_minutes: number | null; // a gentle stretch nudge after this much reading
   example_first: boolean; // "Try an example" before "The idea"
   gentle: boolean; // physics makes them nervous: be kind about it
+  slow_down?: boolean; // often sure of a wrong answer: a short "check before you pick" line on the check
+}
+
+// The open learner profile (rules, no AI): what EcoLearn thinks about the student, why, and what it changes.
+export interface Insight {
+  id: string;
+  kind: "said" | "shown"; // from the survey, or from what they did
+  title: string;
+  detail: string;
+  evidence: string[];
+  effect: string; // what the app does because of it
+  active: boolean; // false once the student said "that's not me"
+}
+
+export interface LearnerProfile {
+  insights: Insight[];
+  survey_taken: boolean;
+  signals: {
+    views: number;
+    skim_share: number | null;
+    first_try_right: number;
+    first_try_answered: number;
+    sure: number;
+    sure_wrong: number;
+  };
+}
+
+export function getLearnerProfile(): Promise<LearnerProfile> {
+  return request("/api/profile/insights");
+}
+
+// dismissed: true = "that's not me" (its effect switches off); false = undo.
+export function setInsight(insightId: string, dismissed: boolean): Promise<LearnerProfile> {
+  return request(`/api/profile/insights/${encodeURIComponent(insightId)}`, {
+    method: "POST",
+    body: { dismissed },
+  });
 }
 
 // conceptId is optional: pass it to open a specific concept instead of the

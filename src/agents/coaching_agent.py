@@ -20,6 +20,15 @@ HOW IT STAYS SAFE
 
 The teacher is the audience and the decision-maker: these are suggestions to
 check, not a verdict on a child.
+
+ACTIONS (2026-10-14). A note may also carry one ACTION from a fixed list, which the
+teacher can approve with one click; the system then carries it out by rules:
+  * {"type": "revise", "concept": <a concept name from this student's mix_ups>}:
+    the concept joins the student's revision list, due now;
+  * {"type": "check_in"}: the teacher will talk to the student (recorded, so the
+    outcome can be shown: did they come back?).
+The model may only name a concept that is in the student's own case file; anything
+else is dropped (the note itself is kept). The AI proposes, the teacher decides.
 """
 
 from __future__ import annotations
@@ -87,7 +96,37 @@ def build_case(row: dict[str, Any], survey_traits: dict[str, Any] | None,
 # The rules fallback: same shape as a model note, built from the same case file.
 # ---------------------------------------------------------------------------
 
+ACTION_TYPES = ("revise", "check_in")
+
+
+def rules_action(case: dict[str, Any]) -> dict[str, Any] | None:
+    """The action a rules note suggests: revise the firmest mix-up, or check in on a quiet student."""
+    mix_ups = case.get("mix_ups") or []
+    if mix_ups:
+        pick = next((m for m in mix_ups if m["sure"]), mix_ups[0])
+        return {"type": "revise", "concept": pick["concept"]}
+    if (not case.get("lessons_opened") and not case.get("checks_answered")) or (case.get("days_since_active") or 0) >= 7:
+        return {"type": "check_in"}
+    return None
+
+
+def clean_action(value: Any, case: dict[str, Any]) -> dict[str, Any] | None:
+    """A model's proposed action if it is one we can carry out for THIS student, else None."""
+    if not isinstance(value, dict) or value.get("type") not in ACTION_TYPES:
+        return None
+    if value["type"] == "check_in":
+        return {"type": "check_in"}
+    names = {m["concept"] for m in case.get("mix_ups") or []}
+    concept = value.get("concept")
+    return {"type": "revise", "concept": concept} if isinstance(concept, str) and concept in names else None
+
+
 def rules_note(case: dict[str, Any]) -> dict[str, Any]:
+    note = _rules_note(case)
+    return {**note, "action": rules_action(case)}
+
+
+def _rules_note(case: dict[str, Any]) -> dict[str, Any]:
     findings: list[tuple[str, list[str], str]] = []  # (what we see, evidence, what to try)
     if not case.get("lessons_opened") and not case.get("checks_answered"):
         findings.append(("Hasn't opened a lesson yet.", ["lessons_opened"],
@@ -155,7 +194,8 @@ def _validate(alias: str, value: Any, case: dict[str, Any], forbidden: list[str]
         return None, "contains a name or username"
     if re.search(r"https?://|www\.|@", text):
         return None, "contains a link"
-    return {"note": note, "evidence": cited, "next_step": step}, None
+    return {"note": note, "evidence": cited, "next_step": step,
+            "action": clean_action(value.get("action"), case)}, None
 
 
 def coach_class(cases: dict[str, dict[str, Any]], forbidden: list[str],

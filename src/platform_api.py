@@ -57,7 +57,7 @@ from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError, TooManyRequestsError
-from src.learner import diagnostic, doubt_tutor, help_guard, personal_story, survey
+from src.learner import diagnostic, doubt_tutor, help_guard, personal_story, profiler, survey
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
@@ -1066,6 +1066,53 @@ def get_learning_plan(student_id: str) -> dict[str, Any]:
     }
 
 
+def _profile(student_id: str) -> dict[str, Any]:
+    """profiler.build over this student's rows (see src/learner/profiler.py)."""
+    saved = store.get_survey(student_id)
+    activity = store.get_activity([student_id])
+    first = [a for a in activity["answers"] if a["attempt_no"] == 1]
+    events = learner_plan._answer_events(
+        store.get_diagnostic_answers([student_id]), activity["answers"],
+        store.get_end_check_answers([student_id]), store.get_review_answers([student_id]))
+    return profiler.build(saved["traits"] if saved else None, survey.observed_reading(activity["views"]),
+                          (sum(1 for a in first if a["correct"]), len(first)), events,
+                          store.get_insight_dismissals(student_id))
+
+
+def get_learner_profile(student_id: str) -> dict[str, Any]:
+    """What EcoLearn thinks about this student, why, and what it does about it (the open learner profile).
+
+    Rules only, no AI. Each insight is something the student said (the survey) or did (reading, checks,
+    how sure they were), with its evidence in plain words and its effect on the app. The student can say
+    "that's not me" to any of them (`set_insight`), which switches its effect off.
+
+    Returns: {"insights": [{id, kind: "said"|"shown", title, detail, evidence: [str], effect, active}],
+              "survey_taken": bool, "signals": {views, skim_share, first_try_right, first_try_answered,
+              sure, sure_wrong}}
+
+    Raises:
+        NotFoundError: unknown student.
+    """
+    _require_student(student_id)
+    built = _profile(student_id)
+    return {"insights": built["insights"], "survey_taken": store.get_survey(student_id) is not None,
+            "signals": built["signals"]}
+
+
+def set_insight(student_id: str, insight_id: str, dismissed: bool) -> dict[str, Any]:
+    """The student says "that's not me" to an insight (dismissed=True), or takes it back.
+
+    Raises:
+        NotFoundError: unknown student.
+        EcoLearnError: not an insight the profile can produce.
+    """
+    _require_student(student_id)
+    if insight_id not in profiler.INSIGHT_IDS:
+        raise EcoLearnError(f"Unknown insight {insight_id!r}.")
+    store.set_insight_dismissed(student_id, insight_id, bool(dismissed))
+    return get_learner_profile(student_id)
+
+
 def get_mix_ups(student_id: str) -> dict[str, Any]:
     """Every misconception this student has shown, and whether it's fixed.
 
@@ -1493,10 +1540,10 @@ def get_next_lesson(
             )
         else:
             envelope["lesson"] = lesson.model_dump()
-            # How this student likes lessons shaped (survey.lesson_prefs): defaults when
-            # they haven't answered. Presentation only: nothing is hidden or locked.
-            saved = store.get_survey(student_id)
-            envelope["prefs"] = survey.lesson_prefs(saved["traits"] if saved else None)
+            # How this student likes lessons shaped: what they said in the survey, corrected by
+            # what they did, minus anything they said "that's not me" to (src/learner/profiler.py).
+            # Presentation only: nothing is hidden or locked.
+            envelope["prefs"] = _profile(student_id)["prefs"]
             # Authored lessons carry their own sections and a multiple-choice
             # check. Send those alongside the legacy fields: the web app renders
             # section by section (so it can collapse the worked example) and
@@ -1885,58 +1932,103 @@ def _fresh_question(concept_id: str, rows: tuple[list, list, list, list]) -> str
     return None
 
 
-def get_revision(student_id: str) -> dict[str, Any]:
-    """The revision queue: concepts answered right but not yet mastered.
+# Mastered ideas come back to "keep it fresh" on a widening schedule: a week, then three weeks, then
+# nine (each right revision answer widens it); a wrong one brings it back in two days (2026-10-14).
+_REFRESH_DAYS = (7, 21, 63)
+_REFRESH_AFTER_WRONG_DAYS = 2
 
-    Each gets a fresh question (another interest's lesson check it hasn't seen)
-    about ECOLEARN_REVISION_HOURS (default 20) after its last answer. Nothing is
-    locked: a concept that isn't due yet can still be tried.
+
+def _refresh_days(review_rows: list[dict[str, Any]]) -> int:
+    """How long a mastered concept waits before a keep-it-fresh question."""
+    if review_rows and not sorted(review_rows, key=lambda r: r["answered_at"])[-1]["correct"]:
+        return _REFRESH_AFTER_WRONG_DAYS
+    right = sum(1 for r in review_rows if r["correct"])
+    return _REFRESH_DAYS[min(right, len(_REFRESH_DAYS) - 1)]
+
+
+def get_revision(student_id: str) -> dict[str, Any]:
+    """The revision queue. Nothing is locked: a concept that isn't due yet can still be tried.
+
+    Three kinds of item, each with a fresh question (another interest's lesson check it hasn't seen):
+      * "teacher":  the student's teacher approved this from a coaching note; due now, listed first. If no
+                    unseen question is left, the student's own lesson check is asked again;
+      * "partial":  answered right but not yet mastered; due ECOLEARN_REVISION_HOURS (default 20) after
+                    the last answer, HALF that when the student was sure of a wrong answer on it and the
+                    profile's "sure but wrong" insight is on (src/learner/profiler.py);
+      * "refresh":  mastered; comes back after 7, then 21, then 63 days (2 after a wrong answer).
 
     Returns:
-        {"due": [...], "later": [...]}, each item {concept_id, concept_name,
-         chapter_id, chapter_name, reason, due_at, due}. Concepts with no
-         unseen question left are left out (`no_fresh_question` counts them).
+        {"due": [...], "later": [...], "no_fresh_question": n}, each item {concept_id, concept_name,
+         chapter_id, chapter_name, kind, reason, due_at, due}. Partial concepts with no unseen
+         question left are left out and counted.
     """
     _require_student(student_id)
     progress = store.get_progress(student_id)
     chapters = {c["id"]: c["name"] for c in engine.list_chapters()}
     hours = _revision_hours()
+    sooner = set(_profile(student_id)["sooner"])
+    assigned = {a["concept_id"]: a for a in store.open_revise_actions(student_id)}
     now = datetime.now(timezone.utc)
     due, later, no_fresh = [], [], 0
+
+    def item(concept: Any, kind: str, reason: str, due_at: datetime) -> dict[str, Any]:
+        return {"concept_id": concept.id, "concept_name": concept.name, "chapter_id": concept.chapter_id,
+                "chapter_name": chapters.get(concept.chapter_id), "kind": kind, "reason": reason,
+                "due_at": due_at.isoformat(), "due": due_at <= now,
+                "order": (0 if kind == "teacher" else 1 if concept.id in sooner else 2, concept.order)}
+
+    items = []
+    for concept_id, action in assigned.items():
+        concept = engine.find_concept(concept_id)
+        if concept is not None:
+            items.append(item(concept, "teacher", "Your teacher asked you to have another go at this one.",
+                              datetime.fromisoformat(action["created_at"])))
     for concept_id, row in progress.items():
-        if row["status"] != store.STATUS_PARTIAL:
+        if concept_id in assigned or row["status"] not in (store.STATUS_PARTIAL, store.STATUS_MASTERED):
             continue
         concept = engine.find_concept(concept_id)
-        rows = _concept_rows(student_id, concept_id)
         if concept is None:
             continue
+        rows = _concept_rows(student_id, concept_id)
         if _fresh_question(concept_id, rows) is None:
-            no_fresh += 1
+            no_fresh += int(row["status"] == store.STATUS_PARTIAL)
+            continue
+        last = datetime.fromisoformat(
+            max((r["answered_at"] for group in rows for r in group), default=row["last_seen"]))
+        if row["status"] == store.STATUS_MASTERED:
+            days = _refresh_days(rows[3])
+            items.append(item(concept, "refresh", "Mastered. A quick question to keep it fresh.",
+                              last + timedelta(days=days)))
             continue
         events = learner_plan._answer_events(*rows).get(concept_id, [])
-        last = max((r["answered_at"] for group in rows for r in group), default=row["last_seen"])
-        due_at = datetime.fromisoformat(last) + timedelta(hours=hours)
-        item = {
-            "concept_id": concept_id, "concept_name": concept.name,
-            "chapter_id": concept.chapter_id, "chapter_name": chapters.get(concept.chapter_id),
-            "reason": ("Right once. One more, on a new question, masters it."
-                       if learner_plan.mastery_evidence(events)
-                       else "Right after the explanation. Show it on a new question."),
-            "due_at": due_at.isoformat(), "due": due_at <= now, "order": concept.order,
-        }
-        (due if item["due"] else later).append(item)
-    due.sort(key=lambda i: (i["due_at"], i["order"]))
+        if concept_id in sooner:
+            reason, wait = "You were sure of a wrong answer here, so it comes back sooner.", hours / 2
+        elif learner_plan.mastery_evidence(events):
+            reason, wait = "Right once. One more, on a new question, masters it.", hours
+        else:
+            reason, wait = "Right after the explanation. Show it on a new question.", hours
+        items.append(item(concept, "partial", reason, last + timedelta(hours=wait)))
+    for it in items:
+        (due if it["due"] else later).append(it)
+    due.sort(key=lambda i: (i["order"], i["due_at"]))
     later.sort(key=lambda i: (i["due_at"], i["order"]))
-    for item in due + later:
-        del item["order"]
+    for it in due + later:
+        del it["order"]
     return {"due": due, "later": later, "no_fresh_question": no_fresh}
 
 
 def _revision_target(student_id: str, concept_id: str) -> tuple[Any, str]:
     """(the lesson to ask from, its interest) for a concept in the queue."""
-    if store.get_progress(student_id).get(concept_id, {}).get("status") != store.STATUS_PARTIAL:
+    status = store.get_progress(student_id).get(concept_id, {}).get("status")
+    assigned = any(a["concept_id"] == concept_id for a in store.open_revise_actions(student_id))
+    if not assigned and status not in (store.STATUS_PARTIAL, store.STATUS_MASTERED):
         raise NotFoundError("That concept isn't in your revision list.")
     interest = _fresh_question(concept_id, _concept_rows(student_id, concept_id))
+    if interest is None and assigned:
+        # The teacher asked for another go and every question has been seen: ask their own lesson's again.
+        own = (store.get_student(student_id) or {}).get("interest")
+        if own and lesson_service.get_authored_lesson(concept_id, own):
+            interest = own
     if interest is None:
         raise NotFoundError("There's no new question on that concept yet.")
     return lesson_service.get_authored_lesson(concept_id, interest), interest
@@ -1977,6 +2069,7 @@ def submit_revision(
     correct = picked == check.answer
     misconception = None if correct else (check.misconceptions.get(picked) or "").strip() or None
     store.record_review_answer(student_id, concept_id, interest, picked, correct, misconception, sure)
+    store.close_revise_actions(student_id, concept_id, correct)  # a teacher-assigned revision, if any
     score, note = _mastery_score(student_id, concept_id, correct)
     updated = store.update_progress(student_id, concept_id, score)
     if correct:
@@ -2500,17 +2593,99 @@ def _coaching_cases(teacher_id: str, class_id: str, aliases: dict[str, str]) -> 
     return cases
 
 
+def _concept_ids_by_name() -> dict[str, str]:
+    return {c.name: c.id for ids in engine.concept_ids_by_chapter().values()
+            for c in (engine.find_concept(i) for i in ids) if c is not None}
+
+
+def _action_view(action: dict[str, Any], last_active: str | None) -> dict[str, Any]:
+    """A stored coaching action with its outcome in words, for the teacher."""
+    concept = engine.find_concept(action["concept_id"]) if action.get("concept_id") else None
+    if action["kind"] == "revise":
+        if action["done_at"] is None:
+            outcome, status = "Waiting: it's at the top of their revision list.", "waiting"
+        elif action["correct"]:
+            outcome, status = "Done: they got the new question right.", "right"
+        else:
+            outcome, status = "Done, not yet right: it's back on their mix-ups list.", "wrong"
+    else:
+        came_back = bool(last_active and last_active > action["created_at"])
+        outcome = "They've been active since." if came_back else "Not active since."
+        status = "active_since" if came_back else "quiet_since"
+    return {"action_id": action["action_id"], "kind": action["kind"], "concept_id": action.get("concept_id"),
+            "concept_name": concept.name if concept else None, "created_at": action["created_at"],
+            "done_at": action["done_at"], "correct": action["correct"], "status": status, "outcome": outcome}
+
+
 def _render_coaching(run: dict[str, Any], class_id: str) -> dict[str, Any]:
-    """A stored run as the teacher sees it: aliases replaced by current names, in S order."""
-    names = {s["student_id"]: s["name"] for s in store.list_class_students(class_id)}
+    """A stored run as the teacher sees it: aliases replaced by current names, in S order, each note with
+    its proposed action (concept resolved to an id) and what happened to any action the teacher approved."""
+    roster = {s["student_id"]: s for s in store.list_class_students(class_id)}
+    by_name = _concept_ids_by_name()
+    actions: dict[str, list[dict[str, Any]]] = {}
+    for a in store.list_coaching_actions(list(roster)):
+        # Approved since these notes were written, or still waiting from an earlier set.
+        if a["class_id"] == class_id and (a["created_at"] >= run["created_at"] or a["done_at"] is None):
+            actions.setdefault(a["student_id"], []).append(a)
     students = []
+    follow = {"approved": 0, "done": 0, "right": 0, "came_back": 0, "check_ins": 0}
     for alias in sorted(run["notes"], key=lambda a: int(a[1:])):
         sid = run["aliases"].get(alias)
-        if sid not in names:
+        if sid not in roster:
             continue  # a student removed since the run
-        students.append({"student_id": sid, "name": names[sid], "alias": alias, **run["notes"][alias]})
+        note = dict(run["notes"][alias])
+        proposed = note.pop("action", None)
+        if proposed and proposed.get("type") == "revise":
+            concept_id = by_name.get(proposed.get("concept"))
+            proposed = {**proposed, "concept_id": concept_id} if concept_id else None
+        taken = [_action_view(a, roster[sid]["last_active"]) for a in actions.get(sid, [])]
+        for t in taken:
+            follow["approved"] += 1
+            if t["kind"] == "revise":
+                follow["done"] += int(t["done_at"] is not None)
+                follow["right"] += int(bool(t["correct"]))
+            else:
+                follow["check_ins"] += 1
+                follow["came_back"] += int(t["status"] == "active_since")
+        students.append({"student_id": sid, "name": roster[sid]["name"], "alias": alias, **note,
+                         "action": proposed, "actions_taken": taken})
     return {"run_id": run["run_id"], "created_at": run["created_at"], "source": run["source"],
-            "model": run["model"], "note": run["note"], "students": students}
+            "model": run["model"], "note": run["note"], "students": students, "follow_through": follow}
+
+
+def apply_coaching_action(teacher_id: str, class_id: str, student_id: str, kind: str,
+                          concept_id: str | None = None) -> dict[str, Any]:
+    """The teacher approves one of a coaching note's suggestions; the system carries it out by rules.
+
+    kind "revise": `concept_id` joins the student's revision list, due now and listed first, until they
+    answer a new question on it (the outcome, right or not, is recorded). kind "check_in": recorded, so the
+    page can show whether the student was active again afterwards. The AI only proposes; nothing happens
+    to a student until a teacher approves it here.
+
+    Returns: the action as the teacher sees it ({action_id, kind, concept_id, concept_name, created_at,
+             done_at, correct, status, outcome}).
+
+    Raises:
+        NotFoundError: not this teacher's class, or the student isn't in it, or an unknown concept.
+        EcoLearnError: an unknown kind, or "revise" without a concept.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    roster = {s["student_id"]: s for s in store.list_class_students(class_id)}
+    if student_id not in roster:
+        raise NotFoundError("Student not found in this class.")
+    if kind not in coaching_agent.ACTION_TYPES:
+        raise EcoLearnError(f"Unknown action {kind!r}.")
+    if kind == "revise":
+        if not concept_id:
+            raise EcoLearnError("Say which concept to revise.")
+        if engine.find_concept(concept_id) is None:
+            raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
+    else:
+        concept_id = None
+    action = store.add_coaching_action(student_id, class_id, teacher_id, kind, concept_id)
+    return _action_view({**action, "correct": None if action.get("correct") is None else bool(action["correct"])},
+                        roster[student_id]["last_active"])
 
 
 def get_coaching_notes(teacher_id: str, class_id: str) -> dict[str, Any] | None:

@@ -492,6 +492,20 @@ def teacher_make_coaching_notes(
     return api.generate_coaching_notes(teacher_id, class_id)
 
 
+class CoachingActionRequest(BaseModel):
+    student_id: str
+    kind: str  # "revise" | "check_in"
+    concept_id: str | None = None
+
+
+@app.post("/api/teacher/classes/{class_id}/coaching/actions")
+def teacher_coaching_action(
+    class_id: str, payload: CoachingActionRequest, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """Approve a coaching note's suggestion; the system carries it out by rules (no AI)."""
+    return api.apply_coaching_action(teacher_id, class_id, payload.student_id, payload.kind, payload.concept_id)
+
+
 @app.get("/api/teacher/ai-status")
 def teacher_ai_status(teacher_id: str = Depends(get_current_teacher_id)) -> dict:
     """Is the live AI answering right now (cached for a minute)?"""
@@ -737,6 +751,23 @@ def submit_revision(
 def mix_ups(student_id: str = Depends(get_current_student_id)) -> dict:
     """Every misconception you've shown, and whether it's fixed."""
     return api.get_mix_ups(student_id)
+
+
+@app.get("/api/profile/insights")
+def learner_profile(student_id: str = Depends(get_current_student_id)) -> dict:
+    """What EcoLearn thinks about you, why, and what it changes (rules, no AI)."""
+    return api.get_learner_profile(student_id)
+
+
+class InsightRequest(BaseModel):
+    dismissed: bool
+
+
+@app.post("/api/profile/insights/{insight_id}")
+def set_insight(insight_id: str, payload: InsightRequest,
+                student_id: str = Depends(get_current_student_id)) -> dict:
+    """Say "that's not me" to an insight (dismissed: true), or take it back. Returns the profile."""
+    return api.set_insight(student_id, insight_id, payload.dismissed)
 
 
 @app.get("/api/end-check")

@@ -119,8 +119,12 @@ def test_lesson_checks() -> tuple[str, str]:
     out = api.submit_assessment(other, "acceleration", key("acceleration", "cricket")[0])
     check(out["score"] == 3 and out["mastery"]["status"] == "mastered" and "mastered" in out["mastery_note"],
           "starting check + lesson check (two different questions) = mastered")
-    check(all(i["concept_id"] != "acceleration" for i in api.get_revision(other)["due"]
-              + api.get_revision(other)["later"]), "a mastered concept isn't in the queue")
+    queue = api.get_revision(other)
+    check(all(i["concept_id"] != "acceleration" for i in queue["due"]),
+          "a mastered concept isn't due for revision")
+    fresh = [i for i in queue["later"] if i["concept_id"] == "acceleration"]
+    check(len(fresh) == 1 and fresh[0]["kind"] == "refresh",
+          "it comes back later only as a keep-it-fresh question (2026-10-14)")
     return sid, other
 
 
@@ -153,9 +157,11 @@ def test_revision_answers(sid: str) -> None:
     out = api.submit_revision(sid, "displacement", right, "sure")
     check(out["correct"] and out["mastery"]["status"] == "mastered" and out["mastery_signal"] == "mastered",
           "right on a fresh question: mastered")
-    raises(NotFoundError, api.get_revision_question, sid, "displacement")
     check(all(i["concept_id"] != "displacement" for i in api.get_revision(sid)["due"]),
-          "and it leaves the queue")
+          "and it leaves the due list")
+    later = [i for i in api.get_revision(sid)["later"] if i["concept_id"] == "displacement"]
+    check(later and later[0]["kind"] == "refresh" and api.get_revision_question(sid, "displacement")["question"],
+          "it waits as a keep-it-fresh question, which can still be tried early (nothing is locked)")
 
     fresh = []
     for _ in range(5):

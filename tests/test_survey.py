@@ -143,7 +143,8 @@ def test_storage_and_surfaces() -> None:
     sid = new_student("Sv Kid", "sv.kid")
     first = engine.get_roadmap(sid, "laws_of_motion")[0]["concept_id"]
     before = api.get_next_lesson(sid, "laws_of_motion")
-    check(before["prefs"] == survey.DEFAULT_PREFS, "before the survey: default preferences")
+    check(before["prefs"] == {**survey.DEFAULT_PREFS, "slow_down": False},
+          "before the survey: default preferences (plus the profile's slow_down, off)")
     check(api.get_survey(sid)["taken"] is False and len(api.get_survey(sid)["questions"]) == len(survey.questions()),
           "not taken: the questions come back")
 

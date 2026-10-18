@@ -184,6 +184,37 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_help_student ON help_events(student_id, event_id)")
+    # The open learner profile (2026-10-14): an insight the student said "that's not me" to. Its effect is
+    # switched off for them until they undo it. One row per student x insight.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS insight_dismissals (
+            student_id    TEXT NOT NULL,
+            insight_id    TEXT NOT NULL,
+            dismissed_at  TEXT NOT NULL,
+            PRIMARY KEY (student_id, insight_id)
+        )
+        """
+    )
+    # Coaching actions (2026-10-14): a teacher approved one of the coaching note's suggestions. The
+    # system carries it out by rules (kind "revise": the concept joins the student's revision list now;
+    # "check_in": the teacher will talk to them) and records the outcome (done_at, correct).
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS coaching_actions (
+            action_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id  TEXT NOT NULL,
+            class_id    TEXT NOT NULL,
+            teacher_id  TEXT NOT NULL,
+            kind        TEXT NOT NULL,
+            concept_id  TEXT,
+            created_at  TEXT NOT NULL,
+            done_at     TEXT,
+            correct     INTEGER
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_coaching_actions ON coaching_actions(student_id, action_id)")
     # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
     # are a baseline taken before any lesson, and mixing them into the lesson
     # answers would muddy the pilot's "right first time" number.
@@ -1878,6 +1909,90 @@ def record_help_event(student_id: str, outcome: str, reason: str | None = None) 
         conn.execute("INSERT INTO help_events (student_id, at, outcome, reason) VALUES (?, ?, ?, ?)",
                      (student_id, _now_iso(), outcome, reason))
         conn.commit()
+    finally:
+        conn.close()
+
+
+def get_insight_dismissals(student_id: str) -> set[str]:
+    """The insight ids this student said "that's not me" to."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT insight_id FROM insight_dismissals WHERE student_id = ?",
+                            (student_id,)).fetchall()
+    finally:
+        conn.close()
+    return {r["insight_id"] for r in rows}
+
+
+def set_insight_dismissed(student_id: str, insight_id: str, dismissed: bool) -> None:
+    conn = _connect()
+    try:
+        if dismissed:
+            conn.execute("INSERT OR IGNORE INTO insight_dismissals (student_id, insight_id, dismissed_at) "
+                         "VALUES (?, ?, ?)", (student_id, insight_id, _now_iso()))
+        else:
+            conn.execute("DELETE FROM insight_dismissals WHERE student_id = ? AND insight_id = ?",
+                         (student_id, insight_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def add_coaching_action(student_id: str, class_id: str, teacher_id: str, kind: str,
+                        concept_id: str | None) -> dict[str, Any]:
+    """Record a teacher-approved action. A "revise" already open for the same concept is reused."""
+    conn = _connect()
+    try:
+        if kind == "revise":
+            open_row = conn.execute(
+                "SELECT * FROM coaching_actions WHERE student_id = ? AND kind = 'revise' AND concept_id = ? "
+                "AND done_at IS NULL ORDER BY action_id DESC LIMIT 1", (student_id, concept_id)).fetchone()
+            if open_row is not None:
+                return dict(open_row)
+        cursor = conn.execute(
+            "INSERT INTO coaching_actions (student_id, class_id, teacher_id, kind, concept_id, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)", (student_id, class_id, teacher_id, kind, concept_id, _now_iso()))
+        conn.commit()
+        row = conn.execute("SELECT * FROM coaching_actions WHERE action_id = ?", (cursor.lastrowid,)).fetchone()
+    finally:
+        conn.close()
+    return dict(row)
+
+
+def list_coaching_actions(student_ids: list[str]) -> list[dict[str, Any]]:
+    """Every coaching action for these students, oldest first."""
+    if not student_ids:
+        return []
+    conn = _connect()
+    try:
+        marks = ",".join("?" * len(student_ids))
+        rows = conn.execute(f"SELECT * FROM coaching_actions WHERE student_id IN ({marks}) ORDER BY action_id",
+                            student_ids).fetchall()
+    finally:
+        conn.close()
+    return [{**dict(r), "correct": None if r["correct"] is None else bool(r["correct"])} for r in rows]
+
+
+def open_revise_actions(student_id: str) -> list[dict[str, Any]]:
+    """The teacher-assigned revisions this student hasn't answered yet."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT * FROM coaching_actions WHERE student_id = ? AND kind = 'revise' "
+                            "AND done_at IS NULL ORDER BY action_id", (student_id,)).fetchall()
+    finally:
+        conn.close()
+    return [dict(r) for r in rows]
+
+
+def close_revise_actions(student_id: str, concept_id: str, correct: bool) -> int:
+    """Mark the open teacher-assigned revisions of this concept as answered. Returns how many."""
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "UPDATE coaching_actions SET done_at = ?, correct = ? WHERE student_id = ? AND kind = 'revise' "
+            "AND concept_id = ? AND done_at IS NULL", (_now_iso(), 1 if correct else 0, student_id, concept_id))
+        conn.commit()
+        return cursor.rowcount
     finally:
         conn.close()
 

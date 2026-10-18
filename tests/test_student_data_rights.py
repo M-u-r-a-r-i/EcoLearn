@@ -152,6 +152,9 @@ def build() -> dict:
     api.get_personal_story(a, "second_law")
     api.generate_coaching_notes(tid, class_id, chat=coaching_chat)
     api.generate_class_plan(tid, class_id, models=[])
+    for sid in (a, b):  # the open learner profile and teacher-approved coaching actions (2026-10-14)
+        api.set_insight(sid, "sure_wrong", True)
+        api.apply_coaching_action(tid, class_id, sid, "revise", "velocity")
     return {"tid": tid, "class_id": class_id, "a": a, "b": b, "c": cred["Kabir Shah"]["student_id"], "cred": cred}
 
 
