@@ -28,12 +28,12 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Import your existing backend UNCHANGED. Because we run uvicorn from the project
 # root, Python can find the `src` package, exactly like the Streamlit app does.
 from src import platform_api as api
-from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
+from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError, TooManyRequestsError
 
 from api.ratelimit import limiter, too_many_message
 from api.security import (
@@ -85,6 +85,7 @@ def _error(code: int):
 app.add_exception_handler(NotFoundError, _error(status.HTTP_404_NOT_FOUND))
 app.add_exception_handler(ConflictError, _error(status.HTTP_409_CONFLICT))
 app.add_exception_handler(AuthError, _error(status.HTTP_401_UNAUTHORIZED))
+app.add_exception_handler(TooManyRequestsError, _error(status.HTTP_429_TOO_MANY_REQUESTS))
 app.add_exception_handler(EcoLearnError, _error(status.HTTP_400_BAD_REQUEST))
 app.add_exception_handler(ValueError, _error(status.HTTP_400_BAD_REQUEST))
 # A live-LLM failure (e.g. the grader is out of quota) raises RuntimeError with a
@@ -155,7 +156,8 @@ class HelpRequest(BaseModel):
     """Body for POST /api/help. The student comes from the session cookie."""
 
     concept_id: str
-    question: str
+    # A student's own words go to a live model: keep them to a question, not an essay (600 characters).
+    question: str = Field(min_length=1, max_length=600)
 
 
 class LessonViewRequest(BaseModel):
@@ -474,6 +476,36 @@ def teacher_class_plan(
     return api.get_class_plan(teacher_id, class_id)
 
 
+@app.get("/api/teacher/classes/{class_id}/coaching")
+def teacher_coaching_notes(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict | None:
+    """The latest coaching notes (a short note per student), or null if none yet."""
+    return api.get_coaching_notes(teacher_id, class_id)
+
+
+@app.post("/api/teacher/classes/{class_id}/coaching")
+def teacher_make_coaching_notes(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """Write coaching notes for the class (takes seconds: live model calls, rules as the fallback)."""
+    return api.generate_coaching_notes(teacher_id, class_id)
+
+
+@app.get("/api/teacher/ai-status")
+def teacher_ai_status(teacher_id: str = Depends(get_current_teacher_id)) -> dict:
+    """Is the live AI answering right now (cached for a minute)?"""
+    return api.get_ai_status(teacher_id)
+
+
+@app.get("/api/teacher/classes/{class_id}/plan/progress")
+def teacher_plan_progress(
+    class_id: str, teacher_id: str = Depends(get_current_teacher_id)
+) -> dict:
+    """What the assistant is doing right now (poll while the plan is being made)."""
+    return api.get_class_plan_progress(teacher_id, class_id)
+
+
 @app.post("/api/teacher/classes/{class_id}/plan")
 def teacher_generate_plan(
     class_id: str, teacher_id: str = Depends(get_current_teacher_id)
@@ -536,6 +568,20 @@ def teacher_set_level(
 ) -> dict:
     """Move a student in one of this teacher's classes to Class 11 or Class 12."""
     return api.set_student_level(teacher_id, student_id, payload.level)
+
+
+class AiSwitch(BaseModel):
+    enabled: bool
+
+
+@app.post("/api/teacher/students/{student_id}/ai")
+def teacher_set_ai(
+    student_id: str,
+    payload: AiSwitch,
+    teacher_id: str = Depends(get_current_teacher_id),
+) -> dict:
+    """Turn the AI features on or off for one student (a family that says no to the AI parts)."""
+    return api.set_student_ai(teacher_id, student_id, payload.enabled)
 
 
 # ---------------------------------------------------------------------------

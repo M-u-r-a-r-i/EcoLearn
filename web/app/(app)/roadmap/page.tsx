@@ -11,27 +11,27 @@
 
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, Lock, PartyPopper, Sparkles } from "lucide-react";
+import { ArrowRight, Lock, PartyPopper, Sparkles } from "lucide-react";
 
 import { getRoadmap, type RoadmapConcept } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
-import { ChapterPicker } from "@/components/chapter-picker";
 import { EndCheckCard, LearningPlanCard, RevisionCard } from "@/components/learning-plan";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
-import { PathMap, ProgressRing, StepSheet, kindOf } from "@/components/roadmap-path";
+import { Button } from "@/components/ui/button";
+import { EmptyState, Pill } from "@/components/ui-kit";
+import { ProgressRing, kindOf, type NodeKind } from "@/components/roadmap-path";
+import { RoadmapTree } from "@/components/roadmap-tree";
 import { useChapter, withChapter } from "@/lib/use-chapter";
 import { useFetch } from "@/lib/use-fetch";
 
-// Each interest has an emoji and an accent that tints the header card.
-const INTEREST_LOOK: Record<string, { emoji: string; color: string }> = {
-  cricket: { emoji: "🏏", color: "#22c55e" },
-  football: { emoji: "⚽", color: "#3b82f6" },
-  gaming: { emoji: "🎮", color: "#a855f7" },
-  smartphones: { emoji: "📱", color: "#06b6d4" },
-  motorsport: { emoji: "🏎️", color: "#ef4444" },
+// Each interest has an emoji (its accent colour comes from data-interest on <html>).
+const INTEREST_LOOK: Record<string, { emoji: string }> = {
+  cricket: { emoji: "🏏" },
+  football: { emoji: "⚽" },
+  gaming: { emoji: "🎮" },
+  smartphones: { emoji: "📱" },
+  motorsport: { emoji: "🏎️" },
 };
 
 export default function RoadmapPage() {
@@ -98,188 +98,133 @@ function Roadmap() {
     concepts?.find((c) => c.recommended) ??
     concepts?.find((c) => c.status === "available" && written(c) && !c.locked);
   const allDone = total > 0 && done === total;
-  const look = INTEREST_LOOK[student.interest] ?? { emoji: "⚛️", color: "#6366f1" };
+  const kinds: Record<string, NodeKind> = Object.fromEntries(
+    (concepts ?? []).map((c) => [c.concept_id, kindOf(c, nextConcept?.concept_id)]),
+  );
+  const look = INTEREST_LOOK[student.interest] ?? { emoji: "⚛️" };
   const freshNames = (concepts ?? []).filter((c) => fresh.includes(c.concept_id)).map((c) => c.name);
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex w-full max-w-2xl flex-col gap-6">
-        {/* ---------- Header card ---------- */}
-        <section
-          className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-card"
-          style={{
-            backgroundImage: `radial-gradient(110% 90% at 100% 0%, color-mix(in oklab, ${look.color} 24%, transparent), transparent 62%)`,
-          }}
-        >
-          <div className="flex items-center gap-5">
-            {loading ? (
-              <div className="size-28 shrink-0 animate-pulse rounded-full bg-muted" />
-            ) : (
-              <ProgressRing done={done} mastered={mastered} total={total} />
-            )}
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-                {look.emoji} Your learning path
-              </span>
-              <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-                {chapter?.name ?? " "}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {student.name} · through <span className="capitalize">{student.interest}</span>
-              </p>
-              {!loading && readyCount > 0 && (
-                <div className="mt-1 flex flex-wrap gap-1.5 text-xs font-semibold">
-                  <span className="rounded-full bg-success/10 px-2.5 py-1 text-success">{done} done</span>
-                  {mastered > 0 && (
-                    <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-amber-500">
-                      {mastered} mastered
-                    </span>
-                  )}
-                  {locked > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
-                      <Lock className="size-3" aria-hidden /> {locked} to unlock
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+    <main className="page-shell w-full flex-1">
+      {/* ---------- Welcome strip ---------- */}
+      <section className="welcome-strip fade-up">
+        <span className="welcome-avatar" aria-hidden>
+          {student.name.slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="eyebrow">
+            {look.emoji} Your learning path
+          </p>
+          <h1 className="display">{chapter?.name ?? " "}</h1>
+          <p>
+            {student.name} · through <span className="capitalize">{student.interest}</span>
+          </p>
+        </div>
+        {loading ? (
+          <div className="ml-auto size-14 shrink-0 animate-pulse rounded-full bg-muted" />
+        ) : (
+          <ProgressRing done={done} mastered={mastered} total={total} />
+        )}
+      </section>
 
-          {!loading && !error && readyCount > 0 && (nextConcept || allDone) && (
-            <PrimaryButton asChild className="mt-5 w-full sm:w-auto">
-              <Link href={withChapter("/lesson", chapterId)}>
-                {allDone ? (
-                  <>
-                    <PartyPopper className="size-5" /> Review the chapter
-                  </>
-                ) : (
-                  <>
-                    Continue learning <ArrowRight className="size-5" />
-                  </>
-                )}
-              </Link>
-            </PrimaryButton>
+      {!loading && readyCount > 0 && (
+        <div className="mb-5 flex flex-wrap gap-2 text-xs font-semibold">
+          <span className="tag">{done} done</span>
+          {mastered > 0 && <span className="tag">{mastered} mastered</span>}
+          {locked > 0 && (
+            <span className="tag inline-flex items-center gap-1">
+              <Lock className="size-3" aria-hidden /> {locked} to unlock
+            </span>
           )}
-        </section>
+        </div>
+      )}
 
-        {freshNames.length > 0 && (
-          <p
-            role="status"
-            className="rm-sheet flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-semibold text-success"
-          >
-            <Sparkles className="size-4 shrink-0" aria-hidden />
-            Nice work! {freshNames.join(", ")} {freshNames.length === 1 ? "is" : "are"} done.
-          </p>
-        )}
+      {freshNames.length > 0 && (
+        <p
+          role="status"
+          className="rm-sheet mb-4 flex items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-semibold text-success"
+        >
+          <Sparkles className="size-4 shrink-0" aria-hidden />
+          Nice work! {freshNames.join(", ")} {freshNames.length === 1 ? "is" : "are"} done.
+        </p>
+      )}
 
-        <ChapterPicker
-          chapters={chapters}
-          value={chapterId}
-          onChange={setChapter}
-          interest={student.interest}
-        />
+      {/* On phones the side cards sit below the map, so the main action stays up here. */}
+      {!loading && !error && readyCount > 0 && (nextConcept || allDone) && (
+        <Button asChild className="mb-5 w-full md:hidden">
+          <Link href={withChapter("/lesson", chapterId)}>
+            {allDone ? "Review the chapter" : "Continue learning"} <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </Button>
+      )}
 
-        <EndCheckCard />
-        <RevisionCard />
-        <LearningPlanCard chapterId={chapterId} />
+      <div className="roadmap-toolbar">
+        <div>
+          <p className="eyebrow">Your map</p>
+          <h2 className="display">Pick a chapter, then a concept</h2>
+        </div>
+        <p className="tree-legend" aria-hidden>
+          <span className="l1">Chapter</span>
+          <span className="l2">Concept</span>
+          <span className="l3">Lesson part</span>
+        </p>
+      </div>
 
-        {/* ---------- Body: loading / error / path ---------- */}
-        {loading && <RoadmapSkeleton />}
-
-        {error && (
-          <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-            {error}
-          </p>
-        )}
-
-        {!loading && !error && concepts && total > 0 && readyCount === 0 && (
-          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-card p-6 text-center">
-            <Clock className="mx-auto size-8 text-muted-foreground" aria-hidden />
-            <p className="font-semibold text-foreground">
-              The <span className="capitalize">{student.interest}</span> lessons for this chapter are
-              still being written.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Pick another chapter from the list above. The chapters you can open now are the ones
-              not marked &ldquo;coming soon&rdquo;.
-            </p>
-          </div>
-        )}
-
-        {!loading && !error && concepts && readyCount > 0 && (
-          // Keyed by chapter so the selection resets when the chapter changes.
-          <PathSection
-            key={chapterId}
-            concepts={concepts}
-            nextId={nextConcept?.concept_id}
+      <div className="roadmap-layout">
+        <div className="flex min-w-0 flex-col gap-4">
+          {!loading && !error && concepts && total > 0 && readyCount === 0 && (
+            <EmptyState
+              title={`The ${student.interest} lessons for this chapter are still being written.`}
+              copy="Open another chapter below. The chapters you can open now are the ones not marked “coming soon”."
+            />
+          )}
+          <RoadmapTree
+            chapters={chapters}
             chapterId={chapterId}
+            onChapter={setChapter}
+            concepts={concepts}
+            loadingConcepts={loading}
+            conceptsError={error}
+            kinds={kinds}
+            nextId={nextConcept?.concept_id}
             fresh={fresh}
           />
-        )}
-      </PageContainer>
-    </main>
-  );
-}
-
-function PathSection({
-  concepts,
-  nextId,
-  chapterId,
-  fresh,
-}: {
-  concepts: RoadmapConcept[];
-  nextId: string | undefined;
-  chapterId: string;
-  fresh: string[];
-}) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [shakeId, setShakeId] = useState<string | null>(null);
-  const activeId = selected ?? nextId ?? concepts[0]?.concept_id;
-  const index = Math.max(0, concepts.findIndex((c) => c.concept_id === activeId));
-  const active = concepts[index];
-
-  function select(id: string) {
-    setSelected(id);
-    const picked = concepts.find((c) => c.concept_id === id);
-    if (picked?.locked) {
-      // A little "not yet" shake; cleared so tapping again replays it.
-      setShakeId(id);
-      setTimeout(() => setShakeId((now) => (now === id ? null : now)), 450);
-    }
-  }
-
-  return (
-    <>
-      <PathMap
-        concepts={concepts}
-        nextId={nextId}
-        selectedId={activeId}
-        onSelect={select}
-        fresh={fresh}
-        shakeId={shakeId}
-      />
-      {active && (
-        <StepSheet
-          concept={active}
-          kind={kindOf(active, nextId)}
-          index={index}
-          chapterId={chapterId}
-        />
-      )}
-    </>
-  );
-}
-
-// A clean shimmer placeholder shown while the roadmap loads.
-function RoadmapSkeleton() {
-  return (
-    <div className="flex flex-col gap-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4">
-          <div className="size-16 shrink-0 animate-pulse rounded-full bg-muted" />
-          <div className="h-16 flex-1 animate-pulse rounded-xl bg-muted" />
         </div>
-      ))}
-    </div>
+
+        <aside className="roadmap-aside">
+          {!loading && !error && readyCount > 0 && (nextConcept || allDone) && (
+            <section className="surface panel continue-card">
+              <Pill>{allDone ? "CHAPTER COMPLETE" : "NEXT UP"}</Pill>
+              <h3 className="display">{allDone ? "Review the chapter" : nextConcept?.name}</h3>
+              <p>
+                {allDone
+                  ? "Every step here is done. Revisit any lesson to keep it fresh."
+                  : (nextConcept?.personal_note ?? "This is where your path continues.")}
+              </p>
+              <Button asChild>
+                <Link href={withChapter("/lesson", chapterId)}>
+                  {allDone ? (
+                    <>
+                      <PartyPopper className="size-4" aria-hidden /> Review the chapter
+                    </>
+                  ) : (
+                    <>
+                      Continue learning <ArrowRight className="size-4" aria-hidden />
+                    </>
+                  )}
+                </Link>
+              </Button>
+            </section>
+          )}
+          <EndCheckCard />
+          <RevisionCard />
+          <LearningPlanCard chapterId={chapterId} />
+          <div className="aside-note">
+            <span aria-hidden>✳</span>
+            <p>Chapters are never locked. Steps inside a chapter open in order.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
   );
 }

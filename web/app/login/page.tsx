@@ -12,6 +12,7 @@ import { AuthCard, Field, FormError } from "@/components/auth-card";
 import { HOME, useAuth } from "@/components/auth-provider";
 import { PrimaryButton } from "@/components/primary-button";
 import { friendlyMessage } from "@/lib/api";
+import { landingPath } from "@/lib/landing";
 
 // Only follow same-site paths ("/roadmap"), never "//evil.com" or a full URL —
 // otherwise a crafted login link could bounce a student to another site.
@@ -32,16 +33,19 @@ function LoginForm() {
   // Already logged in (e.g. opened /login in a second tab)? Skip the form —
   // a teacher goes to their own pages, not the student's ?next.
   useEffect(() => {
-    if (status === "authenticated") router.replace(role === "teacher" ? HOME.teacher : next);
-  }, [status, role, router, next]);
+    // Not while our own submit is running: it picks the page itself (landingPath).
+    if (status === "authenticated" && !loading) {
+      router.replace(role === "teacher" ? HOME.teacher : next);
+    }
+  }, [status, role, router, next, loading]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault(); // stop the browser's own full-page form submit
     setError(null);
     setLoading(true);
     try {
-      await login(username.trim(), password);
-      router.replace(next);
+      const profile = await login(username.trim(), password);
+      router.replace(await landingPath(next, profile.student_id));
     } catch (err) {
       setError(friendlyMessage(err));
       setLoading(false);

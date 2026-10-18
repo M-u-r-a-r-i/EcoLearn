@@ -10,7 +10,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Compass, Flag, Lightbulb, RotateCcw, Target } from "lucide-react";
+import { ArrowRight, ChevronRight, Compass, Flag, Lightbulb, RotateCcw, Target } from "lucide-react";
 
 import { CountUp } from "@/components/count-up";
 import { Markdown } from "@/components/markdown";
@@ -30,9 +30,9 @@ function FocusList({ items }: { items: FocusItem[] }) {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((f) => (
-        <li key={f.concept_id} className="flex flex-col gap-1 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <li key={f.concept_id} className="flex min-w-0 flex-col gap-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex flex-col gap-0.5">
-            <span className="font-semibold text-foreground">
+            <span className="font-heading font-bold text-foreground">
               {f.concept_name}
               {f.chapter_name && (
                 <span className="ml-2 text-xs font-normal text-muted-foreground">{f.chapter_name}</span>
@@ -41,7 +41,7 @@ function FocusList({ items }: { items: FocusItem[] }) {
             <Markdown className="prose-sm prose-p:my-0 prose-p:leading-snug prose-p:text-muted-foreground">{f.note}</Markdown>
           </div>
           {f.has_lesson ? (
-            <Button variant="outline" size="sm" asChild className="shrink-0 self-start sm:self-auto">
+            <Button variant="outline" size="sm" asChild className="shrink-0 self-start">
               <Link href={withChapter("/lesson", f.chapter_id, { concept: f.concept_id })}>
                 Fix this <ArrowRight className="size-4" />
               </Link>
@@ -67,8 +67,8 @@ export function LearningPlanSummary({ plan }: { plan: LearningPlan }) {
       {check.taken && (
         <div className="grid grid-cols-3 gap-3">
           {stats.map((s) => (
-            <div key={s.label} className="flex flex-col rounded-xl border border-border bg-card p-4 text-center shadow-soft">
-              <span className={`text-3xl font-bold ${s.tone}`}>
+            <div key={s.label} className="surface flex flex-col p-4 text-center">
+              <span className={`font-heading text-3xl font-bold ${s.tone}`}>
                 <CountUp value={s.value} />
               </span>
               <span className="text-xs text-muted-foreground">{s.label}</span>
@@ -79,7 +79,7 @@ export function LearningPlanSummary({ plan }: { plan: LearningPlan }) {
 
       {plan.focus.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+          <h2 className="display flex items-center gap-2 text-xl font-bold text-foreground">
             <Target className="size-5 text-destructive" aria-hidden /> Worth fixing first
           </h2>
           <FocusList items={plan.focus} />
@@ -104,7 +104,7 @@ export function LearningPlanSummary({ plan }: { plan: LearningPlan }) {
       )}
 
       {plan.start && (
-        <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-5">
+        <div className="flex flex-col gap-3 rounded-[18px] bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] p-5">
           <span className="text-sm text-muted-foreground">{plan.start.reason}</span>
           <PrimaryButton asChild className="self-start">
             <Link href={withChapter("/roadmap", plan.start.chapter_id)}>
@@ -117,21 +117,48 @@ export function LearningPlanSummary({ plan }: { plan: LearningPlan }) {
   );
 }
 
+// The roadmap's side cards (house style `.side-action`): an icon tile, a title, one
+// line, and a chevron. The whole card is the link.
+function SideAction({
+  href,
+  tone,
+  icon,
+  title,
+  text,
+}: {
+  href: string;
+  tone: "revise" | "end" | "plan";
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link href={href} className="side-action card-hover">
+      <span className={`side-action-icon ${tone}`} aria-hidden>
+        {icon}
+      </span>
+      <div>
+        <b>{title}</b>
+        <small>{text}</small>
+      </div>
+      <ChevronRight aria-hidden />
+    </Link>
+  );
+}
+
 // Shown on the roadmap only while the teacher has the end check open and the
 // student hasn't taken it. Silent otherwise (and if the request fails).
 export function EndCheckCard() {
   const { data } = useFetch("end-check", getEndCheck);
   if (data?.status !== "open") return null;
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-brand-accent/30 bg-brand-accent/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <span className="flex items-start gap-2 text-sm text-foreground">
-        <Flag className="mt-0.5 size-4 shrink-0 text-brand-accent" aria-hidden />
-        Your end check is open: five minutes to see which mix-ups you&apos;ve fixed since the start.
-      </span>
-      <Button size="sm" asChild className="shrink-0 self-start sm:self-auto">
-        <Link href="/end-check">Take the end check</Link>
-      </Button>
-    </div>
+    <SideAction
+      href="/end-check"
+      tone="end"
+      icon={<Flag className="size-[18px]" />}
+      title="Take the end check"
+      text="Five minutes to see which mix-ups you've fixed since the start."
+    />
   );
 }
 
@@ -141,18 +168,13 @@ export function RevisionCard() {
   const due = data?.due.length ?? 0;
   if (due === 0) return null;
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-success/30 bg-success/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <span className="flex items-start gap-2 text-sm text-foreground">
-        <RotateCcw className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-        <span>
-          {due === 1 ? "1 idea is" : `${due} ideas are`} ready to revise: a new question on each,
-          and they&apos;re mastered.
-        </span>
-      </span>
-      <Button size="sm" asChild className="shrink-0 self-start sm:self-auto">
-        <Link href="/review">Revise now</Link>
-      </Button>
-    </div>
+    <SideAction
+      href="/review"
+      tone="revise"
+      icon={<RotateCcw className="size-[18px]" />}
+      title="Revise now"
+      text={`${due === 1 ? "1 idea is" : `${due} ideas are`} ready: a new question on each, and they're mastered.`}
+    />
   );
 }
 
@@ -163,15 +185,13 @@ export function LearningPlanCard({ chapterId }: { chapterId: string }) {
 
   if (!plan.check.taken) {
     return (
-      <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <span className="flex items-start gap-2 text-sm text-foreground">
-          <Compass className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-          Take the 5-minute starting check, and your roadmap will skip what you already know.
-        </span>
-        <Button size="sm" asChild className="shrink-0 self-start sm:self-auto">
-          <Link href="/start">Start the check</Link>
-        </Button>
-      </div>
+      <SideAction
+        href="/start"
+        tone="plan"
+        icon={<Compass className="size-[18px]" />}
+        title="Start the check"
+        text="Take the 5-minute starting check, and your roadmap will skip what you already know."
+      />
     );
   }
 
@@ -180,12 +200,12 @@ export function LearningPlanCard({ chapterId }: { chapterId: string }) {
   if (focus.length === 0 && !elsewhere) return null;
 
   return (
-    <details className="group rounded-xl border border-primary/20 bg-primary/5 p-4" open>
-      <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-foreground">
+    <details className="group surface p-4" open>
+      <summary className="flex cursor-pointer items-center gap-2 font-heading text-sm font-bold text-foreground">
         <Target className="size-4 text-primary" aria-hidden />
         Your plan
         {focus.length > 0 && (
-          <span className="font-normal text-muted-foreground">
+          <span className="font-sans font-normal text-muted-foreground">
             · {plan.focus.length} {plan.focus.length === 1 ? "mix-up" : "mix-ups"} to fix
           </span>
         )}

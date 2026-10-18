@@ -1,18 +1,34 @@
-# Model prices for the AI usage log's cost numbers (scripts/pilot_report.py).
+# Model prices for the AI usage log's cost numbers (scripts/pilot_report.py, scripts/eval_stories.py).
 #
-# !! ENTERED FROM MEMORY on 2026-10-03, not checked against the providers'
-# !! pricing pages. Verify every number here before quoting a cost in the pitch.
+# VERIFIED 2026-10-13 against Google's official page, https://ai.google.dev/gemini-api/docs/pricing
+# (paid tier, Standard, text input/output, per 1 million tokens, US dollars). Google changes prices:
+# re-check this page before quoting a cost in the pitch, and note the date above.
 #
-# Prices are US dollars per 1 million tokens. A model is matched by the longest
-# key its name contains, so "gemini/gemini-2.5-flash-lite" is flash-lite, not
-# flash. A model not listed (free models through OmniRoute, say) has no actual
-# cost; the report also shows what every call would have cost on
-# `reference_model`, the paid key the user plans to buy.
+# A model is matched by the longest key its name contains, so "gemini/gemini-2.5-flash-lite" is
+# flash-lite, not flash. A model not listed (free models through OmniRoute, say) has no actual
+# cost; the report also shows what every call would have cost on `reference_model`, the paid key
+# the user plans to buy.
+#
+# Things to know when you quote a figure:
+#  * gemini-3.8-flash (and 3.6-flash) cost 0.75 in / 3.75 out through 2026-12-31 and DOUBLE from
+#    2027-01-01 (1.50 / 7.50). The numbers below are the introductory ones: after the new year,
+#    update them, or any figure quoted for the finals' "after launch" costs is half the real cost.
+#  * gemini-3.7-flash is DEPRECATED: Google routes requests to it to gemini-3.8-flash, so it is
+#    priced the same as 3.8 here.
+#  * Context caching, batch (about half price), flex and priority tiers are not modelled: this is
+#    the plain Standard rate, the right one for a live request.
+#  * Free tier = no charge, but with rate limits and Google may use the data to improve its
+#    products; the paid tier does not. For a pilot on children's data, that difference matters.
 
-usd_to_inr: 88
-reference_model: gemini-2.5-flash
+usd_to_inr: 88          # rounded; check a current rate before quoting rupees
+reference_model: gemini-3.1-flash-lite   # the model the app uses today, priced as if on a paid key
 
 models:
-  gemini-2.5-flash: { input: 0.30, output: 2.50 }
+  gemini-3.1-flash-lite: { input: 0.25, output: 1.50 }
+  gemini-3.8-flash:      { input: 0.75, output: 3.75 }   # intro price; 1.50 / 7.50 from 2027-01-01
+  gemini-3.7-flash:      { input: 0.75, output: 3.75 }   # deprecated, routed to 3.8 (same price)
+  gemini-3.6-flash:      { input: 0.75, output: 3.75 }   # intro price; 1.50 / 7.50 from 2027-01-01
+  gemini-3.5-flash-lite: { input: 0.30, output: 2.50 }
+  gemini-2.5-flash:      { input: 0.30, output: 2.50 }
   gemini-2.5-flash-lite: { input: 0.10, output: 0.40 }
-  gemini-2.5-pro: { input: 1.25, output: 10.00 }
+  gemini-2.5-pro:        { input: 1.25, output: 10.00 }  # prompts up to 200k tokens

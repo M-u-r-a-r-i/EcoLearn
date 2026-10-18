@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
@@ -7,14 +7,8 @@ import { AuthProvider } from "@/components/auth-provider";
 import { THEME_BOOT_SCRIPT } from "@/components/theme-toggle";
 import { Toaster } from "@/components/toast";
 
-// next/font downloads & self-hosts the font at build time (fast, no layout shift)
-// and exposes it as a CSS variable. We name it --font-sans so Tailwind's
-// `font-sans` utility (applied to <html> in globals.css) uses Inter everywhere.
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
+// Body and display fonts are the house system stacks (--font-body / --font-display in
+// globals.css); only the monospace face is downloaded.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -34,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistMono.variable} h-full antialiased`}
       // The theme script below may add class="dark" before React hydrates.
       suppressHydrationWarning
     >
@@ -42,7 +36,7 @@ export default function RootLayout({
         {/* Applies the saved light/dark choice before the first paint (no flash). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col pb-16 md:pb-0 print:pb-0">
         <AuthProvider>
           <Toaster>
             <SiteNav />

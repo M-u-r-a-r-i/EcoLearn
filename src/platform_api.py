@@ -43,21 +43,21 @@ from __future__ import annotations
 import os
 import re
 import sqlite3
+import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from src.agents import teacher_agent  # stdlib-only at import; the SDK loads lazily
+from src.agents import coaching_agent, teacher_agent  # stdlib-only at import; the SDK loads lazily
 from src.agents.assessor import grade_answer
-from src.agents.polisher import polish_explanation
 from src.auth import credentials, passwords
 from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
-from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError
-from src.learner import diagnostic, personal_story, survey
+from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError, TooManyRequestsError
+from src.learner import diagnostic, doubt_tutor, help_guard, personal_story, survey
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
@@ -66,12 +66,6 @@ from src import llm
 # Every model call made through src/llm goes into the usage log (the cost per
 # student for the pitch). Registered here, so src/llm needs no storage code.
 llm.set_usage_sink(store.record_llm_call)
-# src.pipeline (the doubt chat's generate→critic loop and its RAG index) is
-# imported lazily inside ask_help — see the note there.
-
-# Live help runs the full multi-agent pipeline; cap regeneration so a help
-# request stays reasonably responsive (one critic-driven retry at most).
-_HELP_MAX_RETRIES = 1
 
 
 def _slugify(name: str) -> str:
@@ -692,6 +686,40 @@ def set_student_level(teacher_id: str, student_id: str, level: str) -> dict[str,
         raise NotFoundError("Student not found in your classes.") from None
     store.update_student_profile(student_id, level=level)
     return {"student_id": student_id, "level": level}
+
+
+def set_student_ai(teacher_id: str, student_id: str, enabled: bool) -> dict[str, Any]:
+    """Turn the AI features on or off for one student in the teacher's classes (2026-10-14).
+
+    For a family that says no to the AI parts. With the switch off, nothing about the student
+    goes to a model: no personal story is written or shown (they see the lesson's own story),
+    the help chat answers with the lesson's key idea instead of asking the AI, their coaching
+    note is written by rules, and they are left out of what the teaching assistant sees. The
+    lessons, checks and progress work exactly as before (none of them use AI).
+
+    Raises:
+        NotFoundError: the student isn't in this teacher's classes.
+    """
+    get_teacher_profile(teacher_id)
+    class_id = store.get_student_class_id(student_id)
+    if class_id is None:
+        raise NotFoundError("Student not found in your classes.")
+    try:
+        _own_class(teacher_id, class_id)
+    except NotFoundError:
+        raise NotFoundError("Student not found in your classes.") from None
+    store.set_student_ai(student_id, bool(enabled))
+    return {"student_id": student_id, "ai_enabled": bool(enabled)}
+
+
+def operator_set_student_ai(student_id: str, enabled: bool) -> dict[str, Any]:
+    """The same switch for the operator (scripts/set_student_ai.py), when a family asks them directly.
+
+    Never exposed over HTTP. Raises NotFoundError for an unknown student.
+    """
+    if not store.set_student_ai(student_id, bool(enabled)):
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    return {"student_id": student_id, "ai_enabled": bool(enabled)}
 
 
 # ---------------------------------------------------------------------------
@@ -1619,6 +1647,7 @@ def get_class_ai_decisions(teacher_id: str, class_id: str, limit: int = 30) -> d
         {"stories": {attempted, shown, first_draft, rewritten, blocked, declined,
                      errors, reported, hidden_by_teacher, rules_rejections,
                      critic_checks, critic_rejections},
+         "help": {asked, answered, failed, rate_limited, blocked: {reason: n}}  (doubt chat, counts only),
          "plans": {total, agent, rules, latest_note},
          "calls": {total, failed, by_feature: {feature: {calls, failed,
                    median_latency_ms}}},
@@ -1683,6 +1712,7 @@ def get_class_ai_decisions(teacher_id: str, class_id: str, limit: int = 30) -> d
         })
     return {
         "stories": stories,
+        "help": store.help_event_counts(list(students)),
         "plans": {"total": len(plans),
                   "agent": sum(1 for p in plans if p["source"] == "agent"),
                   "rules": sum(1 for p in plans if p["source"] != "agent"),
@@ -2220,9 +2250,16 @@ def get_class_insights(teacher_id: str, class_id: str) -> dict[str, Any]:
     Raises:
         NotFoundError: not this teacher's class.
     """
+    return _class_insights(teacher_id, class_id)
+
+
+def _class_insights(teacher_id: str, class_id: str, exclude: set[str] | frozenset[str] = frozenset()
+                    ) -> dict[str, Any]:
+    """`get_class_insights`, leaving out the students in `exclude` (the teaching assistant uses this
+    to leave out students whose AI switch is off: their data never reaches the model)."""
     get_teacher_profile(teacher_id)
     klass = _own_class(teacher_id, class_id)
-    students = store.list_class_students(class_id)
+    students = [s for s in store.list_class_students(class_id) if s["student_id"] not in exclude]
     activity = store.get_activity([s["student_id"] for s in students])
     concept_info, check_info = _insight_lookups()
     insights = metrics.class_insights(students, activity, concept_info, check_info)
@@ -2261,10 +2298,14 @@ def _class_toolbox(teacher_id: str, class_id: str):
     Students are numbered by when their account was made, then username, so a
     label means the same student in every plan for this class.
     """
-    insights = get_class_insights(teacher_id, class_id)  # checks ownership
     roster = sorted(store.list_class_students(class_id),
                     key=lambda s: (s["created_at"], s["username"] or ""))
-    aliases = {f"S{n}": s["student_id"] for n, s in enumerate(roster, start=1)}
+    # Students whose AI switch is off are left out of everything the agent can see (it calls a
+    # model). Labels stay numbered over the whole class, so S3 is still S3 in every plan.
+    off = {s["student_id"] for s in roster if not s.get("ai_enabled", True)}
+    insights = _class_insights(teacher_id, class_id, exclude=off)  # checks ownership
+    aliases = {f"S{n}": s["student_id"] for n, s in enumerate(roster, start=1)
+               if s["student_id"] not in off}
     alias_of = {sid: alias for alias, sid in aliases.items()}
     chapter_names = {c["id"]: c["name"] for c in engine.list_chapters()}
 
@@ -2318,6 +2359,49 @@ def get_class_plan(teacher_id: str, class_id: str) -> dict[str, Any] | None:
     return _render_plan(plan, class_id) if plan else None
 
 
+_PLAN_RUNS: dict[str, dict[str, Any]] = {}
+_PLAN_RUNS_LOCK = threading.Lock()
+
+
+def _plan_progress_start(class_id: str) -> dict[str, Any]:
+    run: dict[str, Any] = {"running": True, "stage": "Getting the class data ready",
+                           "steps": []}
+    with _PLAN_RUNS_LOCK:
+        _PLAN_RUNS[class_id] = run
+    return run
+
+
+def get_ai_status(teacher_id: str, *, force: bool = False) -> dict[str, Any]:
+    """Is the live AI answering? For the teacher's status badge (cached a minute).
+
+    Returns the `llm.health` dict. `configured: False` is normal (every AI feature
+    then uses its non-AI fallback); `up: False` with `configured: True` means the
+    gateway or every model in the chain is down right now.
+    """
+    get_teacher_profile(teacher_id)
+    return llm.health(force=force)
+
+
+def get_class_plan_progress(teacher_id: str, class_id: str) -> dict[str, Any]:
+    """What the teaching assistant is doing right now for this class's plan.
+
+    Polled by the page while `generate_class_plan` runs. Kept in this server's
+    memory only (one process), and holds the last run until the next one starts.
+
+    Returns: {running: bool, stage: str, steps: [{summary, ok}]}. Before any run
+    since the server started: {running: False, stage: "", steps: []}.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    run = _PLAN_RUNS.get(class_id)
+    if run is None:
+        return {"running": False, "stage": "", "steps": []}
+    return {"running": run["running"], "stage": run["stage"], "steps": list(run["steps"])}
+
+
 def generate_class_plan(
     teacher_id: str, class_id: str, *, models: list[Any] | None = None
 ) -> dict[str, Any]:
@@ -2343,22 +2427,281 @@ def generate_class_plan(
             return {**_render_plan(latest, class_id), "reused": True}
 
     toolbox, aliases = _class_toolbox(teacher_id, class_id)
-    with llm.usage_context(feature="teacher_agent", class_id=class_id):
-        result = teacher_agent.plan_class(toolbox, models)
+    # Live progress for the page to poll while this (slow) request runs: what the
+    # agent has really done so far. Only concept names and counts, never students.
+    run = _plan_progress_start(class_id)
+    toolbox.on_step = lambda step: run["steps"].append(
+        {"summary": step["summary"], "ok": step["ok"]})
+    try:
+        with llm.usage_context(feature="teacher_agent", class_id=class_id):
+            result = teacher_agent.plan_class(
+                toolbox, models, on_stage=lambda text: run.__setitem__("stage", text))
+    finally:
+        run["running"] = False
+    note = result["note"]
+    left_out = len(store.ai_disabled_ids([s["student_id"] for s in store.list_class_students(class_id)]))
+    if left_out:
+        extra = (f"{left_out} student{'s' if left_out != 1 else ''} with the AI switched off "
+                 f"{'are' if left_out != 1 else 'is'} not included in this plan.")
+        note = f"{note} {extra}" if note else extra
     saved = store.save_class_plan(
         class_id, teacher_id, result["source"], result["model"], result["markdown"],
-        result["trace"], aliases, result["note"],
+        result["trace"], aliases, note,
     )
     return {**_render_plan(saved, class_id), "reused": False}
 
 
+# ---------------------------------------------------------------------------
+# Coaching notes (2026-10-13): a short note per student, for the teacher.
+# A fourth live-AI feature, added at the user's request; the model sees only
+# S1, S2... and coarse facts (src/agents/coaching_agent.py), and every student
+# gets a rules note whenever the AI is off, fails or breaks a rule.
+# ---------------------------------------------------------------------------
+
+_COACHING_REUSE_SECONDS = 60
+
+
+def _student_aliases(class_id: str) -> dict[str, str]:
+    """{"S1": student_id, ...} numbered the same way as the teacher agent's plans."""
+    roster = sorted(store.list_class_students(class_id),
+                    key=lambda s: (s["created_at"], s["username"] or ""))
+    return {f"S{n}": s["student_id"] for n, s in enumerate(roster, start=1)}
+
+
+def _coaching_cases(teacher_id: str, class_id: str, aliases: dict[str, str]) -> dict[str, dict[str, Any]]:
+    insights = get_class_insights(teacher_id, class_id)
+    rows = {r["student_id"]: r for r in insights["students"]}
+    ids = list(aliases.values())
+    surveys = store.list_surveys(ids)
+    activity = store.get_activity(ids)
+    views: dict[str, list[dict[str, Any]]] = {}
+    for v in activity["views"]:
+        views.setdefault(v["student_id"], []).append(v)
+    wrong: dict[str, dict[str, bool]] = {}   # student -> concept name -> was ever sure
+    for a in activity["answers"]:
+        if a["correct"]:
+            continue
+        concept = engine.find_concept(a["concept_id"])
+        name = concept.name if concept else a["concept_id"]
+        seen = wrong.setdefault(a["student_id"], {})
+        seen[name] = seen.get(name, False) or a.get("confidence") == "sure"
+    now = datetime.now(tz=timezone.utc)
+    cases = {}
+    for alias, sid in aliases.items():
+        row = rows.get(sid) or {}
+        last = row.get("last_active")
+        days = (now - datetime.fromisoformat(last)).days if last else None
+        mix_ups = sorted(({"concept": c, "sure": s} for c, s in wrong.get(sid, {}).items()),
+                         key=lambda m: (not m["sure"], m["concept"]))
+        survey_row = surveys.get(sid)
+        cases[alias] = coaching_agent.build_case(
+            row, survey_row["traits"] if survey_row else None,
+            survey.observed_reading(views.get(sid, [])), mix_ups, days)
+    return cases
+
+
+def _render_coaching(run: dict[str, Any], class_id: str) -> dict[str, Any]:
+    """A stored run as the teacher sees it: aliases replaced by current names, in S order."""
+    names = {s["student_id"]: s["name"] for s in store.list_class_students(class_id)}
+    students = []
+    for alias in sorted(run["notes"], key=lambda a: int(a[1:])):
+        sid = run["aliases"].get(alias)
+        if sid not in names:
+            continue  # a student removed since the run
+        students.append({"student_id": sid, "name": names[sid], "alias": alias, **run["notes"][alias]})
+    return {"run_id": run["run_id"], "created_at": run["created_at"], "source": run["source"],
+            "model": run["model"], "note": run["note"], "students": students}
+
+
+def get_coaching_notes(teacher_id: str, class_id: str) -> dict[str, Any] | None:
+    """The latest coaching notes for this class, or None if none were made yet.
+
+    Returns: {run_id, created_at, source: "agent"|"mixed"|"rules", model, note,
+              students: [{student_id, name, alias, note, evidence: [field], next_step,
+                          source: "ai"|"rules"}]}
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    run = store.get_latest_coaching_notes(class_id)
+    return _render_coaching(run, class_id) if run else None
+
+
+def generate_coaching_notes(teacher_id: str, class_id: str, *,
+                            chat: Any = None) -> dict[str, Any]:
+    """Write a note per student (AI first, rules for anything the AI misses) and store it.
+
+    A run made in the last minute is returned as it is, with "reused": True. `chat` is for
+    tests; by default the live model chain (src/llm) is used, or rules when it is off.
+
+    Raises:
+        NotFoundError: not this teacher's class.
+    """
+    get_teacher_profile(teacher_id)
+    _own_class(teacher_id, class_id)
+    latest = store.get_latest_coaching_notes(class_id)
+    if latest is not None:
+        age = (datetime.now(tz=timezone.utc) - datetime.fromisoformat(latest["created_at"])).total_seconds()
+        if age < _COACHING_REUSE_SECONDS:
+            return {**_render_coaching(latest, class_id), "reused": True}
+    aliases = _student_aliases(class_id)
+    cases = _coaching_cases(teacher_id, class_id, aliases)
+    roster = store.list_class_students(class_id)
+    forbidden = ([s["name"] for s in roster]
+                 + [part for s in roster for part in s["name"].split() if len(part) > 2]
+                 + [s["username"] for s in roster if s["username"]])
+    use = chat if chat is not None else llm.chat
+    off = store.ai_disabled_ids(list(aliases.values()))
+    rules_only = {alias for alias, sid in aliases.items() if sid in off}
+    with llm.usage_context(feature="coaching_agent", class_id=class_id):
+        result = coaching_agent.coach_class(cases, forbidden, use, chat is not None or llm.is_configured(),
+                                            rules_only=rules_only)
+    saved = store.save_coaching_notes(class_id, teacher_id, result["source"], result["model"],
+                                      result["notes"], aliases, result["trail"], result["note"])
+    return {**_render_coaching(saved, class_id), "reused": False}
+
+
+# ---------------------------------------------------------------------------
+# A family's data requests (2026-10-13). For the operator, never exposed over HTTP: a person on the
+# team checks who is asking, then runs scripts/export_student.py or scripts/delete_student.py.
+# ---------------------------------------------------------------------------
+
+def find_student_id(username: str) -> str:
+    """The student id for a username (how a request from a family is turned into an id).
+
+    Raises:
+        NotFoundError: no such student.
+    """
+    record = store.get_student_by_username(username)
+    if record is None:
+        raise NotFoundError(f"No student with the username {username!r}.")
+    return record["student_id"]
+
+
+def export_student_data(student_id: str) -> dict[str, Any]:
+    """Everything EcoLearn holds about one student, as plain data a person can read.
+
+    Returns:
+        {"account": {name, username, interest, level, class, created_at},
+         "tables": {table: [rows]}   every row about them, by table, JSON parsed; no password hash,
+         "readable": {...}           the same, in words: concept names instead of ids,
+         "class_notes": [...]        any teacher-assistant coaching note about them,
+         "plans_that_included_them": int}   class plans in which they were one of the labelled students
+
+    Raises:
+        NotFoundError: no such student.
+    """
+    profile = store.get_student(student_id)
+    if profile is None:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    class_id = store.get_student_class_id(student_id)
+    klass = store.get_class(class_id) if class_id else None
+    raw = store.export_student_rows(student_id)
+    tables = raw["tables"]
+
+    def concept_name(concept_id: str) -> str:
+        concept = engine.find_concept(concept_id)
+        return concept.name if concept else concept_id
+
+    def named(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [{**r, "concept": concept_name(r["concept_id"])} if "concept_id" in r else r for r in rows]
+
+    answers = tables.get("answers", [])
+    survey_row = (tables.get("learner_survey") or [None])[0]
+    readable = {
+        "lessons_opened": sorted({concept_name(v["concept_id"]) for v in tables.get("lesson_views", [])}),
+        "minutes_actively_read": round(sum(int(v.get("active_seconds") or 0)
+                                           for v in tables.get("lesson_views", [])) / 60, 1),
+        "lesson_check_answers": {"total": len(answers), "right": sum(1 for a in answers if a.get("correct"))},
+        "progress": [{"concept": concept_name(p["concept_id"]), "status": p.get("status"),
+                      "attempts": p.get("attempts")} for p in tables.get("progress", [])],
+        "hobbies": ((tables.get("learner_profiles") or [{}])[0].get("hobbies")),
+        "survey_summary": (survey_row or {}).get("traits", {}).get("summary") if survey_row else None,
+        "survey_updates": len(tables.get("learner_survey_history", [])),
+        "starting_check_questions_answered": len(tables.get("diagnostic_answers", [])),
+        "end_check_questions_answered": len(tables.get("end_check_answers", [])),
+        "revision_answers": len(tables.get("review_answers", [])),
+        "personal_stories": [{"concept": concept_name(p["concept_id"]), "hobby": p.get("hobby"),
+                              "status": p.get("status"), "story": p.get("story"),
+                              "analogy": p.get("analogy"), "limit": p.get("limit_text")}
+                             for p in tables.get("personal_stories", [])],
+        "help_chat_outcomes": _count_by(tables.get("help_events", []), "outcome"),
+        "ai_model_calls_logged": len(tables.get("llm_calls", [])),
+    }
+    return {
+        "account": {"name": profile["name"], "username": profile["username"], "interest": profile["interest"],
+                    "level": profile["level"], "class": klass["name"] if klass else None,
+                    "created_at": profile["created_at"], "ai_enabled": profile.get("ai_enabled", True)},
+        "tables": {name: named(rows) for name, rows in tables.items()},
+        "readable": readable,
+        "class_notes": raw["class_notes"],
+        "plans_that_included_them": raw["plans_that_included_them"],
+    }
+
+
+def _count_by(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for r in rows:
+        out[str(r.get(key))] = out.get(str(r.get(key)), 0) + 1
+    return out
+
+
+def delete_student(student_id: str) -> dict[str, Any]:
+    """Permanently erase a student and everything about them. This cannot be undone.
+
+    Removes the account and every row tied to it, in one transaction; the AI usage log keeps its token
+    counts but loses the link to the child; the student's label and note in class plans and coaching
+    notes are removed. Old copies of the database file (backups) are NOT touched: that is the
+    operator's to handle.
+
+    Returns:
+        {"deleted": {table: rows}, "anonymised": {table: rows}, "edited": {...},
+         "remaining": {"table.column": rows}}  `remaining` must be empty: it is a search of the whole
+        database for the student's id after the erase.
+
+    Raises:
+        NotFoundError: no such student.
+    """
+    result = store.erase_student(student_id)
+    if not result:
+        raise NotFoundError(f"Unknown student_id {student_id!r}.")
+    result["remaining"] = store.find_student_traces(student_id)
+    return result
+
+
 def llm_prices() -> dict[str, Any]:
-    """data/llm_prices.yaml (prices entered from memory: verify before quoting)."""
+    """data/llm_prices.yaml (Google's paid-tier list prices, checked 2026-10-13: re-check before quoting)."""
     import yaml
 
     from src.file_cache import cached_parse
     path = Path(__file__).resolve().parents[1] / "data" / "llm_prices.yaml"
     return cached_parse(path, lambda p: yaml.safe_load(p.read_text(encoding="utf-8")), "llm_prices")
+
+
+def _pilot_survey(students: list[dict[str, Any]], student_alias: dict[str, str],
+                  insights: dict[str, Any]) -> dict[str, Any]:
+    """The survey section of `pilot_report`: pseudonymised, fixed-option answers only."""
+    ids = [s["student_id"] for s in students]
+    surveys = store.list_surveys(ids)
+    stats = {r["student_id"]: r for r in insights["students"]}  # already re-keyed by alias
+    views: dict[str, list[dict[str, Any]]] = {}
+    for v in store.get_activity(None)["views"]:
+        views.setdefault(v["student_id"], []).append(v)
+    entries, history = [], {}
+    for sid, row in surveys.items():
+        if sid not in student_alias:
+            continue
+        a = student_alias[sid]
+        entries.append({
+            "student_id": a, "revision": row["revision"], "saved_at": row["updated_at"] or row["completed_at"],
+            "traits": row["traits"], "observed": survey.observed_reading(views.get(sid, [])),
+            "first_try_correct": (stats.get(a) or {}).get("first_try_correct"),
+            "answered": (stats.get(a) or {}).get("answered")})
+        history[a] = store.get_survey_history(sid)
+    entries.sort(key=lambda e: e["student_id"])
+    return metrics.survey_report(entries, history, len(students))
 
 
 def pilot_report() -> dict[str, Any]:
@@ -2374,7 +2717,8 @@ def pilot_report() -> dict[str, Any]:
          "students": [{student, class, interest, level, created_at}],
          "views": [...], "answers": [...], "ratings": [...],
          "diagnostic": [...], "end_check": [...], "check_gains": {...},
-         "stories": [...]}  — pseudonymised rows.
+         "stories": [...], "survey": {taken, total, distributions, said_vs_shown, rows, history,
+         changes, ...}}  — pseudonymised rows.
     """
     students = store.list_all_students()
     class_alias: dict[str | None, str | None] = {None: None}
@@ -2430,6 +2774,9 @@ def pilot_report() -> dict[str, Any]:
         # AI-written personal stories, with whether students reported them and
         # whether teachers hid them: the evidence on the AI layer's quality.
         "stories": alias(store.list_personal_stories(list(student_alias))),
+        # The survey: what students said about themselves, how it changed when they updated
+        # their answers, and how it lines up with how they actually read and answered.
+        "survey": _pilot_survey(students, student_alias, insights),
     }
 
 
@@ -2438,11 +2785,12 @@ def pilot_report() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
-    """Answer a free-form question via the live generate→critic→polish pipeline.
+    """Answer a free-form question about the lesson the student is on (the doubt chat).
 
-    This is the expensive, real-time path (distinct from the cached lessons):
-    it runs the full multi-agent pipeline on the student's question, grounded
-    in their interest, then polishes the result into clean markdown.
+    The live path (distinct from the cached lessons): one model call through src/llm, grounded in
+    the student's own lesson (src/learner/doubt_tutor.py), checked by rules before it is shown.
+    When the AI is off (for this student, or on the server), fails, or its reply fails a check,
+    the answer is the lesson's key idea and a nudge to the teacher: the chat never errors out.
 
     Args:
         student_id: Who is asking (used for their interest/level).
@@ -2451,14 +2799,21 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
 
     Returns:
         {
-          "concept_id": the concept context,
-          "answer":     polished markdown answer,
-          "verdict":    the critic's verdict on the underlying explanation,
-          "attempts":   how many generator attempts the pipeline made,
+          "concept_id", "concept_name",
+          "answer":   markdown,
+          "source":   "ai" | "rules",
+          "verdict":  "PASS" (an AI answer that passed the checks) | "OFF_TOPIC" | "FALLBACK" | "AI_OFF",
+          "attempts": model calls made (0 or 1),
         }
+        A question stopped by the front door (src/learner/help_guard.py) is NOT sent to a model:
+        it returns the same keys with "verdict": "BLOCKED", "attempts": 0, "blocked": True,
+        "reason" (self_harm | personal_info | unsuitable | injection | too_short | too_long) and
+        a kind message in "answer". Only the outcome is logged, never the question.
 
     Raises:
-        ValueError: if the student is unknown.
+        NotFoundError: if the student is unknown.
+        TooManyRequestsError: too many questions in a short time, a daily cap, or the last
+            question is still being answered (HTTP 429). Never raised for a self-harm message.
     """
     profile = store.get_student(student_id)
     if profile is None:
@@ -2472,44 +2827,78 @@ def ask_help(student_id: str, concept_id: str, question: str) -> dict[str, Any]:
     # lesson, not just a free-floating reply to the raw question text.
     concept = engine.find_concept(concept_id)
     concept_label = concept.name if concept is not None else concept_id
-    framed_query = f"{concept_label} — student asks: {question}"
 
-    # Imported here, not at the top of the module: the pipeline pulls in the RAG
-    # index (chromadb → grpc → native DLLs). If any of that can't load — a missing
-    # package, or Windows Application Control blocking a DLL, as happened on
-    # 2026-10-02 — only the doubt chat should go down. A top-level import took
-    # the whole API with it: login, lessons and grading included.
-    try:
-        from src.pipeline import explain_with_review
-    except (ImportError, OSError) as exc:
-        raise RuntimeError(
-            "The doubt chat isn't available right now. Your lesson and progress are "
-            "fine — ask your teacher, or try the chat again later."
-        ) from exc
+    # The front door (src/learner/help_guard.py): nothing a student typed reaches a model until it
+    # passes. Only the OUTCOME is logged, never the words. A self-harm message is answered kindly and
+    # is never rate-limited away.
+    def stopped(reason: str, message: str) -> dict[str, Any]:
+        _log_help(student_id, "blocked", reason)
+        return {"concept_id": concept_id, "concept_name": concept_label, "answer": message,
+                "verdict": "BLOCKED", "attempts": 0, "blocked": True, "reason": reason}
 
-    started = datetime.now(timezone.utc)
-    result = explain_with_review(
-        concept=framed_query,
-        interest=profile["interest"],
-        level=profile["level"],
-        max_retries=_HELP_MAX_RETRIES,
-    )
-    answer = polish_explanation(result.get("explanation", ""))
-    # Usage log: this pipeline still calls google-genai directly (not src/llm),
-    # so it reports no tokens; the count and time still feed the cost picture.
+    checked = help_guard.screen(question)
+    if not checked.ok and checked.reason == "self_harm":
+        return stopped(checked.reason, checked.message or "")
+    allowed, retry_after, why = _help_limiter.try_start(student_id)
+    if not allowed:
+        _log_help(student_id, "rate_limited", why)
+        raise TooManyRequestsError(help_guard.limit_message(why, retry_after))
     try:
-        store.record_llm_call({
-            "feature": "doubt_chat", "model": "gemini pipeline (no token count)",
-            "ok": result.get("verdict", "ERROR") != "ERROR", "student_id": student_id,
-            "latency_ms": int((datetime.now(timezone.utc) - started).total_seconds() * 1000),
-            "error": None if result.get("verdict") != "ERROR" else "pipeline error"})
-    except Exception:  # noqa: BLE001 — logging must never cost the student an answer
+        if not checked.ok:
+            return stopped(checked.reason or "unsuitable", checked.message or "")
+        try:
+            return _answer_help(student_id, profile, concept, concept_id, concept_label,
+                                " ".join(question.split()))
+        except Exception:
+            _log_help(student_id, "failed", None)  # the pipeline fell over: count it, then let the error through
+            raise
+    finally:
+        _help_limiter.finish(student_id)
+
+
+def _log_help(student_id: str, outcome: str, reason: str | None) -> None:
+    try:
+        store.record_help_event(student_id, outcome, reason)
+    except Exception:  # noqa: BLE001 — a log line must never cost a student an answer
         pass
 
+
+_help_limiter = help_guard.HelpLimiter()
+
+
+_help_chat: Any = None  # tests swap in a stand-in for llm.chat; None means the live model chain
+
+_HELP_VERDICTS = {"answered": "PASS", "off_topic": "OFF_TOPIC", "fallback": "FALLBACK", "ai_off": "AI_OFF"}
+
+
+def _answer_help(student_id: str, profile: dict[str, Any], concept: Any, concept_id: str,
+                 concept_label: str, question: str) -> dict[str, Any]:
+    """The live part of the doubt chat, after the question has been screened.
+
+    One call through src/llm (2026-10-14), grounded in the student's own lesson; it replaced the old
+    generate -> critic -> polish pipeline and its chromadb index (see src/learner/doubt_tutor.py).
+    """
+    chat = _help_chat if _help_chat is not None else llm.chat
+    with llm.usage_context(feature="doubt_chat", student_id=student_id):
+        result = doubt_tutor.answer(
+            concept=concept, concept_label=concept_label, interest=profile["interest"],
+            level=profile["level"], question=question,
+            # The model is never sent the name, so this only catches a leak. Single name parts are
+            # left out on purpose: "Ray" or "Joule" would turn ordinary physics answers into fallbacks.
+            forbidden=[w for w in (profile.get("username"),
+                                   profile.get("name") if len((profile.get("name") or "").split()) > 1 else None)
+                       if w],
+            ai_allowed=profile.get("ai_enabled", True),
+            models_on=_help_chat is not None or llm.is_configured(),
+            chat=chat)
+    # Only the outcome is logged (help_events), never the question or the answer. The model call
+    # itself, with its tokens, is already in the usage log through src/llm.
+    _log_help(student_id, result["outcome"], result["problem"][:60] if result["problem"] else None)
     return {
         "concept_id": concept_id,
         "concept_name": concept_label,
-        "answer": answer,
-        "verdict": result.get("verdict", "ERROR"),
-        "attempts": result.get("attempts", 0),
+        "answer": result["answer"],
+        "source": result["source"],
+        "verdict": _HELP_VERDICTS[result["outcome"]],
+        "attempts": 1 if result["called"] else 0,
     }

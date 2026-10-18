@@ -138,7 +138,7 @@ export function InterestShowcase() {
       <article
         key={t.id}
         aria-live="polite"
-        className="rm-sheet relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-card-hover sm:p-8"
+        className="rm-sheet relative overflow-hidden surface p-6-hover sm:p-8"
         style={{
           backgroundImage: `radial-gradient(90% 100% at 100% 0%, color-mix(in oklab, ${t.color} 20%, transparent), transparent 65%)`,
         }}

@@ -16,19 +16,39 @@ import { Bot, CheckCircle2, ListChecks, RefreshCw, ShieldCheck, Sparkles, XCircl
 import { FormError } from "@/components/auth-card";
 import { useToast } from "@/components/toast";
 import { Markdown } from "@/components/markdown";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
-import { friendlyMessage, generateClassPlan, getClassPlan, type ClassPlan } from "@/lib/api";
+import { Skeleton } from "@/components/ui-kit";
+import {
+  friendlyMessage,
+  generateClassPlan,
+  getAiStatus,
+  getClassPlan,
+  getClassPlanProgress,
+  type ClassPlan,
+  type PlanProgress,
+} from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 
-const WORKING_STEPS = [
-  "Looking at the class overview…",
-  "Reading the most common misconceptions…",
-  "Checking concepts and prerequisites…",
-  "Reading the lessons' key takeaways…",
-  "Reviewing each student's activity…",
-  "Writing the plan…",
-];
+// A small "is the AI up?" badge. Not being up is fine (rules write the plan), but a
+// teacher about to demo should know before pressing the button.
+function AiStatusBadge() {
+  const status = useFetch("ai-status", () => getAiStatus());
+  const s = status.data;
+  if (!s) return null;
+  const [tone, text] = !s.configured
+    ? ["text-muted-foreground", "AI not set up: plans are written by rules"]
+    : !s.up
+      ? ["text-destructive", "AI is not answering: plans fall back to rules"]
+      : s.on_fallback
+        ? ["text-brand-accent", "AI up, on a backup model"]
+        : ["text-success", "AI is up"];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${tone}`} role="status">
+      <span aria-hidden className="size-2 rounded-full bg-current" />
+      {text}
+    </span>
+  );
+}
 
 function when(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -38,7 +58,7 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   const saved = useFetch(`plan:${classId}`, () => getClassPlan(classId));
   const [fresh, setFresh] = useState<ClassPlan | null>(null);
   const [working, setWorking] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
+  const [progress, setProgress] = useState<PlanProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
@@ -47,13 +67,17 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   async function makePlan() {
     setWorking(true);
     setError(null);
-    setStepIndex(0);
-    // The run is one request, so these steps are a guide to what it's doing,
-    // not a live feed; the real steps are listed under the finished plan.
-    const timer = setInterval(
-      () => setStepIndex((i) => Math.min(i + 1, WORKING_STEPS.length - 1)),
-      2500,
-    );
+    setProgress(null);
+    // The run is one slow request, so ask the server what it has really done so
+    // far every second: each line below is a tool call the assistant just made.
+    const timer = setInterval(async () => {
+      try {
+        const p = await getClassPlanProgress(classId);
+        if (p.running) setProgress(p);
+      } catch {
+        // a missed poll just means the list updates a second later
+      }
+    }, 1000);
     try {
       const made = await generateClassPlan(classId);
       setFresh(made);
@@ -74,14 +98,16 @@ export function TeachingAssistant({ classId }: { classId: string }) {
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-card p-6 shadow-card print:hidden">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
-            <Bot className="size-5 text-primary" aria-hidden />
-            Teaching assistant
-          </h2>
-          <p className="max-w-xl text-sm text-muted-foreground">
+    <section className="surface panel flex flex-col gap-5 print:hidden">
+      <div className="dash-title">
+        <div>
+          <p className="eyebrow flex items-center gap-2">
+            <Bot className="size-3.5" aria-hidden /> Teaching assistant
+          </p>
+          <h2 className="display text-2xl font-semibold text-foreground">A useful next lesson</h2>
+          <p className="dash-sub">
+            <AiStatusBadge />
+            <br />
             Reads what your class did — the misconceptions they chose, who&apos;s stuck, who
             hasn&apos;t started — and plans your next lesson.
           </p>
@@ -94,16 +120,34 @@ export function TeachingAssistant({ classId }: { classId: string }) {
       </div>
 
       {working ? (
-        <div className="flex items-center gap-3 rounded-xl bg-primary/5 p-4 text-sm text-foreground" role="status">
-          <Sparkles className="size-5 shrink-0 animate-pulse text-primary" aria-hidden />
-          {WORKING_STEPS[stepIndex]}
+        <div className="dplan flex flex-col gap-3 text-sm text-foreground" role="status" aria-live="polite">
+          <div className="flex items-center gap-3">
+            <Sparkles className="size-5 shrink-0 animate-pulse text-primary" aria-hidden />
+            {progress?.stage || "Getting the class data ready…"}
+          </div>
+          {progress && progress.steps.length > 0 && (
+            <ol className="dsteps">
+              {progress.steps.map((step, i) => (
+                <li key={i}>
+                  {step.ok ? (
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                  ) : (
+                    <XCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  )}
+                  <span>{step.summary}</span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       ) : saved.loading && !fresh ? (
-        <div className="h-24 animate-pulse rounded-xl bg-muted" aria-label="Loading the latest plan" />
+        <div className="dplan">
+          <Skeleton rows={2} />
+        </div>
       ) : !plan ? (
-        <PrimaryButton className="self-start" onClick={makePlan}>
+        <Button className="self-start" onClick={makePlan}>
           <Sparkles className="size-5" /> Plan my next lesson
-        </PrimaryButton>
+        </Button>
       ) : (
         <PlanView plan={plan} />
       )}
@@ -142,7 +186,7 @@ function PlanView({ plan }: { plan: ClassPlan }) {
         </p>
       )}
 
-      <div className="rounded-xl border border-border p-5">
+      <div className="dplan">
         <Markdown>{plan.markdown}</Markdown>
       </div>
 
@@ -154,9 +198,9 @@ function PlanView({ plan }: { plan: ClassPlan }) {
               ? `How the assistant worked (${plan.steps.length} steps)`
               : "What the rules looked at"}
           </summary>
-          <ol className="mt-3 flex flex-col gap-1.5 border-l-2 border-border pl-4">
+          <ol className="dsteps">
             {plan.steps.map((step, i) => (
-              <li key={i} className="flex items-start gap-2">
+              <li key={i}>
                 {step.ok ? (
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-label="done" />
                 ) : (

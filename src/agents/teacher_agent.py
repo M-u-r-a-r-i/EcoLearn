@@ -34,6 +34,7 @@ the first user message, which works for every model (Gemma has no system role
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import re
@@ -133,6 +134,8 @@ class ClassToolbox:
     takeaway_lookup: Callable[[str, str], str | None]
     days_since: Callable[[str | None], int | None]
     calls: list[dict[str, Any]] = field(default_factory=list)
+    # Told about each tool call as it finishes (the boundary uses it for live progress).
+    on_step: Callable[[dict[str, Any]], None] | None = None
 
     # -- helpers ------------------------------------------------------------
     def main_interest(self) -> str | None:
@@ -258,6 +261,11 @@ class ClassToolbox:
         if method is None:
             result: dict[str, Any] = {"error": f"Unknown tool {name!r}."}
         else:
+            # Some models (Gemini through an OpenAI-compatible gateway) add an undeclared
+            # argument such as "reason" to every call. Drop what the tool doesn't take,
+            # rather than failing a call that is otherwise fine.
+            accepted = set(inspect.signature(method).parameters)
+            args = {k: v for k, v in args.items() if k in accepted}
             try:
                 result = method(**args)
             except TypeError as exc:
@@ -267,8 +275,10 @@ class ClassToolbox:
             concept = self.concept_lookup(str(args["concept_id"]))
             if concept:
                 summary += f": {concept['name']}"
-        self.calls.append({"tool": name, "args": args, "summary": summary,
-                           "ok": "error" not in result})
+        step = {"tool": name, "args": args, "summary": summary, "ok": "error" not in result}
+        self.calls.append(step)
+        if self.on_step is not None:
+            self.on_step(step)
         return result
 
 
@@ -496,7 +506,8 @@ def rules_plan(toolbox: ClassToolbox) -> str:
     return "\n".join(lines)
 
 
-def plan_class(toolbox: ClassToolbox, models: list[Model] | None = None) -> dict[str, Any]:
+def plan_class(toolbox: ClassToolbox, models: list[Model] | None = None,
+               on_stage: Callable[[str], None] | None = None) -> dict[str, Any]:
     """Make a plan: the agent with each model in turn, else the rules.
 
     Returns {"markdown", "source": "agent"|"rules", "model", "trace", "note"}.
@@ -504,15 +515,19 @@ def plan_class(toolbox: ClassToolbox, models: list[Model] | None = None) -> dict
     """
     models = default_models() if models is None else models
     failures = []
+    say = on_stage or (lambda _text: None)
     for model in models:
         toolbox.calls.clear()
+        say(f"Asking {model.name} to investigate the class")
         try:
             markdown = run_agent(toolbox, model)
             return {"markdown": markdown, "source": "agent", "model": model.name,
                     "trace": list(toolbox.calls), "note": None}
         except Exception as exc:  # noqa: BLE001 — any model failure → try the next
             failures.append(f"{model.name}: {type(exc).__name__}")
+            say(f"{model.name} didn't work out, so trying the next option")
     toolbox.calls.clear()
+    say("Writing the plan from fixed rules")
     markdown = rules_plan(toolbox)
     note = ("The AI assistant isn't configured on this server, so this plan was made by fixed rules."
             if not models else

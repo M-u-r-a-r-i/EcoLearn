@@ -366,3 +366,115 @@ def ai_usage(calls: list[dict[str, Any]], prices: dict[str, Any], students: int)
         "reference_inr_per_student_month": (round(per_student / days * 30, 2)
                                             if per_student is not None else None),
     }
+
+
+# ---------------------------------------------------------------------------
+# The survey ("getting to know you") in the pilot report
+# ---------------------------------------------------------------------------
+
+# The trait fields exported and compared, flattened from the stored `traits` dict.
+SURVEY_FIELDS = ("focus_span", "session_minutes", "focus_drift", "pace", "first_step",
+                 "physics_feel", "maths_comfort", "trips", "goal", "top_hobby",
+                 "top_hobby_level", "hobbies")
+
+
+def survey_fields(traits: dict[str, Any]) -> dict[str, Any]:
+    """A student's survey traits as one flat row (fixed-option answers only; no free text exists)."""
+    focus, learning, physics = (traits.get("focus") or {}), (traits.get("learning") or {}), (traits.get("physics") or {})
+    levels = traits.get("hobby_levels") or {}
+    top = next(iter(levels), None)
+    return {
+        "focus_span": focus.get("span"), "session_minutes": focus.get("session_minutes"),
+        "focus_drift": focus.get("drift"), "pace": learning.get("pace"),
+        "first_step": learning.get("first_step"), "physics_feel": physics.get("feel"),
+        "maths_comfort": physics.get("maths"), "trips": physics.get("trips"), "goal": physics.get("goal"),
+        "top_hobby": top, "top_hobby_level": levels[top]["level"] if top else None,
+        "hobbies": ",".join(traits.get("hobbies") or []) or None,
+    }
+
+
+def survey_changes(sets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """What changed between consecutive answer sets of ONE student.
+
+    `sets` is oldest first: [{revision, saved_at, traits}, ...] with the current answers last.
+    Returns [{revision (of the NEW set), saved_at (when the old set was replaced), field, from, to}].
+    """
+    out = []
+    for before, after in zip(sets, sets[1:]):
+        a, b = survey_fields(before["traits"]), survey_fields(after["traits"])
+        for field in SURVEY_FIELDS:
+            if a[field] != b[field]:
+                out.append({"revision": after["revision"], "saved_at": after.get("saved_at"),
+                            "field": field, "from": a[field], "to": b[field]})
+    return out
+
+
+def survey_report(entries: list[dict[str, Any]], history: dict[str, list[dict[str, Any]]],
+                  total_students: int) -> dict[str, Any]:
+    """The survey side of the pilot: who answered, what they said, how it changed, and how
+    what they SAID lines up with what they DID.
+
+    `entries`: one per student who took it: {student_id, revision, saved_at, traits,
+    observed: {views, median_minutes, skim_share}, first_try_correct, answered}.
+    `history`: {student_id: [{revision, saved_at, traits}, ...]} of the answer sets they
+    REPLACED (oldest first); the current answers come from `entries`.
+
+    "said_vs_shown" is an ASSOCIATION across a handful of students, never evidence that an
+    adaptation works: it only shows whether what students say predicts how they read.
+    """
+    rows, hist_rows, changes = [], [], []
+    for e in entries:
+        flat = survey_fields(e["traits"])
+        obs = e.get("observed") or {}
+        rows.append({"student_id": e["student_id"], "revision": e["revision"], **flat,
+                     "lessons_viewed": obs.get("views"), "median_minutes_per_lesson": obs.get("median_minutes"),
+                     "skim_share": obs.get("skim_share"), "first_try_correct": e.get("first_try_correct"),
+                     "first_try_answered": e.get("answered")})
+        sets = list(history.get(e["student_id"], []))
+        for h in sets:
+            hist_rows.append({"student_id": e["student_id"], "revision": h["revision"],
+                              "saved_at": h.get("saved_at"), "current": False, **survey_fields(h["traits"])})
+        hist_rows.append({"student_id": e["student_id"], "revision": e["revision"],
+                          "saved_at": e.get("saved_at"), "current": True, **flat})
+        changes += [{"student_id": e["student_id"], **c}
+                    for c in survey_changes(sets + [{"revision": e["revision"], "saved_at": e.get("saved_at"),
+                                                     "traits": e["traits"]}])]
+
+    def counts(field: str) -> dict[str, int]:
+        tally: dict[str, int] = {}
+        for r in rows:
+            if r[field] is not None:
+                tally[r[field]] = tally.get(r[field], 0) + 1
+        return dict(sorted(tally.items(), key=lambda kv: (-kv[1], kv[0])))
+
+    def group(field: str) -> list[dict[str, Any]]:
+        out = []
+        for value in counts(field):
+            members = [r for r in rows if r[field] == value]
+            mins = [r["median_minutes_per_lesson"] for r in members if r["median_minutes_per_lesson"] is not None]
+            skims = [r["skim_share"] for r in members if r["skim_share"] is not None]
+            answered = sum(r["first_try_answered"] or 0 for r in members)
+            correct = sum(r["first_try_correct"] or 0 for r in members)
+            out.append({"value": value, "students": len(members),
+                        "median_minutes": round(median(mins), 1) if mins else None,
+                        "mean_skim_share": round(sum(skims) / len(skims), 2) if skims else None,
+                        "first_try_accuracy": _accuracy(correct, answered), "first_try_answers": answered})
+        return out
+
+    updated = {c["student_id"] for c in changes} | {e["student_id"] for e in entries if e["revision"]}
+    return {
+        "taken": len(entries), "total": total_students,
+        "updated_students": len(updated), "revisions": sum(e["revision"] for e in entries),
+        "changed_fields": counts_of([c["field"] for c in changes]),
+        "distributions": {f: counts(f) for f in ("focus_span", "pace", "first_step", "physics_feel",
+                                                 "maths_comfort", "trips", "goal", "top_hobby_level")},
+        "said_vs_shown": {f: group(f) for f in ("focus_span", "pace", "physics_feel")},
+        "rows": rows, "history": hist_rows, "changes": changes,
+    }
+
+
+def counts_of(values: list[str]) -> dict[str, int]:
+    tally: dict[str, int] = {}
+    for v in values:
+        tally[v] = tally.get(v, 0) + 1
+    return dict(sorted(tally.items(), key=lambda kv: (-kv[1], kv[0])))

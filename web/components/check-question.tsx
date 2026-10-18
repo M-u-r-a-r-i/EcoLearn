@@ -33,7 +33,7 @@ export function CheckQuestion({
   allowUnsure?: boolean; // revision questions need an answer, so they hide it
 }) {
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card">
+    <section className="surface flex flex-col gap-5 p-6">
       <Markdown>{question.question}</Markdown>
       <fieldset className="flex flex-col gap-3" disabled={disabled}>
         <legend className="sr-only">Choose one answer, or Not sure</legend>
@@ -41,10 +41,10 @@ export function CheckQuestion({
           <label
             key={letter}
             className={cn(
-              "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all",
+              "flex cursor-pointer items-start gap-3 rounded-[13px] border p-3.5 transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
               picked === letter
-                ? "border-primary bg-primary/5 ring-2 ring-primary"
-                : "border-border bg-card hover:border-primary/40 hover:shadow-soft",
+                ? "border-primary bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))]"
+                : "border-border bg-card hover:border-[color-mix(in_srgb,var(--brand)_50%,var(--line))]",
             )}
           >
             <input
@@ -58,8 +58,8 @@ export function CheckQuestion({
             <span
               aria-hidden
               className={cn(
-                "flex size-7 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
-                picked === letter ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground",
+                "flex size-7 shrink-0 items-center justify-center rounded-[9px] font-heading text-xs font-bold",
+                picked === letter ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
               )}
             >
               {letter}
@@ -70,10 +70,10 @@ export function CheckQuestion({
         {allowUnsure && (
           <label
             className={cn(
-              "flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4 text-sm transition-all",
+              "flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[13px] border border-dashed p-3 text-xs font-semibold transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
               picked === UNSURE
-                ? "border-brand-accent bg-brand-accent/5 ring-2 ring-brand-accent"
-                : "border-border text-muted-foreground hover:border-brand-accent/50",
+                ? "border-primary bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] text-primary"
+                : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
             <input

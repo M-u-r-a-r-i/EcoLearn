@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,16 @@ export function TabBar<T extends string>({
 }) {
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
 
+  // On a phone the strip scrolls sideways. Bring the open tab into view (a link straight to ?tab=ai would
+  // otherwise leave its own tab half off-screen). Horizontal only; the page itself is never scrolled.
+  useEffect(() => {
+    const el = refs.current[value];
+    const strip = el?.parentElement;
+    if (!el || !strip) return;
+    const left = el.offsetLeft - (strip.clientWidth - el.offsetWidth) / 2;
+    strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [value]);
+
   function onKey(e: KeyboardEvent, index: number) {
     const last = tabs.length - 1;
     const to =
@@ -45,7 +55,7 @@ export function TabBar<T extends string>({
     <div
       role="tablist"
       aria-label={label}
-      className="-mx-4 flex gap-1 overflow-x-auto border-b border-border px-4 print:hidden sm:mx-0 sm:px-0"
+      className="dash-tabs print:hidden"
     >
       {tabs.map((t, i) => {
         const on = t.id === value;
@@ -63,19 +73,14 @@ export function TabBar<T extends string>({
             tabIndex={on ? 0 : -1}
             onClick={() => onChange(t.id)}
             onKeyDown={(e) => onKey(e, i)}
-            className={cn(
-              "relative -mb-px flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              on
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
+            className="dash-tab"
           >
             {t.label}
             {t.count !== undefined && (
               <span
                 className={cn(
                   "rounded-full px-2 py-0.5 text-[11px] font-bold",
-                  on ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
+                  on ? "bg-primary/15 text-primary" : "bg-card text-muted-foreground",
                 )}
               >
                 {t.count}

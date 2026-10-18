@@ -6,12 +6,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
 
 import { Field, FormError } from "@/components/auth-card";
 import { useAuth } from "@/components/auth-provider";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
-import { SectionHeading } from "@/components/section-heading";
+import { PageHeading } from "@/components/ui-kit";
 import { changeTeacherPassword, friendlyMessage } from "@/lib/api";
 
 const MIN_PASSWORD_LENGTH = 8; // mirrors src/auth/passwords.py; the API still checks
@@ -50,18 +49,18 @@ export default function TeacherAccountPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-xl flex-col gap-8">
-        <SectionHeading
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-xl flex-col gap-8">
+        <PageHeading
           eyebrow="Account"
           title={teacher.name}
-          subtitle={`Logged in as ${teacher.username}`}
+          description={`Logged in as ${teacher.username}`}
         />
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card"
+          className="flex flex-col gap-5 surface p-6"
         >
-          <h2 className="text-lg font-bold text-foreground">Change password</h2>
+          <h2 className="display text-xl font-bold text-foreground">Change password</h2>
           <Field
             id="current-password"
             label="Current password"
@@ -99,11 +98,11 @@ export default function TeacherAccountPage() {
               {saved}
             </p>
           )}
-          <PrimaryButton type="submit" disabled={saving} className="self-start">
+          <Button type="submit" disabled={saving} className="self-start">
             {saving ? "Changing…" : "Change password"}
-          </PrimaryButton>
+          </Button>
         </form>
-      </PageContainer>
+      </div>
     </main>
   );
 }

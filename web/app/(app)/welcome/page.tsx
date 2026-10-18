@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 
 import { FormError } from "@/components/auth-card";
 import { useAuth } from "@/components/auth-provider";
-import { PageContainer } from "@/components/page-container";
 import { SurveyFlow } from "@/components/survey-flow";
 import { useWelcomeGate } from "@/components/welcome-gate";
 import { getSurvey } from "@/lib/api";
@@ -30,23 +29,23 @@ export default function WelcomePage() {
 
   if (survey.loading || taken) {
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex max-w-2xl flex-col gap-4">
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex max-w-2xl flex-col gap-4">
           <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
           <div className="h-48 animate-pulse rounded-xl bg-muted" />
-        </PageContainer>
+        </div>
       </main>
     );
   }
   if (!survey.data) {
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex max-w-2xl flex-col gap-4">
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex max-w-2xl flex-col gap-4">
           <FormError message={survey.error ?? "Couldn't load the questions."} />
           <Link href="/roadmap" className="text-sm font-semibold text-primary hover:underline">
             Go to your roadmap
           </Link>
-        </PageContainer>
+        </div>
       </main>
     );
   }

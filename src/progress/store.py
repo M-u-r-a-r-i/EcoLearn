@@ -151,6 +151,39 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_plans_class ON class_plans(class_id, plan_id)")
+    # Coaching notes (2026-10-13): one set of per-student notes per run. Stored with aliases
+    # (S1, S2...) only, like plans: names are filled in when a teacher views them.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS coaching_notes (
+            run_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_id    TEXT NOT NULL,
+            teacher_id  TEXT NOT NULL,
+            created_at  TEXT NOT NULL,
+            source      TEXT NOT NULL,
+            model       TEXT,
+            notes       TEXT NOT NULL,
+            aliases     TEXT NOT NULL,
+            trail       TEXT NOT NULL,
+            note        TEXT
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_coaching_class ON coaching_notes(class_id, run_id)")
+    # Doubt-chat outcomes (2026-10-13): what happened to a question, never what it said. A child's words are
+    # not stored; a teacher sees counts only. outcome: answered | blocked | rate_limited | failed.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS help_events (
+            event_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id  TEXT NOT NULL,
+            at          TEXT NOT NULL,
+            outcome     TEXT NOT NULL,
+            reason      TEXT
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_help_student ON help_events(student_id, event_id)")
     # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
     # are a baseline taken before any lesson, and mixing them into the lesson
     # answers would muddy the pilot's "right first time" number.
@@ -409,6 +442,11 @@ def _migrate_students(conn: sqlite3.Connection) -> None:
     # legacy students. A teacher may reset a password only within their own classes.
     if "class_id" not in existing:
         conn.execute("ALTER TABLE students ADD COLUMN class_id TEXT")
+    # The per-student AI switch (2026-10-14): 0 means none of this student's data goes to a model
+    # and none of the AI features run for them. On (1) by default; a teacher or the operator turns
+    # it off when a family says no to the AI parts.
+    if "ai_enabled" not in existing:
+        conn.execute("ALTER TABLE students ADD COLUMN ai_enabled INTEGER NOT NULL DEFAULT 1")
 
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username "
@@ -653,6 +691,7 @@ def _student_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         "created_at": row["created_at"],
         # Nullable: legacy name-only students have no username.
         "username": row["username"],
+        "ai_enabled": bool(row["ai_enabled"]) if "ai_enabled" in row.keys() else True,
     }
 
 
@@ -764,6 +803,29 @@ def update_student_profile(
             conn.close()
 
     return get_student(student_id)
+
+
+def set_student_ai(student_id: str, enabled: bool) -> bool:
+    """Turn the AI features on or off for one student. False if there is no such student."""
+    conn = _connect()
+    try:
+        cursor = conn.execute("UPDATE students SET ai_enabled = ? WHERE student_id = ?",
+                              (1 if enabled else 0, student_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def ai_disabled_ids(student_ids: list[str] | None = None) -> set[str]:
+    """The students (of `student_ids`, or all) whose AI switch is off."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT student_id FROM students WHERE ai_enabled = 0").fetchall()
+    finally:
+        conn.close()
+    off = {r["student_id"] for r in rows}
+    return off if student_ids is None else off & set(student_ids)
 
 
 def update_student_password(student_id: str, password_hash: str) -> bool:
@@ -1035,6 +1097,7 @@ def list_class_students(class_id: str) -> list[dict[str, Any]]:
         rows = conn.execute(
             """
             SELECT s.student_id, s.name, s.username, s.interest, s.level, s.created_at,
+                   s.ai_enabled,
                    COUNT(p.concept_id)                                   AS attempted,
                    COALESCE(SUM(CASE WHEN p.status = ? THEN 1 END), 0)   AS mastered,
                    MAX(p.last_seen)                                      AS last_active
@@ -1051,6 +1114,7 @@ def list_class_students(class_id: str) -> list[dict[str, Any]]:
     return [
         {"student_id": r["student_id"], "name": r["name"], "username": r["username"],
          "interest": r["interest"], "level": r["level"], "created_at": r["created_at"],
+         "ai_enabled": bool(r["ai_enabled"]),
          "attempted": r["attempted"], "mastered": r["mastered"],
          "last_active": r["last_active"]}
         for r in rows
@@ -1285,6 +1349,41 @@ def get_latest_class_plan(class_id: str) -> dict[str, Any] | None:
     plan["trace"] = json.loads(plan["trace"])
     plan["aliases"] = json.loads(plan["aliases"])
     return plan
+
+
+def save_coaching_notes(class_id: str, teacher_id: str, source: str, model: str | None,
+                        notes: dict[str, Any], aliases: dict[str, str],
+                        trail: list[dict[str, Any]], note: str | None) -> dict[str, Any]:
+    """Store one run of coaching notes; `notes` and `aliases` are keyed by S1, S2..."""
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO coaching_notes (class_id, teacher_id, created_at, source, model, notes, "
+            "aliases, trail, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (class_id, teacher_id, _now_iso(), source, model, json.dumps(notes, ensure_ascii=False),
+             json.dumps(aliases), json.dumps(trail, ensure_ascii=False), note),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return get_latest_coaching_notes(class_id) or {}
+
+
+def get_latest_coaching_notes(class_id: str) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM coaching_notes WHERE class_id = ? ORDER BY run_id DESC LIMIT 1",
+            (class_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    run = dict(row)
+    for key in ("notes", "aliases", "trail"):
+        run[key] = json.loads(run[key])
+    return run
 
 
 # ---------------------------------------------------------------------------
@@ -1770,3 +1869,176 @@ def list_class_plans(class_id: str) -> list[dict[str, Any]]:
     finally:
         conn.close()
     return [{**dict(r), "trace": json.loads(r["trace"])} for r in rows]
+
+
+def record_help_event(student_id: str, outcome: str, reason: str | None = None) -> None:
+    """Log what happened to a doubt-chat question. Never the question itself."""
+    conn = _connect()
+    try:
+        conn.execute("INSERT INTO help_events (student_id, at, outcome, reason) VALUES (?, ?, ?, ?)",
+                     (student_id, _now_iso(), outcome, reason))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def help_event_counts(student_ids: list[str]) -> dict[str, Any]:
+    """{asked, answered, failed, rate_limited, fallback, off_topic, ai_off, blocked: {reason: n}}
+    over these students. "fallback": the lesson's key idea was shown because the AI was off, failed
+    or its reply failed a check; "ai_off": the student's own AI switch is off (2026-10-14)."""
+    out: dict[str, Any] = {"asked": 0, "answered": 0, "failed": 0, "rate_limited": 0,
+                           "fallback": 0, "off_topic": 0, "ai_off": 0, "blocked": {}}
+    if not student_ids:
+        return out
+    conn = _connect()
+    try:
+        marks = ",".join("?" * len(student_ids))
+        rows = conn.execute(
+            f"SELECT outcome, reason, COUNT(*) n FROM help_events WHERE student_id IN ({marks}) "
+            "GROUP BY outcome, reason", student_ids).fetchall()
+    finally:
+        conn.close()
+    for r in rows:
+        out["asked"] += r["n"]
+        if r["outcome"] == "blocked":
+            out["blocked"][r["reason"] or "other"] = out["blocked"].get(r["reason"] or "other", 0) + r["n"]
+        elif r["outcome"] in out:
+            out[r["outcome"]] += r["n"]
+    return out
+
+
+# ---------------------------------------------------------------------------
+# A student's data: export it, erase it (2026-10-13)
+#
+# Both work from the live schema, not from a hand-kept list: every table with a `student_id` column is
+# included, so a table added later is covered without anyone remembering to update this. Two kinds of
+# table need care and are handled by name:
+#   * `llm_calls` is usage accounting. Erasing a student sets its student_id to NULL (the cost totals
+#     stay true, the link to the child goes).
+#   * `class_plans` and `coaching_notes` belong to a class, not a student. They keep a JSON map from a
+#     label ("S3") to a student id. Erasing removes that student's label (and, for coaching notes, their
+#     note), so what remains can no longer be tied to them.
+# Neither function is reachable over HTTP: they are for the operator (scripts/export_student.py,
+# scripts/delete_student.py), acting on a request from a family.
+# ---------------------------------------------------------------------------
+
+_ANONYMISE_TABLES = ("llm_calls",)
+_NEVER_EXPORT = {("students", "password_hash")}
+
+
+def _student_tables(conn: sqlite3.Connection) -> list[str]:
+    names = [r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")]
+    return [n for n in names
+            if "student_id" in [c[1] for c in conn.execute(f'PRAGMA table_info("{n}")')]]
+
+
+def _readable(value: Any) -> Any:
+    """JSON stored in a text column, parsed; anything else unchanged."""
+    if isinstance(value, str) and value[:1] in ("{", "["):
+        try:
+            return json.loads(value)
+        except ValueError:
+            return value
+    return value
+
+
+def export_student_rows(student_id: str) -> dict[str, Any]:
+    """Every row about one student, by table, plus their note in any class coaching run.
+
+    Returns {"tables": {table: [row dict, ...]}, "class_notes": [{"made": iso, "note": {...}}],
+             "plans_that_included_them": int}. The password hash is never included.
+    """
+    conn = _connect()
+    try:
+        tables: dict[str, list[dict[str, Any]]] = {}
+        for name in _student_tables(conn):
+            rows = conn.execute(f'SELECT * FROM "{name}" WHERE student_id = ?', (student_id,)).fetchall()
+            if rows:
+                tables[name] = [
+                    {k: _readable(r[k]) for k in r.keys() if (name, k) not in _NEVER_EXPORT}
+                    for r in rows]
+        class_notes, plans = [], 0
+        for r in conn.execute("SELECT created_at, notes, aliases FROM coaching_notes ORDER BY run_id"):
+            aliases = json.loads(r["aliases"])
+            alias = next((a for a, sid in aliases.items() if sid == student_id), None)
+            note = json.loads(r["notes"]).get(alias) if alias else None
+            if note:
+                class_notes.append({"made": r["created_at"], "note": note})
+        for r in conn.execute("SELECT aliases FROM class_plans"):
+            if student_id in json.loads(r["aliases"]).values():
+                plans += 1
+    finally:
+        conn.close()
+    return {"tables": tables, "class_notes": class_notes, "plans_that_included_them": plans}
+
+
+def find_student_traces(student_id: str) -> dict[str, int]:
+    """Where a student's id still appears anywhere in the database: {"table.column": rows}.
+
+    Used to prove an erase left nothing behind. Empty means clean.
+    """
+    conn = _connect()
+    try:
+        found: dict[str, int] = {}
+        names = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")]
+        for name in names:
+            for col in conn.execute(f'PRAGMA table_info("{name}")'):
+                n = conn.execute(f'SELECT COUNT(*) FROM "{name}" WHERE CAST("{col[1]}" AS TEXT) LIKE ?',
+                                 (f"%{student_id}%",)).fetchone()[0]
+                if n:
+                    found[f"{name}.{col[1]}"] = n
+    finally:
+        conn.close()
+    return found
+
+
+def erase_student(student_id: str) -> dict[str, Any]:
+    """Remove a student and everything about them, in one transaction. False-y if they don't exist.
+
+    Returns {"deleted": {table: rows}, "anonymised": {table: rows}, "edited": {"coaching_notes": n,
+             "class_plans": n}}. Nothing is left half-done: any error rolls the whole thing back.
+    """
+    conn = _connect()
+    try:
+        with conn:
+            if conn.execute("SELECT 1 FROM students WHERE student_id = ?", (student_id,)).fetchone() is None:
+                return {}
+            deleted: dict[str, int] = {}
+            anonymised: dict[str, int] = {}
+            tables = _student_tables(conn)
+            for name in tables:
+                if name in _ANONYMISE_TABLES:
+                    n = conn.execute(f'UPDATE "{name}" SET student_id = NULL WHERE student_id = ?',
+                                     (student_id,)).rowcount
+                    if n:
+                        anonymised[name] = n
+                elif name != "students":
+                    n = conn.execute(f'DELETE FROM "{name}" WHERE student_id = ?', (student_id,)).rowcount
+                    if n:
+                        deleted[name] = n
+            edited = {"coaching_notes": 0, "class_plans": 0}
+            for table, has_notes in (("coaching_notes", True), ("class_plans", False)):
+                key = "run_id" if has_notes else "plan_id"
+                for r in conn.execute(f"SELECT {key} AS k, aliases{', notes' if has_notes else ''} FROM {table}").fetchall():
+                    aliases = json.loads(r["aliases"])
+                    gone = [a for a, sid in aliases.items() if sid == student_id]
+                    if not gone:
+                        continue
+                    for a in gone:
+                        del aliases[a]
+                    if has_notes:
+                        notes = json.loads(r["notes"])
+                        for a in gone:
+                            notes.pop(a, None)
+                        conn.execute(f"UPDATE {table} SET aliases = ?, notes = ? WHERE {key} = ?",
+                                     (json.dumps(aliases), json.dumps(notes, ensure_ascii=False), r["k"]))
+                    else:
+                        conn.execute(f"UPDATE {table} SET aliases = ? WHERE {key} = ?",
+                                     (json.dumps(aliases), r["k"]))
+                    edited[table] += 1
+            deleted["students"] = conn.execute("DELETE FROM students WHERE student_id = ?", (student_id,)).rowcount
+    finally:
+        conn.close()
+    return {"deleted": deleted, "anonymised": anonymised, "edited": edited}

@@ -131,6 +131,7 @@ export interface StudentProfile {
   interest: string;
   level: string;
   created_at: string;
+  ai_enabled?: boolean; // false when a teacher switched the AI features off for this student
 }
 
 export interface RegisterInput {
@@ -230,6 +231,7 @@ export interface ClassStudent {
   interest: string;
   level: string;
   created_at: string;
+  ai_enabled?: boolean; // the per-student AI switch (true by default)
   attempted: number; // concepts tried at least once
   mastered: number;
   last_active: string | null; // ISO time of the latest attempt, null if none yet
@@ -300,6 +302,14 @@ export function setStudentLevel(studentId: string, level: string): Promise<{ stu
   return request(`/api/teacher/students/${encodeURIComponent(studentId)}/level`, {
     method: "POST",
     body: { level },
+  });
+}
+
+// The per-student AI switch: off = no personal stories, no AI help chat, left out of AI notes and plans.
+export function setStudentAi(studentId: string, enabled: boolean): Promise<{ student_id: string; ai_enabled: boolean }> {
+  return request(`/api/teacher/students/${encodeURIComponent(studentId)}/ai`, {
+    method: "POST",
+    body: { enabled },
   });
 }
 
@@ -445,6 +455,17 @@ export interface AiDecisions {
     critic_checks: number;
     critic_rejections: number;
   };
+  // The doubt chat, counts only: what students typed is never stored.
+  help?: {
+    asked: number;
+    answered: number;
+    failed: number;
+    rate_limited: number;
+    fallback?: number; // the lesson's key idea shown instead (AI off, failed, or its reply failed a check)
+    off_topic?: number;
+    ai_off?: number; // students whose AI switch is off
+    blocked: Record<string, number>;
+  };
   plans: { total: number; agent: number; rules: number; latest_note: string | null };
   calls: {
     total: number;
@@ -475,6 +496,62 @@ export function getClassAiDecisions(classId: string): Promise<AiDecisions> {
 
 export function getClassPlan(classId: string): Promise<ClassPlan | null> {
   return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan`);
+}
+
+// Coaching notes: a short, privacy-safe note per student for the teacher (AI first, rules as the fallback).
+export interface CoachingNote {
+  student_id: string;
+  name: string;
+  alias: string;
+  note: string;
+  evidence: string[];
+  next_step: string;
+  source: "ai" | "rules";
+}
+
+export interface CoachingRun {
+  run_id: number;
+  created_at: string;
+  source: "agent" | "mixed" | "rules";
+  model: string | null;
+  note: string | null;
+  students: CoachingNote[];
+  reused?: boolean;
+}
+
+export function getCoachingNotes(classId: string): Promise<CoachingRun | null> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/coaching`);
+}
+
+export function generateCoachingNotes(classId: string): Promise<CoachingRun> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/coaching`, {
+    method: "POST",
+    timeoutMs: LIVE_TIMEOUT_MS, // live model calls, in batches
+  });
+}
+
+export interface AiStatus {
+  configured: boolean;
+  up: boolean;
+  model: string | null;
+  primary: string | null;
+  on_fallback: boolean;
+  latency_ms: number | null;
+}
+
+export function getAiStatus(): Promise<AiStatus> {
+  return request("/api/teacher/ai-status");
+}
+
+export interface PlanProgress {
+  running: boolean;
+  stage: string;
+  steps: { summary: string; ok: boolean }[];
+}
+
+// What the assistant is doing right now; poll while generateClassPlan runs.
+export function getClassPlanProgress(classId: string): Promise<PlanProgress> {
+  return request(`/api/teacher/classes/${encodeURIComponent(classId)}/plan/progress`);
 }
 
 export function generateClassPlan(classId: string): Promise<ClassPlan> {
@@ -977,8 +1054,13 @@ export interface HelpResponse {
   concept_id: string;
   concept_name: string;
   answer: string; // markdown
+  // "PASS" (an AI answer that passed the checks), "OFF_TOPIC", "FALLBACK" (the lesson's key idea, because
+  // the AI was off or failed), "AI_OFF" (this student's AI switch is off), "BLOCKED" (our own checks stopped it)
   verdict: string;
+  source?: "ai" | "rules";
   attempts: number;
+  blocked?: boolean;
+  reason?: string;
 }
 
 export function askHelp(conceptId: string, question: string): Promise<HelpResponse> {

@@ -17,10 +17,11 @@ from src.llm.client import (
     LLMError,
     chat,
     configured_models,
+    health,
     is_configured,
     set_usage_sink,
     usage_context,
 )
 
-__all__ = ["LLMError", "ChatResult", "chat", "configured_models", "is_configured",
+__all__ = ["LLMError", "ChatResult", "chat", "configured_models", "health", "is_configured",
            "set_usage_sink", "usage_context"]

@@ -10,10 +10,11 @@
 
 "use client";
 
-import { ArrowRight, Bot, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import { Bot, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
 
 import type { AiDecisions, DecisionStep, DecisionTrailStep } from "@/lib/api";
 import { getClassAiDecisions } from "@/lib/api";
+import { Skeleton } from "@/components/ui-kit";
 import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
 
@@ -36,18 +37,25 @@ const STEP_PASS: Record<DecisionStep, string> = {
 export function AiDecisionsPanel({ classId }: { classId: string }) {
   const { data, loading, error } = useFetch(`ai-decisions:${classId}`, () => getClassAiDecisions(classId));
 
-  if (loading) return <div className="h-40 animate-pulse rounded-xl bg-muted" aria-label="Loading AI decisions" />;
+  if (loading) {
+    return (
+      <div className="surface">
+        <Skeleton rows={3} />
+      </div>
+    );
+  }
   if (!data) {
     return <p className="text-sm text-destructive">{error ?? "Couldn't load how the AI decided."}</p>;
   }
 
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card print:hidden">
-      <div className="flex flex-col gap-1">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
-          <ShieldCheck className="size-5 text-primary" aria-hidden /> How the AI decided
-        </h2>
-        <p className="max-w-3xl text-sm text-muted-foreground">
+    <section className="surface panel flex flex-col gap-6 print:hidden">
+      <div>
+        <p className="eyebrow flex items-center gap-2">
+          <ShieldCheck className="size-3.5" aria-hidden /> A window into the process
+        </p>
+        <h2 className="display text-2xl font-semibold text-foreground">How the AI decided</h2>
+        <p className="dash-sub max-w-3xl">
           AI never writes straight to a student. Each personal story passes fixed rule checks, then a
           second AI acting as a critic. A rejected draft is rewritten once; if it still fails, the
           student gets the reviewed lesson story instead. Here is every one of those decisions.
@@ -71,20 +79,14 @@ function Pipeline({ d }: { d: AiDecisions }) {
     { label: "Shown", value: s.shown, note: `${s.rewritten} after a rewrite` },
   ];
   return (
-    <ol className="grid gap-2 sm:grid-cols-4" aria-label="The story guardrails">
+    <ol className="dpipe" aria-label="The story guardrails">
       {stages.map((st, i) => (
-        <li key={st.label} className="relative flex flex-col gap-0.5 rounded-xl border border-border bg-background p-3">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <li key={st.label}>
+          <span className="dpipe-step">
             {i + 1}. {st.label}
           </span>
-          <span className="text-2xl font-bold text-foreground">{st.value}</span>
-          <span className="text-xs text-muted-foreground">{st.note}</span>
-          {i < stages.length - 1 && (
-            <ArrowRight
-              className="absolute -right-2.5 top-1/2 z-10 hidden size-4 -translate-y-1/2 text-muted-foreground sm:block"
-              aria-hidden
-            />
-          )}
+          <span className="dpipe-val">{st.value}</span>
+          <span className="dpipe-note">{st.note}</span>
         </li>
       ))}
     </ol>
@@ -105,6 +107,13 @@ function Tiles({ d }: { d: AiDecisions }) {
       note: `${s.reported} reported by students, ${s.hidden_by_teacher} hidden by you`,
     },
     {
+      label: "Doubt chat",
+      value: d.help?.asked ?? 0,
+      note: d.help?.asked
+        ? `${d.help.answered} answered, ${Object.values(d.help.blocked).reduce((a, b) => a + b, 0)} stopped by safety checks, ${d.help.rate_limited} slowed down${d.help.fallback ? `, ${d.help.fallback} given the lesson's key idea instead` : ""}${d.help.off_topic ? `, ${d.help.off_topic} not about physics` : ""}${d.help.ai_off ? `, ${d.help.ai_off} from students with the AI off` : ""}${d.help.failed ? `, ${d.help.failed} couldn't be answered` : ""}`
+        : "no questions yet (counts only; what students type is never kept)",
+    },
+    {
       label: "Teaching assistant",
       value: d.plans.total,
       note: d.plans.total
@@ -119,12 +128,12 @@ function Tiles({ d }: { d: AiDecisions }) {
   ];
   return (
     <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {items.map((t) => (
-          <div key={t.label} className="rounded-xl border border-border bg-background p-3">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.label}</div>
-            <div className="text-2xl font-bold text-foreground">{t.value}</div>
-            <div className="text-xs text-muted-foreground">{t.note}</div>
+      <div className="dash-metrics">
+        {items.map((t, i) => (
+          <div key={t.label} className={`soft-surface dash-metric tone-${["mint", "peach", "lav", "sky"][i % 4]}`}>
+            <div className="dash-label">{t.label}</div>
+            <div className="dash-value">{t.value}</div>
+            <div className="dash-note">{t.note}</div>
           </div>
         ))}
       </div>
@@ -148,11 +157,11 @@ function Log({ d }: { d: AiDecisions }) {
   }
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold text-foreground">Decision log, newest first</h3>
+      <h3 className="display text-lg font-bold text-foreground">Decision log, newest first</h3>
       <ul className="flex flex-col gap-2">
         {d.log.map((e) => (
           <li key={`${e.student_id}|${e.concept_id}`}>
-            <details className="group rounded-xl border border-border bg-background">
+            <details className="group rounded-2xl border border-border bg-background">
               <summary className="flex cursor-pointer flex-col gap-1 p-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm">
                   <span className="font-semibold text-foreground">{e.name}</span>

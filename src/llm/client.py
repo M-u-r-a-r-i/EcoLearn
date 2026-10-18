@@ -145,13 +145,13 @@ def _report(model: str, ok: bool, started: float, usage: dict[str, Any] | None,
 _transport: httpx.BaseTransport | None = None
 
 
-def _post(model: str, payload: dict[str, Any]) -> dict[str, Any]:
+def _post(model: str, payload: dict[str, Any], timeout: float | None = None) -> dict[str, Any]:
     base = (_env("LLM_BASE_URL", DEFAULT_BASE_URL) or DEFAULT_BASE_URL).rstrip("/")
     headers = {"Content-Type": "application/json"}
     key = _env("LLM_API_KEY")
     if key:
         headers["Authorization"] = f"Bearer {key}"
-    timeout = float(_env("LLM_TIMEOUT_SECONDS", "60") or 60)
+    timeout = timeout or float(_env("LLM_TIMEOUT_SECONDS", "60") or 60)
     try:
         with httpx.Client(timeout=timeout, transport=_transport) as client:
             response = client.post(f"{base}/chat/completions", headers=headers,
@@ -216,6 +216,50 @@ def chat(
             _report(model, False, started, None, str(exc))
             failures.append(str(exc))
     raise LLMError("All models failed: " + "; ".join(failures))
+
+
+# ---------------------------------------------------------------------------
+# Is the AI up?
+# ---------------------------------------------------------------------------
+_HEALTH_TTL_SECONDS = 60
+_health_cache: dict[str, Any] = {"at": 0.0, "value": None}
+
+
+def health(force: bool = False) -> dict[str, Any]:
+    """Is a model answering right now? One tiny call, the answer kept for a minute.
+
+    Tries the main chain in order and stops at the first model that answers, so a
+    healthy primary costs one call of a few tokens. Used by the teacher's status badge
+    and scripts/ai_check.py; never on a student's path.
+
+    Returns {"configured": bool, "up": bool, "model": answering model | None,
+             "primary": the first model of the chain | None,
+             "on_fallback": bool, "latency_ms": int | None,
+             "tried": [{"model", "ok", "error"}], "checked_at": epoch seconds}.
+    """
+    now = time.time()
+    cached = _health_cache["value"]
+    if not force and cached is not None and now - _health_cache["at"] < _HEALTH_TTL_SECONDS:
+        return cached
+    chain = configured_models("main")
+    tried: list[dict[str, Any]] = []
+    answering, latency = None, None
+    for model in chain:
+        started = time.monotonic()
+        try:
+            _post(model, {"messages": [{"role": "user", "content": "Reply with the word OK."}],
+                          "temperature": 0, "max_tokens": 8}, timeout=30)
+            answering, latency = model, int((time.monotonic() - started) * 1000)
+            tried.append({"model": model, "ok": True, "error": None})
+            break
+        except LLMError as exc:
+            tried.append({"model": model, "ok": False, "error": str(exc)[:200]})
+    value = {"configured": bool(chain), "up": answering is not None, "model": answering,
+             "primary": chain[0] if chain else None,
+             "on_fallback": answering is not None and answering != chain[0],
+             "latency_ms": latency, "tried": tried, "checked_at": now}
+    _health_cache["at"], _health_cache["value"] = now, value
+    return value
 
 
 def parse_json_object(text: str) -> dict[str, Any] | None:

@@ -17,8 +17,6 @@ import { ArrowLeft, ArrowRight, Check, Clock, Heart, ShieldCheck, Sparkles } fro
 import { FormError } from "@/components/auth-card";
 import { Confetti } from "@/components/check-feedback";
 import { HobbyPicker } from "@/components/hobby-picker";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import {
   friendlyMessage,
@@ -35,8 +33,8 @@ type Answer = string | string[] | Record<string, string | string[]>;
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-2xl flex-col gap-6">{children}</PageContainer>
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-2xl flex-col gap-6">{children}</div>
     </main>
   );
 }
@@ -127,10 +125,10 @@ export function SurveyFlow({
     return (
       <Shell>
         <div className="flex flex-col gap-3">
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+          <span className="eyebrow">
             Welcome to EcoLearn
           </span>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="display text-4xl font-semibold text-foreground sm:text-4xl">
             Hi {firstName}! Let&apos;s get to know you
           </h1>
           <p className="leading-relaxed text-muted-foreground">
@@ -147,7 +145,7 @@ export function SurveyFlow({
           ].map(({ Icon, title, text }, i) => (
             <li
               key={title}
-              className="rm-sheet flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 shadow-soft"
+              className="rm-sheet flex flex-col gap-1.5 surface p-4"
               style={{ animationDelay: `${i * 90}ms` }}
             >
               <Icon className="size-6 text-primary" aria-hidden />
@@ -156,9 +154,9 @@ export function SurveyFlow({
             </li>
           ))}
         </ul>
-        <PrimaryButton onClick={() => setStage("steps")} className="self-start">
+        <Button onClick={() => setStage("steps")} className="self-start">
           Let&apos;s start <ArrowRight className="size-5" />
-        </PrimaryButton>
+        </Button>
       </Shell>
     );
   }
@@ -169,10 +167,10 @@ export function SurveyFlow({
       <Shell>
         <div className="relative flex flex-col gap-2">
           {!editing && <Confetti />}
-          <span className="rm-sheet flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+          <span className="rm-sheet flex items-center gap-2 eyebrow">
             <Sparkles className="size-4" aria-hidden /> {editing ? "Saved" : `Thanks, ${firstName}`}
           </span>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="display text-4xl font-semibold text-foreground sm:text-4xl">
             {editing ? "Here's what changes now" : "Here's what we'll do with this"}
           </h1>
         </div>
@@ -180,7 +178,7 @@ export function SurveyFlow({
           {(traits ? whatWeHeard(traits, labelOf, !editing) : []).map((line, i) => (
             <li
               key={line.text}
-              className="rm-sheet flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft"
+              className="rm-sheet flex items-start gap-3 surface p-4"
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <span aria-hidden className="text-2xl">
@@ -194,9 +192,9 @@ export function SurveyFlow({
           Nothing is locked in. You can change these again whenever you like, and your teacher
           can see a short summary to help you.
         </p>
-        <PrimaryButton onClick={() => router.push(next.href)} className="self-start">
+        <Button onClick={() => router.push(next.href)} className="self-start">
           {next.label} <ArrowRight className="size-5" />
-        </PrimaryButton>
+        </Button>
       </Shell>
     );
   }
@@ -244,12 +242,12 @@ export function SurveyFlow({
             value={hobbies}
             onChange={(next) => set("hobbies", next)}
             heading="What do you enjoy?"
-            blurb="Tap a few. Tap your favourites first: we'll ask about the first two."
+            blurb="Tap a few, favourites first (we'll ask about the first two). Your lessons stay in the interest you chose; hobbies shape the personal story at the start of each lesson."
           />
         )}
 
         {step.id === "hobby" && asked.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-border bg-card p-5 text-muted-foreground">
+          <p className="surface !border-dashed p-5 text-muted-foreground">
             You didn&apos;t pick any hobbies, so there&apos;s nothing to ask here. That&apos;s fine: your
             examples will use your main interest.
           </p>
@@ -257,7 +255,7 @@ export function SurveyFlow({
 
         {step.id === "hobby" &&
           asked.map((hobby) => (
-            <section key={hobby} className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-5 shadow-card">
+            <section key={hobby} className="flex flex-col gap-6 surface p-5">
               <h2 className="text-2xl font-bold tracking-tight text-foreground">
                 About {labelOf(hobby)}
               </h2>
@@ -287,7 +285,7 @@ export function SurveyFlow({
 
       <FormError message={error} />
 
-      <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur">
+      <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 surface/95 p-2.5-hover backdrop-blur">
         <Button
           variant="ghost"
           size="lg"
@@ -300,7 +298,7 @@ export function SurveyFlow({
         <span className="hidden flex-1 text-center text-xs text-muted-foreground sm:block">
           Every question is optional.
         </span>
-        <PrimaryButton
+        <Button
           onClick={() => (last ? finish() : go(index + 1))}
           disabled={sending}
           className="h-11 shrink-0 px-5"
@@ -316,7 +314,7 @@ export function SurveyFlow({
               Next <ArrowRight className="size-5" />
             </>
           )}
-        </PrimaryButton>
+        </Button>
       </div>
     </Shell>
   );
@@ -368,8 +366,8 @@ function Question({
               className={cn(
                 "relative flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40",
                 on
-                  ? "-translate-y-0.5 border-primary bg-primary/10 shadow-card ring-2 ring-primary"
-                  : "border-border bg-card hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-soft",
+                  ? "-translate-y-0.5 border-primary bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] text-primary"
+                  : "border-border bg-card hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--brand)_50%,var(--line))]",
               )}
             >
               {o.emoji && (
@@ -407,7 +405,7 @@ export function whatWeHeard(
         ? { emoji: "🌱", text: `New to ${name}? Your ${name} examples will use plain words and explain any terms.` }
         : info.level === "expert"
           ? { emoji: "🏆", text: `You know ${name} well, so your examples will use its real terms and skip the basics.` }
-          : { emoji: "🎯", text: `Your examples will be built around ${name}, pitched at someone who knows it.` },
+          : { emoji: "🎯", text: `Your examples will be built around ${name}.` },
     );
   }
   if (t.focus.span === "short") {

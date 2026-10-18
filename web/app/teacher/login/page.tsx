@@ -8,10 +8,10 @@
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 import { AuthCard, Field, FormError } from "@/components/auth-card";
 import { HOME, useAuth } from "@/components/auth-provider";
-import { PrimaryButton } from "@/components/primary-button";
 import { friendlyMessage } from "@/lib/api";
 
 // Only follow same-site teacher paths, never "//evil.com" or a full URL.
@@ -70,9 +70,9 @@ function TeacherLoginForm() {
         disabled={loading}
       />
       <FormError message={error} />
-      <PrimaryButton type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Logging in…" : "Log in"}
-      </PrimaryButton>
+      </Button>
       <p className="text-center text-xs text-muted-foreground">
         Need a teacher account? Ask whoever runs EcoLearn at your school.
       </p>

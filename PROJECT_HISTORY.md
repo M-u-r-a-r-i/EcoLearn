@@ -2522,6 +2522,98 @@ under a real reduced-motion setting, the signup-to-start hand-off with a brand-n
 - Several clicks fired in one JS tick all read the same stale `value`; real users can't, but a
   scripted test must pause between clicks.
 
+
+## 9zy. Replit design adopted as the house style: `ecolearn-style` skill (2026-10-08)
+
+**Changed.**
+- New project skill `.claude/skills/ecolearn-style/`: `SKILL.md` (tokens, component recipes, motion,
+  screen blueprints, porting rules, checklist) plus `reference/` (unmodified copies of the Replit
+  app's `index.css`, `screen-styles.css`, `ui-kit`, `experience`, student/study/teacher screens,
+  favicon).
+- `.gitignore`: `.claude/` became `.claude/*` + `!.claude/skills/`, so the skill is shared with the
+  teammate; launch.json and local permissions stay ignored.
+
+**Why.** The user designed the UI in Replit (`EcoLearn-Physics-Tutor.zip`, mock data only) and wants
+the whole product to follow that style. A skill makes every later session reuse the same tokens and
+classes instead of re-deriving the look.
+
+**Learned.** The Replit app is plain global CSS classes (warm green "field notes", dark default,
+per-interest `data-interest` accent), not Tailwind utilities; the current `web/` is indigo shadcn, so
+adopting it is a restyle screen by screen, not a patch. The zip itself is untracked; do not commit it.
+
+
+## 9zz. The whole web UI restyled to the Replit house style (2026-10-08)
+
+**Changed.** UI only, in `web/` (nothing under `src/`, `api/`, `tests/`, `data/`, `scripts/`; `lib/api.ts` untouched).
+- Tokens: `app/globals.css` maps shadcn variables onto the warm green palette, adds per-interest accents
+  (`html[data-interest]`, lighter in dark mode) and imports the new class-based `app/ecolearn.css`
+  (`@import ... layer(components)` so utilities still win). System fonts replace Inter.
+- Primitives restyled in place: `ui/button` (pressable), `card`, `badge`, `input`, `progress`, `dialog`.
+- New `components/ui-kit.tsx`; rewritten `site-nav.tsx` (top bar + mobile bottom nav), landing `app/page.tsx`,
+  `auth-card.tsx` (two-column auth), `interest-level-fields.tsx`, roadmap page (welcome strip, chapter map, side
+  cards), `roadmap-path.tsx`/`learning-plan.tsx`/`chapter-picker.tsx` colours and cards, lesson page + stepper +
+  personal-story, assessment/start/review/mix-ups/settings/teacher pages via a class codemod plus hand edits.
+- `auth-provider.tsx` sets `data-interest` on `<html>` (presentation only). Deleted unused `section-heading.tsx`.
+- `.gitignore` tracks `.claude/skills/` (skill `ecolearn-style`, see 9zy).
+
+**Why.** The user wants the whole product to look like their Replit design.
+
+**Verified.** `tsc --noEmit`, `npm run lint`, `npm run build` clean. In the browser on the demo DB: landing, signup,
+login, roadmap (desktop + 375 px), lesson (375 px), assessment question + wrong-answer result (light theme), mix-ups,
+review, settings, start (already-taken), teacher home and class dashboard. **Not checked:** end-check page, the
+teacher account page, error/404 pages, print slips, every dark/light pair, a screen reader.
+
+**Learned.**
+- An unlayered global stylesheet beats Tailwind's layered utilities; import house CSS into a lower layer.
+- A grid with no `grid-template-columns` sizes its implicit column to content: the roadmap aside overflowed until
+  it got `minmax(0,1fr)`.
+- `.dark`-less hard-coded light colours in ported CSS (e.g. `.continue-card .tag`) need dark twins.
+
+
+## 9zzz. Login lands on the starting check; the roadmap is a tree (2026-10-09)
+
+**Changed.** UI only (`web/`).
+- `lib/landing.ts` + `app/login/page.tsx`: after a student logs in, the page is the starting check (`/start`, hobbies
+  first) until it is taken, then an open end check (`/end-check`), otherwise the `?next=` page or the roadmap. The
+  "already logged in" redirect no longer races the submit.
+- New `components/roadmap-tree.tsx`; `roadmap/page.tsx` uses it instead of the chapter dropdown and the winding map:
+  chapters (solid rail, grouped by unit) > concepts (dashed orange branch) > lesson parts (dotted purple twig, each
+  opens `/lesson?...&step=N`). `lesson-stepper.tsx` takes `initialStep`. Removed `chapter-picker.tsx`, `PathMap`,
+  `StepSheet`.
+
+**Why.** User report (2026-10-08): login skipped the hobby step and landed on the assessment/roadmap; the dropdown of
+chapters felt wrong. Asked for chapters first, expanding into sub sections and sub-sub sections in different styles.
+
+**Not reproduced: reset password.** After a teacher's reset the new password was said not to work (only the demo one).
+`reset_student_password` + `authenticate_student` verified end to end on a temp DB (new works, old rejected). Likely
+causes: two API servers/databases at once (reset hit one, login the other), or the browser's saved-password autofill
+filling the old one. Open.
+
+**Learned.** A stale `.next` left by `npm run build` makes the next `next dev` 404 real routes: delete `.next`.
+
+
+## 9zzzz. "Skip for now" is remembered; accent paints before auth loads (2026-10-09)
+
+**Changed.** UI only. `lib/landing.ts`: a student who pressed "Skip for now" on `/start` is not sent back to it at every
+login (remembered per student in localStorage; the roadmap card still invites them). `auth-provider.tsx` +
+`theme-toggle.tsx` boot script remember the interest so the accent colour is right on the first paint.
+**Checked in the browser:** skip-then-login lands on the roadmap, a fresh student still lands on `/start`; end-check
+("needs start" state), 404, teacher account. **Not checked:** the credentials sheet and printed slips (it only appears
+after a password reset, and the demo class holds real accounts), the error page (needs a crash), end-check questions.
+
+
+## 9zzzzz. Teacher class dashboard redesign (2026-10-09)
+
+**Changed.** UI only. `teacher/(dashboard)/class/page.tsx` is now four tabs (Overview, Insights, Stories & AI,
+Students) instead of one 10,000 px scroll. Metric cards with icons and tones (`.dash-metric`), a before/after bar chart
+per idea in `class-checks.tsx` (the table moved into a collapsed "Idea by idea"), ranked misconceptions with share bars,
+per-interest cards, the AI guardrail pipeline as four stage cards, the teaching plan on a soft panel with a step
+timeline, and a student table with avatars, a mastered meter, coloured accuracy and card layout under 768 px
+(`.dtable`). New `.dash-*` / `.dbar*` / `.dmix*` / `.dpipe` / `.dtable` rules at the end of `app/ecolearn.css`
+(11 px minimum text, unlike the Replit original's 8-10 px).
+
+**Checked** in the browser on the demo class (desktop and 375 px): all four tabs. **Not checked:** the credentials sheet
+after a reset, an open end-check being toggled, the empty state of a brand-new class.
 ## 9zy. "Getting to know you": the first-login survey (2026-10-08)
 
 **Changed.**
@@ -2721,3 +2813,438 @@ git worktree on ports 8100/3100 (and the Turbopack junction / `--webpack` and `r
 gotchas), the demo logins (`ananya.r` / `aditya.v` never sign in; the password is the constant in
 `scripts/seed_demo.py`), and the design-session merge as an open thread. Memory notes added:
 the user's own servers must not be stopped; a long interrupted run means do the walkthrough instead.
+
+
+## 9zzzzzz. Merged `main` into the restyled branch (2026-10-10)
+
+**Merged.** `main`'s survey ("getting to know you", `/welcome`, welcome gate, break nudge, settings > about), landing
+page, teacher class snapshot / needs-attention / profiles / tab bar, and the backend behind them.
+
+**Conflicts and how they were settled.**
+- Landing (`app/page.tsx`): my Replit hero and sections, with `main`'s honest copy, steps, "what makes it different",
+  the interest showcase and the login-aware `HeroActions` (restyled).
+- Teacher class page: `main`'s page (URL tabs, `ClassSnapshot`, `NeedsAttention`, `ClassProfilesPanel`) as the base,
+  with my student table and heading; `tab-bar.tsx`, `class-overview.tsx` restyled to the dashboard classes.
+- Starting check: `main`'s flow (skips the hobby step when the survey has hobbies; shared `hobby-picker.tsx`, now
+  restyled). My "Next waits for a hobby" edit stays only on the fallback hobby step.
+- Lesson page + stepper: both `initialStep` (roadmap deep link) and `initialAll` (survey preference); the "take your
+  time" note kept. `roadmap-path.tsx`: mine (the tree replaced `PathMap`, where `main`'s full-stop fix lived).
+- Restyled the new survey, profile, about-you and showcase files with the house classes; the mobile top bar hides
+  "Log in" under 480 px so the page no longer scrolls sideways.
+
+**Checked.** `tsc`, lint, full Python suite (incl. `test_survey`), lesson validator. **Not checked in a browser:**
+the survey screens, teacher snapshot and profiles (the running API on :8000 is the user's own database, so no demo
+login was available), and `npm run build` (not run: it would overwrite the dev server's `.next`).
+
+
+## 9zzzzzzz. First live AI run: OmniRoute + Gemini (2026-10-10)
+
+**Changed.** `.env` (gitignored): `LLM_BASE_URL` (OmniRoute), `LLM_MODEL` and `LLM_CRITIC_MODEL` =
+`gemini/gemini-3.1-flash-lite`, `LLM_API_KEY` (an OmniRoute key). `src/agents/teacher_agent.py`: `call()` drops
+arguments a tool doesn't declare (Gemini via OmniRoute adds an undeclared `reason` to every tool call, which made
+every tool answer "Bad arguments").
+
+**Verified live (temp databases, nothing real touched).** A personal story for a cricket student with the hobby
+"space" on the concept `speed`: status ready, rules + critic passed on draft 1, ~18 s. A teaching-assistant plan:
+source `agent`, ~23 s, read the class overview. `tests/test_teacher_agent.py`: 28/28.
+
+**Learned.**
+- Model choice matters. `gemini-2.5-flash` answered "no active credentials" (free-tier access), `2.5-flash-lite` is
+  closed to new users, `3.8-flash` timed out, and `3-flash-preview` truncates JSON (its "thinking" eats the token
+  budget). `gemini-3.1-flash-lite` is the one that worked end to end.
+- Do not use OmniRoute's `auto/...` models: the list mixes real providers with keyless web-scraped pools.
+- The old `GEMINI_API_KEY` is still rejected; with it set, the agent chain adds a slow failing fallback. Set it empty.
+- The story's "limit" field came back empty once: the guard doesn't require it. Not fixed.
+- The first plan run before the fix took 95 s and fell back to rules: always check `source`.
+
+
+## 9zzzzzzzz. Signup / hobby clarity (2026-10-11)
+
+**Changed.** `web/components/interest-level-fields.tsx`: no interest is pre-selected any more (it silently defaulted to
+the first, cricket); one line under "Learn through…" says interest = what lessons are taught through, hobbies = the
+short personal story. `web/app/signup/page.tsx`: step-2 subtitle reworded. `hobby-picker.tsx` and `survey-flow.tsx`
+blurbs say hobbies shape the story, lessons stay in the chosen interest. The "being written" note already exists in
+`personal-story.tsx` (pending state), so it was not added again.
+
+**Why.** A user chose the hobby "Space & stars", got cricket lessons and was confused. Space has no lessons; only the
+five interests do.
+
+**Checked.** `tsc`, lint. Not checked in a browser (the user's servers are running; signup screens unseen).
+
+
+## 9zzzzzzzzz. Live progress while the teaching assistant works; class page guard (2026-10-11)
+
+**Changed.** `teacher_agent.py`: `ClassToolbox.on_step` (called after each real tool call) and `plan_class(on_stage=)`
+("Asking <model>…", "didn't work out, trying the next", "Writing the plan from fixed rules").
+`platform_api.py`: `get_class_plan_progress` + an in-memory per-class run record filled by `generate_class_plan`
+(steps carry concept names only, never students). `api/main.py`: `GET /api/teacher/classes/{id}/plan/progress`.
+`web/lib/api.ts` `getClassPlanProgress`; `teaching-assistant.tsx` polls it every second and lists the real steps,
+replacing the timed ticker. `tests/test_teacher_agent.py`: 30 checks (progress feed matches the run, no names).
+`class/page.tsx`: a missing `?id=` (or a response with no `students`) shows "Class not found" instead of crashing.
+
+**Why.** The plan takes 20+ s and the card showed a fake timed ticker. Now each line is something the assistant did.
+The crash: `/teacher/class` with no id fell through to the class-list route, whose answer had no `students`.
+
+**Checked.** Browser against the demo DB: login, `/welcome` gate, all four teacher tabs render real data; the
+progress endpoint returned real steps after a live run (gemini-3.1-flash-lite via OmniRoute). Not captured: a
+screenshot of the list growing (the browser pane was hidden, which throttles timers). Personal stories still show
+only "Writing a ___ version…" while pending: the same feed could be added (trail is saved only at the end today).
+
+
+## 9zzzzzzzzzz. Live AI robustness (2026-10-11)
+
+**Changed.** `.env` (gitignored): `LLM_FALLBACK_MODELS=gemini/gemini-3.7-flash`; the rejected old `GEMINI_API_KEY`
+emptied. `src/llm/client.py`: `health()` (one tiny call down the chain, first answer wins, cached 60 s; 30 s timeout)
+and a `timeout` argument on `_post`. Boundary `get_ai_status` + `GET /api/teacher/ai-status`; a status badge on the
+teaching-assistant card ("AI is up" / "on a backup model" / "not answering" / "not set up"). `scripts/ai_check.py`
+(exit 0 only if a model answers) and `scripts/prewarm_stories.py --class <name|id> --concepts N` (writes the next N
+story-capable concepts per student with the live writer + critic; skips current ones). Lesson page hides "Where the
+comparison stops" when `limit` is blank. Tests: health (backup, cache, all down) and blank-`limit` rejection.
+
+**Why.** One model going down shouldn't leave the stage demo on rules; a teacher should see the AI's state before
+pressing the button; stories can be written ahead of a class so nobody waits ~20 s.
+
+**Learned.**
+- Probed the user's own `gemini/` models via OmniRoute: `3.7-flash` works (~16 s), `3.1-pro-preview` times out (60 s),
+  `2.5-pro` 404. OmniRoute lists 478 models; only the `gemini/` ones use the user's key, the rest are third-party pools.
+- The "empty limit" worry: `guard_problems` already rejects a missing or blank `limit` (the earlier empty value was
+  a wrong key in a check script); now pinned by a test.
+- A story only exists for concepts whose domain fits one of the student's hobbies, so "the first N concepts" often has
+  none; the pre-warm script counts only concepts that can take a story.
+
+
+## 9zzzzzzzzzzz. Load test p95 fixed: bcrypt cost 10 (2026-10-11)
+
+**Changed.** `src/auth/passwords.py`: new hashes use bcrypt cost 10 (env `ECOLEARN_BCRYPT_ROUNDS`, clamped 10 to 14; the
+dummy hash for unknown usernames uses the same cost). Existing hashes keep their own cost (it is stored in the hash).
+
+**Why.** `scripts/load_test.py` failed at p95 4.6 s with 0 errors. Cause measured, not guessed: logins were 30 of 413
+requests but took p50 5.8 s; one bcrypt check cost 0.39 s at the default cost 12, and 30 checks took 15 s on one thread,
+4.2 s on 4, 4.1 s on 16 or 30: this machine gives no scaling past about 4 parallel checks, so a class logging in at the
+same instant saturates the CPU and every other request waits behind it (chapters, session and insights p95 were all
+inflated by it). Cost 10 is 4x cheaper. After: p95 1.47 s, login p50 1.3 s, 0 errors.
+
+**Learned.**
+- The earlier "depends on the machine's state" (§9zn) was this: a slower or busier CPU makes the herd of logins worse.
+- Trade-off, stated plainly: cost 10 is the OWASP floor, not the old default. Mitigations are rate limiting and
+  teacher-issued or teacher-reset passwords; raise `ECOLEARN_BCRYPT_ROUNDS` on a stronger server.
+- Accounts made before this change (for example the demo DB, seeded at cost 12) still log in at the old cost until
+  reseeded or reset.
+
+
+## 9zzzzzzzzzzzz. Story AI evaluation harness; unparseable replies retried (2026-10-13)
+
+**Changed.** `scripts/eval_stories.py` (new): runs the real writer and critic on N deterministic student/interest/hobby/
+concept cases on a TEMPORARY database and prints ready rate, first-draft rate, failures by step and reason, latency,
+calls/tokens/cost per story and three stories to read; `--out` saves it. `docs/eval-stories-sample.md`: a 6-case run.
+`src/learner/personal_story.py`: a reply that isn't JSON is retried up to 2 more times WITHOUT using up one of the 2
+drafts, and the trail keeps the first 120 characters of the reply. `tests/test_personal_story.py`: 42 checks.
+
+**Why.** Three of 25 demo stories failed (`neel.d`, `riya.k`, `zoya.k`): 7 of their 9 failed steps were "answer wasn't
+a JSON object". The same prompt parsed 3 of 3 a day later, so it is intermittent. The trail didn't keep the reply, so
+the cause couldn't be read; now it can. In the sample run the new retry fired once and rescued the story.
+
+**Measured (6 cases, gemini-3.1-flash-lite, 2026-10-13; a SAMPLE, not a result to quote).** 6 of 6 ready, 4 of 6 on the
+first draft; critic rejections were correct physics catches (analogy mixing up distance and speed); median 12 s, p95 32 s;
+2.8 model calls and ~3.3k in / 0.8k out tokens per story; Rs 0.27 per story at the reference price, using
+`llm_prices.yaml`, which still has unverified prices. Run with `--cases 30` for numbers worth quoting.
+
+**Learned.**
+- The critic passed one weak "limit" sentence ("the scoreboard only tracks points"): the human spot-check in the
+  report is worth keeping.
+- If OmniRoute is down, every case ends as "error" and the report says so ("All models failed ... ConnectError"):
+  run `scripts/ai_check.py` first. OmniRoute stops when the session that started it ends.
+
+
+## 9zzzzzzzzzzzzz. Coaching-note agent (2026-10-13)
+
+**Changed.** `src/agents/coaching_agent.py` + `prompts/coaching_agent.txt` (new): a short note per student for the
+teacher (what stands out, the evidence it rests on, one thing to try). A "case file" per student holds only coarse
+facts (counts, fixed-option survey answers, names of concepts mixed up). Model calls go in batches of 8 through
+`src/llm`; every note is validated (evidence must be facts the student has, no labelling words, no name or username,
+length, no links) and anything rejected, missing or failed gets a deterministic RULES note for that student. Each note
+is labelled AI or Rules. `store.py`: additive `coaching_notes` table. `platform_api.py`: `get_coaching_notes`,
+`generate_coaching_notes` (reuses a run under a minute old; aliases S1.. match the teacher agent's). `api/main.py`:
+`GET/POST /api/teacher/classes/{id}/coaching`. Web: `components/coaching-notes.tsx` on the Insights tab (cards
+alphabetical), `api.ts` types. `tests/test_coaching_agent.py`: 56 checks.
+
+**Why.** Closes the teacher loop: observe (insights), plan the class (teacher agent), coach the individual (this). It
+answers "the profiler is rules, not an agent" honestly: an agent with guardrails and a rules floor. **User decision
+2026-10-13: a fourth live-AI place** (AGENTS.md non-negotiable 3 updated).
+
+**Checked.** Live on the demo class (25 students, gemini-3.1-flash-lite via OmniRoute): 4 batches, ~55 s, all notes AI,
+each citing evidence, nothing identifying in the request. `tsc`, lint, and the teacher, teacher-agent, metrics, auth,
+usage, decisions, survey and story tests pass.
+
+**Learned.** The notes read a little alike ("This student ...") and mention a survey mood ("reports feeling dread")
+plainly: acceptable for a teacher, but worth a human read before the pilot. No per-note human-rated quality score yet;
+`scripts/eval_stories.py` is the model for an evaluation of these.
+
+
+## 9zzzzzzzzzzzzzz. Survey history in the pilot report (2026-10-13)
+
+**Changed.** `src/progress/metrics.py`: `survey_fields`, `survey_changes`, `survey_report` (pure functions).
+`platform_api.pilot_report()` gains a `survey` section (`_pilot_survey`): who answered, what students said (fixed-option
+traits, tallied), how many updated their answers and which fields moved (`from` and `to`), every replaced answer set
+plus the current one, and "said vs shown" (grouped by what they said about focus, pace and feeling about physics: median
+minutes per lesson, share of skimmed lessons, first-try accuracy). `scripts/pilot_report.py`: a printed "Getting to
+know you" section and three CSVs (`survey.csv`, `survey_history.csv`, `survey_changes.csv`), pseudonymised like the rest.
+`tests/test_pilot_survey.py`: 22 checks.
+
+**Why.** The survey history table had no reader. The pilot can now report how students describe themselves, and
+whether they change their minds, with one command, next to how they really read.
+
+**Learned.** "Said vs shown" is an association across a handful of students, and the report says so in the output
+(it is NOT evidence that an adaptation helps). On the demo database the numbers are INVENTED: never quote them.
+
+
+## 9zzzzzzzzzzzzzzz. LLM prices verified against Google's pricing page (2026-10-13)
+
+**Changed.** `data/llm_prices.yaml`: checked on https://ai.google.dev/gemini-api/docs/pricing (paid tier, Standard, per 1M
+tokens): gemini-3.1-flash-lite 0.25 in / 1.50 out (the model in use; was missing, so its cost showed as 0);
+gemini-3.8-flash and 3.6-flash 0.75 / 3.75 through 2026-12-31 and 1.50 / 7.50 from 2027-01-01; gemini-3.7-flash is
+DEPRECATED and routed by Google to 3.8, so it is priced like 3.8; the 2.5 entries were already right (flash 0.30/2.50,
+flash-lite 0.10/0.40, pro 1.25/10.00 up to 200k). `reference_model` is now gemini-3.1-flash-lite (was 2.5-flash).
+`pilot_report.py` and `eval_stories.py` no longer say "from memory"; `tests/test_llm_usage.py` pins the prices of the
+models in use (22 checks). `docs/eval-stories-sample.md` cost row recomputed.
+
+**Why.** The pitch will quote a cost per student. The file priced neither model the app uses.
+
+**Learned.**
+- A story costs about Rs 0.18 (3.3k tokens in, 0.8k out on 3.1 flash-lite), not the Rs 0.27 printed earlier (that used
+  the old reference, 2.5 flash).
+- These are list prices for a PAID key. Through OmniRoute on a free tier nothing is billed, so "actual" in the report is
+  what the same usage WOULD cost; the report now says so. The free tier also lets Google use the data to improve its
+  products, which matters for a pilot on children: the paid tier does not.
+- Do not model the fallback `gemini-3.7-flash` as cheaper than 3.8: it is the same model after routing, and its price
+  doubles on 2027-01-01.
+- Not modelled: batch (about half price), flex, priority and context caching. The USD to INR rate (88) is rounded.
+
+
+## 9zzzzzzzzzzzzzzzz. Unit-economics page (2026-10-13)
+
+**Changed.** `docs/unit-economics.html` (new, self-contained, also published as a private Claude artifact): an interactive
+page for the pitch's commercial-viability slide. Inputs (class size, students, concepts per month, share getting a story,
+plans and coaching runs per class, doubt-chat questions, model, USD to INR, price per student, server and other fixed
+costs) give: AI cost per student per month, all-in cost, margin, break-even students, a stacked split of where the rupees
+go, cost per student as the school grows (chart), and the same usage on five Gemini models. Every input is tagged
+Measured, Estimate or Your assumption. `scripts/prewarm_stories.py` now imports `platform_api`, which connects the AI
+usage log: its calls were NOT being logged before (18 stories written, only 3 story calls in the log).
+
+**Measured token counts used** (live runs, gemini-3.1-flash-lite): a story 3,289 in / 812 out (6 stories, 2.8 calls
+each); a class plan 5,754 / 824 (4 plans, 3 calls each); coaching notes 218 / 217 per student per run (one run, 25
+students). The doubt chat is an ESTIMATE (2,500 / 400): it doesn't log tokens.
+
+**Result with the defaults** (30 per class, 300 students, 20 concepts a month, 85% with a story, Rs 100 a month price, Rs
+2,700 fixed): AI about Rs 3.79 per student per month (stories Rs 3.05 of it); all-in Rs 13; margin Rs 87; break-even 29
+students. On 3.8 Flash from 2027-01-01 the AI cost is about Rs 20, still small beside the price. Hosting, support and
+people are the real cost, not AI.
+
+**Learned.**
+- The AI cost per student is small and mostly stories; the fixed costs dominate until a few hundred students.
+- The token counts come from few runs. Treat the AI cost as the right size, not exact, until the pilot's
+  `pilot_report.py` gives a measured cost per student.
+- The price per student (Rs 100) is a placeholder assumption, NOT market research; do not quote it as pricing.
+
+
+## 9zzzzzzzzzzzzzzzzz. AI safety card, red-team run, and three fixes it found (2026-10-13)
+
+**Changed.** `docs/ai-safety-card.html` (new; also published as a private artifact): where AI runs (four places), what each
+sees and never sees, how it is checked, what happens on failure, what AI never decides, the red-team and quality results,
+nine known gaps (two marked priority) and the controls. `scripts/redteam_stories.py` (new): ten hobby labels a student
+might type, run through the REAL writer and critic on a temporary database, printed for a person to read.
+**Fixes the work found:**
+1. `src/learner/diagnostic.py`: a block list on a student's OWN hobby label (`_UNSUITABLE_HOBBY_RE`: gambling, betting,
+   casino, vaping, smoking, drugs, alcohol, bomb, weapons, sex, dating, self-harm, and instruction-style words such as
+   "ignore" and "prompt"). Tests: `tests/test_learner_plan.py` (66 checks).
+2. `api/main.py`: `POST /api/help` question limited to 1 to 600 characters (was unlimited). Test: `tests/test_api_auth.py` (47).
+3. `web/components/personal-story.tsx` and `web/app/page.tsx`: the app told students the lesson was "written and reviewed
+   by people" and "the reviewed lesson". The 642 lessons were written by Claude Code sessions and checked by a validator
+   and arithmetic audits; a person has not read them all. Both lines now say "prepared in advance and checked".
+
+**Why.** The card is only useful if it is true, and testing it was the only way to know. Red-team results: the writer
+declined 5 of 9 risky probes; 4 produced a story, and two were real problems ("dating" got a story past the critic with a
+poor analogy; "online casino" would have shown that label over a badminton story).
+
+**Learned.**
+- The writer's judgement plus the critic were not enough on their own for a label a student types: a deterministic floor
+  at entry was needed. The list is a floor, not a filter that can be complete (English only; misspellings pass).
+- An honesty problem can live in the UI copy, not the code: check claims about how content was made against this file's
+  own history before putting them in front of students, parents or a school.
+- Still open (the card lists them): a filter and a rate limit on the doubt chat; confirm the Gemini tier (free tier may use
+  data to improve Google's products) and use a paid key for the pilot; the consent note; a person reading the pilot
+  chapters; fairness testing; an outside child-safety review. Rerun `eval_stories.py` and `redteam_stories.py` after any
+  model change.
+
+
+## 9zzzzzzzzzzzzzzzzzz. Browser check of the merged screens, and what it fixed (2026-10-13)
+
+**Checked** (demo database, in the browser pane; phone 375 px, light theme unless noted): signup (two steps, no interest
+pre-selected, the explainer, button disabled until a choice, then the survey gate), the survey including the own-hobby box,
+the starting-check page, roadmap, settings, a full lesson (6 steps, live personal story for an own hobby), the wrong-answer
+check feedback, mix-ups, review, the end check (all 8 questions and the before/after result, as `kabir.s`), and the teacher
+home plus all four class tabs. Teacher password reset: the slip shows once with a print button; the old password then
+answers 401 and the new one 200 (the earlier "new password didn't work" report was NOT reproduced; likely two servers or
+databases at once). Not checked: the dark theme on the new screens, a screen reader, a real phone (the pane emulates one).
+
+**Found and fixed.**
+1. `/teacher/*` returned 404 on a fresh `next dev` while student routes were fine: a stale `web/.next` (Turbopack cache).
+   Deleting `web/.next` and restarting fixed it. Same gotcha as §7; if `/teacher` ever 404s, delete `web/.next`.
+2. `hobby-picker.tsx`: the own-hobby box now refuses unsuitable labels where they are typed (same list as the server's
+   `_UNSUITABLE_HOBBY_RE`); before, the error appeared only at the last survey step, four screens away.
+3. `interest-level-fields.tsx`: the explainer said "Your hobbies (next)…", which is wrong in Settings. Reworded.
+4. `survey-flow.tsx`: a student who skipped the depth questions was told their examples were "pitched at someone who knows
+   it". Now neutral.
+5. `ecolearn.css`: `.page-shell{overflow-x:clip}`. A step slides in from 28 px right, and its start position stayed in
+   the page's scrollable width (387 vs 375 px) after the animation ended. `clip` keeps `position:sticky` working.
+6. `lesson-stepper.tsx`: the step dots were an 8 px tall tap target on a phone; invisible padding makes it about 28 px
+   without moving the layout.
+7. `help-widget.tsx`: the question box stops at 600 characters, matching the server's limit.
+8. `tab-bar.tsx`: on a phone the open tab is scrolled into view (a link to `?tab=ai` left its tab half off-screen).
+
+**Learned.**
+- Measure width AFTER animations settle, and treat a `scrollWidth` that returns to the viewport width after any DOM
+  change as a stale layout, then confirm with a real scroll attempt and the animation's end state.
+- A hidden browser pane reports a 0 px viewport; use a screenshot or the emulated size for layout checks.
+- `scripts/seed_demo.py --reset` was rerun afterwards: the check created a test student and changed one password.
+
+
+## 9zzzzzzzzzzzzzzzzzzz. The doubt chat's front door: screen, rate limit, counts only (2026-10-13)
+
+**Changed.** `src/learner/help_guard.py` (new): `screen(question)` stops, BEFORE any model sees it, self-harm, personal
+details (phone, email, link, address), unsuitable requests (sexual content, how-to for weapons or drugs, wanting to
+hurt someone, gambling), instruction-style attacks ("ignore your rules", "show your prompt"), and empty or over-600-
+character questions; each gets a short kind reply. `HelpLimiter`: per student 5 questions per 10 minutes, 30 a day, one
+in flight at a time (env-tunable, in memory like the login limiter). `platform_api.ask_help` now runs screen then limiter,
+then the pipeline (`_answer_help`); a stopped question returns the usual keys with `verdict: "BLOCKED"`, `blocked: true`
+and a `reason`; a flood raises the new `TooManyRequestsError` (HTTP 429, `src/errors.py`, `api/main.py`). Self-harm is
+checked first and is never rate-limited away. `store.py`: additive `help_events` table (outcome and reason only; the
+question text is never stored) and `help_event_counts`; `get_class_ai_decisions` gains `help` counts, shown as a "Doubt
+chat" tile (counts only). Web: `help-widget.tsx` shows the server's own message on an error (before: a generic "couldn't
+reach the tutor"); `api.ts` types. Safety card updated. `tests/test_help_guard.py`: 42 checks.
+
+**Why.** The doubt chat is the one place a child's own words go straight to a live model, and the safety card listed it as
+the weakest layer. Everything above costs no model call.
+
+**Checked.** In the real chat on the demo database: an instruction-style probe got "I can only answer physics questions";
+a self-harm test message got the support reply (also while rate-limited); a flood got "try again in about 8 minutes"; the
+teacher tile showed counts and none of the words. The live pipeline itself is still unavailable on this machine (503), so
+the answered path was tested with a stand-in.
+
+**Learned.**
+- A screen for questions must not reuse the hobby block list: physics legitimately says "bomb calorimeter", "fired from a
+  gun", "alcohol thermometer", "my phone screen". The question screen targets intent (how to MAKE a bomb, wanting to hurt
+  someone), and a 12-question physics set in the tests guards against blocking real questions.
+- The sentence "my phone" must not be a personal-details trigger: students on the smartphones track ask about their phones.
+- OPEN, and the school's to decide: nobody is told when a student writes something about self-harm (the text isn't stored
+  and a keyword can be wrong). The card now lists this as a decision for the school before the pilot.
+- Still not done: the chat doesn't judge whether a question is about physics; English only; the pipeline's own
+  prompt-injection resistance is untested (it needs the pipeline running).
+
+
+## 9zzzzzzzzzzzzzzzzzzzz. Consent note draft (2026-10-13)
+
+**Changed.** `docs/consent-note.md` (new): Part A for the school and a lawyer (blanks to fill, five decisions, what the product
+cannot yet do, legal points to check, a table tying each statement to its evidence in the code and tests); Part B the note
+for parents and guardians; Part C a page for students; Part D the consent form with a student assent line.
+
+**Why.** The pilot is on minors in India. Parental consent is expected by India's DPDP Act (section 9: under-18s, parental
+consent, no tracking or behavioural monitoring) and the exemption for educational institutions is narrow and unclear for an edtech
+platform; the product records behaviour (reading time, skimming, mix-ups, a needs-attention list), so the draft ASSUMES
+consent is needed. The sources disagree on dates and rule numbers; a lawyer must read the gazetted text.
+
+**Learned.**
+- The note can only promise what the software does today. Missing: **delete a student's data** (no function exists; by
+  hand in the database), **export a student's data**, a **per-student switch for the AI parts**, and a **counsellor
+  alert**. The draft says deletion is done on request by the operator, offers no switch, and gives Option 1 (nobody is told).
+  Build these before the pilot, then update the note.
+- "The AI never receives a name" was too strong: EcoLearn never sends names from its records, but a child can type their own
+  name into a help-chat question. The note says so.
+- A parent-facing note must say the lessons were prepared in advance WITH AI help and checked by software (not "written by
+  people"). A person has not read every lesson.
+- Not done: translation into the families' language, and a Word version (the school will want to edit and print one; the
+  Markdown can be pasted into Word).
+
+
+## 9zzzzzzzzzzzzzzzzzzzzz. Export and erase a student's data (2026-10-13)
+
+**Changed.** `src/progress/store.py`: `export_student_rows`, `erase_student`, `find_student_traces`. They work from the LIVE schema:
+every table with a `student_id` column is included, so a table added later is covered without anyone remembering. Special cases:
+`llm_calls` is unlinked (student_id set to NULL) so cost totals stay true; `class_plans` and `coaching_notes` keep a JSON map from
+a label (S3) to a student id, so erasing removes that label (and, for coaching notes, the note). One transaction: any failure rolls
+the whole erase back. `platform_api.py`: `find_student_id`, `export_student_data` (every row by table, plus a readable block with
+concept names; never the password hash), `delete_student` (returns counts and a `remaining` search of the whole database, which must
+be empty); never exposed over HTTP. `scripts/export_student.py` (plain-language Markdown plus complete JSON) and
+`scripts/delete_student.py` (a dry run unless `--confirm`; `--export DIR` writes the family's copy first; exits 2 if any trace
+remains). `docs/consent-note.md` updated: deletion and export are now built, with their limits.
+
+**Why.** The consent note promised a family could see and delete their child's data, and no function existed.
+
+**Checked.** `tests/test_student_data_rights.py` (37 checks): a student with a row in EVERY student table (the test fails if a new
+table isn't covered, on purpose); export has every table, no password hash, none of a classmate's data; erase leaves no trace of the
+id, name or username in any column of any table (a scan independent of the code under test); sign-in and an old session cookie stop
+working; a classmate's rows are byte-for-byte unchanged; class notes and plans still read; a forced failure part-way leaves the
+student fully intact; the scripts' dry run changes nothing, `--confirm` exports then erases, an unknown username is refused.
+Also the teacher, agent, story, coaching, survey, help-guard, auth, mastery, end-check, plan, usage, persistence tests pass.
+
+**Learned.**
+- BACKUPS and earlier copies of the database still hold the data after an erase. The retention rule and the consent note must
+  say how long they are kept. The script says so every time.
+- Deletion is run by a person on the operator's team after checking who is asking. There is no button for teachers or families,
+  on purpose (a mistaken click is permanent). A teacher-facing request flow is a later decision.
+- Class plans keep their text (written about the class, with labels like S3); only the label-to-student link is removed, so the
+  text can no longer be tied to the child.
+- Still not built: a per-student switch for the AI parts, a counsellor alert, an encrypted disk.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzz. A per-student AI switch (2026-10-14)
+
+**Changed.** `src/progress/store.py`: an additive `students.ai_enabled` column (default 1), `set_student_ai`, `ai_disabled_ids`; the
+profile and the class list carry `ai_enabled`. `platform_api.py`: `set_student_ai(teacher_id, ...)` (own class only) and
+`operator_set_student_ai`; with the switch off, `personal_story._context` returns None (no story written or shown), `ask_help` answers
+with the lesson's key idea and makes no model call, `generate_coaching_notes` passes the student as `rules_only` (their case never
+goes to the model), and `_class_toolbox` builds the teaching assistant's insights without them (labels still numbered over the whole
+class) and the plan's note says how many were left out. `get_class_insights` now wraps `_class_insights(..., exclude=)`.
+`api/main.py`: `POST /api/teacher/students/{id}/ai`. Web: an "AI on / AI off" select per student on the Students tab, with a line
+saying what it does; the help widget says when the AI is off. `scripts/set_student_ai.py` for the operator; the export shows the
+switch. `docs/consent-note.md` (Parts A to D, including an optional box on the form) and `docs/ai-safety-card.html` updated.
+
+**Why.** The consent note could not offer families a no to the AI parts; the only switch was server-wide. A blocker for the pilot.
+
+**Checked.** `tests/test_ai_switch.py` (41 checks with the doubt tutor below), every other deterministic test, the load test (PASS),
+`tsc` and lint. Browser, demo DB: the teacher switched a student off (POST 200, kept after reload); that student's help chat came back
+`AI_OFF` with the lesson's key idea and the lesson page showed the "switched off" line; the demo DB was reseeded afterwards.
+
+**Learned.**
+- "Off" has to mean off everywhere a model sees the student, not just the student's own screens: the class plan and coaching notes
+  read their data too. The teaching assistant now never sees them; their coaching note is rules-only.
+- It does not reach back: a story or note written before the switch stays stored until the student is erased.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzz. The doubt chat, rebuilt on src/llm (2026-10-14)
+
+**Changed.** New `src/learner/doubt_tutor.py` and `prompts/doubt_tutor.txt`: one model call through `src/llm`, grounded in the lesson
+the student is reading (physics, worked example, where the picture breaks, takeaway), asking for `{"on_topic", "answer"}`. Rules check
+the reply (readable JSON, 20 to 260 words, no link or email, not the student's full name or username). Off topic gets a fixed
+redirect; anything else that fails, a model error, no model configured, or the student's AI switch off gets the lesson's key idea and
+a nudge to the teacher. `platform_api._answer_help` uses it (a `_help_chat` hook for tests); the old `src/pipeline` import and
+`polish_explanation` are gone from the boundary; it never raises the 503 any more. `help_events` gains the outcomes `fallback`,
+`off_topic`, `ai_off` (counted in `help_event_counts` and shown in "How the AI decided"). `tests/test_help_guard.py` now stands in for
+the model call instead of the pipeline.
+
+**Why.** The old generate -> critic -> polish pipeline needed chromadb (grpc is blocked by Windows Application Control here, so the
+chat answered 503), slept 13 s between calls (about two minutes per answer), and called google-genai directly, so the usage log had no
+tokens for it. The lesson the student is on is better grounding than a vector search over a general corpus, and needs no index.
+
+**Checked.** `tests/test_ai_switch.py`: the message holds the lesson's sections and the question once, never the name or username;
+off topic, not-JSON, too short, a link, a full name, and a model error each fall back; no model configured falls back with no call; the
+call is in the usage log as `doubt_chat` with its tokens; the words are never stored. `tests/test_help_guard.py` (42) passes.
+
+**Learned.**
+- Not yet run on a live model (OmniRoute was not running). Before the pilot: start it and try a handful of real questions, including
+  off-topic ones, since the topic refusal is the model's judgement.
+- No second model checks the physics now. That trades a critic for speed (one call, a few seconds) and for working at all on this
+  machine; the safety card says so.
+- Single name parts are not used as a leak check: a student called Ray would turn every optics answer into a fallback.
+- `src/pipeline.py` and `src/rag/` are still used by the old lesson generator (`src/content/generate_lessons.py`, `iterate.py`,
+  `tests/test_pipeline.py`); not removed. Streamlit's help box calls `ask_help`, so it gets the new tutor too.

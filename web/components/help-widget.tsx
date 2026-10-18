@@ -1,15 +1,17 @@
 // "Stuck? Ask for help" widget, embedded in the lesson page.
 //
-// It calls the LIVE pipeline (POST /api/help), which is slow (a few seconds),
-// so it keeps its own little conversation and shows a "thinking" state while the
-// request is in flight. The student can ask follow-ups without leaving the page.
+// It calls the live tutor (POST /api/help: one model call grounded in this lesson, a few seconds),
+// so it keeps its own little conversation and shows a "thinking" state while the request is in
+// flight. When the AI is off (for this student, or on the server) the answer is the lesson's key
+// idea, so the chat never just fails. The student can ask follow-ups without leaving the page.
 
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, SendHorizontal } from "lucide-react";
 
-import { askHelp } from "@/lib/api";
+import { ApiError, askHelp } from "@/lib/api";
+import { useAuth } from "@/components/auth-provider";
 import { Markdown } from "@/components/markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,8 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const { student } = useAuth();
+  const aiOff = student?.ai_enabled === false;
 
   // Auto-scroll the conversation to the newest message.
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -44,14 +48,14 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
     try {
       const res = await askHelp(conceptId, question);
       setMessages((prev) => [...prev, { role: "assistant", text: res.answer }]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "_Sorry, I couldn't reach the tutor just now. Please make sure the backend is running and try again._",
-        },
-      ]);
+    } catch (err) {
+      // The server's own words when it has some (too many questions in a row, the chat not available on
+      // this server); the generic line only when the request never got an answer at all.
+      const text =
+        err instanceof ApiError && err.detail
+          ? err.detail
+          : "Sorry, I couldn't reach the tutor just now. Please check your connection and try again.";
+      setMessages((prev) => [...prev, { role: "assistant", text: `_${text}_` }]);
     } finally {
       setLoading(false);
     }
@@ -60,7 +64,7 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
   const hasConversation = messages.length > 0 || loading;
 
   return (
-    <Card className="border-primary/20 bg-card shadow-card">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base text-foreground">
           <span className="flex size-7 items-center justify-center rounded-full bg-primary/10">
@@ -74,8 +78,9 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
         {/* Friendly empty state */}
         {!hasConversation && (
           <p className="text-sm text-muted-foreground">
-            Ask anything about this concept — I&apos;ll explain it another way,
-            grounded in your interest. You can keep asking follow-ups right here.
+            {aiOff
+              ? "The AI tutor is switched off for your account. You can still ask: you'll get this lesson's key idea, and your teacher is always happy to help."
+              : "Ask anything about this concept — I'll explain it another way, using this lesson and your interest. You can keep asking follow-ups right here. Don't type personal details, like your name or phone number."}
           </p>
         )}
 
@@ -86,14 +91,14 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
               m.role === "user" ? (
                 <div
                   key={i}
-                  className="max-w-[85%] self-end rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
+                  className="max-w-[85%] self-end rounded-[18px] rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
                 >
                   {m.text}
                 </div>
               ) : (
                 <div
                   key={i}
-                  className="max-w-[90%] self-start rounded-2xl rounded-bl-sm border border-border bg-muted/40 px-4 py-3"
+                  className="max-w-[90%] self-start rounded-[18px] rounded-bl-sm border border-border bg-muted/40 px-4 py-3"
                 >
                   <Markdown className="prose-sm">{m.text}</Markdown>
                 </div>
@@ -102,7 +107,7 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
 
             {/* Thinking state — live call takes a few seconds */}
             {loading && (
-              <div className="flex max-w-[90%] items-center gap-2 self-start rounded-2xl rounded-bl-sm border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              <div className="flex max-w-[90%] items-center gap-2 self-start rounded-[18px] rounded-bl-sm border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                 <Sparkles className="size-4 animate-pulse text-primary" />
                 <span>Thinking</span>
                 <span className="inline-flex gap-0.5">
@@ -125,6 +130,7 @@ export function HelpWidget({ conceptId }: { conceptId: string }) {
             placeholder="e.g. Why is displacement a vector but distance isn't?"
             disabled={loading}
             aria-label="Ask a question"
+            maxLength={600}
           />
           <Button
             type="submit"

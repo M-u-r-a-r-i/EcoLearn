@@ -74,20 +74,20 @@ export function LessonStory({
     return (
       <div className="flex flex-col gap-4">
         {reported && (
-          <p role="status" className="rounded-xl border border-success/30 bg-success/5 px-4 py-3 text-sm text-foreground">
+          <p role="status" className="inline-alert">
             Thanks for telling us. That story is hidden now, and your teacher will see your report.
             Here&apos;s the lesson&apos;s own story instead.
           </p>
         )}
         {story.status === "pending" && (
-          <p role="status" className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3 text-sm text-foreground">
+          <p role="status" className="flex items-center gap-2 rounded-xl bg-[color-mix(in_srgb,var(--brand)_9%,var(--surface))] px-4 py-3 text-sm text-foreground">
             <Sparkles className="size-4 shrink-0 animate-pulse text-primary" aria-hidden />
             Writing a {story.hobby.toLowerCase()} version of this story for you…
           </p>
         )}
         {original && (
           <article>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight text-foreground">The story</h2>
+            <h2 className="display mb-3 text-2xl font-bold text-foreground">The story</h2>
             <Markdown>{original}</Markdown>
           </article>
         )}
@@ -97,27 +97,31 @@ export function LessonStory({
 
   return (
     <div className="flex flex-col gap-4">
-      <article className="flex flex-col gap-4 rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/5 to-card p-6 shadow-card">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Your story</h2>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-sm font-semibold text-foreground shadow-soft">
-            <span aria-hidden>{story.emoji}</span> {story.hobby}
+      <article className="surface panel your-story flex flex-col gap-4">
+        <div className="story-heading">
+          <span aria-hidden>{story.emoji}</span>
+          <div>
+            <p className="eyebrow">YOUR STORY · {story.hobby.toUpperCase()}</p>
+            <h2 className="display">A moment from your world</h2>
+          </div>
+          <span className="story-spark" aria-hidden>
+            ✳
           </span>
         </div>
         <Markdown>{story.story}</Markdown>
-        <div className="rounded-xl border border-border bg-card p-4">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">
-            In {story.hobby.toLowerCase()} terms
-          </p>
+        <div className="story-analogy">
+          <b>In {story.hobby.toLowerCase()} terms</b>
           <Markdown className="prose-sm">{story.analogy}</Markdown>
-          <p className="mt-2 text-sm text-muted-foreground">
-            <span className="font-semibold">Where the comparison stops:</span> {story.limit}
-          </p>
+          {story.limit?.trim() && (
+            <span className="text-muted-foreground">
+              <strong className="text-foreground">Where the comparison stops:</strong> {story.limit}
+            </span>
+          )}
         </div>
-        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-          <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+        <p className="story-limit">
+          <ShieldCheck className="size-3.5" aria-hidden />
           Written for you by EcoLearn&apos;s AI from this lesson, and checked by a second AI. The
-          lesson below was written and reviewed by people.
+          lesson below was prepared in advance and checked; it is the same for everyone.
         </p>
         <ReportStory
           conceptId={conceptId}
@@ -129,10 +133,10 @@ export function LessonStory({
       </article>
 
       {original && (
-        <details className="group rounded-xl border border-border bg-card px-5 py-4 shadow-soft">
+        <details className="group surface px-5 py-4">
           <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold text-foreground marker:content-none">
             <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
-            <BookOpen className="size-5 text-brand-accent" aria-hidden />
+            <BookOpen className="size-5 text-primary" aria-hidden />
             <span>
               {interest
                 ? `Read the original ${interest.charAt(0).toUpperCase()}${interest.slice(1)} story`
@@ -172,7 +176,7 @@ function ReportStory({ conceptId, onReported }: { conceptId: string; onReported:
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        className="inline-flex min-h-8 items-center gap-1.5 self-start text-xs font-semibold text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
       >
         <Flag className="size-3.5" aria-hidden /> Something wrong with this story?
       </button>

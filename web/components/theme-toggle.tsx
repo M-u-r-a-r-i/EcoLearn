@@ -79,7 +79,7 @@ export function ThemeToggle() {
       onClick={() => write(next)}
       aria-label={`${LABEL[choice]}. Switch to ${next === "system" ? "device setting" : next}.`}
       title={LABEL[choice]}
-      className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring print:hidden"
+      className="theme-toggle print:hidden"
     >
       <Icon className="size-[1.1rem]" aria-hidden />
     </button>
@@ -87,4 +87,4 @@ export function ThemeToggle() {
 }
 
 // Inlined into <head> by app/layout.tsx; runs before React, before paint.
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light"}catch(_){}`;
+export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light";var i=localStorage.getItem("ecolearn-interest");if(i&&/^[a-z_]+$/.test(i))e.dataset.interest=i}catch(_){}`;

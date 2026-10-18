@@ -17,6 +17,7 @@ import {
   Moon,
   Target,
   UserRound,
+  Users,
   Zap,
 } from "lucide-react";
 
@@ -29,19 +30,25 @@ const INACTIVE_DAYS = 7;
 
 export type ClassTab = "overview" | "insights" | "students" | "ai";
 
+const TILE_ICON = {
+  Started: { Icon: Users, tone: "mint" },
+  "Right first time": { Icon: Target, tone: "peach" },
+  "Getting to know you": { Icon: UserRound, tone: "lav" },
+  "End check": { Icon: Flag, tone: "sky" },
+} as const;
+
 function Tile({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "good" | "warn" }) {
+  const { Icon, tone: color } = TILE_ICON[label as keyof typeof TILE_ICON] ?? { Icon: BookOpen, tone: "sun" };
   return (
-    <div className="flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-4 shadow-soft">
-      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
-      <span
-        className={cn(
-          "text-2xl font-extrabold tracking-tight",
-          tone === "good" ? "text-success" : tone === "warn" ? "text-brand-accent" : "text-foreground",
-        )}
-      >
-        {value}
-      </span>
-      <span className="text-xs text-muted-foreground">{sub}</span>
+    <div className={cn("surface dash-metric", `tone-${color}`)}>
+      <div className="dash-metric-top">
+        <span className="dash-icon" aria-hidden>
+          <Icon />
+        </span>
+        <span className="dash-label">{label}</span>
+      </div>
+      <span className={cn("dash-value", tone === "good" && "good")}>{value}</span>
+      <span className="dash-note">{sub}</span>
     </div>
   );
 }
@@ -60,7 +67,7 @@ export function ClassSnapshot({
   const started = students.filter((s) => s.attempted > 0).length;
   const summary = insights?.summary;
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="dash-metrics">
       <Tile
         label="Started"
         value={`${started} of ${students.length}`}
@@ -221,10 +228,15 @@ export function NeedsAttention({
   const items = attentionItems(students, insights, checks, profiles, now);
 
   return (
-    <section aria-labelledby="attention-title" className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-card">
-      <h2 id="attention-title" className="flex items-center gap-2 text-lg font-bold text-foreground">
-        <AlertTriangle className="size-5 text-brand-accent" aria-hidden /> Needs attention
-      </h2>
+    <section aria-labelledby="attention-title" className="surface panel flex flex-col gap-3">
+      <div>
+        <p className="eyebrow flex items-center gap-2">
+          <AlertTriangle className="size-3.5" aria-hidden /> Worth a look today
+        </p>
+        <h2 id="attention-title" className="display text-2xl font-semibold text-foreground">
+          Needs attention
+        </h2>
+      </div>
       {items.length === 0 ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <CheckCircle2 className="size-4 text-success" aria-hidden /> Nothing needs attention right now.

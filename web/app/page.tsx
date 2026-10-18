@@ -5,12 +5,16 @@
 // finds your mix-ups instead of just marking you, and teachers get a real class view.
 //
 // Everything on this page is a claim about the app, so it only says what the app does today:
-// no invented numbers, no "AI grades you" (grading is multiple choice, no model), and the AI
-// story is named as AI. The page is a Server Component; the interactive parts (the interest
-// showcase, the scroll reveal, the login-aware buttons) are small client components.
+// no invented numbers (the one illustration is labelled as made up), no "AI grades you"
+// (grading is multiple choice, no model), and the AI story is named as AI. The page is a
+// Server Component; the interactive parts (the interest showcase, the scroll reveal, the
+// login-aware buttons) are small client components. Look: the house style
+// (.claude/skills/ecolearn-style).
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import {
+  ArrowUpRight,
   Compass,
   GraduationCap,
   Lightbulb,
@@ -24,8 +28,16 @@ import {
 import { HeroActions } from "@/components/landing/hero-actions";
 import { InterestShowcase } from "@/components/landing/interest-showcase";
 import { Reveal } from "@/components/landing/reveal";
-import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
+import { InterestMark, Pill } from "@/components/ui-kit";
+
+const INTERESTS = [
+  { id: "cricket", name: "Cricket", emoji: "🏏", hint: "Spin, swing & sixes" },
+  { id: "football", name: "Football", emoji: "⚽", hint: "Curves & kicks" },
+  { id: "gaming", name: "Gaming", emoji: "🎮", hint: "Power up your brain" },
+  { id: "smartphones", name: "Smartphones", emoji: "📱", hint: "The science in your pocket" },
+  { id: "motorsport", name: "Motorsport", emoji: "🏎️", hint: "Fast cars, real forces" },
+];
 
 const STEPS = [
   {
@@ -59,7 +71,7 @@ const DIFFERENT = [
   {
     Icon: Sparkles,
     title: "Stories from your world",
-    text: "A short story about your own hobby sits on top of every lesson. It is written by AI, checked by a second AI, and clearly labelled. The reviewed lesson is always there.",
+    text: "A short story about your own hobby sits on top of every lesson. It is written by AI, checked by a second AI, and clearly labelled. The lesson, prepared in advance and checked, is always there.",
   },
   {
     Icon: ShieldCheck,
@@ -70,132 +82,158 @@ const DIFFERENT = [
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col">
-      {/* ------------------------------------------------------------------ Hero */}
-      <section
-        className="relative overflow-hidden border-b border-border"
-        style={{
-          backgroundImage:
-            "radial-gradient(70% 60% at 85% 0%, color-mix(in oklab, var(--primary) 20%, transparent), transparent 70%), radial-gradient(60% 50% at 0% 100%, color-mix(in oklab, var(--brand-accent) 14%, transparent), transparent 70%)",
-        }}
-      >
-        <PageContainer className="flex max-w-5xl flex-col items-center gap-6 py-16 text-center sm:py-24">
-          <span className="rm-sheet rounded-full bg-brand-accent/10 px-4 py-1.5 text-sm font-semibold text-brand-accent">
-            ⚛️ Class 11 & 12 Physics · CBSE and ISC
-          </span>
-          <h1
-            className="rm-sheet max-w-3xl text-balance text-5xl font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-6xl"
-            style={{ animationDelay: "80ms" }}
-          >
-            Physics, through the thing you already love
+    <main className="landing w-full flex-1">
+      <section className="hero">
+        <div className="hero-copy fade-up">
+          <Pill className="hero-kicker">
+            <Sparkles size={13} aria-hidden /> Class 11 &amp; 12 Physics · CBSE and ISC
+          </Pill>
+          <h1 className="display">
+            Physics makes
+            <br />
+            more sense{" "}
+            <em>
+              when
+              <br />
+              it&rsquo;s your world.
+            </em>
           </h1>
-          <p
-            className="rm-sheet max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground sm:text-xl"
-            style={{ animationDelay: "160ms" }}
-          >
-            A personal tutor that learns who you are, finds the mix-ups holding you back, and teaches
-            every idea through cricket, football, gaming, phones or cars.
+          <p>
+            A personal tutor that learns who you are, finds the mix-ups holding you back, and teaches every idea
+            through cricket, football, gaming, phones or cars.
           </p>
-          <div className="rm-sheet mt-2" style={{ animationDelay: "240ms" }}>
-            <HeroActions stacked />
+          <div className="hero-actions">
+            <HeroActions />
           </div>
-          <p className="text-sm text-muted-foreground">Your teacher sets up your account, or you can create your own.</p>
-        </PageContainer>
+          <div className="hero-proof">
+            <span>Your teacher sets up your account, or you can create your own.</span>
+          </div>
+        </div>
+        <div className="hero-art" role="img" aria-label="A cricket bat tracing a motion arc">
+          <div className="art-grid" />
+          <div className="art-orbit orbit-one" />
+          <div className="art-orbit orbit-two" />
+          <div className="art-stamp stamp-top">
+            MOTION
+            <br />
+            <b>01</b>
+          </div>
+          <div className="art-ball float">🏏</div>
+          <div className="arc-label label-a">v = Δx / Δt</div>
+          <div className="arc-label label-b">
+            PHYSICS
+            <br />
+            IN PLAY
+          </div>
+          <div className="art-note">
+            <span className="note-dot" /> Your path, your pace
+          </div>
+        </div>
       </section>
 
       {/* ------------------------------------------------------------ The showcase */}
-      <section className="py-16 sm:py-20">
-        <PageContainer className="flex max-w-3xl flex-col gap-8">
-          <Reveal className="flex flex-col items-center gap-3 text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Same physics. Your world.
-            </h2>
-            <p className="max-w-xl text-muted-foreground">
-              Pick an interest and watch one idea change shape.
-            </p>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <InterestShowcase />
-          </Reveal>
-        </PageContainer>
+      <section className="interest-section" id="interests">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">Start with what you love</p>
+            <h2 className="display">Same physics. Your world.</h2>
+          </div>
+          <span className="section-aside">
+            Pick an interest and watch
+            <br />
+            one idea change shape.
+          </span>
+        </div>
+        <Reveal>
+          <InterestShowcase />
+        </Reveal>
+        <div className="interest-grid mt-8">
+          {INTERESTS.map((i, n) => (
+            <Link
+              href="/signup"
+              key={i.id}
+              className="interest-card card-hover"
+              style={{ "--delay": `${n * 60}ms` } as CSSProperties}
+            >
+              <InterestMark id={i.id} emoji={i.emoji} large />
+              <span className="interest-card-name">{i.name}</span>
+              <small>{i.hint}</small>
+              <ArrowUpRight className="interest-arrow" size={17} aria-hidden />
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* ------------------------------------------------------------ How it works */}
-      <section className="border-y border-border bg-card/40 py-16 sm:py-20">
-        <PageContainer className="flex max-w-5xl flex-col gap-10">
-          <Reveal className="flex flex-col items-center gap-3 text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">How it works</h2>
-            <p className="max-w-xl text-muted-foreground">From your first sign-in to an idea that sticks.</p>
-          </Reveal>
-          <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map(({ Icon, title, text }, i) => (
-              <li key={title}>
-                <Reveal delay={i * 0.08} className="h-full">
-                  <div className="flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-card">
-                    <div className="flex items-center justify-between">
-                      <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Icon className="size-5" aria-hidden />
-                      </span>
-                      <span className="text-sm font-bold text-muted-foreground">0{i + 1}</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-foreground">{title}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{text}</p>
-                  </div>
-                </Reveal>
-              </li>
-            ))}
-          </ol>
-        </PageContainer>
+      <section className="how-section">
+        <div className="how-heading">
+          <p className="eyebrow">A little progress, every day</p>
+          <h2 className="display">
+            From &ldquo;hmm&rdquo; to <em>&ldquo;got it.&rdquo;</em>
+          </h2>
+          <p>From your first sign-in to an idea that sticks.</p>
+        </div>
+        <div className="steps-line">
+          {STEPS.map(({ Icon, title, text }, i) => (
+            <div className="step-item" key={title}>
+              <div className={`step-icon step-${i}`}>
+                <Icon />
+              </div>
+              <small>0{i + 1}</small>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ------------------------------------------------------- What's different */}
-      <section className="py-16 sm:py-20">
-        <PageContainer className="flex max-w-5xl flex-col gap-10">
-          <Reveal className="flex flex-col items-center gap-3 text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Built to understand, not to rank
-            </h2>
-          </Reveal>
-          <ul className="grid gap-4 md:grid-cols-3">
-            {DIFFERENT.map(({ Icon, title, text }, i) => (
-              <li key={title}>
-                <Reveal delay={i * 0.1} className="h-full">
-                  <div className="flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-6 shadow-soft">
-                    <span className="flex size-11 items-center justify-center rounded-xl bg-brand-accent/10 text-brand-accent">
-                      <Icon className="size-6" aria-hidden />
+      <section className="interest-section">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">What makes it different</p>
+            <h2 className="display">Built to understand, not to rank.</h2>
+          </div>
+        </div>
+        <ul className="grid gap-4 md:grid-cols-3">
+          {DIFFERENT.map(({ Icon, title, text }, i) => (
+            <li key={title}>
+              <Reveal delay={i * 0.1} className="h-full">
+                <div className="surface panel flex h-full flex-col gap-3">
+                  <span className="tone-peach" aria-hidden>
+                    <span className="dash-icon" style={{ width: 44, height: 44 }}>
+                      <Icon style={{ width: 22, height: 22 }} />
                     </span>
-                    <h3 className="text-xl font-bold text-foreground">{title}</h3>
-                    <p className="leading-relaxed text-muted-foreground">{text}</p>
-                  </div>
-                </Reveal>
-              </li>
-            ))}
-          </ul>
-        </PageContainer>
+                  </span>
+                  <h3 className="display text-xl font-bold text-foreground">{title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{text}</p>
+                </div>
+              </Reveal>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ------------------------------------------------------------- For teachers */}
-      <section className="border-y border-border bg-card/40 py-16 sm:py-20">
-        <PageContainer className="grid max-w-5xl items-center gap-10 md:grid-cols-2">
+      <section className="interest-section">
+        <div className="grid items-center gap-10 md:grid-cols-2">
           <Reveal className="flex flex-col gap-4">
-            <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+            <p className="eyebrow flex items-center gap-2">
               <GraduationCap className="size-4" aria-hidden /> For teachers
-            </span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Know your class before you teach it
-            </h2>
-            <p className="leading-relaxed text-muted-foreground">
-              Create a class from a list of names and print the login slips. See which mix-ups are most
-              common and who is sure of a wrong idea, compare a starting check with an end check, and
-              get a plan for the next lesson. The AI&apos;s decisions are logged and open to review.
             </p>
-            <Button variant="outline" size="lg" asChild className="h-12 self-start rounded-xl px-6 font-semibold">
+            <h2 className="display text-4xl font-semibold text-foreground">Know your class before you teach it.</h2>
+            <p className="leading-relaxed text-muted-foreground">
+              Create a class from a list of names and print the login slips. See which mix-ups are most common and who
+              is sure of a wrong idea, compare a starting check with an end check, and get a plan for the next lesson.
+              The AI&apos;s decisions are logged and open to review.
+            </p>
+            <Button variant="outline" size="lg" asChild className="self-start">
               <Link href="/teacher/login">Teacher login</Link>
             </Button>
           </Reveal>
           <Reveal delay={0.12}>
-            <div className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-5 shadow-card">
-              <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+            <div className="surface panel flex flex-col gap-3">
+              <div className="flex items-center gap-2 font-heading text-sm font-bold text-foreground">
                 <Users className="size-4 text-primary" aria-hidden /> Class 11-B · what the class got wrong
               </div>
               {[
@@ -203,37 +241,56 @@ export default function Home() {
                 { name: "Inertia and the first law", n: 11, w: 64 },
                 { name: "Projectile motion", n: 7, w: 41 },
               ].map((row) => (
-                <div key={row.name} className="flex flex-col gap-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-medium text-foreground">{row.name}</span>
-                    <span className="text-muted-foreground">{row.n} students</span>
+                <div key={row.name} className="dbar-row">
+                  <div className="dbar-name">
+                    <span>{row.name}</span>
+                    <small>{row.n} students</small>
                   </div>
-                  <span className="h-2 overflow-hidden rounded-full bg-muted">
-                    <span className="block h-full rounded-full bg-primary" style={{ width: `${row.w}%` }} />
-                  </span>
+                  <div className="dbar-track">
+                    <span className="dbar-fill bad" style={{ width: `${row.w}%`, display: "block" }} />
+                  </div>
                 </div>
               ))}
               <p className="text-xs text-muted-foreground">An illustration with made-up numbers.</p>
             </div>
           </Reveal>
-        </PageContainer>
+        </div>
       </section>
 
       {/* ------------------------------------------------------------------ Closing */}
-      <section className="py-16 sm:py-24">
-        <PageContainer className="flex max-w-3xl flex-col items-center gap-6 text-center">
-          <Reveal className="flex flex-col items-center gap-6">
-            <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-              Ready to see where you stand?
-            </h2>
-            <p className="max-w-xl text-muted-foreground">
-              It takes a few minutes, and there are no marks. Log in with the username your teacher gave you, or
-              create an account.
-            </p>
-            <HeroActions />
-          </Reveal>
-        </PageContainer>
+      <section className="landing-cta">
+        <div>
+          <p className="eyebrow">One question at a time</p>
+          <h2 className="display">
+            Ready to see
+            <br />
+            where you stand?
+          </h2>
+          <p className="mt-3 max-w-md text-sm opacity-80">
+            It takes a few minutes, and there are no marks. Log in with the username your teacher gave you, or create an
+            account.
+          </p>
+        </div>
+        <HeroActions />
+        <span className="cta-decoration" aria-hidden>
+          ✳
+        </span>
       </section>
+
+      <footer className="landing-footer">
+        <Link href="/" className="brand-lockup">
+          <span className="brand-mark" aria-hidden>
+            e
+          </span>
+          <span>
+            ecolearn<span className="brand-period">.</span>
+          </span>
+        </Link>
+        <span>Physics, in your element.</span>
+        <Link href="/teacher/login">
+          For teachers <ArrowUpRight size={13} aria-hidden />
+        </Link>
+      </footer>
     </main>
   );
 }

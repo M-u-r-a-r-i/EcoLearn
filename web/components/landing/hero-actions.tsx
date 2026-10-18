@@ -8,7 +8,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { HOME, useAuth } from "@/components/auth-provider";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 
 export function HeroActions({ stacked = false }: { stacked?: boolean }) {
@@ -19,22 +18,22 @@ export function HeroActions({ stacked = false }: { stacked?: boolean }) {
   if (status === "authenticated" && role) {
     return (
       <div className={`flex flex-wrap gap-3 ${layout}`}>
-        <PrimaryButton asChild>
+        <Button size="lg" asChild>
           <Link href={HOME[role]}>
             {role === "teacher" ? "Go to my classes" : "Back to my roadmap"} <ArrowRight className="size-5" />
           </Link>
-        </PrimaryButton>
+        </Button>
       </div>
     );
   }
   return (
     <div className={`flex flex-wrap gap-3 ${layout}`}>
-      <PrimaryButton asChild>
+      <Button size="lg" asChild>
         <Link href="/signup">
           Get started <ArrowRight className="size-5" />
         </Link>
-      </PrimaryButton>
-      <Button variant="outline" size="lg" asChild className="h-12 rounded-xl px-6 text-base font-semibold">
+      </Button>
+      <Button variant="outline" size="lg" asChild>
         <Link href="/login">Log in</Link>
       </Button>
     </div>

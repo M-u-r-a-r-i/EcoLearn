@@ -32,8 +32,7 @@ import { useFetch } from "@/lib/use-fetch";
 import { useLessonView } from "@/lib/use-lesson-view";
 import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
+import { EmptyState, Pill, Skeleton } from "@/components/ui-kit";
 import { Markdown } from "@/components/markdown";
 import { BreakNudge } from "@/components/break-nudge";
 import { HelpWidget } from "@/components/help-widget";
@@ -62,7 +61,9 @@ function lookOf(heading: string): Look {
 
 function LessonView() {
   const { chapterId } = useChapter();
-  const conceptParam = useSearchParams().get("concept") ?? undefined;
+  const params = useSearchParams();
+  const conceptParam = params.get("concept") ?? undefined;
+  const stepParam = Number(params.get("step")) || 0; // set by the roadmap's lesson parts
   const roadmapHref = withChapter("/roadmap", chapterId);
 
   const { data, loading, error } = useFetch<NextLesson>(`${chapterId}|${conceptParam ?? ""}`, () =>
@@ -78,12 +79,7 @@ function LessonView() {
   if (error) {
     return (
       <Centered>
-        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error}
-        </p>
-        <PrimaryButton asChild>
-          <Link href={roadmapHref}>← Back to roadmap</Link>
-        </PrimaryButton>
+        <EmptyState title="Lesson paused." copy={error} href={roadmapHref} action="Back to your path" />
       </Centered>
     );
   }
@@ -92,15 +88,12 @@ function LessonView() {
   if (!data || !data.lesson || data.status === "done" || data.status === "blocked") {
     return (
       <Centered>
-        <h1 className="text-2xl font-bold text-foreground">
-          {data?.status === "done" ? "🎉 Chapter complete!" : "Nothing to learn just yet"}
-        </h1>
-        <p className="max-w-md text-muted-foreground">
-          {data?.reason ?? "Head back to your roadmap."}
-        </p>
-        <PrimaryButton asChild>
-          <Link href={roadmapHref}>← Back to roadmap</Link>
-        </PrimaryButton>
+        <EmptyState
+          title={data?.status === "done" ? "🎉 Chapter complete!" : "Nothing to learn just yet"}
+          copy={data?.reason ?? "Head back to your path."}
+          href={roadmapHref}
+          action="Back to your path"
+        />
       </Centered>
     );
   }
@@ -114,16 +107,20 @@ function LessonView() {
   const checkBlock = (
     <div className="flex flex-col gap-5">
       {hasCheck && (
-        <section className="flex flex-col gap-4 rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/5 to-card p-6 shadow-card">
-          <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+        <section className="surface lesson-check flex flex-col gap-4">
+          <div className="check-header">
+            <Pill>QUICK CHECK</Pill>
+            <span>Take your best shot</span>
+          </div>
+          <h2 className="display flex items-center gap-2 text-2xl font-bold text-foreground">
             <CircleHelp className="size-6 text-primary" aria-hidden /> Check yourself
           </h2>
           <Markdown>{lesson.check?.question ?? lesson.check_question}</Markdown>
-          <PrimaryButton asChild className="self-start">
+          <Button size="lg" asChild className="self-start">
             <Link href={assessmentHref}>
               Answer the question <ArrowRight className="size-5" />
             </Link>
-          </PrimaryButton>
+          </Button>
         </section>
       )}
       {/* Did the interest-based explanation work? The pilot's core question. */}
@@ -177,33 +174,31 @@ function LessonView() {
   }
 
   return (
-    <main className="flex flex-1 flex-col">
+    <main className="page-shell lesson-shell w-full flex-1">
       {/* ~720px reading column with generous vertical rhythm. */}
-      <PageContainer className="flex max-w-[720px] flex-col gap-6">
+      <div className="mx-auto flex max-w-[720px] flex-col gap-6">
         {/* Title block */}
-        <header className="flex flex-col gap-2">
-          <Link
-            href={roadmapHref}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            ← Roadmap
+        <header className="lesson-title !px-0">
+          <Link href={roadmapHref} className="back-link">
+            ← Your path
           </Link>
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-            {status === "review" ? "Quick review" : "Lesson"}
-          </span>
-          <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-            {concept_name}
-          </h1>
-          {reason && <p className="text-muted-foreground">{reason}</p>}
-          {data.prefs?.gentle && (
-            <p className="text-sm text-muted-foreground">Take your time. There&apos;s no rush here.</p>
-          )}
+          <div className="mt-4">
+            <Pill>{status === "review" ? "QUICK REVIEW" : "YOUR STORY STARTS HERE"}</Pill>
+          </div>
+          <h1 className="display">{concept_name}</h1>
+          {reason && <p>{reason}</p>}
+          {data.prefs?.gentle && <p>Take your time. There&apos;s no rush here.</p>}
         </header>
         <BreakNudge minutes={data.prefs?.break_after_minutes ?? null} key={`nudge-${lesson.concept_id}`} />
 
         {steps.length > 0 ? (
           // Keyed by concept so moving to the next lesson starts at step one.
-          <LessonStepper key={lesson.concept_id} steps={steps} initialAll={data.prefs?.mode === "all"} />
+          <LessonStepper
+            key={lesson.concept_id}
+            steps={steps}
+            initialStep={stepParam}
+            initialAll={data.prefs?.mode === "all"}
+          />
         ) : (
           // Legacy lesson: one markdown blob, then the check.
           <>
@@ -216,7 +211,7 @@ function LessonView() {
 
         {/* "I'm stuck" help widget — live tutor, stays on the lesson. */}
         <HelpWidget conceptId={lesson.concept_id} />
-      </PageContainer>
+      </div>
     </main>
   );
 }
@@ -226,11 +221,11 @@ function LessonView() {
 function SectionCard({ section, look }: { section: LessonSection; look: Look }) {
   const { Icon } = look;
   const title = (
-    <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+    <h2 className="display flex items-center gap-2 text-2xl font-bold text-foreground">
       <Icon
         className={cn(
           "size-6",
-          look.kind === "takeaway" ? "text-amber-500" : look.kind === "caveat" ? "text-destructive" : "text-primary",
+          look.kind === "takeaway" ? "text-brand-accent" : look.kind === "caveat" ? "text-destructive" : "text-primary",
         )}
         aria-hidden
       />
@@ -249,12 +244,10 @@ function SectionCard({ section, look }: { section: LessonSection; look: Look }) 
   return (
     <section
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border p-6 shadow-card",
-        look.kind === "takeaway"
-          ? "border-amber-400/40 bg-gradient-to-b from-amber-400/10 to-card"
-          : look.kind === "caveat"
-            ? "border-destructive/25 bg-card"
-            : "border-border bg-card",
+        "surface lesson-section-card flex flex-col gap-3",
+        look.kind === "takeaway" &&
+          "!border-[color-mix(in_srgb,var(--gold)_50%,var(--line))] !bg-[color-mix(in_srgb,var(--gold)_12%,var(--surface))]",
+        look.kind === "caveat" && "!border-[color-mix(in_srgb,var(--danger)_30%,var(--line))]",
       )}
     >
       {title}
@@ -276,14 +269,14 @@ function Reveal({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+    <section className="surface lesson-section-card flex flex-col gap-4">
       {title}
       {open ? (
         <div className="rm-sheet">{children}</div>
       ) : (
         <>
           <p className="text-muted-foreground">{intro}</p>
-          <Button size="lg" className="h-11 self-start rounded-xl px-5" onClick={() => setOpen(true)}>
+          <Button className="self-start" onClick={() => setOpen(true)}>
             <Lightbulb className="size-4" /> {button}
           </Button>
         </>
@@ -306,13 +299,13 @@ function RateLesson({
   failed: boolean;
 }) {
   const choices = [
-    { value: 1 as const, label: "Yes, it helped", Icon: ThumbsUp, on: "border-success bg-success/10 text-success" },
+    { value: 1 as const, label: "Yes, it helped", Icon: ThumbsUp, on: "border-primary bg-primary/10 text-primary" },
     { value: -1 as const, label: "Not really", Icon: ThumbsDown, on: "border-destructive bg-destructive/10 text-destructive" },
   ];
   return (
     <section
       aria-label="Rate this lesson"
-      className="flex flex-col gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
+      className="surface flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
     >
       <p className="font-medium text-foreground">
         Did the {interest ? <span className="capitalize">{interest}</span> : "story"} explanation
@@ -351,37 +344,16 @@ function RateLesson({
 
 // Small helper for the centered single-message states.
 function Centered({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        {children}
-      </PageContainer>
-    </main>
-  );
+  return <main className="page-shell mx-auto w-full max-w-xl flex-1">{children}</main>;
 }
 
-// Loading skeleton that mirrors the reading layout.
+// Loading skeleton.
 function LessonSkeleton() {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-[720px] flex-col gap-6">
-        <div className="h-10 w-2/3 animate-pulse rounded-lg bg-muted" />
-        <div className="flex gap-1.5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-2 flex-1 animate-pulse rounded-full bg-muted" />
-          ))}
-        </div>
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-4 animate-pulse rounded bg-muted"
-              style={{ width: `${90 - (i % 3) * 12}%` }}
-            />
-          ))}
-        </div>
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
-      </PageContainer>
+    <main className="page-shell mx-auto w-full max-w-[720px] flex-1">
+      <div className="surface">
+        <Skeleton rows={6} />
+      </div>
     </main>
   );
 }

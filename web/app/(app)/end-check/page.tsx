@@ -15,8 +15,6 @@ import { ArrowLeft, ArrowRight, Flag, Sparkles } from "lucide-react";
 import { FormError } from "@/components/auth-card";
 import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { CheckResultSummary } from "@/components/check-result";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -68,11 +66,11 @@ export default function EndCheckPage() {
           The end check is compared with your starting check, so that one comes first. It takes about
           five minutes.
         </p>
-        <PrimaryButton asChild className="self-start">
+        <Button asChild className="self-start">
           <Link href="/start">
             Start the starting check <ArrowRight className="size-5" />
           </Link>
-        </PrimaryButton>
+        </Button>
       </Shell>
     );
   }
@@ -93,8 +91,8 @@ export default function EndCheckPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-2xl flex-col gap-6">{children}</PageContainer>
+    <main className="page-shell w-full flex-1">
+      <div className="mx-auto w-full flex max-w-2xl flex-col gap-6">{children}</div>
     </main>
   );
 }
@@ -102,10 +100,10 @@ function Shell({ children }: { children: React.ReactNode }) {
 function Heading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+      <span className="flex items-center gap-2 eyebrow">
         <Flag className="size-4" aria-hidden /> {eyebrow}
       </span>
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
+      <h1 className="display text-4xl font-semibold text-foreground">{title}</h1>
     </div>
   );
 }
@@ -149,9 +147,9 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
           than a guess.
         </p>
         <div className="flex flex-wrap gap-3">
-          <PrimaryButton onClick={() => setStarted(true)}>
+          <Button onClick={() => setStarted(true)}>
             Let&apos;s go <ArrowRight className="size-5" />
-          </PrimaryButton>
+          </Button>
           <Button variant="ghost" asChild>
             <Link href="/roadmap">Later</Link>
           </Button>
@@ -190,13 +188,13 @@ function Questions({ endCheck, onDone }: { endCheck: EndCheck; onDone: (e: EndCh
 
       <div className="flex flex-wrap gap-3">
         {last ? (
-          <PrimaryButton onClick={finish} disabled={!ready || sending}>
+          <Button onClick={finish} disabled={!ready || sending}>
             {sending ? "Comparing…" : <>See how far I&apos;ve come <Sparkles className="size-5" /></>}
-          </PrimaryButton>
+          </Button>
         ) : (
-          <PrimaryButton onClick={() => setIndex((i) => i + 1)} disabled={!ready}>
+          <Button onClick={() => setIndex((i) => i + 1)} disabled={!ready}>
             Next <ArrowRight className="size-5" />
-          </PrimaryButton>
+          </Button>
         )}
         <Button
           variant="ghost"

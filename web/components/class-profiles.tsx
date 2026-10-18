@@ -18,7 +18,7 @@ const FEEL = { love: "Likes it", ok: "Okay", nervous: "Nervous", dread: "Struggl
 function Bars({ title, rows }: { title: string; rows: { label: string; n: number }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.n));
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-soft">
+    <div className="flex flex-col gap-2 surface p-4">
       <h3 className="text-sm font-bold text-foreground">{title}</h3>
       <ul className="flex flex-col gap-1.5">
         {rows.map((r) => (
@@ -123,7 +123,7 @@ function Panel({ p }: { p: ClassProfiles }) {
           />
         </div>
       )}
-      <ul className="overflow-hidden rounded-xl border border-border bg-card">
+      <ul className="overflow-hidden surface">
         {p.students.map((s) => (
           <Row key={s.student_id} s={s} />
         ))}
@@ -135,8 +135,8 @@ function Panel({ p }: { p: ClassProfiles }) {
 export function ClassProfilesPanel({ classId }: { classId: string }) {
   const profiles = useFetch(`profiles:${classId}`, () => getClassProfiles(classId));
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 shadow-card">
-      <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+    <section className="flex flex-col gap-3 surface p-6">
+      <h2 className="display flex items-center gap-2 text-xl font-bold text-foreground">
         <UserRound className="size-5 text-primary" aria-hidden /> Getting to know the class
       </h2>
       {profiles.loading ? (

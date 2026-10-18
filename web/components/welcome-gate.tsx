@@ -12,7 +12,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { PageContainer } from "@/components/page-container";
 import { getSurvey } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
 
@@ -39,11 +38,11 @@ export function WelcomeGate({ children }: { children: ReactNode }) {
   // Waiting for the answer, or about to be sent to /welcome: a skeleton, not a flash of the app.
   if (survey.loading || (needsSurvey && !onWelcome)) {
     return (
-      <main className="flex flex-1 flex-col">
-        <PageContainer className="flex flex-col gap-4">
+      <main className="page-shell w-full flex-1">
+        <div className="mx-auto w-full flex flex-col gap-4">
           <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
           <div className="h-40 w-full animate-pulse rounded-xl bg-muted" />
-        </PageContainer>
+        </div>
       </main>
     );
   }

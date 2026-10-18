@@ -3,7 +3,7 @@
 Teachers see their own class in the web app (/teacher/class). This is the view
 across every class, for the people evaluating the pilot and for the finals
 pitch. It prints the headline numbers, the most common misconceptions, the
-hardest concepts, and the same numbers per interest.
+hardest concepts, the survey (what students said, how it changed, how it lines up with what they did), and the same numbers per interest.
 
 With --csv it also writes the raw rows (lesson views, answers, ratings,
 students) for analysis in a spreadsheet or pandas. **No names or usernames are
@@ -75,7 +75,9 @@ def print_report(report: dict, top: int) -> None:
         if t["calls_without_tokens"]:
             print(f"  {t['calls_without_tokens']} calls report no tokens (the doubt chat's older "
                   "pipeline), so they aren't in the ₹ figures.")
-        print("  Prices: data/llm_prices.yaml, entered from memory. Verify before quoting.")
+        print("  Prices: data/llm_prices.yaml, Google's paid-tier list prices (checked 2026-10-13; re-check "
+              "before the finals). On a free tier nothing is billed, so these are what the same usage "
+              "WOULD cost.")
 
     g = report["check_gains"]
     print(f"\nStarting check → end check  ({g['students_finished']} of {g['students_started']} "
@@ -89,6 +91,8 @@ def print_report(report: dict, top: int) -> None:
             print(f"  Concepts {label:<12} {pct(part['right_before'])} → {pct(part['right_after'])}"
                   f"  ({part['pairs']} pairs)")
         print("  (Not-studied concepts are a rough control: a gain there isn't the lessons'.)")
+
+    print_survey(report["survey"])
 
     print(f"\nBy interest")
     print(f"  {'interest':<13}{'students':>9}{'opens':>7}{'1st try':>9}{'👍':>5}{'👎':>5}{'approval':>10}")
@@ -108,6 +112,31 @@ def print_report(report: dict, top: int) -> None:
     for c in [c for c in insights["concepts"] if c["students_answered"]][:top]:
         print(f"  {pct(c['first_try_accuracy']):>5}  {c['concept_name']}  "
               f"({c['students_answered']} answered, chapter: {c['chapter_name'] or c['chapter_id']})")
+
+
+def print_survey(sv: dict) -> None:
+    print(f"\nGetting to know you  ({sv['taken']} of {sv['total']} students answered)")
+    if not sv["taken"]:
+        print("  Nobody has answered yet.")
+        return
+    labels = {"focus_span": "Focus span", "pace": "Pace", "physics_feel": "Feeling about physics",
+              "maths_comfort": "Maths comfort", "top_hobby_level": "Main hobby level",
+              "first_step": "Likes to start with", "trips": "Usually trips on", "goal": "Goal"}
+    for field, label in labels.items():
+        dist = sv["distributions"][field]
+        if dist:
+            print(f"  {label:<22}" + " · ".join(f"{k} {n}" for k, n in dist.items()))
+    print(f"  Updated their answers: {sv['updated_students']} students, {sv['revisions']} updates"
+          + (f"; fields changed most: " + ", ".join(f"{k} ({n})" for k, n in list(sv['changed_fields'].items())[:4])
+             if sv["changed_fields"] else ""))
+    print("  What they SAID vs what they DID  (an association over a few students; it is NOT evidence "
+          "that an adaptation works)")
+    print(f"    {'said':<26}{'students':>9}{'median min':>12}{'skimmed':>9}{'1st try':>9}")
+    for field in ("focus_span", "pace", "physics_feel"):
+        for g in sv["said_vs_shown"][field]:
+            print(f"    {field + ': ' + str(g['value']):<26}{g['students']:>9}"
+                  f"{(g['median_minutes'] if g['median_minutes'] is not None else '—'):>12}"
+                  f"{pct(g['mean_skim_share']):>9}{pct(g['first_try_accuracy']):>9}")
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
@@ -145,6 +174,9 @@ def main() -> int:
             ("llm_calls", report["llm_calls"]),
             ("check_gains_per_concept", report["check_gains"]["concepts"]),
             ("personal_stories", report["stories"]),
+            ("survey", report["survey"]["rows"]),
+            ("survey_history", report["survey"]["history"]),
+            ("survey_changes", report["survey"]["changes"]),
             ("per_student", insights["students"]),
             ("per_concept", insights["concepts"]),
             ("per_interest", insights["interests"]),

@@ -38,12 +38,13 @@ export function ClassStoriesPanel({ classId }: { classId: string }) {
   const shown = showAll ? stories : stories.slice(0, SHOWN);
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-card print:hidden">
-      <div className="flex flex-col gap-1">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
-          <Sparkles className="size-5 text-primary" aria-hidden /> Personal stories
-        </h2>
-        <p className="text-sm text-muted-foreground">
+    <section className="surface panel flex flex-col gap-4 print:hidden">
+      <div>
+        <p className="eyebrow flex items-center gap-2">
+          <Sparkles className="size-3.5" aria-hidden /> Written by the AI, checked before shown
+        </p>
+        <h2 className="display text-2xl font-semibold text-foreground">Personal stories</h2>
+        <p className="dash-sub">
           Short openings EcoLearn&apos;s AI wrote around each student&apos;s hobbies, checked by a second
           AI before any student saw them. Read what they read; hide anything you don&apos;t want
           shown — they&apos;ll get the lesson&apos;s own story instead.

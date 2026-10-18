@@ -7,8 +7,8 @@
 
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-import { PrimaryButton } from "@/components/primary-button";
 import { whatWeHeard } from "@/components/survey-flow";
 import { getSurvey } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
@@ -24,9 +24,9 @@ export function AboutYouCard() {
   const lines = data.taken && data.traits ? whatWeHeard(data.traits, labelOf, false) : [];
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-card">
+    <section className="flex flex-col gap-4 surface p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+        <h2 className="display flex items-center gap-2 text-xl font-bold text-foreground">
           <Heart className="size-5 text-primary" aria-hidden /> About you
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -58,11 +58,11 @@ export function AboutYouCard() {
         </p>
       )}
 
-      <PrimaryButton asChild className="self-start">
+      <Button asChild className="self-start">
         <Link href={data.taken ? "/settings/about" : "/welcome"}>
           {data.taken ? "Update my answers" : "Answer them now"} <ArrowRight className="size-5" />
         </Link>
-      </PrimaryButton>
+      </Button>
     </section>
   );
 }

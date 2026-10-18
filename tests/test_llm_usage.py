@@ -174,7 +174,15 @@ def test_report(sid: str) -> None:
     u = report["ai_usage"]
     check(u["total"]["calls"] == 3 and set(u["by_feature"]) == {"teacher_agent", "story_writer", "story_critic"},
           "ai_usage over every logged call")
-    check(api.llm_prices()["reference_model"] == "gemini-2.5-flash", "prices from data/llm_prices.yaml")
+    real = api.llm_prices()
+    check(real["reference_model"] in real["models"], "prices from data/llm_prices.yaml: the reference model is priced")
+    from src.progress import metrics as _m
+    check(_m._price_for("gemini/gemini-3.1-flash-lite", real) == {"input": 0.25, "output": 1.50},
+          "the model in use (3.1 flash-lite) is priced at Google's published 0.25 / 1.50")
+    check(_m._price_for("gemini/gemini-3.7-flash", real) == _m._price_for("gemini/gemini-3.8-flash", real) is not None,
+          "the deprecated 3.7 flash is priced like 3.8 (Google routes it there)")
+    check(_m._price_for("gemini/gemini-2.5-flash-lite", real)["input"] == 0.10,
+          "the longest key wins: 2.5 flash-lite is not priced as 2.5 flash")
     rows = report["llm_calls"]
     dumped = json.dumps(rows)
     check(len(rows) == 3 and sid not in dumped and "cls_1" not in dumped

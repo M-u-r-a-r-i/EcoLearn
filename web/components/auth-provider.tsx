@@ -85,6 +85,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getSession().then(signedIn, signedOut);
   }, [signedIn, signedOut]);
 
+  // The student's interest tints the whole UI (see [data-interest] in globals.css).
+  const interest = session?.role === "student" ? session.profile.interest : null;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (interest) root.dataset.interest = interest;
+    else if (status !== "loading") delete root.dataset.interest; // keep the remembered accent until we know
+    // Remembered so the next page load paints the right accent at once (see THEME_BOOT_SCRIPT).
+    try {
+      if (interest) localStorage.setItem("ecolearn-interest", interest);
+      else if (status !== "loading") localStorage.removeItem("ecolearn-interest");
+    } catch {
+      // storage blocked: the accent just appears a moment later
+    }
+  }, [interest, status]);
+
   // Any request that comes back 401 later (expired cookie) signs the user out;
   // the route guard then sends them to the right login page.
   useEffect(() => {

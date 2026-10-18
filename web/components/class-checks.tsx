@@ -11,11 +11,12 @@
 "use client";
 
 import { useState } from "react";
-import { Flag } from "lucide-react";
+import { Flag, Sparkles, Target, Users } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
 import { pct } from "@/components/class-insights";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui-kit";
 import {
   friendlyMessage,
   getClassChecks,
@@ -55,7 +56,9 @@ export function ClassChecksPanel({
 
   if (!data) {
     return loaded.loading ? (
-      <div className="h-32 animate-pulse rounded-xl bg-muted" aria-label="Loading the checks" />
+      <div className="surface">
+        <Skeleton rows={3} />
+      </div>
     ) : (
       <FormError message={loaded.error ?? "Couldn't load the starting and end checks."} />
     );
@@ -65,13 +68,14 @@ export function ClassChecksPanel({
   const total = data.students.length;
 
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-card print:hidden">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
-            <Flag className="size-5 text-brand-accent" aria-hidden /> Starting check → end check
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+    <section className="surface panel flex flex-col gap-6 print:hidden">
+      <div className="dash-title">
+        <div>
+          <p className="eyebrow flex items-center gap-2">
+            <Flag className="size-3.5" aria-hidden /> Before and after
+          </p>
+          <h2 className="display text-2xl font-semibold text-foreground">Starting check → end check</h2>
+          <p className="dash-sub">
             Every student takes the starting check when they sign up. Open the end check at the end of
             the course: the same ideas with new questions, so you see what changed.{" "}
             {data.open
@@ -90,16 +94,32 @@ export function ClassChecksPanel({
       </div>
       <FormError message={error} />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Tile label="Starting check" value={`${s.students_started} of ${total}`} note="students who took it" />
-        <Tile label="End check" value={`${s.students_finished} of ${total}`} note="students who took it" />
+      <div className="dash-metrics">
         <Tile
+          Icon={Users}
+          tone="peach"
+          label="Starting check"
+          value={`${s.students_started} of ${total}`}
+          note="students who took it"
+        />
+        <Tile
+          Icon={Flag}
+          tone="mint"
+          label="End check"
+          value={`${s.students_finished} of ${total}`}
+          note="students who took it"
+        />
+        <Tile
+          Icon={Target}
+          tone="sky"
           label="Right answers"
           value={s.paired_answers ? `${pct(s.right_before)} → ${pct(s.right_after)}` : "—"}
           note={s.paired_answers ? `over ${s.paired_answers} paired answers` : "after the end check"}
           good={(s.right_after ?? 0) > (s.right_before ?? 0)}
         />
         <Tile
+          Icon={Sparkles}
+          tone="lav"
           label="Mix-ups"
           value={s.paired_answers ? `${s.before.mix_up} → ${s.after.mix_up}` : "—"}
           note={s.paired_answers ? `${s.fixed} fixed · ${s.learned} learned · ${s.slipped} slipped` : "after the end check"}
@@ -109,7 +129,47 @@ export function ClassChecksPanel({
 
       {s.paired_answers > 0 && (
         <>
-          <p className="rounded-lg bg-muted/60 p-3 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-4">
+            <div className="dash-title">
+              <h3 className="display text-lg font-bold text-foreground">Ideas getting clearer</h3>
+              <span className="dbar-legend">
+                <span>
+                  <i style={{ background: "var(--bar-before)" }} />
+                  Before
+                </span>
+                <span>
+                  <i style={{ background: "var(--bar-after)" }} />
+                  After
+                </span>
+              </span>
+            </div>
+            <div className="dbars">
+              {s.concepts
+                .filter((c) => c.right_before !== null && c.right_after !== null)
+                .slice(0, 8)
+                .map((c) => (
+                  <div key={c.concept_id} className="dbar-row">
+                    <div className="dbar-name">
+                      <span>{c.concept_name}</span>
+                      <small>{c.students} students</small>
+                    </div>
+                    {(["before", "after"] as const).map((when) => {
+                      const v = when === "before" ? c.right_before : c.right_after;
+                      return (
+                        <div key={when} className="dbar">
+                          <div className="dbar-track" role="img" aria-label={`${when}: ${pct(v)} right`}>
+                            <span className={`dbar-fill ${when}`} style={{ width: pct(v) }} />
+                          </div>
+                          <span className="dbar-pct">{pct(v)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <p className="soft-surface p-4 text-sm leading-relaxed text-muted-foreground">
             <span className="font-semibold text-foreground">Studied vs not studied.</span> Ideas whose
             lesson the student opened: {pct(s.studied.right_before)} → {pct(s.studied.right_after)} right (
             {s.studied.pairs} answers). Ideas they didn&apos;t open: {pct(s.not_studied.right_before)} →{" "}
@@ -117,10 +177,12 @@ export function ClassChecksPanel({
             lessons&apos;.
           </p>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <details className="group">
+            <summary className="cursor-pointer text-sm font-semibold text-primary">Idea by idea (table)</summary>
+          <div className="dtable-wrap mt-3">
+            <table className="dtable">
               <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
+                <tr>
                   <th className="py-2 pr-4 font-semibold">Idea</th>
                   <th className="py-2 pr-4 font-semibold">Students</th>
                   <th className="py-2 pr-4 font-semibold">Right: before → after</th>
@@ -147,14 +209,15 @@ export function ClassChecksPanel({
               </tbody>
             </table>
           </div>
+          </details>
         </>
       )}
 
       {s.students_started > 0 && (
         <details className="group">
           <summary className="cursor-pointer text-sm font-semibold text-primary">Per student</summary>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="dtable-wrap mt-3">
+            <table className="dtable">
               <thead>
                 <tr className="border-b border-border text-left text-muted-foreground">
                   <th className="py-2 pr-4 font-semibold">Student</th>
@@ -183,12 +246,31 @@ export function ClassChecksPanel({
   );
 }
 
-function Tile({ label, value, note, good }: { label: string; value: string; note: string; good?: boolean }) {
+function Tile({
+  Icon,
+  tone,
+  label,
+  value,
+  note,
+  good,
+}: {
+  Icon: typeof Users;
+  tone: string;
+  label: string;
+  value: string;
+  note: string;
+  good?: boolean;
+}) {
   return (
-    <div className="rounded-xl border border-border bg-background p-4">
-      <div className="text-sm text-muted-foreground">{label}</div>
-      <div className={cn("mt-1 text-2xl font-bold text-foreground", good && "text-success")}>{value}</div>
-      <div className="text-xs text-muted-foreground">{note}</div>
+    <div className={cn("surface dash-metric", `tone-${tone}`)}>
+      <div className="dash-metric-top">
+        <span className="dash-icon" aria-hidden>
+          <Icon />
+        </span>
+        <span className="dash-label">{label}</span>
+      </div>
+      <span className={cn("dash-value", good && "good")}>{value}</span>
+      <span className="dash-note">{note}</span>
     </div>
   );
 }

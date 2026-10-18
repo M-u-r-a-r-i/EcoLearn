@@ -19,12 +19,12 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Clock, Compass, Route, Sparkles, Target } from "lucide-react";
 
 import { FormError } from "@/components/auth-card";
+import { useAuth } from "@/components/auth-provider";
 import { HobbyPicker } from "@/components/hobby-picker";
 import { Confetti } from "@/components/check-feedback";
 import { CheckQuestion, UNSURE } from "@/components/check-question";
 import { LearningPlanSummary } from "@/components/learning-plan";
-import { PageContainer } from "@/components/page-container";
-import { PrimaryButton } from "@/components/primary-button";
+import { Skeleton } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import {
   friendlyMessage,
@@ -35,6 +35,7 @@ import {
   type Diagnostic,
   type LearningPlan,
 } from "@/lib/api";
+import { rememberSkippedCheck } from "@/lib/landing";
 import { useFetch } from "@/lib/use-fetch";
 import { cn } from "@/lib/utils";
 
@@ -48,8 +49,9 @@ export default function StartPage() {
   if (diagnostic.loading) {
     return (
       <Shell>
-        <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
-        <div className="h-48 animate-pulse rounded-xl bg-muted" />
+        <div className="surface">
+          <Skeleton rows={4} />
+        </div>
       </Shell>
     );
   }
@@ -70,8 +72,8 @@ export default function StartPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex flex-1 flex-col">
-      <PageContainer className="flex max-w-2xl flex-col gap-6">{children}</PageContainer>
+    <main className="page-shell start-shell mx-auto w-full flex-1">
+      <div className="flex flex-col gap-6">{children}</div>
     </main>
   );
 }
@@ -93,6 +95,7 @@ function StartingCheck({
   diagnostic: Diagnostic;
   onDone: (plan: LearningPlan) => void;
 }) {
+  const { student } = useAuth();
   const questions = diagnostic.questions ?? [];
   // Hobbies come from the first-login survey; only a student without any is asked here.
   const needsHobbies = diagnostic.hobbies.length === 0;
@@ -175,10 +178,8 @@ function StartingCheck({
     return (
       <Shell>
         <div className="flex flex-col gap-3">
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
-            Your starting check
-          </span>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <span className="eyebrow">Your starting check</span>
+          <h1 className="display text-4xl font-semibold text-foreground sm:text-5xl">
             Let&apos;s find where you stand
           </h1>
           <p className="leading-relaxed text-muted-foreground">
@@ -194,21 +195,23 @@ function StartingCheck({
           ].map(({ Icon, title, text }, i) => (
             <li
               key={title}
-              className="rm-sheet flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 shadow-soft"
+              className="rm-sheet surface flex flex-col gap-1.5 p-4"
               style={{ animationDelay: `${i * 90}ms` }}
             >
               <Icon className="size-6 text-primary" aria-hidden />
-              <span className="font-semibold text-foreground">{title}</span>
+              <span className="font-heading font-bold text-foreground">{title}</span>
               <span className="text-sm text-muted-foreground">{text}</span>
             </li>
           ))}
         </ul>
         <div className="flex flex-wrap gap-3">
-          <PrimaryButton onClick={() => setStage(needsHobbies ? "hobbies" : "questions")}>
+          <Button onClick={() => setStage(needsHobbies ? "hobbies" : "questions")}>
             Let&apos;s go <ArrowRight className="size-5" />
-          </PrimaryButton>
+          </Button>
           <Button variant="ghost" asChild>
-            <Link href="/roadmap">Skip for now</Link>
+            <Link href="/roadmap" onClick={() => student && rememberSkippedCheck(student.student_id)}>
+              Skip for now
+            </Link>
           </Button>
         </div>
       </Shell>
@@ -220,14 +223,29 @@ function StartingCheck({
       <Shell>
         <StepLabel step={1} />
         <HobbyPicker options={diagnostic.hobby_options} value={hobbies} onChange={setHobbies} />
-        <div className="flex gap-3">
-          <PrimaryButton onClick={() => setStage("questions")}>
-            {hobbies.length === 0 ? "Skip this" : "Next"} <ArrowRight className="size-5" />
-          </PrimaryButton>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Hobbies are what makes the stories yours, so "Next" waits for at least one. */}
+          <Button onClick={() => setStage("questions")} disabled={hobbies.length === 0}>
+            Next <ArrowRight className="size-5" />
+          </Button>
           <Button variant="ghost" onClick={() => setStage("intro")}>
             <ArrowLeft className="size-4" /> Back
           </Button>
+          {hobbies.length === 0 && (
+            <button
+              type="button"
+              onClick={() => setStage("questions")}
+              className="ml-auto min-h-10 text-xs font-semibold text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              I&apos;d rather not say
+            </button>
+          )}
         </div>
+        {hobbies.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Pick at least one, and your lessons will open with a story about it.
+          </p>
+        )}
       </Shell>
     );
   }
@@ -253,7 +271,7 @@ function StartingCheck({
     <Shell>
       <StepLabel step={needsHobbies ? 2 : 1} total={needsHobbies ? 2 : 1} />
 
-      {/* Segmented progress: green = answered, indigo = here. */}
+      {/* Segmented progress: solid = answered, soft = here. */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">
@@ -274,16 +292,16 @@ function StartingCheck({
               className={cn(
                 "h-2 flex-1 rounded-full transition-colors duration-300",
                 i < index || (i === index && ready)
-                  ? "bg-success"
+                  ? "bg-primary"
                   : i === index
-                    ? "bg-primary"
-                    : "bg-muted",
+                    ? "bg-primary/45"
+                    : "bg-secondary",
               )}
             />
           ))}
         </div>
         {cheer && (
-          <p className="rm-sheet text-sm font-medium text-brand-accent" key={cheer}>
+          <p className="rm-sheet text-sm font-semibold text-primary" key={cheer}>
             {cheer}
           </p>
         )}
@@ -303,14 +321,14 @@ function StartingCheck({
       <FormError message={error} />
 
       {/* Back / Next, always in reach, saying what's still needed. */}
-      <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur">
-        <Button variant="ghost" size="lg" disabled={sending} onClick={goBack} className="h-11 rounded-xl px-4">
+      <div className="sticky bottom-20 z-20 flex items-center justify-between gap-3 rounded-[18px] border border-border bg-card/95 p-2.5 shadow-card-hover backdrop-blur md:bottom-3">
+        <Button variant="ghost" disabled={sending} onClick={goBack}>
           <ArrowLeft className="size-4" /> Back
         </Button>
         <span role="status" className="hidden flex-1 text-center text-xs text-muted-foreground sm:block">
           {hint}
         </span>
-        <PrimaryButton onClick={goNext} disabled={!ready || sending} className="h-11 shrink-0 px-5">
+        <Button onClick={goNext} disabled={!ready || sending} className="shrink-0">
           {sending ? (
             "Building your plan…"
           ) : last ? (
@@ -322,7 +340,7 @@ function StartingCheck({
               Next <ArrowRight className="size-5" />
             </>
           )}
-        </PrimaryButton>
+        </Button>
       </div>
     </Shell>
   );
@@ -330,7 +348,7 @@ function StartingCheck({
 
 function StepLabel({ step, total = 2 }: { step: 1 | 2; total?: 1 | 2 }) {
   return (
-    <span className="text-sm font-semibold uppercase tracking-wide text-brand-accent">
+    <span className="eyebrow">
       Starting check{total === 2 ? ` · step ${step} of 2` : ""} ·{" "}
       {step === 1 && total === 2 ? "what you enjoy" : "where you stand"}
     </span>
@@ -342,10 +360,10 @@ function Done({ plan }: { plan: LearningPlan }) {
     <Shell>
       <div className="relative flex flex-col gap-2">
         <Confetti />
-        <span className="rm-sheet flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+        <span className="rm-sheet eyebrow flex items-center gap-2">
           <Sparkles className="size-4" aria-hidden /> Your plan is ready
         </span>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="display text-4xl font-semibold text-foreground sm:text-5xl">
           Here&apos;s where you stand
         </h1>
       </div>
@@ -359,10 +377,10 @@ function AlreadyTaken() {
   return (
     <Shell>
       <div className="flex flex-col gap-2">
-        <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-brand-accent">
+        <span className="eyebrow flex items-center gap-2">
           <Compass className="size-4" aria-hidden /> Your starting check
         </span>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">You&apos;ve already taken it</h1>
+        <h1 className="display text-4xl font-semibold text-foreground">You&apos;ve already taken it</h1>
         <p className="text-muted-foreground">
           It&apos;s taken once, as your starting point. Your plan keeps updating as you answer lesson
           checks.
@@ -371,7 +389,9 @@ function AlreadyTaken() {
       {plan.data ? (
         <LearningPlanSummary plan={plan.data} />
       ) : (
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
+        <div className="surface">
+          <Skeleton rows={3} />
+        </div>
       )}
     </Shell>
   );
