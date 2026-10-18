@@ -215,6 +215,21 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_coaching_actions ON coaching_actions(student_id, action_id)")
+    # Pilot experiments (2026-10-18): each student's arm, given once and never changed. class_key is the class
+    # (or "none") at the time, so arms can be balanced within a class. See src/learner/experiments.py.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS experiment_arms (
+            student_id     TEXT NOT NULL,
+            experiment_id  TEXT NOT NULL,
+            arm            TEXT NOT NULL,
+            class_key      TEXT NOT NULL,
+            assigned_at    TEXT NOT NULL,
+            PRIMARY KEY (student_id, experiment_id)
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_experiment_class ON experiment_arms(experiment_id, class_key)")
     # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
     # are a baseline taken before any lesson, and mixing them into the lesson
     # answers would muddy the pilot's "right first time" number.
@@ -1911,6 +1926,61 @@ def record_help_event(student_id: str, outcome: str, reason: str | None = None) 
         conn.commit()
     finally:
         conn.close()
+
+
+def get_experiment_arms(student_id: str) -> dict[str, str]:
+    """{experiment_id: arm} for one student."""
+    conn = _connect()
+    try:
+        rows = conn.execute("SELECT experiment_id, arm FROM experiment_arms WHERE student_id = ?",
+                            (student_id,)).fetchall()
+    finally:
+        conn.close()
+    return {r["experiment_id"]: r["arm"] for r in rows}
+
+
+def assign_experiment_arm(student_id: str, experiment_id: str, class_key: str, choose) -> str:
+    """Give the student an arm unless they have one; returns their arm.
+
+    `choose(counts)` picks the arm from {arm: students already in it in this class}. The read and the
+    insert happen in one write transaction, so two accounts made at the same moment can't both see the
+    same counts and unbalance the class.
+    """
+    conn = _connect()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute("SELECT arm FROM experiment_arms WHERE student_id = ? AND experiment_id = ?",
+                           (student_id, experiment_id)).fetchone()
+        if row is not None:
+            conn.execute("COMMIT")
+            return row["arm"]
+        counts = {r["arm"]: r["n"] for r in conn.execute(
+            "SELECT arm, COUNT(*) n FROM experiment_arms WHERE experiment_id = ? AND class_key = ? GROUP BY arm",
+            (experiment_id, class_key))}
+        arm = choose(counts)
+        conn.execute("INSERT INTO experiment_arms (student_id, experiment_id, arm, class_key, assigned_at) "
+                     "VALUES (?, ?, ?, ?, ?)", (student_id, experiment_id, arm, class_key, _now_iso()))
+        conn.execute("COMMIT")
+        return arm
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.close()
+
+
+def list_experiment_arms(experiment_id: str | None = None) -> list[dict[str, Any]]:
+    """Every stored arm (of one experiment, or all), oldest first."""
+    conn = _connect()
+    try:
+        if experiment_id is None:
+            rows = conn.execute("SELECT * FROM experiment_arms ORDER BY assigned_at").fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM experiment_arms WHERE experiment_id = ? ORDER BY assigned_at",
+                                (experiment_id,)).fetchall()
+    finally:
+        conn.close()
+    return [dict(r) for r in rows]
 
 
 def get_insight_dismissals(student_id: str) -> set[str]:

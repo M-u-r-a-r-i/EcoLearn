@@ -4,6 +4,7 @@ Teachers see their own class in the web app (/teacher/class). This is the view
 across every class, for the people evaluating the pilot and for the finals
 pitch. It prints the headline numbers, the most common misconceptions, the
 hardest concepts, the survey (what students said, how it changed, how it lines up with what they did), and the same numbers per interest.
+It ends with the randomised comparisons (data/experiments.yaml): control vs treatment, with a 95% interval.
 
 With --csv it also writes the raw rows (lesson views, answers, ratings,
 students) for analysis in a spreadsheet or pandas. **No names or usernames are
@@ -139,6 +140,36 @@ def print_survey(sv: dict) -> None:
                   f"{pct(g['mean_skim_share']):>9}{pct(g['first_try_accuracy']):>9}")
 
 
+def print_experiments(reports: list[dict]) -> None:
+    for e in reports:
+        state = "running" if e["enabled"] else "stopped"
+        print()
+        print(f"Experiment: {e['title']}  [{e['id']}, {state}]")
+        print(f"  Hypothesis: {e['hypothesis']}")
+        print(f"  Eligible:   {e['eligible_rule']}")
+        print(f"  Primary:    {e['primary_outcome']}")
+        print(f"  {'':<12}{'students':>9}{'eligible':>9}{'fixed (mean)':>14}{'end gain':>10}{'1st try':>9}{'said not me':>13}")
+        for arm in ("control", "treatment"):
+            a = e["arms"][arm]
+            print(f"  {arm:<12}{a['students']:>9}{a['eligible']:>9}{pct(a['primary_mean']):>14}"
+                  f"{(a['end_gain_mean'] if a['end_gain_mean'] is not None else '—'):>10}"
+                  f"{pct(a['first_try_mean']):>9}{a['dismissed']:>13}")
+        for label, d, fmt in (("Primary (fixed share)", e["primary"], pct),
+                              ("End-check gain (answers)", e["end_gain"], lambda v: f"{v:+.2f}")):
+            if d["estimate"] is None:
+                print(f"  {label}: not enough students yet ({d['n_treatment']} treatment, {d['n_control']} control; need 2+ each)")
+            else:
+                lo, hi = d["ci95"]
+                est = fmt(d["estimate"]) if label.startswith("End") else f"{d['estimate'] * 100:+.0f} points"
+                rng = (f"{fmt(lo)} to {fmt(hi)}" if label.startswith("End")
+                       else f"{lo * 100:+.0f} to {hi * 100:+.0f} points")
+                print(f"  {label}: treatment minus control {est}, 95% interval {rng} "
+                      f"({d['n_treatment']} vs {d['n_control']} students)")
+        print("  Balance by class: " + ", ".join(f"{c} {v['control']}/{v['treatment']}" for c, v in sorted(e["balance"].items()))
+              + (f"; {e['unassigned']} student(s) unassigned" if e["unassigned"] else ""))
+        print(f"  Caution: {e['caution']}")
+
+
 def write_csv(path: Path, rows: list[dict]) -> None:
     if not rows:
         path.write_text("", encoding="utf-8")
@@ -159,6 +190,7 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")  # the emoji, on a Windows console
     report = api.pilot_report()
     print_report(report, args.top)
+    print_experiments(report["experiments"])
 
     if args.csv:
         out = Path(args.csv)
@@ -181,6 +213,7 @@ def main() -> int:
             ("per_concept", insights["concepts"]),
             ("per_interest", insights["interests"]),
             ("misconceptions", insights["misconceptions"]),
+            ("experiment_arms", report["experiment_rows"]),
         ):
             write_csv(out / f"{name}.csv", rows)
         print(f"\nCSV files written to {out.resolve()} (pseudonymised: no names or usernames).")

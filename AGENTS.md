@@ -99,6 +99,11 @@ step), "sure but wrong" adds a check-before-you-pick line and sooner revision; m
 coaching notes propose an action the teacher approves, carried out by rules, with the outcome shown. All rules except the existing AI
 coaching note. Load test fails today on `main` too (machine state).
 
+**Then `feature/pilot-experiment`** (stacked on the branch above; merge that first): a pre-registered randomised comparison
+(`docs/pilot-experiment.md`, `data/experiments.yaml`, `src/learner/experiments.py`). Each new account gets an arm, balanced within its
+class; the control arm never gets the "sure but wrong" nudge; `scripts/pilot_report.py` compares arms with a bootstrap interval.
+`ECOLEARN_EXPERIMENTS=off` switches all experiments off. **Do not change the outcome after the pilot starts**; add a dated note instead.
+
 ### UPDATE 2026-10-18 (READ THIS FIRST; it corrects the blocks below where they say "not merged" or "work on the branch")
 
 **`design/frontend-v2` is merged into `main`.** The user opened and merged **PR #1** on GitHub (merge commit `3e941bb`, 2026-10-18). `main` is
@@ -795,6 +800,7 @@ venv\Scripts\python.exe tests\test_help_guard.py            # doubt chat front d
 venv\Scripts\python.exe tests\test_student_data_rights.py   # export and erase a student: every table, no trace left, all-or-nothing
 venv\Scripts\python.exe tests\test_ai_switch.py             # per-student AI switch + the doubt tutor (grounding, checks, fallbacks)
 venv\Scripts\python.exe tests\test_learner_profile.py        # open learner profile, sooner/refresh revision, teacher-approved coaching actions
+venv\Scripts\python.exe tests\test_pilot_experiment.py       # randomised pilot comparison: balanced arms, control/treatment effect, the analysis
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

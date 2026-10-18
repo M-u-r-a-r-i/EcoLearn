@@ -53,6 +53,7 @@ def calibration(events_by_concept: dict[str, list[dict[str, Any]]]) -> dict[str,
     """
     sure = sure_wrong = 0
     concepts: list[str] = []
+    ever: list[str] = []
     for concept_id, items in events_by_concept.items():
         last_sure_wrong = None
         for i, e in enumerate(items):
@@ -63,20 +64,25 @@ def calibration(events_by_concept: dict[str, list[dict[str, Any]]]) -> dict[str,
                 sure_wrong += 1
                 last_sure_wrong = i
         if last_sure_wrong is not None:
+            ever.append(concept_id)
             question = items[last_sure_wrong]["question"]
             if not any(e["correct"] and e["question"] != question for e in items[last_sure_wrong + 1:]):
                 concepts.append(concept_id)
-    return {"sure": sure, "sure_wrong": sure_wrong, "sure_wrong_concepts": sorted(concepts)}
+    return {"sure": sure, "sure_wrong": sure_wrong, "sure_wrong_concepts": sorted(concepts),
+            "sure_wrong_ever": sorted(ever)}
 
 
 def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: tuple[int, int],
-          events_by_concept: dict[str, list[dict[str, Any]]], dismissed: set[str]) -> dict[str, Any]:
+          events_by_concept: dict[str, list[dict[str, Any]]], dismissed: set[str],
+          suppressed: set[str] | frozenset[str] = frozenset()) -> dict[str, Any]:
     """The profile.
 
     traits:      survey traits (survey.derive_traits) or None when the survey wasn't answered
     observed:    survey.observed_reading(views)
     first_tries: (right, answered) over first tries at lesson checks
     dismissed:   insight ids the student said "that's not me" to
+    suppressed:  insight ids switched off for this student by a pilot experiment's control arm
+                 (src/learner/experiments.py): never produced, never shown, no effect
 
     Returns {"insights": [{id, kind: said|shown, title, detail, evidence, effect, active}],
              "prefs": the lesson prefs after every active insight (survey.lesson_prefs keys + "slow_down"),
@@ -92,6 +98,8 @@ def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: 
     cal = calibration(events_by_concept)
 
     def add(insight_id: str, kind: str, title: str, detail: str, evidence: list[str], effect: str) -> bool:
+        if insight_id in suppressed:
+            return False  # a pilot experiment's control arm: not shown, no effect
         active = insight_id not in dismissed
         insights.append({"id": insight_id, "kind": kind, "title": title, "detail": detail,
                          "evidence": evidence, "effect": effect, "active": active})
@@ -141,8 +149,9 @@ def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: 
             [skim_evidence],
             "Nothing changes for you. If the check goes wrong, the lesson is still there to read.")
 
-    if cal["sure"] >= MIN_SURE and cal["sure_wrong"] >= SURE_WRONG_MIN \
-            and cal["sure_wrong"] / cal["sure"] >= SURE_WRONG_SHARE:
+    sure_wrong_rule = cal["sure"] >= MIN_SURE and cal["sure_wrong"] >= SURE_WRONG_MIN \
+        and cal["sure_wrong"] / cal["sure"] >= SURE_WRONG_SHARE
+    if sure_wrong_rule:
         if add("sure_wrong", SHOWN, "Sometimes you're sure, but it's a mix-up",
                "When you pick 'I'm sure', the answer is usually right, but not always. Those are the mix-ups "
                "worth catching, because they feel true.",
@@ -163,7 +172,11 @@ def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: 
         "prefs": prefs,
         "sooner": sooner,
         "signals": {"views": observed.get("views", 0), "skim_share": skim, "first_try_right": right,
-                    "first_try_answered": answered, "sure": cal["sure"], "sure_wrong": cal["sure_wrong"]},
+                    "first_try_answered": answered, "sure": cal["sure"], "sure_wrong": cal["sure_wrong"],
+                    # For the pilot experiment: whether the rule is met (in either arm), and the mix-ups behind it.
+                    "sure_wrong_rule": sure_wrong_rule,
+                    "sure_wrong_concepts": len(cal["sure_wrong_ever"]),
+                    "sure_wrong_fixed": len(cal["sure_wrong_ever"]) - len(cal["sure_wrong_concepts"])},
     }
 
 

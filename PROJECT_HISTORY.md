@@ -3310,3 +3310,40 @@ fresh"; the teacher approved a rules note's "revise", it topped Aarav's list as 
 - "Sure but wrong, then right on the same question" is still a firm mix-up: the right answer came straight after the explanation.
 - Nothing here is evidence that the adaptations help. The pilot should randomise one of them to find out.
 - Not done: `npm run build`; a screen reader; the teacher never sees a student's dismissals (on purpose, for now).
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzz. A randomised pilot comparison, pre-registered (2026-10-18)
+
+Branch `feature/pilot-experiment`, stacked on `feature/open-learner-profile` (merge that one first).
+
+**Changed.**
+- `data/experiments.yaml` (new): one experiment, `sure_wrong_nudge`: treatment = the `sure_wrong` insight (the "check before you pick"
+  line and half-time revision); control = never produced. Hypothesis, eligibility, primary and secondary outcomes written in the file.
+- `src/learner/experiments.py` (new): `choose_arm` (the smaller arm in the class first, a tie broken by a SHA-256 of experiment and
+  student id: re-checkable, no stored seed), `suppressed_insights`, `ECOLEARN_EXPERIMENTS=off` as a kill switch (and for tests).
+- Store: `experiment_arms` (student, experiment, arm, class_key, assigned_at); `assign_experiment_arm` reads the class counts and
+  inserts in one `BEGIN IMMEDIATE` transaction, so accounts made at the same moment still balance.
+- `platform_api._enrol_experiments` on every new account (`register_student`, `add_students_to_class`) and lazily in `_profile`;
+  `profiler.build(..., suppressed=)` drops a control arm's insights (no effect, not shown); profile signals gain `sure_wrong_rule`,
+  `sure_wrong_concepts`, `sure_wrong_fixed`, so eligibility is measured the same way in both arms.
+- `metrics.bootstrap_difference` (students resampled within arm, 2,000 resamples, seed 2026) and `metrics.experiment_report`;
+  `platform_api._pilot_experiments` (read-only: reports unassigned students, assigns none) into `pilot_report`;
+  `scripts/pilot_report.py` prints the comparison and writes `experiment_arms.csv` (pseudonymised).
+- `scripts/seed_demo.py` keeps `aarav.k` in the treatment arm (a swap with a classmate keeps the balance), so the stage demo shows it.
+- `docs/pilot-experiment.md` (new): the pre-registration. `docs/consent-note.md`: decision 6 for the school, a sentence for families,
+  a row of what is kept, the evidence row.
+
+**Why.** The user asked to set up the randomised comparison suggested with the profile work: no adaptation has evidence yet, and a
+fair test needs chance, not us, to decide who gets a feature.
+
+**Checked.** `tests/test_pilot_experiment.py` (27 checks): balance (10 to 5/5, 7 to 4/3, 21 concurrent accounts to 11/10), the hash
+splits about evenly, arms never change, control vs treatment effects, the About me page shows nothing to control, disabled and off
+switches, lazy arms for older accounts, a deterministic bootstrap, the report's numbers, read-only and pseudonymised.
+`test_learner_profile` runs with experiments off (it tests the rules). Every deterministic test passes. Load test not re-run (it
+failed on `main` today on machine state, see the previous entry).
+
+**Learned.**
+- The eligible pool is small: in the demo class, 5 of 25 students meet the sure-but-wrong rule. A class or two in the pilot will give
+  only a handful per arm. The report says "far too few" by itself under 10; the pitch must present it as a designed first look.
+- The demo dataset's experiment numbers are meaningless (invented data; seeding does not apply the nudge). Never quote them.
+- A heredoc turned `\n` inside an f-string into a real newline again (the gotcha in section 7): write the script to a file or use Edit.

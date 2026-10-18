@@ -57,7 +57,7 @@ from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError, TooManyRequestsError
-from src.learner import diagnostic, doubt_tutor, help_guard, personal_story, profiler, survey
+from src.learner import diagnostic, doubt_tutor, experiments, help_guard, personal_story, profiler, survey
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
@@ -223,7 +223,7 @@ def register_student(
         raise ConflictError("That username is taken. Try another, or log in instead.")
 
     try:
-        return store.save_student_with_credentials(
+        saved = store.save_student_with_credentials(
             student_id=_new_student_id(),
             name=name,
             interest=interest,
@@ -231,6 +231,8 @@ def register_student(
             username=username,
             password_hash=password_hash,
         )
+        _enrol_experiments(saved["student_id"])
+        return saved
     except sqlite3.IntegrityError as exc:
         # The index caught a race (or, vanishingly unlikely, a uuid4 collision).
         raise ConflictError("That username is taken. Try another, or log in instead.") from exc
@@ -568,6 +570,8 @@ def add_students_to_class(
             "Another account took one of these usernames just now. Nothing was "
             "saved — please try again."
         ) from exc
+    for s in saved:  # pilot experiments: an arm per student, balanced within this class
+        _enrol_experiments(s["student_id"])
 
     return {
         "class": store.get_class(class_id),
@@ -1066,8 +1070,27 @@ def get_learning_plan(student_id: str) -> dict[str, Any]:
     }
 
 
-def _profile(student_id: str) -> dict[str, Any]:
-    """profiler.build over this student's rows (see src/learner/profiler.py)."""
+def _enrol_experiments(student_id: str) -> dict[str, str]:
+    """Give the student an arm in every enabled pilot experiment they aren't in yet; returns {experiment: arm}.
+
+    Called when an account is made, and from `_profile` for accounts made before an experiment started.
+    Arms are balanced within the student's class (src/learner/experiments.py) and never change.
+    """
+    arms = store.get_experiment_arms(student_id)
+    missing = [e for e in experiments.enabled() if e["id"] not in arms]
+    if missing:
+        class_key = store.get_student_class_id(student_id) or "none"
+        for exp in missing:
+            arms[exp["id"]] = store.assign_experiment_arm(
+                student_id, exp["id"], class_key,
+                lambda counts, eid=exp["id"]: experiments.choose_arm(eid, student_id, counts))
+    return arms
+
+
+def _profile(student_id: str, *, arms: dict[str, str] | None = None) -> dict[str, Any]:
+    """profiler.build over this student's rows (see src/learner/profiler.py), minus any insight a pilot
+    experiment's control arm switches off for them. `arms` given (the pilot report) means read-only: no
+    new arm is assigned."""
     saved = store.get_survey(student_id)
     activity = store.get_activity([student_id])
     first = [a for a in activity["answers"] if a["attempt_no"] == 1]
@@ -1076,7 +1099,8 @@ def _profile(student_id: str) -> dict[str, Any]:
         store.get_end_check_answers([student_id]), store.get_review_answers([student_id]))
     return profiler.build(saved["traits"] if saved else None, survey.observed_reading(activity["views"]),
                           (sum(1 for a in first if a["correct"]), len(first)), events,
-                          store.get_insight_dismissals(student_id))
+                          store.get_insight_dismissals(student_id),
+                          experiments.suppressed_insights(_enrol_experiments(student_id) if arms is None else arms))
 
 
 def get_learner_profile(student_id: str) -> dict[str, Any]:
@@ -2952,7 +2976,49 @@ def pilot_report() -> dict[str, Any]:
         # The survey: what students said about themselves, how it changed when they updated
         # their answers, and how it lines up with how they actually read and answered.
         "survey": _pilot_survey(students, student_alias, insights),
+        # Randomised comparisons (data/experiments.yaml, docs/pilot-experiment.md): control vs treatment.
+        **_pilot_experiments(students, student_alias, class_alias),
     }
+
+
+def _pilot_experiments(students: list[dict[str, Any]], student_alias: dict[str, str],
+                       class_alias: dict[str | None, str | None]) -> dict[str, Any]:
+    """The experiments section of `pilot_report`: per-student rows (pseudonymised) and each comparison.
+
+    Read-only: students without an arm (accounts made before the experiment, never opened since) are
+    counted as unassigned, not assigned here.
+    """
+    by_id = {s["student_id"]: s for s in students}
+    stored = store.list_experiment_arms()
+    arms_of: dict[str, dict[str, str]] = {}
+    for a in stored:
+        arms_of.setdefault(a["student_id"], {})[a["experiment_id"]] = a["arm"]
+    _, comparisons = _class_gains([s["student_id"] for s in students])
+    reports, all_rows = [], []
+    for exp in experiments.load_config():
+        rows = []
+        for a in (x for x in stored if x["experiment_id"] == exp["id"]):
+            sid = a["student_id"]
+            if sid not in by_id:
+                continue  # an erased student: their arm went with them, this is a leftover
+            signals = _profile(sid, arms=arms_of.get(sid, {}))["signals"]
+            comp = comparisons.get(sid)
+            gain = (sum(1 for c in comp["concepts"] if c["after"] == "right")
+                    - sum(1 for c in comp["concepts"] if c["before"] == "right")) if comp else None
+            rows.append({
+                "experiment_id": exp["id"], "student_id": student_alias[sid],
+                "class_id": class_alias.get(by_id[sid]["class_id"]), "arm": a["arm"],
+                "eligible": signals["sure_wrong_rule"], "sure_wrong_concepts": signals["sure_wrong_concepts"],
+                "sure_wrong_fixed": signals["sure_wrong_fixed"], "first_try_right": signals["first_try_right"],
+                "first_try_answered": signals["first_try_answered"], "end_gain": gain,
+                "dismissed": "sure_wrong" in store.get_insight_dismissals(sid)})
+        rows.sort(key=lambda r: r["student_id"])
+        report = metrics.experiment_report(exp, rows)
+        report["enabled"] = bool(exp.get("enabled"))
+        report["unassigned"] = len(students) - len(rows)
+        reports.append(report)
+        all_rows += rows
+    return {"experiments": reports, "experiment_rows": all_rows}
 
 
 # ---------------------------------------------------------------------------

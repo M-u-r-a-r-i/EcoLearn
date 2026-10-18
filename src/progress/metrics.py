@@ -478,3 +478,83 @@ def counts_of(values: list[str]) -> dict[str, int]:
     for v in values:
         tally[v] = tally.get(v, 0) + 1
     return dict(sorted(tally.items(), key=lambda kv: (-kv[1], kv[0])))
+
+
+# ---------------------------------------------------------------------------
+# Pilot experiments (2026-10-18): control vs treatment for each randomised comparison.
+# Pre-registered in docs/pilot-experiment.md; arms come from src/learner/experiments.py.
+# ---------------------------------------------------------------------------
+
+BOOTSTRAP_RESAMPLES = 2000
+BOOTSTRAP_SEED = 2026  # fixed, so the same data always gives the same interval
+
+
+def _mean(values: list[float]) -> float | None:
+    return round(sum(values) / len(values), 3) if values else None
+
+
+def bootstrap_difference(treatment: list[float], control: list[float],
+                         resamples: int = BOOTSTRAP_RESAMPLES, seed: int = BOOTSTRAP_SEED) -> dict[str, Any]:
+    """Difference of means (treatment minus control) with a 95% percentile-bootstrap interval.
+
+    Students are resampled within each arm, so each student counts once (no pretending that one student's
+    many answers are independent). Needs at least 2 students per arm; otherwise the estimate is None.
+    Deterministic: a fixed seed.
+    """
+    import random
+
+    if len(treatment) < 2 or len(control) < 2:
+        return {"estimate": None, "ci95": None, "n_treatment": len(treatment), "n_control": len(control)}
+    rng = random.Random(seed)
+    diffs = []
+    for _ in range(resamples):
+        t = [treatment[rng.randrange(len(treatment))] for _ in treatment]
+        c = [control[rng.randrange(len(control))] for _ in control]
+        diffs.append(sum(t) / len(t) - sum(c) / len(c))
+    diffs.sort()
+    low, high = diffs[int(0.025 * resamples)], diffs[int(0.975 * resamples) - 1]
+    return {"estimate": round(sum(treatment) / len(treatment) - sum(control) / len(control), 3),
+            "ci95": [round(low, 3), round(high, 3)], "n_treatment": len(treatment), "n_control": len(control)}
+
+
+def experiment_report(experiment: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """One experiment's comparison.
+
+    rows: one per assigned student {student_id (pseudonym), class_id, arm, eligible, sure_wrong_concepts,
+          sure_wrong_fixed, first_try_right, first_try_answered, end_gain (or None), dismissed}.
+
+    Returns {id, title, hypothesis, eligible_rule, primary_outcome,
+             arms: {control|treatment: {students, eligible, primary_mean, end_gain_mean, end_gain_students,
+                    first_try_mean, first_try_students, dismissed}},
+             primary: bootstrap_difference over eligible students' fix rates,
+             end_gain: bootstrap_difference over every student who took both checks,
+             balance: {class_id: {control, treatment}}, caution: str}
+    """
+    arms: dict[str, Any] = {}
+    values: dict[str, dict[str, list[float]]] = {}
+    balance: dict[str, dict[str, int]] = defaultdict(lambda: {"control": 0, "treatment": 0})
+    for arm in ("control", "treatment"):
+        mine = [r for r in rows if r["arm"] == arm]
+        primary = [r["sure_wrong_fixed"] / r["sure_wrong_concepts"]
+                   for r in mine if r["eligible"] and r["sure_wrong_concepts"]]
+        gains = [float(r["end_gain"]) for r in mine if r["end_gain"] is not None]
+        first = [r["first_try_right"] / r["first_try_answered"] for r in mine if r["first_try_answered"]]
+        values[arm] = {"primary": primary, "gains": gains}
+        arms[arm] = {"students": len(mine), "eligible": sum(1 for r in mine if r["eligible"]),
+                     "primary_mean": _mean(primary), "end_gain_mean": _mean(gains), "end_gain_students": len(gains),
+                     "first_try_mean": _mean(first), "first_try_students": len(first),
+                     "dismissed": sum(1 for r in mine if r.get("dismissed"))}
+    for r in rows:
+        balance[r["class_id"] or "none"][r["arm"]] += 1
+    small = min(arms["control"]["eligible"], arms["treatment"]["eligible"])
+    caution = ("A class-sized pilot can only show a LARGE difference. Read the interval, not just the estimate: "
+               "if it includes 0, the pilot did not show an effect either way.")
+    if small < 10:
+        caution = (f"Only {small} eligible student(s) in the smaller arm: far too few to tell an effect from chance. "
+                   "Report the numbers as a first look, never as proof. " + caution)
+    return {"id": experiment["id"], "title": experiment.get("title"), "hypothesis": experiment.get("hypothesis"),
+            "eligible_rule": experiment.get("eligible"), "primary_outcome": experiment.get("primary_outcome"),
+            "arms": arms,
+            "primary": bootstrap_difference(values["treatment"]["primary"], values["control"]["primary"]),
+            "end_gain": bootstrap_difference(values["treatment"]["gains"], values["control"]["gains"]),
+            "balance": dict(balance), "caution": caution}

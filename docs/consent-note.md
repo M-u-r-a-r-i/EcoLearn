@@ -45,6 +45,10 @@ this part). Where the product cannot yet do something the note would naturally p
    paid plan for children's data, confirm in writing where data is processed, and fill in `[Provider terms]`.
 5. **Whether a family can say no to the AI parts and still take part.** They can since 2026-10-14 (see "Built, with
    limits"). Decide how a family says so: the optional box on the form in Part D, or a request to `[Contact]`.
+6. **The randomised comparison** (`docs/pilot-experiment.md`). One small feature (a "check before you pick" reminder and
+   earlier revision for students often sure of a wrong answer) is on for half the students, chosen at random and balanced
+   within each class. Lessons, quizzes, marks and safety are the same for everyone. Decide whether the school needs its own
+   ethics sign-off for this, and keep the sentence about it in Part B.
 
 ### Built, with limits (2026-10-13)
 
@@ -106,6 +110,7 @@ gazetted text.
 | A student can report a story, a teacher can hide it | `tests/test_story_review.py` |
 | The AI parts can be switched off for one child, and then nothing about them is sent to an AI service | `scripts/set_student_ai.py`, the teacher's Students tab, `tests/test_ai_switch.py` |
 | A child sees what EcoLearn worked out about them and why, and can switch each line off; it is rules, not AI | `src/learner/profiler.py`, the "About me" page, `tests/test_learner_profile.py` |
+| One small feature is on for half the students, chosen at random; nobody is told which half; everything else is the same | `src/learner/experiments.py`, `data/experiments.yaml`, `docs/pilot-experiment.md`, `tests/test_pilot_experiment.py` |
 | A family can be shown, and can have deleted, everything held about their child | `scripts/export_student.py`, `scripts/delete_student.py`, `tests/test_student_data_rights.py` (backups are not covered) |
 | AI is not used for marks | Grading is multiple choice against an answer key (`tests/test_mcq_grading.py`) |
 | The lessons were prepared in advance with AI help and checked by software | `PROJECT_HISTORY.md`; `scripts/validate_lessons.py`. A person has not read every lesson |
@@ -146,6 +151,7 @@ changed.
 | What happened to each question they asked in the help chat (answered, stopped, or too many), but **not** the words | To keep the chat safe |
 | When they last used EcoLearn | To help the teacher see who needs a nudge |
 | A few short lines worked out from the above, by fixed rules and not by AI, such as "you're often sure of an answer that turns out wrong", with the reason for each. Your child sees them on an "About me" page and can switch any of them off; we keep which ones they switched off | To shape lessons and revision, openly |
+| Which half of the pilot comparison your child is in (see "Finding out what helps" below) | To compare the two halves fairly |
 | Revision questions their teacher chose to add for them, and whether they got them right | So the teacher can follow up |
 
 **What we do not collect:** an email address, a phone number, a home address, photos, voice, location, or contacts.
@@ -159,6 +165,9 @@ theme, are kept in your child's own browser.
 - **[Operator]'s named staff** `[names or roles]` see it to run and support the pilot.
 - **Results of the pilot** may be reported, for example in a school report or a presentation. These use totals and averages
   with names replaced by codes. They never name a child.
+- **Finding out what helps.** To learn whether one small feature helps (a reminder to check an answer before picking it,
+  for students who are often sure of a wrong answer), it is switched on for half the students, chosen at random. Nobody is
+  told which half. Lessons, quizzes and marks are the same for everyone.
 - **Not sold, not shared** with advertisers or anyone else, and not used to show your child adverts.
 
 **How AI is used.** EcoLearn uses AI in four places, and every one has a plain version that works without it:

@@ -34,6 +34,7 @@ _DB = _TMP / "profile.db"
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_DB)
 os.environ["LLM_MODEL"] = ""
 os.environ["ECOLEARN_REVISION_HOURS"] = "20"
+os.environ["ECOLEARN_EXPERIMENTS"] = "off"  # the profile rules are tested here; experiments in test_pilot_experiment
 warnings.simplefilter("ignore")
 
 from fastapi.testclient import TestClient  # noqa: E402

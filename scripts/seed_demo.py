@@ -402,6 +402,23 @@ def main() -> int:
     # ---- a teaching-assistant plan (the rules plan: no model call is made) ----------------
     api.generate_class_plan(teacher_id, class_id, models=[])
 
+    # ---- the pilot experiment (data/experiments.yaml) --------------------------------------
+    # Arms were given when the class was made, balanced, ties by a hash of the (random) student id. The
+    # stage demo shows aarav.k's "sure but wrong" insight, so keep him in the treatment arm: swap with a
+    # treatment classmate if needed, which keeps the class balanced. Demo data only; never do this in a pilot.
+    aarav = next(s["student_id"] for s in students if s["username"] == "aarav.k")
+    arm_row = conn.execute("SELECT arm FROM experiment_arms WHERE student_id = ? AND experiment_id = 'sure_wrong_nudge'",
+                           (aarav,)).fetchone()
+    if arm_row is not None and arm_row[0] == "control":
+        other = conn.execute("SELECT student_id FROM experiment_arms WHERE experiment_id = 'sure_wrong_nudge' "
+                             "AND arm = 'treatment' AND student_id != ? LIMIT 1", (aarav,)).fetchone()
+        if other:
+            conn.execute("UPDATE experiment_arms SET arm = 'control' WHERE student_id = ? "
+                         "AND experiment_id = 'sure_wrong_nudge'", (other[0],))
+            conn.execute("UPDATE experiment_arms SET arm = 'treatment' WHERE student_id = ? "
+                         "AND experiment_id = 'sure_wrong_nudge'", (aarav,))
+            conn.commit()
+
     conn.close()
     print(f"Demo database: {db_path}")
     print(f"  teacher login : {TEACHER_USERNAME}  (password in scripts/seed_demo.py)")
