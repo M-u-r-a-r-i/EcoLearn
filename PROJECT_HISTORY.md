@@ -3347,3 +3347,33 @@ failed on `main` today on machine state, see the previous entry).
   only a handful per arm. The report says "far too few" by itself under 10; the pitch must present it as a designed first look.
 - The demo dataset's experiment numbers are meaningless (invented data; seeding does not apply the nudge). Never quote them.
 - A heredoc turned `\n` inside an f-string into a real newline again (the gotcha in section 7): write the script to a file or use Edit.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzz. The pilot experiment redesigned before the pilot: the "check before you pick" line for half the class (2026-10-19)
+
+Branch `feature/pilot-experiment` (stacked on `feature/open-learner-profile`).
+
+**Changed.**
+- `data/experiments.yaml`: new enabled experiment `check_prompt` (treatment: the "Before you pick" line on every lesson check;
+  control: never; `prefs` per arm), primary `first_try_accuracy` over students with 3+ first tries. `sure_wrong_nudge` kept, disabled,
+  with the reason.
+- `experiments.pref_overrides`; `profiler.build(..., overrides=)` applies them last and rewrites the `sure_wrong` insight's effect to
+  "Those ideas come back for revision sooner." when the arm removes the line (About me never promises it). Sooner revision is
+  unchanged in both arms, so the line is the only difference.
+- `metrics.experiment_report` reads `primary_metric` from the config (`first_try_accuracy` | `sure_wrong_fixed_share`) and adds the
+  "sure but wrong" share as a secondary; report rows carry raw numbers; a stopped experiment nobody was in is left out;
+  `scripts/pilot_report.py` prints the new columns. `scripts/seed_demo.py` keeps `aarav.k` in treatment of every running experiment.
+- `docs/pilot-experiment.md` rewritten, with a dated "Changes" note; `docs/consent-note.md` describes the line.
+
+**Why.** The user asked for the better of the two designs. The sure-but-wrong rule picks out too few students (5 of 25 in the demo),
+while the line reaches every student on every check. (Correction to the earlier suggestion: "worked example first" only reaches
+students who said they like to start by trying, so it was not the everyone-reaching option.)
+
+**Checked.** `tests/test_pilot_experiment.py` (30 checks: the line on for every treatment student and never in control, the honest
+About me text, sooner revision the same, an insight-type experiment, the switches, first-try means and eligibility from the report,
+read-only, pseudonymised). Every deterministic test passes. Demo report: 22 of 25 eligible; Aarav in treatment after a reseed.
+
+**Learned.**
+- With about 11 students per arm the demo interval spans about 30 points (-21 to +10): a class-sized pilot resolves only large
+  differences. Say so in the pitch.
+- The demo numbers are invented and the nudge was not applied while seeding: never quote them.

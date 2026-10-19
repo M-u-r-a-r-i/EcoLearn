@@ -1097,10 +1097,11 @@ def _profile(student_id: str, *, arms: dict[str, str] | None = None) -> dict[str
     events = learner_plan._answer_events(
         store.get_diagnostic_answers([student_id]), activity["answers"],
         store.get_end_check_answers([student_id]), store.get_review_answers([student_id]))
+    arms = _enrol_experiments(student_id) if arms is None else arms
     return profiler.build(saved["traits"] if saved else None, survey.observed_reading(activity["views"]),
                           (sum(1 for a in first if a["correct"]), len(first)), events,
                           store.get_insight_dismissals(student_id),
-                          experiments.suppressed_insights(_enrol_experiments(student_id) if arms is None else arms))
+                          experiments.suppressed_insights(arms), experiments.pref_overrides(arms))
 
 
 def get_learner_profile(student_id: str) -> dict[str, Any]:
@@ -3008,10 +3009,13 @@ def _pilot_experiments(students: list[dict[str, Any]], student_alias: dict[str, 
             rows.append({
                 "experiment_id": exp["id"], "student_id": student_alias[sid],
                 "class_id": class_alias.get(by_id[sid]["class_id"]), "arm": a["arm"],
-                "eligible": signals["sure_wrong_rule"], "sure_wrong_concepts": signals["sure_wrong_concepts"],
+                "sure_wrong_rule": signals["sure_wrong_rule"], "sure_wrong_concepts": signals["sure_wrong_concepts"],
                 "sure_wrong_fixed": signals["sure_wrong_fixed"], "first_try_right": signals["first_try_right"],
-                "first_try_answered": signals["first_try_answered"], "end_gain": gain,
+                "first_try_answered": signals["first_try_answered"], "sure": signals["sure"],
+                "sure_wrong": signals["sure_wrong"], "end_gain": gain,
                 "dismissed": "sure_wrong" in store.get_insight_dismissals(sid)})
+        if not rows and not exp.get("enabled"):
+            continue  # a stopped experiment nobody was ever put in: nothing to report
         rows.sort(key=lambda r: r["student_id"])
         report = metrics.experiment_report(exp, rows)
         report["enabled"] = bool(exp.get("enabled"))

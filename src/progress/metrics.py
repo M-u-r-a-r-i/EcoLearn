@@ -517,31 +517,51 @@ def bootstrap_difference(treatment: list[float], control: list[float],
             "ci95": [round(low, 3), round(high, 3)], "n_treatment": len(treatment), "n_control": len(control)}
 
 
+SURE_MIN = 3  # answers marked sure before a student's "sure but wrong" share counts
+
+
+def _primary_value(metric: str, row: dict[str, Any], experiment: dict[str, Any]) -> float | None:
+    """One student's primary outcome, or None when they aren't eligible for it."""
+    if metric == "first_try_accuracy":
+        if row["first_try_answered"] >= int(experiment.get("min_first_tries", 3)):
+            return row["first_try_right"] / row["first_try_answered"]
+        return None
+    if metric == "sure_wrong_fixed_share":
+        if row.get("sure_wrong_rule") and row["sure_wrong_concepts"]:
+            return row["sure_wrong_fixed"] / row["sure_wrong_concepts"]
+        return None
+    raise ValueError(f"Unknown primary_metric {metric!r} in data/experiments.yaml")
+
+
 def experiment_report(experiment: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]:
     """One experiment's comparison.
 
-    rows: one per assigned student {student_id (pseudonym), class_id, arm, eligible, sure_wrong_concepts,
-          sure_wrong_fixed, first_try_right, first_try_answered, end_gain (or None), dismissed}.
+    rows: one per assigned student {student_id (pseudonym), class_id, arm, first_try_right, first_try_answered,
+          sure, sure_wrong, sure_wrong_rule, sure_wrong_concepts, sure_wrong_fixed, end_gain (or None), dismissed}.
+    The experiment's `primary_metric` (first_try_accuracy | sure_wrong_fixed_share) decides the primary outcome
+    and who is eligible for it.
 
-    Returns {id, title, hypothesis, eligible_rule, primary_outcome,
-             arms: {control|treatment: {students, eligible, primary_mean, end_gain_mean, end_gain_students,
-                    first_try_mean, first_try_students, dismissed}},
-             primary: bootstrap_difference over eligible students' fix rates,
-             end_gain: bootstrap_difference over every student who took both checks,
+    Returns {id, title, hypothesis, eligible_rule, primary_outcome, primary_metric,
+             arms: {control|treatment: {students, eligible, primary_mean, sure_wrong_rate_mean,
+                    sure_wrong_rate_students, end_gain_mean, end_gain_students, first_try_mean, first_try_students,
+                    dismissed}},
+             primary, sure_wrong_rate, end_gain: bootstrap_difference (treatment minus control),
              balance: {class_id: {control, treatment}}, caution: str}
     """
+    metric = experiment.get("primary_metric", "sure_wrong_fixed_share")
     arms: dict[str, Any] = {}
     values: dict[str, dict[str, list[float]]] = {}
     balance: dict[str, dict[str, int]] = defaultdict(lambda: {"control": 0, "treatment": 0})
     for arm in ("control", "treatment"):
         mine = [r for r in rows if r["arm"] == arm]
-        primary = [r["sure_wrong_fixed"] / r["sure_wrong_concepts"]
-                   for r in mine if r["eligible"] and r["sure_wrong_concepts"]]
+        primary = [v for v in (_primary_value(metric, r, experiment) for r in mine) if v is not None]
+        sure_rate = [r["sure_wrong"] / r["sure"] for r in mine if r.get("sure", 0) >= SURE_MIN]
         gains = [float(r["end_gain"]) for r in mine if r["end_gain"] is not None]
         first = [r["first_try_right"] / r["first_try_answered"] for r in mine if r["first_try_answered"]]
-        values[arm] = {"primary": primary, "gains": gains}
-        arms[arm] = {"students": len(mine), "eligible": sum(1 for r in mine if r["eligible"]),
-                     "primary_mean": _mean(primary), "end_gain_mean": _mean(gains), "end_gain_students": len(gains),
+        values[arm] = {"primary": primary, "sure_rate": sure_rate, "gains": gains}
+        arms[arm] = {"students": len(mine), "eligible": len(primary), "primary_mean": _mean(primary),
+                     "sure_wrong_rate_mean": _mean(sure_rate), "sure_wrong_rate_students": len(sure_rate),
+                     "end_gain_mean": _mean(gains), "end_gain_students": len(gains),
                      "first_try_mean": _mean(first), "first_try_students": len(first),
                      "dismissed": sum(1 for r in mine if r.get("dismissed"))}
     for r in rows:
@@ -554,7 +574,8 @@ def experiment_report(experiment: dict[str, Any], rows: list[dict[str, Any]]) ->
                    "Report the numbers as a first look, never as proof. " + caution)
     return {"id": experiment["id"], "title": experiment.get("title"), "hypothesis": experiment.get("hypothesis"),
             "eligible_rule": experiment.get("eligible"), "primary_outcome": experiment.get("primary_outcome"),
-            "arms": arms,
+            "primary_metric": metric, "arms": arms,
             "primary": bootstrap_difference(values["treatment"]["primary"], values["control"]["primary"]),
+            "sure_wrong_rate": bootstrap_difference(values["treatment"]["sure_rate"], values["control"]["sure_rate"]),
             "end_gain": bootstrap_difference(values["treatment"]["gains"], values["control"]["gains"]),
             "balance": dict(balance), "caution": caution}

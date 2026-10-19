@@ -74,7 +74,8 @@ def calibration(events_by_concept: dict[str, list[dict[str, Any]]]) -> dict[str,
 
 def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: tuple[int, int],
           events_by_concept: dict[str, list[dict[str, Any]]], dismissed: set[str],
-          suppressed: set[str] | frozenset[str] = frozenset()) -> dict[str, Any]:
+          suppressed: set[str] | frozenset[str] = frozenset(),
+          overrides: dict[str, Any] | None = None) -> dict[str, Any]:
     """The profile.
 
     traits:      survey traits (survey.derive_traits) or None when the survey wasn't answered
@@ -83,6 +84,8 @@ def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: 
     dismissed:   insight ids the student said "that's not me" to
     suppressed:  insight ids switched off for this student by a pilot experiment's control arm
                  (src/learner/experiments.py): never produced, never shown, no effect
+    overrides:   lesson prefs fixed by a pilot experiment's arm (e.g. {"slow_down": False}), applied last; an
+                 insight's effect text is corrected so the About me page never promises what the arm removed
 
     Returns {"insights": [{id, kind: said|shown, title, detail, evidence, effect, active}],
              "prefs": the lesson prefs after every active insight (survey.lesson_prefs keys + "slow_down"),
@@ -167,6 +170,12 @@ def build(traits: dict[str, Any] | None, observed: dict[str, Any], first_tries: 
             "Nothing changes. Just so you know.")
 
     sooner = cal["sure_wrong_concepts"] if any(i["id"] == "sure_wrong" and i["active"] for i in insights) else []
+    if overrides:
+        prefs.update(overrides)
+        if overrides.get("slow_down") is False:
+            for i in insights:  # the arm removed the reminder: say only what still happens
+                if i["id"] == "sure_wrong":
+                    i["effect"] = "Those ideas come back for revision sooner."
     return {
         "insights": insights,
         "prefs": prefs,

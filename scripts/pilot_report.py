@@ -140,31 +140,40 @@ def print_survey(sv: dict) -> None:
                   f"{pct(g['mean_skim_share']):>9}{pct(g['first_try_accuracy']):>9}")
 
 
+_METRIC_LABEL = {"first_try_accuracy": "right first time", "sure_wrong_fixed_share": "mix-ups fixed"}
+
+
+def _difference(label: str, d: dict, share: bool) -> str:
+    if d["estimate"] is None:
+        return (f"  {label}: not enough students yet ({d['n_treatment']} treatment, {d['n_control']} control; "
+                "need 2+ each)")
+    lo, hi = d["ci95"]
+    if share:  # a share: show percentage points
+        est, rng = f"{d['estimate'] * 100:+.0f} points", f"{lo * 100:+.0f} to {hi * 100:+.0f} points"
+    else:
+        est, rng = f"{d['estimate']:+.2f}", f"{lo:+.2f} to {hi:+.2f}"
+    return (f"  {label}: treatment minus control {est}, 95% interval {rng} "
+            f"({d['n_treatment']} vs {d['n_control']} students)")
+
+
 def print_experiments(reports: list[dict]) -> None:
     for e in reports:
         state = "running" if e["enabled"] else "stopped"
+        name = _METRIC_LABEL.get(e["primary_metric"], e["primary_metric"])
         print()
         print(f"Experiment: {e['title']}  [{e['id']}, {state}]")
         print(f"  Hypothesis: {e['hypothesis']}")
         print(f"  Eligible:   {e['eligible_rule']}")
         print(f"  Primary:    {e['primary_outcome']}")
-        print(f"  {'':<12}{'students':>9}{'eligible':>9}{'fixed (mean)':>14}{'end gain':>10}{'1st try':>9}{'said not me':>13}")
+        print(f"  {'':<12}{'students':>9}{'eligible':>9}{'primary':>9}{'sure but wrong':>16}{'end gain':>10}{'said not me':>13}")
         for arm in ("control", "treatment"):
             a = e["arms"][arm]
-            print(f"  {arm:<12}{a['students']:>9}{a['eligible']:>9}{pct(a['primary_mean']):>14}"
-                  f"{(a['end_gain_mean'] if a['end_gain_mean'] is not None else '—'):>10}"
-                  f"{pct(a['first_try_mean']):>9}{a['dismissed']:>13}")
-        for label, d, fmt in (("Primary (fixed share)", e["primary"], pct),
-                              ("End-check gain (answers)", e["end_gain"], lambda v: f"{v:+.2f}")):
-            if d["estimate"] is None:
-                print(f"  {label}: not enough students yet ({d['n_treatment']} treatment, {d['n_control']} control; need 2+ each)")
-            else:
-                lo, hi = d["ci95"]
-                est = fmt(d["estimate"]) if label.startswith("End") else f"{d['estimate'] * 100:+.0f} points"
-                rng = (f"{fmt(lo)} to {fmt(hi)}" if label.startswith("End")
-                       else f"{lo * 100:+.0f} to {hi * 100:+.0f} points")
-                print(f"  {label}: treatment minus control {est}, 95% interval {rng} "
-                      f"({d['n_treatment']} vs {d['n_control']} students)")
+            print(f"  {arm:<12}{a['students']:>9}{a['eligible']:>9}{pct(a['primary_mean']):>9}"
+                  f"{pct(a['sure_wrong_rate_mean']):>16}"
+                  f"{(a['end_gain_mean'] if a['end_gain_mean'] is not None else '—'):>10}{a['dismissed']:>13}")
+        print(_difference(f"Primary ({name})", e["primary"], True))
+        print(_difference("Sure but wrong (share of sure answers)", e["sure_wrong_rate"], True))
+        print(_difference("End-check gain (answers)", e["end_gain"], False))
         print("  Balance by class: " + ", ".join(f"{c} {v['control']}/{v['treatment']}" for c, v in sorted(e["balance"].items()))
               + (f"; {e['unassigned']} student(s) unassigned" if e["unassigned"] else ""))
         print(f"  Caution: {e['caution']}")

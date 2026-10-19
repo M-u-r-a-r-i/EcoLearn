@@ -13,8 +13,8 @@ How a student gets an arm (`choose_arm`):
 It never changes after that. Disabling an experiment stops the suppression (everyone gets the treatment),
 and the stored arms stay for the analysis.
 
-In the control arm the experiment's insights are never produced, so their effects never happen; nobody is
-told the arm. Pure except `load_config`, which reads the YAML through the shared file cache.
+An arm can fix lesson preferences (`pref_overrides`: e.g. the "Before you pick" line on for treatment, off for
+control) and/or switch profile insights off in control (`suppressed_insights`). Nobody is told the arm. Pure except `load_config`, which reads the YAML through the shared file cache.
 """
 
 from __future__ import annotations
@@ -58,6 +58,16 @@ def choose_arm(experiment_id: str, student_id: str, class_counts: dict[str, int]
     if control != treatment:
         return CONTROL if control < treatment else TREATMENT
     return tie_break(experiment_id, student_id)
+
+
+def pref_overrides(arms: dict[str, str]) -> dict[str, Any]:
+    """Lesson preferences fixed by a student's arms {experiment_id: arm}, e.g. {"slow_down": True}."""
+    out: dict[str, Any] = {}
+    for exp in enabled():
+        arm = arms.get(exp["id"])
+        if arm:
+            out.update((exp.get("prefs") or {}).get(arm) or {})
+    return out
 
 
 def suppressed_insights(arms: dict[str, str]) -> set[str]:

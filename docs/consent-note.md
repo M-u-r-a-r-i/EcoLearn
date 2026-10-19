@@ -45,9 +45,9 @@ this part). Where the product cannot yet do something the note would naturally p
    paid plan for children's data, confirm in writing where data is processed, and fill in `[Provider terms]`.
 5. **Whether a family can say no to the AI parts and still take part.** They can since 2026-10-14 (see "Built, with
    limits"). Decide how a family says so: the optional box on the form in Part D, or a request to `[Contact]`.
-6. **The randomised comparison** (`docs/pilot-experiment.md`). One small feature (a "check before you pick" reminder and
-   earlier revision for students often sure of a wrong answer) is on for half the students, chosen at random and balanced
-   within each class. Lessons, quizzes, marks and safety are the same for everyone. Decide whether the school needs its own
+6. **The randomised comparison** (`docs/pilot-experiment.md`). One small feature (a one-line "read each option once more
+   before you pick" reminder on quiz questions) is on for half the students, chosen at random and balanced within each
+   class. Lessons, quizzes, marks and safety are the same for everyone. Decide whether the school needs its own
    ethics sign-off for this, and keep the sentence about it in Part B.
 
 ### Built, with limits (2026-10-13)
@@ -165,8 +165,8 @@ theme, are kept in your child's own browser.
 - **[Operator]'s named staff** `[names or roles]` see it to run and support the pilot.
 - **Results of the pilot** may be reported, for example in a school report or a presentation. These use totals and averages
   with names replaced by codes. They never name a child.
-- **Finding out what helps.** To learn whether one small feature helps (a reminder to check an answer before picking it,
-  for students who are often sure of a wrong answer), it is switched on for half the students, chosen at random. Nobody is
+- **Finding out what helps.** To learn whether one small feature helps (a one-line reminder on quiz questions to read each
+  option again before picking), it is switched on for half the students, chosen at random. Nobody is
   told which half. Lessons, quizzes and marks are the same for everyone.
 - **Not sold, not shared** with advertisers or anyone else, and not used to show your child adverts.
 

@@ -404,19 +404,23 @@ def main() -> int:
 
     # ---- the pilot experiment (data/experiments.yaml) --------------------------------------
     # Arms were given when the class was made, balanced, ties by a hash of the (random) student id. The
-    # stage demo shows aarav.k's "sure but wrong" insight, so keep him in the treatment arm: swap with a
-    # treatment classmate if needed, which keeps the class balanced. Demo data only; never do this in a pilot.
+    # stage demo shows aarav.k's "Before you pick" line, so keep him in the treatment arm of every running
+    # experiment: swap with a treatment classmate if needed, which keeps the class balanced. Demo data only;
+    # never do this in a pilot.
+    from src.learner import experiments  # noqa: E402
     aarav = next(s["student_id"] for s in students if s["username"] == "aarav.k")
-    arm_row = conn.execute("SELECT arm FROM experiment_arms WHERE student_id = ? AND experiment_id = 'sure_wrong_nudge'",
-                           (aarav,)).fetchone()
-    if arm_row is not None and arm_row[0] == "control":
-        other = conn.execute("SELECT student_id FROM experiment_arms WHERE experiment_id = 'sure_wrong_nudge' "
-                             "AND arm = 'treatment' AND student_id != ? LIMIT 1", (aarav,)).fetchone()
+    for exp in experiments.enabled():
+        arm_row = conn.execute("SELECT arm FROM experiment_arms WHERE student_id = ? AND experiment_id = ?",
+                               (aarav, exp["id"])).fetchone()
+        if arm_row is None or arm_row[0] != "control":
+            continue
+        other = conn.execute("SELECT student_id FROM experiment_arms WHERE experiment_id = ? "
+                             "AND arm = 'treatment' AND student_id != ? LIMIT 1", (exp["id"], aarav)).fetchone()
         if other:
-            conn.execute("UPDATE experiment_arms SET arm = 'control' WHERE student_id = ? "
-                         "AND experiment_id = 'sure_wrong_nudge'", (other[0],))
-            conn.execute("UPDATE experiment_arms SET arm = 'treatment' WHERE student_id = ? "
-                         "AND experiment_id = 'sure_wrong_nudge'", (aarav,))
+            conn.execute("UPDATE experiment_arms SET arm = 'control' WHERE student_id = ? AND experiment_id = ?",
+                         (other[0], exp["id"]))
+            conn.execute("UPDATE experiment_arms SET arm = 'treatment' WHERE student_id = ? AND experiment_id = ?",
+                         (aarav, exp["id"]))
             conn.commit()
 
     conn.close()

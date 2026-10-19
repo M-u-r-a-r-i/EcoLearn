@@ -2,27 +2,46 @@
 #
 # Each student is put in one arm of each enabled experiment when their account is made (or the first time
 # the app builds their profile, for accounts made before), and stays there. Arms are balanced within each
-# class. In the CONTROL arm the listed insights are never produced, so their effects never happen; the
-# student and the teacher are not told which arm anyone is in. Everything else is the same for everyone.
+# class. An arm can switch profile insights off (`insights`: never produced in the control arm) and/or fix
+# lesson preferences (`prefs`: per arm, applied after the profile). Nobody is told which arm they are in.
 #
 # Pre-registration: docs/pilot-experiment.md. Write the plan BEFORE the pilot starts, and don't change the
-# outcome after looking at the data. To stop an experiment, set enabled: false: everyone then gets the
-# treatment (the normal product), and the arms already given stay in the database for the analysis.
+# outcome after looking at the data. To stop an experiment, set enabled: false: everyone then gets the normal
+# product, and the arms already given stay in the database for the analysis.
 
 experiments:
-  - id: sure_wrong_nudge
+  - id: check_prompt
     enabled: true
+    title: "A 'check before you pick' line on every check"
+    # The only difference between the arms: the line on lesson checks ("Before you pick: read each option once
+    # more. The wrong ones are written to feel right."). Everything else, including sooner revision for
+    # students often sure of a wrong answer, is the same in both arms.
+    prefs:
+      treatment: { slow_down: true }
+      control: { slow_down: false }
+    hypothesis: >-
+      A short prompt to re-read the options before answering raises how often students get a lesson check
+      right on the first try.
+    primary_metric: first_try_accuracy
+    min_first_tries: 3
+    eligible: "Answered at least 3 lesson checks (first tries)"
+    primary_outcome: >-
+      Per eligible student: the share of lesson checks answered right on the first try. Compared between arms
+      as a difference of means.
+    secondary_outcomes:
+      - "Students with 3+ answers marked sure: the share of those that were wrong (sure but wrong)"
+      - "All students: end-check gain (right answers after minus before, over paired concepts)"
+
+  # Superseded on 2026-10-19, BEFORE the pilot started and before any pilot data: too few students would
+  # qualify (5 of 25 in the demo class), so it could not show anything. Kept, disabled, for the record.
+  - id: sure_wrong_nudge
+    enabled: false
     title: "The 'sure but wrong' nudge"
-    # What the treatment arm gets that control doesn't: these profile insights (src/learner/profiler.py).
     insights: [sure_wrong]
+    primary_metric: sure_wrong_fixed_share
     hypothesis: >-
       Students who are often sure of a wrong answer fix more of those mix-ups when they get a
       "check before you pick" line on lesson checks and see those ideas again for revision sooner.
-    # Who the primary outcome is measured on: students the profile would flag, in EITHER arm.
     eligible: "Met the sure_wrong rule (3+ answers marked sure, 2+ of them wrong, a third or more wrong)"
     primary_outcome: >-
-      Per eligible student: the share of concepts they answered wrong while sure that are now fixed
-      (answered right later on a DIFFERENT question). Compared between arms as a difference of means.
-    secondary_outcomes:
-      - "All students: end-check gain (right answers after minus before, over paired concepts)"
-      - "All students: first-try accuracy at lesson checks"
+      Per eligible student: the share of concepts they answered wrong while sure that are now fixed.

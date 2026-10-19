@@ -101,7 +101,8 @@ coaching note. Load test fails today on `main` too (machine state).
 
 **Then `feature/pilot-experiment`** (stacked on the branch above; merge that first): a pre-registered randomised comparison
 (`docs/pilot-experiment.md`, `data/experiments.yaml`, `src/learner/experiments.py`). Each new account gets an arm, balanced within its
-class; the control arm never gets the "sure but wrong" nudge; `scripts/pilot_report.py` compares arms with a bootstrap interval.
+class; experiment `check_prompt` (revised 2026-10-19, before the pilot): the "Before you pick" line on every lesson check for the
+treatment half, never for control, primary outcome first-try accuracy; `scripts/pilot_report.py` compares arms with a bootstrap interval.
 `ECOLEARN_EXPERIMENTS=off` switches all experiments off. **Do not change the outcome after the pilot starts**; add a dated note instead.
 
 ### UPDATE 2026-10-18 (READ THIS FIRST; it corrects the blocks below where they say "not merged" or "work on the branch")

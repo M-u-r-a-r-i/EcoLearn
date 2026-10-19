@@ -2,8 +2,9 @@
 
   1. Arms: balanced within a class (the smaller arm first), a tie broken by a re-checkable hash that splits about
      evenly; given when the account is made, never changed; balanced even when accounts are made at the same moment.
-  2. Effect: in the control arm the experiment's insight is never produced (no "check before you pick", nothing
-     sooner); the treatment arm gets it; both are measured as eligible by the same rule.
+  2. Effect (check_prompt): the "Before you pick" line is on for every treatment student and never in control; a
+     flagged control student's About me card doesn't promise it; sooner revision is the same in both arms. An
+     insight-type experiment hides its insight in control only.
   3. Switches: an older account gets its arm the first time its profile is built; a disabled experiment, or
      ECOLEARN_EXPERIMENTS=off, suppresses nothing.
   4. Analysis: the bootstrap is deterministic, needs 2+ students per arm, and its interval brackets the estimate;
@@ -37,7 +38,7 @@ from src.content import lesson_service  # noqa: E402
 from src.learner import diagnostic, experiments  # noqa: E402
 from src.progress import metrics, store  # noqa: E402
 
-EXP = "sure_wrong_nudge"
+EXP = "check_prompt"
 _checks = 0
 
 
@@ -112,37 +113,45 @@ def make_sure_wrong(sid: str) -> None:
 
 def test_effect(ctx: dict) -> None:
     print("\n[2] what the arms change")
-    students = store.list_class_students(ctx["class_a"])
     by_arm = {"control": [], "treatment": []}
-    for s in students[:4] + students[4:]:
+    for s in store.list_class_students(ctx["class_a"]):
         by_arm[store.get_experiment_arms(s["student_id"])[EXP]].append(s["student_id"])
-    ctrl, treat = by_arm["control"][0], by_arm["treatment"][0]
+    ctrl, treat, treat_plain = by_arm["control"][0], by_arm["treatment"][0], by_arm["treatment"][1]
     for sid in (ctrl, treat):
         make_sure_wrong(sid)
-    p_ctrl, p_treat = api._profile(ctrl), api._profile(treat)
-    check(p_ctrl["signals"]["sure_wrong_rule"] and p_treat["signals"]["sure_wrong_rule"],
-          "both students meet the rule: both count as eligible")
-    check(all(i["id"] != "sure_wrong" for i in p_ctrl["insights"]) and not p_ctrl["prefs"]["slow_down"]
-          and p_ctrl["sooner"] == [], "control: no insight, no 'check before you pick', nothing sooner")
-    check(any(i["id"] == "sure_wrong" for i in p_treat["insights"]) and p_treat["prefs"]["slow_down"]
-          and p_treat["sooner"], "treatment: the insight, the line and sooner revision")
+    p_ctrl, p_treat, p_plain = api._profile(ctrl), api._profile(treat), api._profile(treat_plain)
+    check(not p_ctrl["prefs"]["slow_down"] and p_treat["prefs"]["slow_down"] and p_plain["prefs"]["slow_down"],
+          "the line: never in control, on for EVERY treatment student (flagged or not)")
+    insight = next(i for i in p_ctrl["insights"] if i["id"] == "sure_wrong")
+    check(insight["effect"] == "Those ideas come back for revision sooner." and "reminder" not in insight["effect"],
+          "a flagged control student's About me card doesn't promise the line they won't see")
+    check(p_ctrl["sooner"] and p_treat["sooner"], "sooner revision is the same in both arms (only the line differs)")
     check(api.get_next_lesson(ctrl, "motion_straight_line")["prefs"]["slow_down"] is False
-          and api.get_next_lesson(treat, "motion_straight_line")["prefs"]["slow_down"] is True,
+          and api.get_next_lesson(treat_plain, "motion_straight_line")["prefs"]["slow_down"] is True,
           "and the lesson envelope follows the arm")
-    check(all(i["id"] != "sure_wrong" for i in api.get_learner_profile(ctrl)["insights"]),
-          "the control student's About me page doesn't show it (nobody is told the arm)")
 
-    # Switches.
+    # The other kind of experiment: one that switches an insight off in its control arm.
     real = experiments.load_config
+    experiments.load_config = lambda: [
+        {**e, "enabled": e["id"] == "sure_wrong_nudge"} for e in real()]
+    try:
+        api._enrol_experiments(ctrl)
+        nudge_arm = store.get_experiment_arms(ctrl)["sure_wrong_nudge"]
+        has = any(i["id"] == "sure_wrong" for i in api._profile(ctrl)["insights"])
+        check(has == (nudge_arm == "treatment"), f"an insight experiment hides the insight in control only ({nudge_arm})")
+    finally:
+        experiments.load_config = real
+
     experiments.load_config = lambda: [{**e, "enabled": False} for e in real()]
     try:
-        check(any(i["id"] == "sure_wrong" for i in api._profile(ctrl)["insights"]),
-              "a disabled experiment suppresses nothing (everyone gets the normal product)")
+        check(api._profile(ctrl)["prefs"]["slow_down"] is True,
+              "a disabled experiment changes nothing (a flagged student gets the normal product)")
     finally:
         experiments.load_config = real
     os.environ["ECOLEARN_EXPERIMENTS"] = "off"
     try:
-        check(any(i["id"] == "sure_wrong" for i in api._profile(ctrl)["insights"]), "ECOLEARN_EXPERIMENTS=off: the same")
+        check(api._profile(ctrl)["prefs"]["slow_down"] is True and api._profile(treat_plain)["prefs"]["slow_down"] is False,
+              "ECOLEARN_EXPERIMENTS=off: the normal product for everyone")
         old = api.register_student("Before Start", "exp.old", "kid-password-1", "cricket", "Class 11")["student_id"]
         check(store.get_experiment_arms(old) == {}, "and no arm is given while it is off")
     finally:
@@ -150,6 +159,14 @@ def test_effect(ctx: dict) -> None:
     api.get_learner_profile(old)
     check(EXP in store.get_experiment_arms(old), "an older account gets its arm the first time its profile is built")
     ctx.update(ctrl=ctrl, treat=treat, by_arm=by_arm)
+
+
+def answer_checks(sid: str, right: int, wrong: int) -> None:
+    concepts = ["position", "displacement", "velocity", "acceleration"]
+    concepts = [c for c in concepts if lesson_service.get_authored_lesson(c, "cricket")]
+    for i in range(right + wrong):
+        c = concepts[i]
+        api.submit_assessment(sid, c, key(c, "cricket")[0 if i < right else 1], "think")
 
 
 def test_analysis(ctx: dict) -> None:
@@ -161,31 +178,45 @@ def test_analysis(ctx: dict) -> None:
           f"the interval brackets the estimate (here it excludes 0: {d1['ci95']})")
     check(metrics.bootstrap_difference([1], [0, 1])["estimate"] is None, "fewer than 2 in an arm: no estimate")
 
-    # A second sure-but-wrong student in each arm, one of whom then fixes a mix-up on a different question.
-    c2, t2 = ctx["by_arm"]["control"][1], ctx["by_arm"]["treatment"][1]
-    for sid in (c2, t2):
-        make_sure_wrong(sid)
-    fresh = next(i for i in diagnostic.load_config()["source_interests"] if i != "cricket")
-    api.submit_assessment(t2, "velocity", key("velocity", "cricket")[0], "sure")
-    api.submit_revision(t2, "velocity", key("velocity", fresh)[0], "sure")
+    # Fresh students with known first tries: treatment 4/4 and 3/4, control 2/4 and 1/4; one with only 2 checks.
+    teacher = api.create_teacher("Mr. Das", "das.exp", "teach-physics-3")
+    made = api.create_class(teacher["teacher_id"], "11-D", "Class 11", "cricket", "\n".join(f"Kid {c}" for c in "PQRSTU"))
+    arms = {"control": [], "treatment": []}
+    for cr in made["credentials"]:
+        arms[store.get_experiment_arms(cr["student_id"])[EXP]].append(cr["student_id"])
+    for sid, (r, w) in zip(arms["treatment"], [(4, 0), (3, 1), (1, 1)]):
+        answer_checks(sid, r, w)
+    for sid, (r, w) in zip(arms["control"], [(2, 2), (1, 3), (2, 0)]):
+        answer_checks(sid, r, w)
 
     before = sqlite3.connect(_DB).execute("SELECT COUNT(*) FROM experiment_arms").fetchone()[0]
     report = api.pilot_report()
     after = sqlite3.connect(_DB).execute("SELECT COUNT(*) FROM experiment_arms").fetchone()[0]
     check(before == after, "the report is read-only: it assigns no arms")
+    check(all(e["id"] != "sure_wrong_nudge" or e["enabled"] or e["arms"]["control"]["students"] + e["arms"]["treatment"]["students"]
+              for e in report["experiments"]), "a stopped experiment nobody was in is left out")
     e = next(x for x in report["experiments"] if x["id"] == EXP)
-    check(e["arms"]["control"]["eligible"] == 2 and e["arms"]["treatment"]["eligible"] == 2,
-          f"two eligible students per arm (got {e['arms']['control']['eligible']}/{e['arms']['treatment']['eligible']})")
-    check(e["arms"]["treatment"]["primary_mean"] == 0.25 and e["arms"]["control"]["primary_mean"] == 0.0,
-          "fixed share: treatment fixed 1 of 2 for one student (0.5, 0.0 → mean 0.25); control 0")
-    check(e["primary"]["estimate"] == 0.25 and e["primary"]["ci95"] is not None, "the difference and its interval")
+    rows = [r for r in report["experiment_rows"] if r["experiment_id"] == EXP]
+    check(e["primary_metric"] == "first_try_accuracy", "the primary measure comes from the config")
+    # Only class 11-D's six students and the two sure-but-wrong students answered checks; compute the expected
+    # means from the rows themselves (eligible = 3+ first tries) and compare with the report.
+    expect = {}
+    for arm in ("control", "treatment"):
+        vals = [r["first_try_right"] / r["first_try_answered"] for r in rows
+                if r["arm"] == arm and r["first_try_answered"] >= 3]
+        expect[arm] = round(sum(vals) / len(vals), 3)
+        check(e["arms"][arm]["primary_mean"] == expect[arm] and e["arms"][arm]["eligible"] == len(vals),
+              f"{arm}: mean right-first-time over eligible students = {expect[arm]} ({len(vals)} students)")
+    check(e["primary"]["estimate"] == round(expect["treatment"] - expect["control"], 3) and e["primary"]["ci95"],
+          "the difference and its interval")
+    check(any(r["first_try_answered"] == 2 for r in rows) and e["arms"]["control"]["first_try_students"] >
+          e["arms"]["control"]["eligible"] - 1, "a student with only 2 checks is counted, but not eligible")
     check("far too few" in e["caution"], "with this few, the report says it is far too few to tell")
     check(e["unassigned"] == 0 and sum(sum(v.values()) for v in e["balance"].values()) == len(report["students"]),
           "everyone is assigned, and the balance table adds up")
-    rows = report["experiment_rows"]
-    blob = str(rows)
-    check(all(r["student_id"].startswith("S") for r in rows) and "stu_" not in blob
-          and "Student A" not in blob and "rao" not in blob, "rows are pseudonymised: no ids, names or usernames")
+    blob = str(report["experiment_rows"])
+    check(all(r["student_id"].startswith("S") for r in report["experiment_rows"]) and "stu_" not in blob
+          and "Kid P" not in blob and "das" not in blob, "rows are pseudonymised: no ids, names or usernames")
 
 
 def main() -> None:
