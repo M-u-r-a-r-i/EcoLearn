@@ -81,9 +81,12 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
   batches, human reading of pilot chapters.
 - **Check questions are multiple choice**, each wrong option mapped to a misconception, graded with
   **no LLM call**.
-- **Live AI is allowed in exactly four places** (three on 2026-10-02, a fourth on 2026-10-13): the doubt chat
-  (`ask_help`), the **teacher agent** (`generate_class_plan`), **personal stories** (background only) and the
-  **coaching notes** (`generate_coaching_notes`, teacher-triggered, §9zzzzzzzzzzzzz). Each has a non-AI fallback.
+- **Live AI is allowed in exactly five places** (three on 2026-10-02, a fourth on 2026-10-13, a fifth on 2026-10-19): the doubt chat
+  (`ask_help`), the **teacher agent** (`generate_class_plan`), **personal stories** (background only), the
+  **coaching notes** (`generate_coaching_notes`, teacher-triggered, §9zzzzzzzzzzzzz) and **Practice with AI**
+  (`start_practice`: an optional extra question after a graded check, written and independently solved by AI, never
+  counted). Each has a non-AI fallback. **Graded checks stay pre-written and graded without AI** (the user chose practice
+  over AI-run assessments on 2026-10-19, because the pilot's numbers need fixed, validated questions).
   Anything else stays pre-generated (non-negotiable 3).
 - **New agents call models through `src/llm/`**, an OpenAI-compatible client. **For now: OmniRoute
   and free models; the user will buy a Gemini API key once it works as planned** (then it's a
@@ -104,6 +107,10 @@ coaching note. Load test fails today on `main` too (machine state).
 class; experiment `check_prompt` (revised 2026-10-19, before the pilot): the "Before you pick" line on every lesson check for the
 treatment half, never for control, primary outcome first-try accuracy; `scripts/pilot_report.py` compares arms with a bootstrap interval.
 `ECOLEARN_EXPERIMENTS=off` switches all experiments off. **Do not change the outcome after the pilot starts**; add a dated note instead.
+
+**Then `feature/ai-practice`** (stacked on `feature/pilot-experiment`): **Practice with AI**, the fifth live-AI place (approved
+2026-10-19). After a graded check, an optional extra question: written from the lesson, rules-checked, solved by a second call that
+never sees the key; shown only if they agree; never counted. Not yet tried on a live model (checked with a stand-in server).
 
 ### UPDATE 2026-10-18 (READ THIS FIRST; it corrects the blocks below where they say "not merged" or "work on the branch")
 
@@ -656,7 +663,10 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
    page, cached per student × concept, critic-checked, and the reviewed story is always shown when
    anything fails. **Third exception (user request, 2026-10-13): coaching notes**
    (`generate_coaching_notes`, §9zzzzzzzzzzzzz) — teacher-triggered, students as S1, S2…, a rules note per
-   student whenever the AI is off, fails or breaks a rule. Any further live call needs the user's say-so.
+   student whenever the AI is off, fails or breaks a rule. **Fourth exception (user request, 2026-10-19): Practice with AI**
+   (`start_practice`, `src/learner/practice.py`) — student-triggered and optional, rate-limited, a writer call plus a solver call
+   that must agree with the key, never written to progress, mastery or the pilot metrics, no question at all when anything
+   fails, and off with the per-student AI switch. Any further live call needs the user's say-so.
 4. **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
    **global across the subject**; a new chapter must continue the numbering (18, 19, …) or
    prerequisite validation rejects it.
@@ -802,6 +812,7 @@ venv\Scripts\python.exe tests\test_student_data_rights.py   # export and erase a
 venv\Scripts\python.exe tests\test_ai_switch.py             # per-student AI switch + the doubt tutor (grounding, checks, fallbacks)
 venv\Scripts\python.exe tests\test_learner_profile.py        # open learner profile, sooner/refresh revision, teacher-approved coaching actions
 venv\Scripts\python.exe tests\test_pilot_experiment.py       # randomised pilot comparison: balanced arms, control/treatment effect, the analysis
+venv\Scripts\python.exe tests\test_ai_practice.py            # Practice with AI: rules and solver gates, never counts, AI switch, HTTP
 venv\Scripts\python.exe tests\test_seed_demo.py           # demo dataset builds into a temp DB (~1 min)
 venv\Scripts\python.exe scripts\load_test.py              # 30 students at once, own temp server (~15 s)
 venv\Scripts\python.exe scripts\validate_lessons.py        # every authored lesson

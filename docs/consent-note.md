@@ -149,6 +149,7 @@ changed.
 | Short pieces of text written by the AI for them (see below) | So they can be shown and checked |
 | Short notes for the teacher, written by the AI or by fixed rules, about how each student is getting on | To help the teacher support each student |
 | What happened to each question they asked in the help chat (answered, stopped, or too many), but **not** the words | To keep the chat safe |
+| The practice questions written for them and what they picked (these never count toward progress or marks) | To check them, and so teachers can see how often they are used |
 | When they last used EcoLearn | To help the teacher see who needs a nudge |
 | A few short lines worked out from the above, by fixed rules and not by AI, such as "you're often sure of an answer that turns out wrong", with the reason for each. Your child sees them on an "About me" page and can switch any of them off; we keep which ones they switched off | To shape lessons and revision, openly |
 | Which half of the pilot comparison your child is in (see "Finding out what helps" below) | To compare the two halves fairly |
@@ -170,11 +171,13 @@ theme, are kept in your child's own browser.
   told which half. Lessons, quizzes and marks are the same for everyone.
 - **Not sold, not shared** with advertisers or anyone else, and not used to show your child adverts.
 
-**How AI is used.** EcoLearn uses AI in four places, and every one has a plain version that works without it:
+**How AI is used.** EcoLearn uses AI in five places, and every one has a plain version that works without it:
 1. a short **personal story** about a hobby, at the top of a lesson;
 2. a **help chat**, where your child can type a question about a lesson;
-3. a **class plan** for the teacher; and
-4. the **short notes** for the teacher.
+3. a **class plan** for the teacher;
+4. the **short notes** for the teacher; and
+5. optional **practice questions** your child can ask for after a quiz question. They are written by AI from the lesson
+   and checked by a second AI, and they never count toward progress or marks.
 
 **You can say no to the AI parts** and your child can still take part: tick the box on the form or tell `[Contact]`, and
 their teacher switches them off. Then nothing about your child is sent to an AI service; they get the lesson's own story, and the help
@@ -239,7 +242,7 @@ Parent or guardian:
 - [ ] I agree that my child may take part in the EcoLearn pilot, and that the information described in the note may be kept
       and used as described, including sending the questions my child types in the help chat to the AI service named in the
       note.
-- [ ] **Optional:** I would like the AI parts switched off for my child (no AI story, no AI help chat, not included in the
+- [ ] **Optional:** I would like the AI parts switched off for my child (no AI story, no AI help chat, no AI practice questions, not included in the
       AI's notes or class plans). My child can still use the lessons and quizzes.
 - [ ] I understand I can change my mind at any time by contacting `[Contact]`, and that this will not affect my child's
       place or marks at school.

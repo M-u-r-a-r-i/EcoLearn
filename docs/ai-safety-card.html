@@ -92,7 +92,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); 
 
   <div class="verdict">
     <div class="v"><b>The lessons are written in advance</b><span>642 lessons were prepared before any student used them, with AI help, and checked by software. Check questions are multiple choice, graded against an answer key. No AI grades anything.</span></div>
-    <div class="v"><b>AI runs in four places</b><span>Personal stories, the doubt chat, the teacher's class plan and coaching notes. Each one has a plain fallback that needs no AI.</span></div>
+    <div class="v"><b>AI runs in five places</b><span>Personal stories, the doubt chat, the teacher's class plan, coaching notes, and optional practice questions. Each one has a plain fallback that needs no AI. Graded checks never use AI.</span></div>
     <div class="v"><b>No names reach the AI</b><span>The AI sees labels such as S3, counts and chosen answers. A test checks that no name, username or id is sent.</span></div>
     <div class="v"><b>A person can overrule it</b><span>Students can report a story. Teachers can hide it, and see how the AI decided. The lesson's own pre-written story is always one click away. A teacher can switch the AI off for one student.</span></div>
   </div>
@@ -142,6 +142,18 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); 
       <dt>How it is checked</dt><dd>Each note must cite fields the student really has, stay within 45 words, contain no name or username, no link, and none of a list of labelling words (diagnoses, "lazy", "gifted" and similar). A note that fails is replaced by a rules note for that student.</dd>
       <dt>What the teacher sees</dt><dd>Every card says AI or Rules, and lists its evidence. The page says these are suggestions to check, not a verdict on a child.</dd>
       <dt>Actions (2026-10-14)</dt><dd>A note may propose one action from a fixed list: put a concept back in the student's revision list, or check in with them. The AI may only name a concept from that student's own mix-ups; anything else is dropped. <b>Nothing happens to a student until the teacher clicks to approve it</b>; then our own code (no AI) carries it out, and the card shows the outcome (the student got the new question right, not yet, or was active again).</dd>
+    </dl></div>
+  </details>
+
+  <details>
+    <summary><span class="t">Practice with AI</span><span class="s"><span class="pill ai">AI</span>An optional extra question after a lesson's graded check; it never counts</span></summary>
+    <div><dl>
+      <dt>Who triggers it</dt><dd>A student, by pressing "Give me a practice question" after a graded check. Limited to 6 every 10 minutes and 40 a day.</dd>
+      <dt>What the AI sees</dt><dd>The concept, the student's level and interest, the lesson's text, its own check question (to avoid repeating it) and the mix-ups its wrong options were written for. Nothing about the student: no name, username, id or answers.</dd>
+      <dt>How it is checked</dt><dd>Three gates before a student sees anything. Our rules check the shape (four different options, an answer among them, lengths, no links, not a copy of the lesson's own question). Then a <b>second AI call solves the question without seeing the answer</b>; the question is used only if it reaches the same answer. Up to three tries; otherwise no question. The answer stays on the server until the student answers. A second model for the solver (<code>LLM_CRITIC_MODEL</code>) makes this check stronger than the same model checking itself.</dd>
+      <dt>What the student sees</dt><dd>"An extra question on this idea, just for practice. It doesn't count toward your progress." and "Written by AI from this lesson and solved by a second AI before you see it. It can still be wrong: if something looks off, ask your teacher."</dd>
+      <dt>If it fails</dt><dd>"Couldn't write a practice question that passed our checks just now." Nothing else changes. With the AI off (on the server, or for that student) the button isn't shown.</dd>
+      <dt>What it never touches</dt><dd>Progress, mastery, the mix-ups list, the revision list, marks and every pilot number. Teachers see counts only (written, thrown away by the checks, answered, right). <b>Not yet tried on a live model</b> (checked with a stand-in on 2026-10-19).</dd>
     </dl></div>
   </details>
 

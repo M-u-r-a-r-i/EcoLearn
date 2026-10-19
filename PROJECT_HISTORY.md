@@ -3377,3 +3377,39 @@ read-only, pseudonymised). Every deterministic test passes. Demo report: 22 of 2
 - With about 11 students per arm the demo interval spans about 30 points (-21 to +10): a class-sized pilot resolves only large
   differences. Say so in the pitch.
 - The demo numbers are invented and the nudge was not applied while seeding: never quote them.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzz. Practice with AI: the fifth live-AI place (2026-10-19)
+
+Branch `feature/ai-practice` (stacked on `feature/pilot-experiment`).
+
+**Changed.**
+- `src/learner/practice.py` (new), `prompts/practice_writer.txt`, `prompts/practice_solver.txt`: a writer call (grounded in the
+  student's lesson, its own check to avoid, and the check's mix-ups), deterministic rules (`check_draft`: four distinct options A-D,
+  answer among them, lengths, no links or emails, not a copy of the lesson's check, by `SequenceMatcher` > 0.8), and a solver call in
+  the critic role that never sees the key; shown only if the answers match; up to 3 attempts; a model outage stops at once.
+- Store: `practice_questions` (the checked question with its key, server-side; failed attempts too, with their trail);
+  `save_practice`, `get_practice`, `answer_practice` (once), `practice_counts`.
+- `platform_api`: `start_practice`, `answer_practice`, `_practice_available` (AI on for the server and the student), a separate rate
+  limit (6 per 10 minutes, 40 a day, `ECOLEARN_PRACTICE_*`), usage label `practice`, `practice_available` in the lesson envelope,
+  `practice` counts in `get_class_ai_decisions`. API: `POST /api/practice`, `POST /api/practice/{id}/answer`.
+- Web: `components/ai-practice.tsx` on the graded check's result page (states: offer, writing, question, result with the mix-up
+  behind a wrong pick, failed); `startPractice`, `answerPractice` in `web/lib/api.ts`.
+- `AGENTS.md`: five live-AI places and non-negotiable 3's fourth exception. `docs/ai-safety-card.html` (a Practice section),
+  `docs/consent-note.md` (five places, what is kept, the opt-out box).
+
+**Why.** The user asked about AI taking the assessment with the rule quiz as a fallback. Recommended against for graded checks (the
+pilot's numbers need fixed validated questions; a confidently wrong key or grade is not caught by a fallback; cost and latency on
+every check) and offered ungraded practice instead; the user approved it as the fifth live-AI place.
+
+**Checked.** `tests/test_ai_practice.py` (33 checks: each rule, the solver gate and retries, what the writer and solver see, AI
+switch and not-configured, no key before answering, right/wrong with the mix-up, one answer, ownership, failed attempts counted,
+progress/answers/revision untouched, rate limit, HTTP 401/200/409). Data-rights test covers the new table. Every deterministic test
+passes; `tsc` and lint clean. Browser on the demo data with a stand-in OpenAI-compatible server: the panel appears after a graded
+check, the failure message when the model is unreachable, a question, a wrong pick with the mix-up and explanation, revision and
+mix-ups unchanged, phone width fine. Demo data reseeded after.
+
+**Learned.**
+- Not yet run on a live model: try it with OmniRoute before the pilot, ideally with a different `LLM_CRITIC_MODEL` for the solver.
+- A single-threaded stand-in HTTP server hangs when a browser tab leaves an idle connection open: use `ThreadingHTTPServer`.
+- When scripting a click in a React page, wait for the state to change before reading the result (the first read came too early).
