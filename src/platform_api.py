@@ -57,7 +57,7 @@ from src.content import lesson_service
 from src.curriculum.interests import load_interests
 from src.curriculum.scope import scope_chapter_ids, scope_interest_ids
 from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError, TooManyRequestsError
-from src.learner import diagnostic, doubt_tutor, experiments, help_guard, personal_story, profiler, survey
+from src.learner import diagnostic, doubt_tutor, experiments, help_guard, personal_story, practice, profiler, survey
 from src.learner import plan as learner_plan
 from src.path import engine
 from src.progress import metrics, store
@@ -1584,6 +1584,8 @@ def get_next_lesson(
                 # the lesson's own story. Written in the background; the next two
                 # concepts are started too, so they're usually ready on arrival.
                 envelope["lesson"]["personal_story"] = personal_story.view(student_id, chosen.id)
+                # Practice with AI: the button shows only when a question could be written for them.
+                envelope["practice_available"] = _practice_available(profile)
                 for upcoming in _upcoming_concepts(student_id, chosen, profile["interest"], 2):
                     personal_story.request(student_id, upcoming)
 
@@ -1785,6 +1787,8 @@ def get_class_ai_decisions(teacher_id: str, class_id: str, limit: int = 30) -> d
     return {
         "stories": stories,
         "help": store.help_event_counts(list(students)),
+        # Practice with AI (2026-10-19): counts only; "thrown_away" = attempts the checks rejected.
+        "practice": store.practice_counts(list(students)),
         "plans": {"total": len(plans),
                   "agent": sum(1 for p in plans if p["source"] == "agent"),
                   "rules": sum(1 for p in plans if p["source"] != "agent"),
@@ -3109,6 +3113,96 @@ def _log_help(student_id: str, outcome: str, reason: str | None) -> None:
 
 
 _help_limiter = help_guard.HelpLimiter()
+
+
+# ---------------------------------------------------------------------------
+# 6. Practice with AI (2026-10-19): the fifth live-AI place, approved by the user. An extra question on the
+# idea just studied, written and independently solved by AI before a student sees it (src/learner/practice.py).
+# It NEVER counts: nothing here touches progress, answers, mastery or the pilot metrics.
+# ---------------------------------------------------------------------------
+
+_practice_chat: Any = None  # tests swap in a stand-in for llm.chat; None means the live model chain
+_practice_limiter = help_guard.HelpLimiter(
+    per_window=int(os.getenv("ECOLEARN_PRACTICE_PER_WINDOW", "6")),
+    window_seconds=int(os.getenv("ECOLEARN_PRACTICE_WINDOW_SECONDS", "600")),
+    per_day=int(os.getenv("ECOLEARN_PRACTICE_PER_DAY", "40")))
+
+
+def _practice_available(profile: dict[str, Any]) -> bool:
+    """A practice question can be tried: the AI is on for the server and for this student."""
+    return bool(profile.get("ai_enabled", True)) and (_practice_chat is not None or llm.is_configured())
+
+
+def start_practice(student_id: str, concept_id: str) -> dict[str, Any]:
+    """Write one checked practice question on this concept, in the student's interest.
+
+    Returns {"available": True, "practice_id", "concept_id", "concept_name", "question", "options"} (no answer
+    key), or {"available": False, "reason": "ai_off" | "not_configured" | "no_lesson" | "failed", "message"}
+    when there is no question: the AI is switched off (for the student or the server), the lesson isn't
+    written yet, or the AI's attempts failed the checks. A failed attempt is stored for the teacher's counts.
+
+    Raises:
+        NotFoundError: unknown student or concept.
+        TooManyRequestsError: too many practice questions in a short time, or one already being written.
+    """
+    profile = _require_student(student_id)
+    concept = engine.find_concept(concept_id)
+    if concept is None:
+        raise NotFoundError(f"Unknown concept_id {concept_id!r}.")
+
+    def none(reason: str, message: str) -> dict[str, Any]:
+        return {"available": False, "reason": reason, "message": message}
+
+    if not profile.get("ai_enabled", True):
+        return none("ai_off", "Practice with AI is switched off for your account.")
+    if not _practice_available(profile):
+        return none("not_configured", "Practice with AI isn't running right now.")
+    authored = lesson_service.get_authored_lesson(concept_id, profile["interest"])
+    if authored is None:
+        return none("no_lesson", "There's no lesson to practise from yet.")
+    allowed, retry_after, why = _practice_limiter.try_start(student_id)
+    if not allowed:
+        raise TooManyRequestsError(help_guard.limit_message(why, retry_after))
+    try:
+        material = practice.lesson_material(authored, doubt_tutor.lesson_context(concept, profile["interest"])["sections"])
+        with llm.usage_context(feature="practice", student_id=student_id):
+            made = practice.write(concept_name=concept.name, level=profile["level"], interest=profile["interest"],
+                                  material=material, chat=_practice_chat if _practice_chat is not None else llm.chat)
+    finally:
+        _practice_limiter.finish(student_id)
+    practice_id = store.save_practice(student_id, concept_id, made["ok"], made.get("question"),
+                                      made.get("model"), made["trail"])
+    if not made["ok"]:
+        return none("failed", "Couldn't write a practice question that passed our checks just now. Try again later, "
+                              "or open the revision list for another question.")
+    q = made["question"]
+    return {"available": True, "practice_id": practice_id, "concept_id": concept_id, "concept_name": concept.name,
+            "question": q["question"], "options": q["options"]}
+
+
+def answer_practice(student_id: str, practice_id: int, answer: str) -> dict[str, Any]:
+    """Check a practice answer. Nothing is recorded anywhere but the practice table.
+
+    Returns {"correct", "selected_option", "correct_option", "explanation", "why_wrong": str | None}.
+
+    Raises:
+        NotFoundError: not this student's practice question (or none was written).
+        EcoLearnError: not one of A to D.
+        ConflictError: already answered.
+    """
+    _require_student(student_id)
+    row = store.get_practice(int(practice_id))
+    if row is None or row["student_id"] != student_id or not row["ok"]:
+        raise NotFoundError("That practice question isn't yours.")
+    picked = (answer or "").strip().upper()
+    if picked not in practice.LETTERS:
+        raise EcoLearnError(f"Pick one of A, B, C or D — got {answer!r}.")
+    q = row["question"]
+    correct = picked == q["answer"]
+    if not store.answer_practice(row["practice_id"], picked, correct):
+        raise ConflictError("You've already answered this one. Ask for another!")
+    return {"correct": correct, "selected_option": picked, "correct_option": q["answer"],
+            "explanation": q["explanation"], "why_wrong": None if correct else q["why_wrong"].get(picked)}
 
 
 _help_chat: Any = None  # tests swap in a stand-in for llm.chat; None means the live model chain

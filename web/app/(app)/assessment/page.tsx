@@ -32,6 +32,7 @@ import {
   type NextLesson,
 } from "@/lib/api";
 import { useFetch } from "@/lib/use-fetch";
+import { AiPractice } from "@/components/ai-practice";
 import { Confetti, MasteryTrack, OptionReview } from "@/components/check-feedback";
 import { ConfidencePicker } from "@/components/confidence-picker";
 import { Pill, Skeleton } from "@/components/ui-kit";
@@ -298,6 +299,9 @@ function Assessment() {
               <Link href={roadmapHref}>See roadmap</Link>
             </Button>
           </div>
+
+          {/* Optional extra practice, written by AI; never counts. Hidden when the AI is off. */}
+          {next.data?.practice_available && conceptId && <AiPractice conceptId={conceptId} />}
         </div>
       </main>
     );

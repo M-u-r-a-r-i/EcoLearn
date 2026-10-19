@@ -1022,6 +1022,32 @@ export interface NextLesson {
   concept_name: string | null;
   lesson: Lesson | null;
   prefs?: LessonPrefs; // how this student likes lessons shaped (from the survey)
+  practice_available?: boolean; // "Practice with AI" can be offered (AI on for the server and this student)
+}
+
+// Practice with AI: an extra question written and independently solved by AI. It never counts toward progress.
+export type PracticeStart =
+  | { available: true; practice_id: number; concept_id: string; concept_name: string; question: string; options: Record<string, string> }
+  | { available: false; reason: "ai_off" | "not_configured" | "no_lesson" | "failed"; message: string };
+
+export interface PracticeResult {
+  correct: boolean;
+  selected_option: string;
+  correct_option: string;
+  explanation: string;
+  why_wrong: string | null; // the mix-up behind a wrong pick
+}
+
+export function startPractice(conceptId: string): Promise<PracticeStart> {
+  return request("/api/practice", {
+    method: "POST",
+    body: { concept_id: conceptId },
+    timeoutMs: LIVE_TIMEOUT_MS, // up to three writer attempts plus the solver
+  });
+}
+
+export function answerPractice(practiceId: number, answer: string): Promise<PracticeResult> {
+  return request(`/api/practice/${practiceId}/answer`, { method: "POST", body: { answer } });
 }
 
 // Presentation only: nothing is hidden or locked.

@@ -753,6 +753,27 @@ def mix_ups(student_id: str = Depends(get_current_student_id)) -> dict:
     return api.get_mix_ups(student_id)
 
 
+class PracticeRequest(BaseModel):
+    concept_id: str
+
+
+@app.post("/api/practice")
+def start_practice(payload: PracticeRequest, student_id: str = Depends(get_current_student_id)) -> dict:
+    """Write one AI practice question on this concept (checked by a second AI; never counts). Takes seconds."""
+    return api.start_practice(student_id, payload.concept_id)
+
+
+class PracticeAnswer(BaseModel):
+    answer: str
+
+
+@app.post("/api/practice/{practice_id}/answer")
+def answer_practice(practice_id: int, payload: PracticeAnswer,
+                    student_id: str = Depends(get_current_student_id)) -> dict:
+    """Check a practice answer (nothing is added to progress)."""
+    return api.answer_practice(student_id, practice_id, payload.answer)
+
+
 @app.get("/api/profile/insights")
 def learner_profile(student_id: str = Depends(get_current_student_id)) -> dict:
     """What EcoLearn thinks about you, why, and what it changes (rules, no AI)."""

@@ -155,6 +155,7 @@ def build() -> dict:
     for sid in (a, b):  # the open learner profile and teacher-approved coaching actions (2026-10-14)
         api.set_insight(sid, "sure_wrong", True)
         api.apply_coaching_action(tid, class_id, sid, "revise", "velocity")
+        store.save_practice(sid, "velocity", False, None, None, [])  # a practice attempt (2026-10-19)
     return {"tid": tid, "class_id": class_id, "a": a, "b": b, "c": cred["Kabir Shah"]["student_id"], "cred": cred}
 
 

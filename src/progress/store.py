@@ -230,6 +230,28 @@ def _ensure_schema(conn: sqlite3.Connection) -> sqlite3.Connection:
         """
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_experiment_class ON experiment_arms(experiment_id, class_key)")
+    # Practice with AI (2026-10-19): extra questions written for a student. Never part of progress, mastery or
+    # the pilot metrics. `question` is the checked question as JSON, answer key included: it stays here until
+    # the student answers. A failed attempt is stored too (ok = 0, question NULL), so teachers see how often the
+    # checks threw one away. `trail` is the gates each attempt went through (no student data).
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS practice_questions (
+            practice_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id   TEXT NOT NULL,
+            concept_id   TEXT NOT NULL,
+            created_at   TEXT NOT NULL,
+            ok           INTEGER NOT NULL,
+            question     TEXT,
+            model        TEXT,
+            trail        TEXT NOT NULL DEFAULT '[]',
+            picked       TEXT,
+            correct      INTEGER,
+            answered_at  TEXT
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_practice_student ON practice_questions(student_id, practice_id)")
     # The starting check (2026-10-02). Kept apart from `answers` on purpose: these
     # are a baseline taken before any lesson, and mixing them into the lesson
     # answers would muddy the pilot's "right first time" number.
@@ -1926,6 +1948,68 @@ def record_help_event(student_id: str, outcome: str, reason: str | None = None) 
         conn.commit()
     finally:
         conn.close()
+
+
+def save_practice(student_id: str, concept_id: str, ok: bool, question: dict[str, Any] | None,
+                  model: str | None, trail: list[dict[str, Any]]) -> int:
+    """Store a practice attempt (made or thrown away). Returns its id."""
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "INSERT INTO practice_questions (student_id, concept_id, created_at, ok, question, model, trail) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (student_id, concept_id, _now_iso(), 1 if ok else 0,
+             json.dumps(question, ensure_ascii=False) if question else None, model,
+             json.dumps(trail, ensure_ascii=False)))
+        conn.commit()
+        return int(cursor.lastrowid)
+    finally:
+        conn.close()
+
+
+def get_practice(practice_id: int) -> dict[str, Any] | None:
+    conn = _connect()
+    try:
+        row = conn.execute("SELECT * FROM practice_questions WHERE practice_id = ?", (practice_id,)).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    out = dict(row)
+    out["question"] = json.loads(out["question"]) if out["question"] else None
+    out["trail"] = json.loads(out["trail"] or "[]")
+    out["correct"] = None if out["correct"] is None else bool(out["correct"])
+    return out
+
+
+def answer_practice(practice_id: int, picked: str, correct: bool) -> bool:
+    """Record the student's pick, once. False if it was already answered."""
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "UPDATE practice_questions SET picked = ?, correct = ?, answered_at = ? "
+            "WHERE practice_id = ? AND answered_at IS NULL",
+            (picked, 1 if correct else 0, _now_iso(), practice_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def practice_counts(student_ids: list[str]) -> dict[str, int]:
+    """{written, thrown_away, answered, right} over these students: counts only, for the teacher."""
+    out = {"written": 0, "thrown_away": 0, "answered": 0, "right": 0}
+    if not student_ids:
+        return out
+    conn = _connect()
+    try:
+        marks = ",".join("?" * len(student_ids))
+        row = conn.execute(
+            f"SELECT SUM(ok = 1) w, SUM(ok = 0) t, SUM(answered_at IS NOT NULL) a, SUM(correct = 1) r "
+            f"FROM practice_questions WHERE student_id IN ({marks})", student_ids).fetchone()
+    finally:
+        conn.close()
+    return {"written": row["w"] or 0, "thrown_away": row["t"] or 0, "answered": row["a"] or 0, "right": row["r"] or 0}
 
 
 def get_experiment_arms(student_id: str) -> dict[str, str]:
