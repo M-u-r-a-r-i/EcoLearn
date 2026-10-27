@@ -94,7 +94,14 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
-### SESSION HANDOFF 2026-10-27 (NEWEST: read this first)
+### UPDATE 2026-10-27, later: everything is on `main`; there are no other branches
+
+The three stacked branches below were fast-forwarded into `main` (`1f56982..7092f08`) and pushed; `feature/open-learner-profile`,
+`feature/pilot-experiment`, `feature/ai-practice` and the old `design/frontend-v2` were deleted locally and on GitHub. Work on `main`.
+Wherever the block below says "NOT merged", "merge these PRs" or "work from `feature/ai-practice`", it is out of date. Checked before the
+merge: every deterministic test file passes, 642 lessons valid; the load test failed again (p95 2.9 s, the known machine-state issue).
+
+### SESSION HANDOFF 2026-10-27 (read this next)
 
 **Finals are on 2026-10-29 (two days).** Everything below is committed and pushed; nothing is waiting in a working tree.
 

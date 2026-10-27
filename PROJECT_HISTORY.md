@@ -3434,3 +3434,16 @@ interval shown, ten slide types, voice, the honesty rules (no demo-dataset numbe
 is a first look, five AI places), a 15-minute structure mapped to the judging weights, and a checklist.
 
 **Why.** The user's friend is continuing the pitch deck and needs it to match the product's look. No deck file is in the repo.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. All branches merged into main (2026-10-27)
+
+**Changed.** `main` fast-forwarded from `1f56982` to `7092f08` (the open learner profile, the pilot experiment, Practice with AI, the
+handoff and the slide style guide). Branches `feature/open-learner-profile`, `feature/pilot-experiment`, `feature/ai-practice` and
+`design/frontend-v2` deleted locally and on GitHub, each checked to be contained in `main` first. `AGENTS.md` §2 gains a short update.
+
+**Why.** The user asked to merge everything into `main` and delete the other branches. All three were stacked on `main`, so a
+fast-forward needed no merge commit.
+
+**Checked.** Before the merge: all 34 deterministic test files and the persistence pair pass, 642/642 lessons valid. The load test
+failed (p95 2.9 s), as it did on `main` on 2026-10-18 (machine state).
