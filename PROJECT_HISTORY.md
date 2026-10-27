@@ -3423,3 +3423,14 @@ demo, pilot online, people), how to resume, and the session's gotchas. No code c
 
 **Why.** The user asked to save everything for a new session. With the PRs unmerged, a session starting from `main` would not see
 the last week's work; the handoff is on `feature/ai-practice`, which contains all of it.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. Slide style guide for the finals deck (2026-10-27)
+
+**Changed.** `docs/slide-style-guide.md` (new): the app's house style translated for PowerPoint / Google Slides: 16:9 grid,
+the colour tokens (light content slides, dark title / divider / closing), the five interest accents, fonts with Windows
+fallbacks (Avenir Next is usually missing: embed fonts or use Segoe UI), type sizes, cards and icons (Lucide), charts with the
+interval shown, ten slide types, voice, the honesty rules (no demo-dataset numbers, never "reviewed by people", the comparison
+is a first look, five AI places), a 15-minute structure mapped to the judging weights, and a checklist.
+
+**Why.** The user's friend is continuing the pitch deck and needs it to match the product's look. No deck file is in the repo.
