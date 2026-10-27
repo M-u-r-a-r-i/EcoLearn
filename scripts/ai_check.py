@@ -22,12 +22,16 @@ def main() -> int:
         print("AI is not configured (LLM_MODEL is empty). Plans and stories use their fallbacks.")
         return 1
     for t in status["tried"]:
-        print(f"  {'ok  ' if t['ok'] else 'FAIL'} {t['model']}" + ("" if t["ok"] else f"  ({t['error']})"))
+        print(f"  {'ok  ' if t['ok'] else 'FAIL'} {t['model']}  {t['latency_ms'] / 1000:.1f} s"
+              + ("" if t["ok"] else f"  ({t['error']})"))
     if not status["up"]:
         print("AI is DOWN: every model in the chain failed.")
         return 1
     note = " (on a BACKUP model)" if status["on_fallback"] else ""
-    print(f"AI is up: {status['model']}{note}, {status['latency_ms']} ms.")
+    print(f"AI is up: {status['model']}{note}, {status['latency_ms'] / 1000:.1f} s.")
+    if status["slow"]:
+        print(f"  SLOW: over {llm.SLOW_MS // 1000} s for one word. Students would wait; pre-warm stories "
+              "(scripts\\prewarm_stories.py) before a demo.")
     return 0
 
 

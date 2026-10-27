@@ -94,6 +94,10 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### UPDATE 2026-10-27, evening: live AI tried; stories pre-warmed for the demo
+
+First live run of all five AI places (PROJECT_HISTORY, the last two entries): it works but free Flash-Lite is slow (20 to 60 s, frequent timeouts). `ai_check` now reflects real calls and warns when SLOW. **Before the stage demo:** reseed, then `prewarm_stories.py --class "Class 11-B Physics" --students aarav.k --concepts 4` against `data\demo.db` (a reseed wipes them), start OmniRoute, run `ai_check`. The finals deck is a private Claude artifact (21 slides, "EcoLearn finals pitch").
+
 ### UPDATE 2026-10-27, later: everything is on `main`; there are no other branches
 
 The three stacked branches below were fast-forwarded into `main` (`1f56982..7092f08`) and pushed; `feature/open-learner-profile`,

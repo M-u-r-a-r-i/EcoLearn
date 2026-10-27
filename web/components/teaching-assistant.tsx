@@ -41,7 +41,9 @@ function AiStatusBadge() {
       ? ["text-destructive", "AI is not answering: plans fall back to rules"]
       : s.on_fallback
         ? ["text-brand-accent", "AI up, on a backup model"]
-        : ["text-success", "AI is up"];
+        : s.slow
+          ? ["text-brand-accent", "AI up, but slow: a plan may take a few minutes"]
+          : ["text-success", "AI is up"];
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${tone}`} role="status">
       <span aria-hidden className="size-2 rounded-full bg-current" />

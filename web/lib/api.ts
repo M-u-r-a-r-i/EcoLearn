@@ -566,6 +566,7 @@ export interface AiStatus {
   primary: string | null;
   on_fallback: boolean;
   latency_ms: number | null;
+  slow: boolean;
 }
 
 export function getAiStatus(): Promise<AiStatus> {

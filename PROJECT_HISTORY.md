@@ -3473,3 +3473,27 @@ was published as a private Claude artifact (Slides type) following `docs/slide-s
   fallback model, or pre-warm stories (`scripts/prewarm_stories.py`) before the demo; have the recorded demo ready.
 - The off-topic question ("Who will win the IPL?") fell back only because of a timeout: the chat still has no topic check.
 - The teacher plan names students on purpose: the agent sees S1, S2…, and `teacher_agent.fill_names` puts names back for the teacher.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. A health check that matches real calls; stories pre-warmed for the stage demo (2026-10-27)
+
+**Changed.**
+- `src/llm/client.py` `health()`: probes with 512 tokens and the real calls' timeout (`LLM_TIMEOUT_SECONDS`, not its own 30 s);
+  an empty reply is a failure (as in `chat()`); returns `slow` (over `SLOW_MS` = 15 s) and a latency per model tried. `SLOW_MS` exported.
+- `scripts/ai_check.py`: prints each model's time and a SLOW warning. Web: `AiStatus.slow`; the teacher's badge says "AI up, but slow".
+- `scripts/prewarm_stories.py`: `--students` (only the demo students), `--attempts` (retries a model error or a rejected story),
+  `--timeout` (default 150 s, offline so waiting is fine); "next" concepts now skip what the student has mastered; a recent model
+  ERROR no longer counts as "already there" (the live path's back-off rule was making a re-run skip exactly the failed stories).
+- `tests/test_personal_story.py`: an empty reply is not "up"; a real-sized budget and the real timeout; latency and `slow` reported.
+- Demo data: `data/demo.db` (local, gitignored) now holds 4 real AI stories for `aarav.k` (position, distance, displacement,
+  speed; badminton; all passed rules and critic on the first attempt). Read two: physics right.
+
+**Why.** On the live trial `ai_check` said "DOWN" while real calls answered (8 tokens: a thinking model came back empty or timed
+out at 30 s), and stories took 65 to 226 s or failed, too slow for a stage demo.
+
+**Checked.** `test_personal_story` (45), `test_teacher_agent`, `test_coaching_agent`, `test_ai_switch`, `test_ai_practice`,
+`test_llm_usage`, `test_ai_decisions`, `test_api_auth` pass; `tsc` and lint clean. Live: `ai_check` now "up, 29.8 s, SLOW".
+
+**Learned.** `seed_demo.py --reset` wipes these stories: after any reseed, run
+`prewarm_stories.py --class "Class 11-B Physics" --students aarav.k --concepts 4` with `ECOLEARN_PROGRESS_DB=data\demo.db`
+(about 10 minutes on the free model).

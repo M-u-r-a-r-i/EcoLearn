@@ -223,19 +223,27 @@ def chat(
 # ---------------------------------------------------------------------------
 _HEALTH_TTL_SECONDS = 60
 _health_cache: dict[str, Any] = {"at": 0.0, "value": None}
+# The probe must look like a real call, or it reports the wrong thing (2026-10-27): with 8 tokens
+# and a 30 s timeout it said "down" while real calls answered, because "thinking" models spend
+# their first tokens reasoning (an 8-20 token budget came back empty) and free models often take
+# 20-60 s. So: the real calls' timeout, room to think, and an empty reply counts as a failure,
+# exactly as in chat().
+_HEALTH_MAX_TOKENS = 512
+SLOW_MS = 15_000  # answering, but slower than a student should wait for
 
 
 def health(force: bool = False) -> dict[str, Any]:
-    """Is a model answering right now? One tiny call, the answer kept for a minute.
+    """Is a model answering right now, the way real calls would? The answer is kept for a minute.
 
     Tries the main chain in order and stops at the first model that answers, so a
-    healthy primary costs one call of a few tokens. Used by the teacher's status badge
+    healthy primary costs one small call. Same timeout as real calls (LLM_TIMEOUT_SECONDS),
+    and an empty reply is a failure, as in chat(). Used by the teacher's status badge
     and scripts/ai_check.py; never on a student's path.
 
     Returns {"configured": bool, "up": bool, "model": answering model | None,
              "primary": the first model of the chain | None,
-             "on_fallback": bool, "latency_ms": int | None,
-             "tried": [{"model", "ok", "error"}], "checked_at": epoch seconds}.
+             "on_fallback": bool, "latency_ms": int | None, "slow": bool,
+             "tried": [{"model", "ok", "error", "latency_ms"}], "checked_at": epoch seconds}.
     """
     now = time.time()
     cached = _health_cache["value"]
@@ -247,17 +255,22 @@ def health(force: bool = False) -> dict[str, Any]:
     for model in chain:
         started = time.monotonic()
         try:
-            _post(model, {"messages": [{"role": "user", "content": "Reply with the word OK."}],
-                          "temperature": 0, "max_tokens": 8}, timeout=30)
+            data = _post(model, {"messages": [{"role": "user", "content": "Reply with the word OK."}],
+                                 "temperature": 0, "max_tokens": _HEALTH_MAX_TOKENS})
+            message = ((data.get("choices") or [{}])[0].get("message") or {})
+            if not (message.get("content") or "").strip():
+                raise LLMError(f"{model}: empty answer")
             answering, latency = model, int((time.monotonic() - started) * 1000)
-            tried.append({"model": model, "ok": True, "error": None})
+            tried.append({"model": model, "ok": True, "error": None, "latency_ms": latency})
             break
         except LLMError as exc:
-            tried.append({"model": model, "ok": False, "error": str(exc)[:200]})
+            tried.append({"model": model, "ok": False, "error": str(exc)[:200],
+                          "latency_ms": int((time.monotonic() - started) * 1000)})
     value = {"configured": bool(chain), "up": answering is not None, "model": answering,
              "primary": chain[0] if chain else None,
              "on_fallback": answering is not None and answering != chain[0],
-             "latency_ms": latency, "tried": tried, "checked_at": now}
+             "latency_ms": latency, "slow": latency is not None and latency > SLOW_MS,
+             "tried": tried, "checked_at": now}
     _health_cache["at"], _health_cache["value"] = now, value
     return value
 

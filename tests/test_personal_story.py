@@ -275,6 +275,23 @@ def test_llm_client() -> None:
     check(llm.health()["model"] == "free/backup-model", "health: the answer is cached for a minute")
     h = llm.health(force=True)
     check(h["configured"] and not h["up"] and h["model"] is None, "health: every model down → up is False")
+    # The probe must look like a real call (2026-10-27): room to think, no short timeout of its own,
+    # and an empty reply ("thinking" used the budget) is a failure, as in chat().
+    probes = []
+
+    def empty_then_ok(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        probes.append((body["model"], body["max_tokens"], request.extensions.get("timeout", {}).get("read")))
+        content = "" if body["model"] == "free/main-model" else "OK"
+        return httpx.Response(200, json={"model": body["model"], "choices": [{"message": {"content": content}}]})
+
+    llm_client._transport = httpx.MockTransport(empty_then_ok)
+    h = llm.health(force=True)
+    check(h["model"] == "free/backup-model" and h["tried"][0]["error"].endswith("empty answer"),
+          "health: an empty reply is not 'up'")
+    check(probes[0][1] >= 256 and probes[0][2] == float(os.environ.get("LLM_TIMEOUT_SECONDS") or 60),
+          "health: a real-sized token budget and the real calls' timeout")
+    check(h["slow"] is False and all("latency_ms" in t for t in h["tried"]), "health: latency per model, not slow")
     llm_client._transport = httpx.MockTransport(handler)
     check(ps.guard_problems({"story": "x", "analogy": "y"})[-1] == "'limit' is missing."
           and "'limit' is missing." in ps.guard_problems({"story": "x", "analogy": "y", "limit": "  "}),

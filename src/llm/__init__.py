@@ -13,6 +13,7 @@ google-genai directly; moving them here is the rest of M1a.
 """
 
 from src.llm.client import (
+    SLOW_MS,
     ChatResult,
     LLMError,
     chat,
@@ -23,5 +24,5 @@ from src.llm.client import (
     usage_context,
 )
 
-__all__ = ["LLMError", "ChatResult", "chat", "configured_models", "health", "is_configured",
+__all__ = ["LLMError", "ChatResult", "SLOW_MS", "chat", "configured_models", "health", "is_configured",
            "set_usage_sink", "usage_context"]
