@@ -3447,3 +3447,29 @@ fast-forward needed no merge commit.
 
 **Checked.** Before the merge: all 34 deterministic test files and the persistence pair pass, 642/642 lessons valid. The load test
 failed (p95 2.9 s), as it did on `main` on 2026-10-18 (machine state).
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. First live trial of all five AI places; finals deck (2026-10-27)
+
+**Changed.** No code. OmniRoute started (`OMNIROUTE_SERVER_HOST=127.0.0.1`, `omniroute`); every live-AI feature run once through
+`platform_api` on a COPY of a freshly seeded demo database (scratchpad, so `data/demo.db` stays as seeded). A 17-slide finals deck
+was published as a private Claude artifact (Slides type) following `docs/slide-style-guide.md`, with the trial as slide 13.
+
+**Results** (free `gemini/gemini-3.1-flash-lite`; the fallback `gemini-3.7-flash` answered 503/429, overloaded at Google):
+- Personal stories 0 of 3 (ReadTimeout on every model; each student would see the prepared story; 65 to 226 s spent failing).
+- Doubt chat: 1 of 3 physics questions answered by the AI (20 s, verdict PASS); 2 timed out and fell back to the lesson's key idea.
+  Injection, phone number and self-harm were all blocked by `help_guard` in 0 s, before any model.
+- Practice with AI: 2 of 2 written and solver-agreed (44 and 48 s); both keys re-derived by hand (525 N, 5,600 N): right, and the
+  distractors are the "forgot the reversal" mix-up.
+- Teaching assistant: a real agent plan (`source: agent`) in 148 s, 4 tool steps.
+- Coaching notes: 17 of 25 by the AI, 8 by rules after failing checks, 134 s.
+- Usage log: 18 calls, 6 failed.
+
+**Learned.**
+- `scripts/ai_check.py` says "AI is DOWN" while real calls succeed: `llm.health` asks for 8 tokens with a 30 s timeout, and Flash-Lite
+  "thinks" first (an 8-to-20-token request came back empty with `finish_reason: length`). Fix the health check before relying on the
+  badge on stage.
+- Free models are too slow for students (20 to 60 s, frequent timeouts at the 60 s limit). Use a paid key, a different working
+  fallback model, or pre-warm stories (`scripts/prewarm_stories.py`) before the demo; have the recorded demo ready.
+- The off-topic question ("Who will win the IPL?") fell back only because of a timeout: the chat still has no topic check.
+- The teacher plan names students on purpose: the agent sees S1, S2…, and `teacher_agent.fill_names` puts names back for the teacher.
