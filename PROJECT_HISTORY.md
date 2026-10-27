@@ -3413,3 +3413,13 @@ mix-ups unchanged, phone width fine. Demo data reseeded after.
 - Not yet run on a live model: try it with OmniRoute before the pilot, ideally with a different `LLM_CRITIC_MODEL` for the solver.
 - A single-threaded stand-in HTTP server hangs when a browser tab leaves an idle connection open: use `ThreadingHTTPServer`.
 - When scripting a click in a React page, wait for the state to change before reading the result (the first read came too early).
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzz. Handoff 2026-10-27
+
+**Changed.** `AGENTS.md` §2 gains a "SESSION HANDOFF 2026-10-27" block at the top: the three stacked branches and their merge order
+(none merged into `main` yet), what was done 2026-10-14 to 2026-10-19, what was verified, what is not done (live AI trial, pitch and
+demo, pilot online, people), how to resume, and the session's gotchas. No code changed.
+
+**Why.** The user asked to save everything for a new session. With the PRs unmerged, a session starting from `main` would not see
+the last week's work; the handoff is on `feature/ai-practice`, which contains all of it.

@@ -94,6 +94,58 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### SESSION HANDOFF 2026-10-27 (NEWEST: read this first)
+
+**Finals are on 2026-10-29 (two days).** Everything below is committed and pushed; nothing is waiting in a working tree.
+
+**Where the code is: three stacked branches, NONE merged into `main` yet.** `main` is at `1f56982` and lacks all of it.
+Merge them on GitHub IN THIS ORDER (each PR shows only its own changes once the previous one is merged; `gh` is not installed here):
+1. `feature/open-learner-profile`: https://github.com/Niranjan-207/EcoLearn/pull/new/feature/open-learner-profile
+2. `feature/pilot-experiment`: https://github.com/Niranjan-207/EcoLearn/pull/new/feature/pilot-experiment
+3. `feature/ai-practice` (contains 1 and 2, plus this handoff): https://github.com/Niranjan-207/EcoLearn/pull/new/feature/ai-practice
+Until they are merged, work from `feature/ai-practice`: `git fetch && git checkout feature/ai-practice && git pull --ff-only`.
+After merging: `git checkout main && git pull --ff-only`, and delete the merged branches if the user agrees.
+
+**Done in the 2026-10-14 to 2026-10-19 sessions** (each has a PROJECT_HISTORY entry; the last seven entries):
+- Per-student AI switch; the doubt chat rebuilt on `src/llm` (both merged into `main` with PR #1).
+- **Open learner profile** (`src/learner/profiler.py`, `/about-me`, "that's not me"), behaviour correcting the survey, "sure but wrong"
+  nudge + sooner revision, keep-it-fresh revision of mastered ideas (7/21/63 days), **coaching actions** the teacher approves.
+- **Pre-registered randomised pilot comparison** (`docs/pilot-experiment.md`, `data/experiments.yaml`, `src/learner/experiments.py`):
+  experiment `check_prompt` = the "Before you pick" line on every lesson check for half the students, primary outcome first-try
+  accuracy; `scripts/pilot_report.py` prints the comparison with a bootstrap interval. **Never change the outcome after the pilot
+  starts**; add a dated note in the doc instead.
+- **Practice with AI** (`src/learner/practice.py`): the fifth live-AI place, approved 2026-10-19. Optional, never counted; writer +
+  independent solver must agree; key stays server-side.
+- Consent note, AI safety card and AGENTS non-negotiable 3 updated for all of the above.
+
+**Verified at the end:** every deterministic test file passes (new: `test_learner_profile`, `test_pilot_experiment`,
+`test_ai_practice`), `tsc` and lint clean, browser checks on demo data (About me, coaching actions loop, practice panel with a
+stand-in model, phone width, light and dark). **Load test FAILED on 2026-10-18 on `main` too** (machine state; see §9zn notes).
+Not run: `npm run build`, a screen reader.
+
+**NOT done, by priority for the finals (the user picks):**
+1. **Merge the three PRs** (the user, five minutes).
+2. **Live AI trial**: OmniRoute was not running in any of these sessions, so the doubt chat, practice questions and the newest
+   flows have NEVER answered a real question. Start it (`set OMNIROUTE_SERVER_HOST=127.0.0.1`, then `omniroute`), run
+   `venv\Scripts\python.exe scripts\ai_check.py`, then try stories, the help chat (incl. off-topic), practice, teacher plan and
+   coaching notes on the demo data. Ideally set a different `LLM_CRITIC_MODEL` for the practice solver.
+3. **Finals pitch and demo**: a 15-minute script built on the judging weights, and a stage-safe backup (a recorded demo journey;
+   demo logins below; Aarav is pinned to the treatment arm so his "Before you pick" line shows).
+4. **Pilot online**: CORS origins from config (hardcoded to localhost in `api/main.py`), `ECOLEARN_JWT_SECRET`, nightly backup
+   script, access/encryption plan; hosting is the user's choice (VPS, or their PC + Cloudflare Tunnel).
+5. People: the school (counsellor alert, ethics sign-off for the experiment), a teacher reads the pilot chapters, a lawyer reads the
+   consent note, the display name.
+
+**How to resume quickly:** demo data `venv\Scripts\python.exe scripts\seed_demo.py --reset`, API
+`set ECOLEARN_PROGRESS_DB=data\demo.db` then `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`, web
+`cd web && npm run dev`. Logins: `demo.teacher`, `aarav.k`, `ananya.r`, `aditya.v`; password = `DEMO_PASSWORD` in `scripts/seed_demo.py`.
+Launch entries `api`, `api-demo`, `web` exist in `.claude/launch.json` (local, gitignored).
+
+**Gotchas from these sessions:** heredocs turn `\n` in Python strings into real newlines and `\t` in Windows paths into tabs (use
+the Edit tool or a script file); a single-threaded stand-in HTTP server hangs on an idle browser connection (use
+`ThreadingHTTPServer`); when scripting clicks in React, wait for the state change before reading; tests that check profile rules
+must set `ECOLEARN_EXPERIMENTS=off`; remove a worktree's `node_modules` junction with `rmdir` BEFORE `git worktree remove`.
+
 ### UPDATE 2026-10-18, later: branch `feature/open-learner-profile` (open a PR into `main`)
 
 The profiler, improved (PROJECT_HISTORY, last entry): `src/learner/profiler.py` turns survey answers AND behaviour into insights with
