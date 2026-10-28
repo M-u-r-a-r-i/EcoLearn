@@ -94,6 +94,44 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
 - **Run locally first**; cloud hosting later.
 
+### SESSION HANDOFF 2026-10-28 (NEWEST: read this first)
+
+**Finals are tomorrow, 2026-10-29.** Everything is on `main`, committed and pushed; `main` is the only branch. Untracked on purpose:
+`EcoLearn-Physics-Tutor.zip`, `.agents/`.
+
+**Done in the 2026-10-27/28 session** (PROJECT_HISTORY, the last five entries):
+- All branches merged into `main` and deleted (fast-forward). Full deterministic suite passed before the merge.
+- **First live run of all five AI places** on free `gemini-3.1-flash-lite` via OmniRoute: practice 2/2 (keys re-checked by hand),
+  coaching 17/25 by AI, a real teacher plan (148 s), unsafe chat 3/3 blocked; stories and most chat answers timed out and fell back.
+- **`ai_check` / the teacher's AI badge now reflect real calls** (real timeout, 512 tokens, empty reply = failure, SLOW warning over 15 s).
+  `scripts/prewarm_stories.py` gained `--students`, `--attempts`, `--timeout`, skips mastered concepts, retries model errors.
+- **`data/demo.db` holds 4 real AI stories for `aarav.k`** (position, distance, displacement, speed). A reseed wipes them: re-run
+  `prewarm_stories.py --class "Class 11-B Physics" --students aarav.k --concepts 4` with `ECOLEARN_PROGRESS_DB=data\demo.db` (~10 min).
+- **The finals deck in use:** "EcoLearn: learning that fits the learner" (9 slides), a private Claude artifact; source backup and how
+  to edit it in **`docs/finals-deck/README.md`**. The user chose this structure: title, self-learning, problem statement (their exact
+  sentence), solution, how it works (diagram), agent system (diagram), technology readiness (NO internal counts such as lesson numbers;
+  feasibility + completeness instead), commercial viability + USPs, thank you. Placeholders left: team names, contact.
+- **`docs/generation-economics.html`** (also a private artifact): per-student syllabus generation vs the shared library. Per student
+  Rs 103-6,086 over two years by model; library Rs 1,551-30,428 once + Rs 91 per student; the library wins once students outnumber
+  interests. Model: `scripts/generation_cost_model.py` (estimates; see the page's limits section).
+- The user asked whether the "agent ecosystem" picture they had (RAG retriever, analogy generator, critic, assessment agent, dialogue
+  manager, mastery tracker, profile, path advisor) matches the code: it does only partly. Retrieval is a lookup of the student's own lesson
+  (the chromadb RAG is the old, unused pipeline); grading, mastery, path and profile are RULES on purpose; the doubt chat is single-turn
+  (no follow-up memory). The accurate diagram is `docs/finals-deck/diagrams/ecosystem.svg`.
+
+**How to run the demo (the user uses Command Prompt, not PowerShell):** each in its own window, from `D:\Projects\EcoLearn`
+(`cd /d D:\Projects\EcoLearn`; the user also has a copy in `C:\Users\kvnir\OneDrive\Documents\Ecolearn`, which is NOT this repo):
+1. `set OMNIROUTE_SERVER_HOST=127.0.0.1` then `omniroute`;
+2. `venv\Scripts\python.exe scripts\ai_check.py`;
+3. `set ECOLEARN_PROGRESS_DB=data\demo.db` then `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`;
+4. `cd web` then `npm run dev`; open http://localhost:3000.
+Logins: teacher `demo.teacher`; students `aarav.k` (stories ready), `ananya.r` / `aditya.v` (first sign-in: survey + starting check);
+password = `DEMO_PASSWORD` in `scripts/seed_demo.py`. Rehearsing writes into the demo DB: reseed and re-prewarm before the real demo.
+Nothing was left running at the end of the session (ports 20128, 8000, 3000 free).
+
+**Next, if the user asks:** fill the deck placeholders; record a backup demo video; a paid Gemini key (free models are 20-60 s and
+time out; use a paid key for children's data anyway); pilot hosting (CORS from config, `ECOLEARN_JWT_SECRET`, backups).
+
 ### UPDATE 2026-10-27, evening: live AI tried; stories pre-warmed for the demo
 
 First live run of all five AI places (PROJECT_HISTORY, the last two entries): it works but free Flash-Lite is slow (20 to 60 s, frequent timeouts). `ai_check` now reflects real calls and warns when SLOW. **Before the stage demo:** reseed, then `prewarm_stories.py --class "Class 11-B Physics" --students aarav.k --concepts 4` against `data\demo.db` (a reseed wipes them), start OmniRoute, run `ai_check`. The finals deck is a private Claude artifact (21 slides, "EcoLearn finals pitch").

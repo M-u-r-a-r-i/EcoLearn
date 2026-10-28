@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="660" viewBox="0 0 1600 660" font-family="Segoe UI, Nunito Sans, Tahoma, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#747C73"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#BD594E"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#26745D"/></marker>
+    <filter id="sh" x="-5%" y="-10%" width="110%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#202A27" flood-opacity="0.07"/></filter>
+  </defs>
+  <rect width="1600" height="660" fill="#F4F3ED"/>
+
+  <!-- column bands -->
+  <g fill="#EBEAE1" opacity="0.55">
+    <rect x="10" y="20" width="380" height="490" rx="22"/>
+    <rect x="410" y="20" width="380" height="490" rx="22"/>
+    <rect x="810" y="20" width="380" height="490" rx="22"/>
+    <rect x="1210" y="20" width="380" height="490" rx="22"/>
+  </g>
+  <g font-size="20" font-weight="800" fill="#747C73" text-anchor="middle" letter-spacing="3">
+    <text x="200" y="56">1 · RETRIEVE</text>
+    <text x="600" y="56">2 · GENERATE</text>
+    <text x="1000" y="56">3 · REVIEW</text>
+    <text x="1400" y="56">4 · DELIVER</text>
+  </g>
+
+  <!-- lane labels -->
+  <text x="30" y="98" font-size="18" font-weight="800" fill="#26745D" letter-spacing="2">PREPARED IN ADVANCE · ONCE, FOR EVERY STUDENT</text>
+  <text x="30" y="318" font-size="18" font-weight="800" fill="#96691F" letter-spacing="2">LIVE · FOR ONE STUDENT</text>
+
+  <!-- cards -->
+  <g filter="url(#sh)">
+    <rect x="30" y="112" width="340" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="430" y="112" width="340" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="830" y="112" width="340" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="1230" y="112" width="340" height="150" rx="20" fill="#E3ECDD" stroke="#DEDFD4"/>
+    <rect x="30" y="332" width="340" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="430" y="332" width="340" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="830" y="332" width="340" height="150" rx="20" fill="#F5EDDA" stroke="#E6BD4D" stroke-width="2"/>
+    <rect x="1230" y="332" width="340" height="150" rx="20" fill="#E3ECDD" stroke="#DEDFD4"/>
+  </g>
+
+  <!-- chips -->
+  <g font-size="16" font-weight="800" text-anchor="middle" letter-spacing="1">
+    <rect x="696" y="346" width="56" height="28" rx="14" fill="#26745D"/><text x="724" y="366" fill="#FFFEF9">AI</text>
+    <rect x="1096" y="346" width="56" height="28" rx="14" fill="#26745D"/><text x="1124" y="366" fill="#FFFEF9">AI</text>
+  </g>
+
+  <g fill="#202A27">
+    <text x="52" y="154" font-size="26" font-weight="800">Curriculum</text>
+    <text x="52" y="190" font-size="20">CBSE + ISC concepts,</text>
+    <text x="52" y="216" font-size="20">teaching order and</text>
+    <text x="52" y="242" font-size="20">the known mix-ups</text>
+
+    <text x="452" y="154" font-size="26" font-weight="800">Lesson writing</text>
+    <text x="452" y="190" font-size="20">One lesson per concept</text>
+    <text x="452" y="216" font-size="20">per interest, following</text>
+    <text x="452" y="242" font-size="20">a written guide</text>
+
+    <text x="852" y="154" font-size="26" font-weight="800">Quality checks</text>
+    <text x="852" y="190" font-size="20">Every lesson is checked</text>
+    <text x="852" y="216" font-size="20">before any student</text>
+    <text x="852" y="242" font-size="20">ever sees it</text>
+
+    <text x="1252" y="154" font-size="26" font-weight="800">Lesson library</text>
+    <text x="1252" y="190" font-size="20">Ready instantly,</text>
+    <text x="1252" y="216" font-size="20">the same quality for</text>
+    <text x="1252" y="242" font-size="20">every student</text>
+
+    <text x="52" y="374" font-size="26" font-weight="800">Lesson + profile</text>
+    <text x="52" y="410" font-size="20">Their lesson, their</text>
+    <text x="52" y="436" font-size="20">hobbies and the mix-ups</text>
+    <text x="52" y="462" font-size="20">from their starting check</text>
+
+    <text x="452" y="374" font-size="26" font-weight="800">Story writer</text>
+    <text x="452" y="410" font-size="20">A story around their</text>
+    <text x="452" y="436" font-size="20">hobby, grounded only in</text>
+    <text x="452" y="462" font-size="20">that lesson’s text</text>
+
+    <text x="852" y="374" font-size="26" font-weight="800">Rules + critic</text>
+    <text x="852" y="410" font-size="20">Physics, analogy, its limit</text>
+    <text x="852" y="436" font-size="20">and safety; a failed draft</text>
+    <text x="852" y="462" font-size="20">is rewritten, up to 3 times</text>
+
+    <text x="1252" y="374" font-size="26" font-weight="800">Lesson page</text>
+    <text x="1252" y="410" font-size="20">Story, lesson, worked</text>
+    <text x="1252" y="436" font-size="20">example, then a check</text>
+    <text x="1252" y="462" font-size="20">marked by rules</text>
+  </g>
+
+  <!-- flow arrows -->
+  <g stroke="#747C73" stroke-width="3" fill="none" marker-end="url(#a)">
+    <line x1="372" y1="187" x2="426" y2="187"/>
+    <line x1="772" y1="187" x2="826" y2="187"/>
+    <line x1="1172" y1="187" x2="1226" y2="187"/>
+    <line x1="372" y1="407" x2="426" y2="407"/>
+    <line x1="772" y1="407" x2="826" y2="407"/>
+    <line x1="1172" y1="407" x2="1226" y2="407"/>
+  </g>
+  <!-- library feeds the live lane -->
+  <path d="M1400,264 L1400,292 L345,292 L345,328" stroke="#26745D" stroke-width="3" fill="none" stroke-dasharray="8 7" marker-end="url(#g)"/>
+  <text x="800" y="284" font-size="18" fill="#26745D" text-anchor="middle" font-weight="700">the student’s own lesson is retrieved</text>
+
+  <!-- fallback -->
+  <path d="M1000,484 L1000,530 L1360,530 L1360,488" stroke="#BD594E" stroke-width="3" fill="none" stroke-dasharray="8 7" marker-end="url(#r)"/>
+  <text x="1180" y="560" font-size="19" fill="#BD594E" text-anchor="middle" font-weight="700">anything fails → the prepared story</text>
+
+  <!-- feedback loop -->
+  <path d="M1440,484 L1440,610 L160,610 L160,488" stroke="#26745D" stroke-width="3" fill="none" marker-end="url(#g)"/>
+  <rect x="470" y="594" width="660" height="34" rx="17" fill="#F4F3ED"/>
+  <text x="800" y="618" font-size="20" fill="#26745D" text-anchor="middle" font-weight="700">the check answer updates their plan, mix-ups and revision</text>
+</svg>

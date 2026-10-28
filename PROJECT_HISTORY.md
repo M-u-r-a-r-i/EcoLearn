@@ -3513,3 +3513,15 @@ tables to 10 lakh students; the non-cost limits (review, waiting, capacity, fair
   The library is Rs 1,551 to Rs 30,428 once. The library is cheaper as soon as students outnumber interests.
 - At cheap-model prices cost is not the binding limit; per-student content cannot be reviewed or fixed once for everyone.
 - Token counts are estimates from measured lesson and prompt sizes, not a run of per-student generation; thinking tokens assumed 1x.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. Handoff 2026-10-28: finals deck backed up, cost model saved
+
+**Changed.** `docs/finals-deck/` (new): the source of the deck in use ("EcoLearn: learning that fits the learner", a private
+Claude artifact), read back from the artifact so the user's browser edits are included, plus the two diagram sources
+(`diagrams/architecture.svg`, `diagrams/ecosystem.svg`) and a README on editing and re-rendering them.
+`scripts/generation_cost_model.py` (new): the model behind `docs/generation-economics.html`. `AGENTS.md` §2 gains a
+"SESSION HANDOFF 2026-10-28" block (what was done, how to run the demo in Command Prompt, logins, what is next).
+
+**Why.** The user asked to save everything for a new session. The deck and diagrams existed only in temporary scratch folders and
+inside the artifacts.
