@@ -1,0 +1,206 @@
+<title>EcoLearn Generation Economics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one readable column (~760px) with wide tables allowed to scroll; EcoLearn house palette (field-notes green on paper). */
+:root {
+  --bg: #F4F3ED; --surface: #FFFEF9; --soft: #EBEAE1; --ink: #202A27; --muted: #5F675F; --line: #DEDFD4;
+  --brand: #26745D; --brand-soft: #E3ECDD; --gold: #96691F; --gold-soft: #F5EDDA; --danger: #A84A40; --danger-soft: #F5E6DC;
+  --bar-ours: #26745D; --bar-other: #A2AEA4; --bar-warn: #C98A50;
+  --display: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+  --body: "Nunito Sans", "Segoe UI", Tahoma, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17231F; --surface: #202E29; --soft: #293A33; --ink: #F1F2E7; --muted: #A2AEA4; --line: #394940;
+  --brand: #79C29B; --brand-soft: #2A4033; --gold: #E6BD4D; --gold-soft: #403B2A; --danger: #F18579; --danger-soft: #4A2E2A;
+  --bar-ours: #79C29B; --bar-other: #5E6E66; --bar-warn: #E99B61; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #17231F; --surface: #202E29; --soft: #293A33; --ink: #F1F2E7; --muted: #A2AEA4; --line: #394940;
+  --brand: #79C29B; --brand-soft: #2A4033; --gold: #E6BD4D; --gold-soft: #403B2A; --danger: #F18579; --danger-soft: #4A2E2A;
+  --bar-ours: #79C29B; --bar-other: #5E6E66; --bar-warn: #E99B61; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 820px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 36px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -0.02em; }
+h2 { font-size: clamp(22px, 3.4vw, 28px); letter-spacing: -0.01em; }
+h3 { font-size: 18px; }
+p, ul, ol { margin: 0; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--brand); }
+.lede { font-size: 18px; color: var(--muted); max-width: 64ch; }
+.meta { font-size: 13px; color: var(--muted); }
+ul, ol { padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.answer { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; }
+.answer li strong { color: var(--brand); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--soft); font-weight: 800; }
+tbody tr:last-child td { border-bottom: none; }
+tr.ours td { background: var(--brand-soft); font-weight: 700; }
+.chip { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; vertical-align: 2px; }
+.chip.m { background: var(--brand-soft); color: var(--brand); }
+.chip.a { background: var(--gold-soft); color: var(--gold); }
+.chip.i { background: var(--danger-soft); color: var(--danger); }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 12px; display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); gap: 12px; align-items: center; font-size: 14px; }
+.bar-track { position: relative; height: 26px; }
+.bar { height: 100%; border-radius: 6px; background: var(--bar-other); display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: var(--surface); font-weight: 800; font-size: 12px; font-variant-numeric: tabular-nums; min-width: 52px; }
+.bar.ours { background: var(--bar-ours); }
+.bar.over { background: var(--bar-warn); }
+.rev { position: absolute; top: -4px; bottom: -4px; border-left: 2px dashed var(--ink); }
+.chart-foot { font-size: 13px; color: var(--muted); }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 640px) { .cards { grid-template-columns: minmax(0, 1fr); } .bar-row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card p { font-size: 15px; color: var(--ink); }
+.callout { border-left: 4px solid var(--gold); background: var(--gold-soft); border-radius: 0 12px 12px 0; padding: 14px 18px; }
+.rec { background: var(--brand); color: var(--surface); border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+.rec h2 { color: var(--surface); }
+.rec li strong { color: var(--surface); }
+hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+a { color: var(--brand); }
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:12px">
+  <p class="eyebrow">Commercial viability · EcoLearn</p>
+  <h1>What if we generated the whole syllabus for every student?</h1>
+  <p class="lede">The cost of writing every physics lesson fresh for each student in their own interest, compared with EcoLearn’s shared lesson library, and what changes as the number of students grows.</p>
+  <p class="meta">Prepared 28 October 2026. Prices: Google’s published paid-tier list prices, checked 13 October 2026, at ₹88 per US dollar. Figures marked <span class="chip m">Measured</span> come from our own runs; <span class="chip a">Assumed</span> are our inputs; <span class="chip i">Illustrative</span> show a mechanism, not a measurement.</p>
+</header>
+
+<section class="answer">
+  <h2>The short answer</h2>
+  <ul>
+    <li><strong>Per student, it costs ₹103 to ₹6,086,</strong> once, for the two years of Class 11 and 12. On the model we use today, that is <strong>₹332</strong> for one explanation per concept, or <strong>₹996</strong> for three lesson formats.</li>
+    <li><strong>EcoLearn’s library costs ₹1,551 to ₹30,428 in total, once,</strong> no matter how many students use it. Each student then adds about <strong>₹91 over two years</strong> for the live AI extras (their stories, chat, practice and the teacher’s tools).</li>
+    <li><strong>As students grow, the gap grows in a straight line.</strong> At a million students, per-student generation costs ₹42 crore (cheap model) to ₹618 crore (strong model, three formats), against about ₹9 crore for EcoLearn.</li>
+    <li><strong>Money is not what breaks first.</strong> At cheap-model prices it is affordable. What does not scale is checking: every student would read lessons no person and no shared fix has ever touched. Waiting time, model capacity and fair assessment break next.</li>
+  </ul>
+</section>
+
+<section>
+  <p class="eyebrow">1 · What we costed</p>
+  <h2>Writing every lesson fresh, for each student</h2>
+  <p>For each of the 249 concepts in the full Class 11 and 12 syllabus, an AI writes a lesson in the student’s interest. To keep it safe enough to put in front of a student, we include the same checks EcoLearn uses for its live AI today: a second AI reviews the physics, and a third call independently checks the answer key.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Input</th><th>Value</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>Concepts in the syllabus</td><td>249</td><td><span class="chip m">Measured</span> our curriculum, CBSE and ISC</td></tr>
+      <tr><td>Lesson formats</td><td>1 or 3</td><td><span class="chip a">Assumed</span> explain; or explain, challenge, misconception</td></tr>
+      <tr><td>Length of one lesson</td><td>~1,700 tokens</td><td><span class="chip m">Measured</span> average of our 642 lessons (6,400 characters)</td></tr>
+      <tr><td>Hidden “thinking” the model bills</td><td>~1,700 tokens</td><td><span class="chip a">Assumed</span> equal to the lesson; seen in our live trial</td></tr>
+      <tr><td>Instructions the writer must read</td><td>~9,000 tokens</td><td><span class="chip m">Measured</span> our writing guide, brief and one example lesson</td></tr>
+      <tr><td>Attempts per lesson</td><td>1.4</td><td><span class="chip m">Measured</span> live stories needed 2.8 calls (writer + critic)</td></tr>
+      <tr><td>Total per lesson</td><td>20,300 in, 6,720 out</td><td>Writer, critic and answer check, with rewrites</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <p class="eyebrow">2 · Cost per student</p>
+  <h2>Cheap models make it affordable; good ones make it the whole budget</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Model</th><th>Per lesson</th><th>Per student, 1 format</th><th>Per student, 3 formats</th><th>Share of ₹1,200/yr price*</th></tr></thead>
+    <tbody>
+      <tr><td>Gemini 2.5 Flash-Lite</td><td>₹0.42</td><td>₹103</td><td>₹310</td><td>4% – 13%</td></tr>
+      <tr><td>Gemini 3.1 Flash-Lite (used today)</td><td>₹1.33</td><td>₹332</td><td>₹996</td><td>14% – 42%</td></tr>
+      <tr><td>Gemini 3.8 Flash, until 31 Dec 2026</td><td>₹3.56</td><td>₹886</td><td>₹2,657</td><td>37% – 111%</td></tr>
+      <tr><td>Gemini 3.8 Flash, from 1 Jan 2027</td><td>₹7.11</td><td>₹1,772</td><td>₹5,315</td><td>74% – 221%</td></tr>
+      <tr><td>Gemini 2.5 Pro</td><td>₹8.15</td><td>₹2,029</td><td>₹6,086</td><td>85% – 254%</td></tr>
+      <tr class="ours"><td>EcoLearn today (shared library + live extras)</td><td>–</td><td colspan="2" style="text-align:center">₹91 over two years</td><td>4%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="meta">* Spread over the two years of Class 11 and 12, against an <span class="chip a">Assumed</span> price of ₹100 per student per month. That price is not validated with schools.</p>
+  <div class="callout"><p><strong>Why the expensive rows matter.</strong> The cheapest models are the weakest writers. When we tried a small open model in our early tests, it produced only 2 clean results in 11 attempts at one editing task. A lesson that teaches physics needs a strong model, which is where per-student generation stops being cheap.</p></div>
+</section>
+
+<section>
+  <p class="eyebrow">3 · Two years per student, side by side</p>
+  <div class="chart" role="img" aria-label="Bar chart of two-year cost per student. EcoLearn today: 91 rupees. Per-student generation: Flash-Lite one format 423, Flash-Lite three formats 1,087, Pro one format 2,120, Flash from 2027 three formats 5,406, Pro three formats 6,177. The assumed two-year revenue per student is 2,400 rupees.">
+    <div class="bar-row"><span>EcoLearn today</span><div class="bar-track"><div class="bar ours" style="width:1.5%">₹91</div><span class="rev" style="left:38.9%"></span></div></div>
+    <div class="bar-row"><span>Flash-Lite, 1 format</span><div class="bar-track"><div class="bar" style="width:6.8%">₹423</div><span class="rev" style="left:38.9%"></span></div></div>
+    <div class="bar-row"><span>Flash-Lite, 3 formats</span><div class="bar-track"><div class="bar" style="width:17.6%">₹1,087</div><span class="rev" style="left:38.9%"></span></div></div>
+    <div class="bar-row"><span>Pro, 1 format</span><div class="bar-track"><div class="bar" style="width:34.3%">₹2,120</div><span class="rev" style="left:38.9%"></span></div></div>
+    <div class="bar-row"><span>3.8 Flash (2027), 3 formats</span><div class="bar-track"><div class="bar over" style="width:87.5%">₹5,406</div><span class="rev" style="left:38.9%"></span></div></div>
+    <div class="bar-row"><span>Pro, 3 formats</span><div class="bar-track"><div class="bar over" style="width:100%">₹6,177</div><span class="rev" style="left:38.9%"></span></div></div>
+    <p class="chart-foot">Includes the ₹91 of live extras every option needs. Dashed line: ₹2,400, two years at the assumed ₹100 a month. Bars past it cost more than a student would pay.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">4 · What happens as it scales</p>
+  <h2>Per-student cost never shrinks; a library gets cheaper with every student</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Students</th><th>EcoLearn today</th><th>Flash-Lite, 1 format</th><th>Flash-Lite, 3 formats</th><th>Pro, 1 format</th><th>Pro, 3 formats</th><th>Model calls needed</th></tr></thead>
+    <tbody>
+      <tr><td>1,000</td><td>₹1.2 lakh</td><td>₹4.2 lakh</td><td>₹10.9 lakh</td><td>₹21 lakh</td><td>₹62 lakh</td><td>1 million</td></tr>
+      <tr><td>10,000</td><td>₹9.4 lakh</td><td>₹42 lakh</td><td>₹1.1 crore</td><td>₹2.1 crore</td><td>₹6.2 crore</td><td>10 million</td></tr>
+      <tr><td>1 lakh</td><td>₹91 lakh</td><td>₹4.2 crore</td><td>₹10.9 crore</td><td>₹21 crore</td><td>₹62 crore</td><td>105 million</td></tr>
+      <tr><td>10 lakh</td><td>₹9.1 crore</td><td>₹42 crore</td><td>₹109 crore</td><td>₹212 crore</td><td>₹618 crore</td><td>1 billion</td></tr>
+    </tbody>
+  </table></div>
+  <p class="meta">Two-year totals. EcoLearn today = the full library written once on the strongest model here (₹30,428) plus ₹91 of live extras per student. Model calls are for per-student generation of one format. For scale: about 17 lakh students sat the CBSE Class 12 exams in 2025.</p>
+  <div class="callout"><p><strong>The rule of thumb.</strong> A library costs (concepts × interests × formats) lessons, once. Per-student generation costs (concepts × formats) lessons for every student. So <strong>as soon as you have more students than interests, the library is cheaper.</strong> With 5 interests, that happens at the sixth student.</p></div>
+</section>
+
+<section>
+  <p class="eyebrow">5 · What breaks before the money does</p>
+  <h2>The real limits of writing everything per student</h2>
+  <div class="cards">
+    <div class="card"><h3>No one can check it</h3><p>Each student gets lessons nobody else has seen, so a teacher can never review them and a fix helps only one student. In a library, a wrong answer key is fixed once for everyone. <span class="chip i">Illustrative</span> If 1 lesson in 200 slipped past the AI checks, each student would meet about one wrong lesson, and a million students would hold a million different ones.</p></div>
+    <div class="card"><h3>Students would wait</h3><p>In our live trial, the free model took 65 to 226 seconds to write one short story, and often timed out. A full lesson is longer. A whole syllabus is 249 lessons, so it must be written ahead of time, and a new student would wait hours to start. <span class="chip m">Measured</span></p></div>
+    <div class="card"><h3>Capacity runs out</h3><p>About a billion model calls for a million students, all competing for the same provider limits. A library needs a few thousand calls, once.</p></div>
+    <div class="card"><h3>Learning cannot be measured fairly</h3><p>To know whether EcoLearn works, students must answer the same validated questions. If every student’s lessons and questions differ, results can’t be compared, which is why our graded checks stay fixed.</p></div>
+    <div class="card"><h3>Costs move with prices</h3><p>Gemini 3.8 Flash doubles in price on 1 January 2027. Per-student generation pays every price change for every new student; a library paid once is unaffected.</p></div>
+    <div class="card"><h3>Every syllabus change multiplies</h3><p>When a board changes a chapter, per-student generation rewrites it for every student. A library rewrites it once per interest.</p></div>
+  </div>
+  <p class="meta">Storage is not a problem: about 1.6 MB per student for one format, 4.6 MB for three.</p>
+</section>
+
+<section class="rec">
+  <p class="eyebrow" style="color:var(--surface);opacity:.85">Recommendation</p>
+  <h2>Keep the shared library, and spend on what students feel</h2>
+  <ul>
+    <li><strong>Personal where it is cheap:</strong> the per-student layer (their own hobby story, chat, practice) already costs about ₹3.79 a month and is checked by a second AI.</li>
+    <li><strong>Add interests, not per-student lessons:</strong> fifty interests across the whole syllabus in three formats is about ₹3 lakh, once, on the strongest model. That buys far more personalisation than generating for 150 individual students.</li>
+    <li><strong>Write on first request, then reuse:</strong> generate a lesson for a new concept and interest the first time any student needs it, check it, and serve it to everyone after. You only pay for what is used, and every lesson can still be reviewed.</li>
+    <li><strong>Spend the savings on people:</strong> a physics teacher reading every chapter is the cost that matters most for trust, and a library makes it possible.</li>
+  </ul>
+</section>
+
+<section>
+  <p class="eyebrow">6 · What this means for the business</p>
+  <h2>The library model is viable at a small scale</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Per student, per month</th><th>Amount</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>Live AI extras</td><td>₹3.79</td><td><span class="chip m">Measured</span> token counts × list prices</td></tr>
+      <tr><td>All-in cost at 300 students</td><td>₹13</td><td><span class="chip a">Assumed</span> ₹2,700 a month for server, domain and support</td></tr>
+      <tr><td>Price</td><td>₹100</td><td><span class="chip a">Assumed</span> not yet validated with schools</td></tr>
+      <tr><td>Margin</td><td>₹87 (87%)</td><td>Follows from the assumptions above</td></tr>
+      <tr><td>Students to break even</td><td>29</td><td>To cover the assumed fixed costs</td></tr>
+    </tbody>
+  </table></div>
+  <p>Because lessons are shared, the AI cost per student stays flat while fixed costs spread over more students. Per-student generation would turn the largest cost into one that grows with every enrolment.</p>
+</section>
+
+<hr>
+
+<section>
+  <h3>Limits of these numbers</h3>
+  <ul class="meta">
+    <li>Token counts for per-student lessons are estimates built from measured lesson and prompt sizes, not from a run of lessons generated per student. Treat them as the right size, not exact.</li>
+    <li>“Thinking” tokens are assumed equal to the lesson length; they vary by model and could be lower or higher.</li>
+    <li>Prompt caching could cut the input cost of the writer’s instructions; input is under half the cost on most models here, so the conclusions hold.</li>
+    <li>Images are excluded: we assume each lesson reuses shared illustrations, as EcoLearn does today.</li>
+    <li>The live-extras figure comes from a small number of real runs (6 stories, 4 plans, 1 coaching run). The doubt-chat figure inside it is an estimate.</li>
+    <li>Prices are Google’s list prices checked 13 October 2026; check again before quoting. Rupee figures use ₹88 per dollar.</li>
+  </ul>
+</section>
+
+</div>

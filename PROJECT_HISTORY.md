@@ -3497,3 +3497,19 @@ out at 30 s), and stories took 65 to 226 s or failed, too slow for a stage demo.
 **Learned.** `seed_demo.py --reset` wipes these stories: after any reseed, run
 `prewarm_stories.py --class "Class 11-B Physics" --students aarav.k --concepts 4` with `ECOLEARN_PROGRESS_DB=data\demo.db`
 (about 10 minutes on the free model).
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. Generation economics: per-student syllabus vs the shared library (2026-10-28)
+
+**Changed.** `docs/generation-economics.html` (new; also a private Claude artifact): the cost of generating all 249 concepts per
+student in their interest (writer + critic + answer check, 1.4 rounds, 20,300 tokens in / 6,720 out per lesson) on five Gemini
+price points, against the shared library (249 x 5 interests x 3 formats, once) plus measured live extras (Rs 3.79 a month); scale
+tables to 10 lakh students; the non-cost limits (review, waiting, capacity, fair assessment, price changes, syllabus changes).
+
+**Why.** The user asked what per-student syllabus generation would cost and how it scales, for a commercial-viability report.
+
+**Learned.**
+- Per student over two years: Rs 103 (2.5 Flash-Lite, 1 format) to Rs 6,086 (2.5 Pro, 3 formats); today's model Rs 332 / Rs 996.
+  The library is Rs 1,551 to Rs 30,428 once. The library is cheaper as soon as students outnumber interests.
+- At cheap-model prices cost is not the binding limit; per-student content cannot be reviewed or fixed once for everyone.
+- Token counts are estimates from measured lesson and prompt sizes, not a run of per-student generation; thinking tokens assumed 1x.
