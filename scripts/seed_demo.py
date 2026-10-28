@@ -52,6 +52,18 @@ NAMES = [
     "Riya Kapoor", "Ishaan Das", "Navya Pillai", "Karthik Subramanian", "Zoya Khan",
     "Neel Desai", "Pooja Hegde", "Sahil Chopra", "Lakshmi Naidu", "Omar Siddiqui",
 ]
+# --south-indian: a second sample class in its own database (data/sample.db), South Indian names, and each
+# student's last activity at a random day and time within the last two weeks.
+SOUTH_INDIAN_NAMES = [
+    "Arjun Krishnan", "Lakshmi Narayanan", "Karthik Raghavan", "Divya Subramaniam", "Vignesh Rajan",
+    "Priya Venkatesh", "Harish Reddy", "Sneha Nair", "Pranav Menon", "Keerthana Murugan",
+    "Surya Prakash", "Anjali Pillai", "Rahul Chandran", "Meenakshi Sundaram", "Siddharth Rao",
+    "Kavya Shetty", "Naveen Gowda", "Swathi Iyer", "Aditya Varma", "Nandini Hegde",
+    "Gokul Krishna", "Revathi Balakrishnan", "Vishnu Namboodiri", "Harini Srinivasan", "Manoj Kumar",
+]
+_SAMPLE_DB = _ROOT / "data" / "sample.db"
+SAMPLE_TEACHER_USERNAME = "sample.teacher"
+ACTIVE_WINDOW_DAYS = 14
 INTERESTS = ["cricket"] * 9 + ["football"] * 8 + ["gaming"] * 8
 NOT_STARTED = 2          # signed up, haven't taken the starting check
 NO_END_CHECK = 3         # took the starting check, not the end check yet
@@ -59,13 +71,21 @@ HOBBY_IDS = ["cricket", "football", "badminton", "basketball", "kabaddi", "athle
              "swimming", "cycling", "gaming", "phones", "cars", "music"]
 
 
-def _resolve_db() -> Path:
-    raw = os.environ.get("ECOLEARN_PROGRESS_DB")
+def _resolve_db(sample: bool, explicit: str | None) -> Path:
+    if sample:
+        # Ignores ECOLEARN_PROGRESS_DB on purpose: it is often still set to data\demo.db in the same window,
+        # and --reset would wipe the demo's pre-warmed stories.
+        raw = explicit or str(_SAMPLE_DB)
+    else:
+        raw = explicit or os.environ.get("ECOLEARN_PROGRESS_DB")
     path = Path(raw) if raw else _DEMO_DB
     path = path if path.is_absolute() else (Path.cwd() / path)
     if path.resolve() == _PILOT_DB.resolve():
         sys.exit("Refusing to seed data/progress.db: that is the pilot database. "
                  "Leave ECOLEARN_PROGRESS_DB unset (the default is data/demo.db).")
+    if sample and path.resolve() == _DEMO_DB.resolve():
+        sys.exit("Refusing to put the --south-indian class into data/demo.db (it holds the demo's stories). "
+                 "The default is data/sample.db.")
     return path
 
 
@@ -73,12 +93,28 @@ def _iso(moment: datetime) -> str:
     return moment.isoformat()
 
 
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def _daytime(moment: datetime, rng: random.Random) -> datetime:
+    """The same Indian date as `moment`, at a random time a student might be studying (07:00 to 22:00 IST)."""
+    local = moment.astimezone(_IST)
+    minute = rng.randint(7 * 60, 22 * 60 - 1)
+    return local.replace(hour=minute // 60, minute=minute % 60, second=rng.randint(0, 59),
+                         microsecond=0).astimezone(timezone.utc)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seed a demo class into data/demo.db.")
     parser.add_argument("--reset", action="store_true", help="delete the demo database first")
+    parser.add_argument("--south-indian", action="store_true",
+                        help="a second sample class (South Indian names, last activity spread over the last "
+                             "two weeks) in data/sample.db; teacher login sample.teacher")
+    parser.add_argument("--db", help="database file to write (default data/demo.db, or data/sample.db)")
     args = parser.parse_args()
+    sample = args.south_indian
 
-    db_path = _resolve_db()
+    db_path = _resolve_db(sample, args.db)
     if db_path.exists():
         if not args.reset:
             sys.exit(f"{db_path} already exists. Run with --reset to rebuild it.")
@@ -104,10 +140,16 @@ def main() -> int:
             conn.execute(sql, params)
 
     # ---- accounts ----------------------------------------------------------
-    teacher = api.create_teacher("Ms. Priya Nair", TEACHER_USERNAME, DEMO_PASSWORD)
+    if sample:
+        teacher_name, teacher_username, class_name, names = (
+            "Mrs. Sangeetha Raman", SAMPLE_TEACHER_USERNAME, "Class 11-A Physics", SOUTH_INDIAN_NAMES)
+    else:
+        teacher_name, teacher_username, class_name, names = (
+            "Ms. Priya Nair", TEACHER_USERNAME, "Class 11-B Physics", NAMES)
+    teacher = api.create_teacher(teacher_name, teacher_username, DEMO_PASSWORD)
     teacher_id = teacher["teacher_id"]
-    roster = [f"{n}, {i}" for n, i in zip(NAMES, INTERESTS)]
-    made = api.create_class(teacher_id, "Class 11-B Physics", "Class 11", "cricket", roster)
+    roster = [f"{n}, {i}" for n, i in zip(names, INTERESTS)]
+    made = api.create_class(teacher_id, class_name, "Class 11", "cricket", roster)
     class_id = made["class"]["class_id"]
     shared_hash = passwords.hash_password(DEMO_PASSWORD)
     students = made["credentials"]
@@ -115,6 +157,9 @@ def main() -> int:
         store.update_student_password(s["student_id"], shared_hash)
     run_sql("UPDATE classes SET created_at = ? WHERE class_id = ?",
             (_iso(now - timedelta(days=23)), class_id))
+    # In the sample class every student who started has one last moment of activity, a random day and time in
+    # the last two weeks; everything they did comes before it (fixed at the end, in "last activity").
+    arng = random.Random(SEED + 2)   # its own stream, so the default demo class is unchanged
 
     # ---- who each student is ------------------------------------------------
     not_started = set(rng.sample(range(len(students)), NOT_STARTED))
@@ -131,6 +176,11 @@ def main() -> int:
             "started_days_ago": 20 - rng.random() * 5,
             "check_taken": index not in not_started,
         })
+        if sample:
+            last = _daytime(now - timedelta(days=arng.uniform(0, ACTIVE_WINDOW_DAYS)), arng)
+            if last > now:
+                last -= timedelta(days=1)
+            people[-1]["last_active"] = last
     takers = [p for p in people if p["check_taken"]]
     no_end = {p["student_id"] for p in rng.sample(takers, NO_END_CHECK)}
 
@@ -203,6 +253,8 @@ def main() -> int:
     hobby_ids_valid = {h["id"] for h in diagnostic.hobby_options()}
     for p in people:
         t0 = now - timedelta(days=p["started_days_ago"])
+        if sample:
+            t0 = min(_daytime(t0, arng), p["last_active"] - timedelta(days=1))
         run_sql("UPDATE students SET created_at = ? WHERE student_id = ?",
                 (_iso(t0 - timedelta(minutes=6)), p["student_id"]))
         p["t0"] = t0
@@ -247,10 +299,14 @@ def main() -> int:
         studied = order[:wanted]
         p["studied"] = studied
         last_study = now - timedelta(days=2.6)
+        if sample:
+            last_study = max(p["t0"] + timedelta(hours=2), p["last_active"] - timedelta(hours=3))
         span = (last_study - p["t0"]).total_seconds()
         for i, concept_id in enumerate(studied):
             moment = p["t0"] + timedelta(seconds=span * (i + 1) / (len(studied) + 1)
                                          + rng.randint(0, 3600))
+            if sample:
+                moment = min(max(_daytime(moment, arng), p["t0"] + timedelta(minutes=15)), last_study)
             view = api.start_lesson_view(sid, concept_id)
             seconds = rng.choice([rng.randint(8, 30), rng.randint(60, 420), rng.randint(120, 540)])
             store.set_lesson_view_seconds(view["view_id"], seconds)
@@ -300,6 +356,8 @@ def main() -> int:
             api.submit_revision(sid, item["concept_id"], letter,
                                 rng.choice(["sure", "think", "guess"]))
             moment = now - timedelta(days=rng.uniform(0.2, 1.8))
+            if sample:
+                moment = p["last_active"] - timedelta(minutes=arng.uniform(1, 150))
             run_sql("UPDATE review_answers SET answered_at = ? WHERE student_id = ? AND concept_id = ?",
                     (_iso(moment), sid, item["concept_id"]))
             run_sql("UPDATE progress SET last_seen = ? WHERE student_id = ? AND concept_id = ?",
@@ -307,7 +365,7 @@ def main() -> int:
             revised += 1
 
     # ---- the end check ------------------------------------------------------------
-    opened = now - timedelta(days=3)
+    opened = now - timedelta(days=ACTIVE_WINDOW_DAYS + 1 if sample else 3)
     api.set_class_end_check(teacher_id, class_id, True)
     run_sql("UPDATE classes SET end_check_opened_at = ? WHERE class_id = ?", (_iso(opened), class_id))
     ended = 0
@@ -330,6 +388,8 @@ def main() -> int:
         picks, confs = take_check(p, chosen, fixed, unsure_scale=0.4)  # fewer "not sure" by now
         api.submit_end_check(sid, picks, confs)
         at = _iso(now - timedelta(days=rng.uniform(0.2, 2.5)))
+        if sample:
+            at = _iso(max(opened + timedelta(hours=1), p["last_active"] - timedelta(minutes=arng.uniform(5, 60))))
         run_sql("UPDATE end_check_answers SET answered_at = ? WHERE student_id = ?", (at, sid))
         run_sql("UPDATE learner_profiles SET end_check_completed_at = ? WHERE student_id = ?", (at, sid))
         ended += 1
@@ -387,6 +447,8 @@ def main() -> int:
                 row["problems"] = ["Still states the common mix-up as fact."]
             store.save_personal_story(row)
             moment = now - timedelta(days=rng.uniform(0.3, 15))
+            if sample:
+                moment = p["t0"] + (p["last_active"] - p["t0"]) * arng.random()
             run_sql("UPDATE personal_stories SET created_at = ? WHERE student_id = ? AND concept_id = ?",
                     (_iso(moment), p["student_id"], concept_id))
             stories += 1
@@ -399,6 +461,24 @@ def main() -> int:
         store.set_story_visibility(ready_rows[1]["student_id"], ready_rows[1]["concept_id"],
                                    True, "teacher")
 
+    # ---- last activity (sample class only) -----------------------------------------------------
+    # The teacher's "last active" is the newest progress.last_seen. Nothing may come after the student's
+    # chosen moment, and the newest row is set to exactly that moment.
+    if sample:
+        for p in people:
+            if not p["check_taken"]:
+                continue
+            sid, last = p["student_id"], _iso(p["last_active"])
+            run_sql("UPDATE progress SET last_seen = ? WHERE student_id = ? AND last_seen > ?", (last, sid, last))
+            for table, column in (("answers", "answered_at"), ("review_answers", "answered_at"),
+                                  ("end_check_answers", "answered_at"), ("lesson_views", "opened_at")):
+                run_sql(f"UPDATE {table} SET {column} = ? WHERE student_id = ? AND {column} > ?", (last, sid, last))
+            newest = conn.execute("SELECT concept_id FROM progress WHERE student_id = ? "
+                                  "ORDER BY last_seen DESC LIMIT 1", (sid,)).fetchone()
+            if newest:
+                run_sql("UPDATE progress SET last_seen = ? WHERE student_id = ? AND concept_id = ?",
+                        (last, sid, newest[0]))
+
     # ---- a teaching-assistant plan (the rules plan: no model call is made) ----------------
     api.generate_class_plan(teacher_id, class_id, models=[])
 
@@ -408,7 +488,7 @@ def main() -> int:
     # experiment: swap with a treatment classmate if needed, which keeps the class balanced. Demo data only;
     # never do this in a pilot.
     from src.learner import experiments  # noqa: E402
-    aarav = next(s["student_id"] for s in students if s["username"] == "aarav.k")
+    aarav = students[0]["student_id"]   # aarav.k in the demo class, the first name in the sample class
     for exp in experiments.enabled():
         arm_row = conn.execute("SELECT arm FROM experiment_arms WHERE student_id = ? AND experiment_id = ?",
                                (aarav, exp["id"])).fetchone()
@@ -425,14 +505,14 @@ def main() -> int:
 
     conn.close()
     print(f"Demo database: {db_path}")
-    print(f"  teacher login : {TEACHER_USERNAME}  (password in scripts/seed_demo.py)")
-    print(f"  class         : Class 11-B Physics, {len(people)} students, "
+    print(f"  teacher login : {teacher_username}  (password in scripts/seed_demo.py)")
+    print(f"  class         : {class_name}, {len(people)} students, "
           f"{len(takers)} took the starting check, {ended} the end check")
     print(f"  activity      : {lessons_done} lessons checked, {revised} revision answers, "
           f"{stories} personal stories")
     print("  student logins: " + ", ".join(s["username"] for s in students[:4]) + ", ...  "
           "(same password)")
-    print("Run the API against it with:  $env:ECOLEARN_PROGRESS_DB = \"data\\demo.db\"")
+    print(f"Run the API against it with (Command Prompt):  set ECOLEARN_PROGRESS_DB={db_path}")
     return 0
 
 

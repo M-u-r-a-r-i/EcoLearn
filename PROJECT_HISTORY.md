@@ -3525,3 +3525,34 @@ Claude artifact), read back from the artifact so the user's browser edits are in
 
 **Why.** The user asked to save everything for a new session. The deck and diagrams existed only in temporary scratch folders and
 inside the artifacts.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. Cost of an adaptive, per-lesson AI flow with reuse (2026-10-28)
+
+**Changed.** `scripts/adaptive_cost_model.py` (new): AI writes each lesson from the student's interests and how the previous
+lesson went, reusing a lesson when an earlier student had the same key. Per-step costs and 2-year totals at 1 to 10 lakh students
+for three keys: A interest + last outcome (4 buckets), B interest + 2 of 20 hobbies + last outcome, C interest profile + whole history.
+
+**Why.** The user asked what the "generate lesson n+1 from lesson n's interaction" model costs and how it scales.
+
+**Learned.**
+- One new lesson Rs 1.36 (3.1 Flash-Lite) to Rs 8.27 (2.5 Pro); a profile update Rs 0.14 to 0.84; a reused lesson and the check cost 0.
+- Reuse depends entirely on the key. A saturates at 4,965 lessons (Rs 126 per student at scale, mostly profiling + chat); B needs
+  about 1 lakh students before 96% reuse; C (whole history) never reuses: Rs 457 to 2,316 per student at any scale.
+- Equal-likelihood keys are the worst case for a given key count; real interests cluster, so real reuse is higher.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. A second sample class: South Indian names, last activity over two weeks (2026-10-28)
+
+**Changed.**
+- `scripts/seed_demo.py --south-indian`: a second fictional class, "Class 11-A Physics", 25 South Indian names (Tamil, Telugu,
+  Kannada, Malayalam), teacher `sample.teacher` ("Mrs. Sangeetha Raman"), same password, written to `data/sample.db`. Each student who
+  started was last active at a random day in the last 14 days and a random time from 07:00 to 22:00 IST; every lesson, answer, revision
+  and end-check answer is moved to before that moment, and the newest `progress.last_seen` (the teacher's "last active") is set to it.
+  Its own random stream, so the default demo class is unchanged. `--db` picks a file; in this mode `ECOLEARN_PROGRESS_DB` is ignored
+  and `data/demo.db` is refused (a window still set to it would otherwise wipe the pre-warmed stories).
+- `tests/test_seed_demo.py` part 6: the new mode, the demo.db refusal, last activity inside the window and in daytime.
+
+**Why.** The user wanted a sample database with South Indian names and recent, varied activity.
+
+**Learned.** As with the demo class, everything is invented: never quote these numbers as pilot results.

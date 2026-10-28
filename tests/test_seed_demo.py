@@ -85,4 +85,32 @@ s2 = api.get_class_checks(t2["teacher_id"], k2["class_id"])["summary"]
 assert {k: s2[k] for k in ("before", "after", "fixed", "slipped")} == \
        {k: summary[k] for k in ("before", "after", "fixed", "slipped")}
 print("ok: deterministic")
+
+# 6. --south-indian: its own database, never demo.db; everyone who started was last active in the last
+#    two weeks, at a daytime hour in India, and nothing they did comes after that moment.
+refused = subprocess.run([sys.executable, str(SCRIPT), "--south-indian", "--reset",
+                          "--db", str(ROOT / "data" / "demo.db")], cwd=ROOT, capture_output=True, text=True)
+assert refused.returncode != 0 and "demo.db" in (refused.stdout + refused.stderr)
+db3 = tmp / "sample.db"
+made = subprocess.run([sys.executable, str(SCRIPT), "--south-indian", "--reset", "--db", str(db3)],
+                      cwd=ROOT, capture_output=True, text=True)
+assert made.returncode == 0, made.stderr[-2000:]
+os.environ["ECOLEARN_PROGRESS_DB"] = str(db3)
+from datetime import datetime, timedelta, timezone  # noqa: E402
+t3 = api.authenticate_teacher("sample.teacher", "demo-class-2026")
+k3 = store.list_classes(t3["teacher_id"])[0]
+roster = store.list_class_students(k3["class_id"])
+assert "arjun.k" in {s["username"] for s in roster} and len(roster) == 25
+now = datetime.now(timezone.utc)
+ist = timezone(timedelta(hours=5, minutes=30))
+active = [s for s in roster if s.get("last_active")]
+assert len(active) == 23, len(active)
+for s in active:
+    last = datetime.fromisoformat(s["last_active"])
+    assert now - timedelta(days=14, hours=1) <= last <= now, s
+    assert 7 <= last.astimezone(ist).hour < 22, s
+later = [a for rows in store.get_activity([s["student_id"] for s in active]).values() for a in rows
+         if a.get("answered_at") and a["answered_at"] > max(s["last_active"] for s in active)]
+assert not later
+print("ok: --south-indian sample class, last activity within two weeks")
 print("test_seed_demo: all passed")
