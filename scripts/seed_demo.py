@@ -52,8 +52,9 @@ NAMES = [
     "Riya Kapoor", "Ishaan Das", "Navya Pillai", "Karthik Subramanian", "Zoya Khan",
     "Neel Desai", "Pooja Hegde", "Sahil Chopra", "Lakshmi Naidu", "Omar Siddiqui",
 ]
-# --south-indian: a second sample class in its own database (data/sample.db), South Indian names, and each
-# student's last activity at a random day and time within the last two weeks.
+# --south-indian: a second sample class in its own database (data/sample.db), South Indian names. Most students
+# were last active in the last RECENT_DAYS days; QUIET_STUDENTS went quiet 8 to 12 days ago, so the teacher's
+# "gone quiet" card has someone to show.
 SOUTH_INDIAN_NAMES = [
     "Arjun Krishnan", "Lakshmi Narayanan", "Karthik Raghavan", "Divya Subramaniam", "Vignesh Rajan",
     "Priya Venkatesh", "Harish Reddy", "Sneha Nair", "Pranav Menon", "Keerthana Murugan",
@@ -63,7 +64,10 @@ SOUTH_INDIAN_NAMES = [
 ]
 _SAMPLE_DB = _ROOT / "data" / "sample.db"
 SAMPLE_TEACHER_USERNAME = "sample.teacher"
-ACTIVE_WINDOW_DAYS = 14
+ACTIVE_WINDOW_DAYS = 14   # the end check opened this many days ago (plus one)
+RECENT_DAYS = 3
+QUIET_STUDENTS = 3
+QUIET_DAYS = (8, 12)
 INTERESTS = ["cricket"] * 9 + ["football"] * 8 + ["gaming"] * 8
 NOT_STARTED = 2          # signed up, haven't taken the starting check
 NO_END_CHECK = 3         # took the starting check, not the end check yet
@@ -108,8 +112,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Seed a demo class into data/demo.db.")
     parser.add_argument("--reset", action="store_true", help="delete the demo database first")
     parser.add_argument("--south-indian", action="store_true",
-                        help="a second sample class (South Indian names, last activity spread over the last "
-                             "two weeks) in data/sample.db; teacher login sample.teacher")
+                        help="a second sample class (South Indian names, most students active in the last few "
+                             "days) in data/sample.db; teacher login sample.teacher")
     parser.add_argument("--db", help="database file to write (default data/demo.db, or data/sample.db)")
     args = parser.parse_args()
     sample = args.south_indian
@@ -157,12 +161,14 @@ def main() -> int:
         store.update_student_password(s["student_id"], shared_hash)
     run_sql("UPDATE classes SET created_at = ? WHERE class_id = ?",
             (_iso(now - timedelta(days=23)), class_id))
-    # In the sample class every student who started has one last moment of activity, a random day and time in
-    # the last two weeks; everything they did comes before it (fixed at the end, in "last activity").
+    # In the sample class every student who started has one last moment of activity, a random day and time:
+    # most in the last few days, a few 8 to 12 days ago; everything they did comes before it (fixed at the end,
+    # in "last activity").
     arng = random.Random(SEED + 2)   # its own stream, so the default demo class is unchanged
 
     # ---- who each student is ------------------------------------------------
     not_started = set(rng.sample(range(len(students)), NOT_STARTED))
+    quiet = set(arng.sample([i for i in range(len(students)) if i not in not_started], QUIET_STUDENTS))
     people = []
     for index, s in enumerate(students):
         ability = min(0.92, max(0.25, rng.gauss(0.6, 0.15)))
@@ -177,7 +183,8 @@ def main() -> int:
             "check_taken": index not in not_started,
         })
         if sample:
-            last = _daytime(now - timedelta(days=arng.uniform(0, ACTIVE_WINDOW_DAYS)), arng)
+            days_ago = arng.uniform(*QUIET_DAYS) if index in quiet else arng.uniform(0, RECENT_DAYS)
+            last = _daytime(now - timedelta(days=days_ago), arng)
             if last > now:
                 last -= timedelta(days=1)
             people[-1]["last_active"] = last

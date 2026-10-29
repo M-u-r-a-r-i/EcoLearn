@@ -3556,3 +3556,41 @@ for three keys: A interest + last outcome (4 buckets), B interest + 2 of 20 hobb
 **Why.** The user wanted a sample database with South Indian names and recent, varied activity.
 
 **Learned.** As with the demo class, everything is invented: never quote these numbers as pilot results.
+
+
+## 9zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz. A case-study deck: one student's journey, India's numbers (2026-10-28)
+
+**Changed.** No app code. A separate 21-slide deck, "EcoLearn: Aarav's journey" (private Claude artifact, white background), and
+an interactive companion page of India charts with a value calculator; sources, links and how it was made in
+`docs/case-study-deck/` (README, slide sources, the page source, `capture/shoot.py`).
+
+**Why.** The user asked for a presentation with one student's full journey, screenshots of the website, and interactive charts of
+Indian statistics and the value EcoLearn can reach.
+
+**Learned.**
+- Screenshots without touching the user's servers or `demo.db`: a throwaway worktree (CORS for :3100 edited there only), an API on
+  :8100 over a COPY of `demo.db`, `next dev --webpack` on :3100, and headless Edge driven over CDP (`websocket-client` is in the
+  venv). Log in with `fetch(..., {credentials:'include'})` from the page; answer options are `input[name=answer]` radios and the
+  confidence chips are labels, not buttons; React textareas need the native value setter plus an `input` event.
+- Slides x-embeds animate but cannot be clicked, so interactive charts go on a linked page.
+- `ananya.r` was renamed in the copy so the first-sign-in screens greet "Aarav"; rename back before teacher screenshots, or two
+  "Aarav Kumar" rows appear.
+- Later the same day: six "results" slides on the simulated demo class of 25 (dashboard numbers, starting check 56% -> end check
+  74%, studied vs not studied, gains per idea, confidence vs accuracy and the top mix-up, then the pilot plan). The user asked for
+  results of a class of 25; no real class exists yet, so every slide is labelled "simulated, not pilot results".
+- Then four teacher slides (the user: "focus also on the teacher side"): an overview of eight teacher tools (`teachertools`), the
+  ranked mix-up map, coaching notes with teacher-approved actions, and "How the AI decided" (screens from the simulated class).
+  The deck is now 31 slides. The user also edits the deck in the browser: read a slide back before republishing it.
+
+
+### 2026-10-29: Speaker transcript for the finals deck
+
+**Changed:** `docs/finals-deck/transcript.md` (new): a 15-minute, two-presenter script for `EcoLearn_Hackastone.pptx` (31 slides), one handoff at slide 13, timings per slide, a cut list and likely Q&A.
+**Why:** the user asked for a transcript; the slide notes ran ~19 minutes. The script stresses that the engine is subject-independent and physics is the example.
+**Learned:** python-pptx is not installed; slide text and notes can be read straight from the `.pptx` zip XML.
+
+### 2026-10-29: Sample class mostly active
+
+**Changed:** `scripts/seed_demo.py --south-indian`: most students are now last active in the last 3 days (`RECENT_DAYS`); 3 (`QUIET_STUDENTS`) went quiet 8 to 12 days ago. The local `data/sample.db` was updated in place (each student's timestamps shifted by the same amount, the 3 longest-quiet left as they were) instead of reseeded, to keep students added on 2026-10-29; backup in the session scratchpad.
+**Why:** for the finals demo, 13 of 23 students showed as "gone quiet" (7-14 days). `data/demo.db` was already fine (everyone active within 3 days).
+**Learned:** the teacher's "last active" is `MAX(progress.last_seen)`; shifting every per-student timestamp by one offset keeps the order of what each student did.
