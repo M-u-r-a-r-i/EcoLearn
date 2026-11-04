@@ -3594,3 +3594,10 @@ Indian statistics and the value EcoLearn can reach.
 **Changed:** `scripts/seed_demo.py --south-indian`: most students are now last active in the last 3 days (`RECENT_DAYS`); 3 (`QUIET_STUDENTS`) went quiet 8 to 12 days ago. The local `data/sample.db` was updated in place (each student's timestamps shifted by the same amount, the 3 longest-quiet left as they were) instead of reseeded, to keep students added on 2026-10-29; backup in the session scratchpad.
 **Why:** for the finals demo, 13 of 23 students showed as "gone quiet" (7-14 days). `data/demo.db` was already fine (everyone active within 3 days).
 **Learned:** the teacher's "last active" is `MAX(progress.last_seen)`; shifting every per-student timestamp by one offset keeps the order of what each student did.
+
+
+### 2026-11-04: Collaborator history imported into M-u-r-a-r-i/EcoLearn
+
+**Changed:** branch `import-friend`: a two-parent merge (`--allow-unrelated-histories -s ours` + `read-tree --reset`) joining this repo's 47 commits with the 122 from `Niranjan-207/EcoLearn` `main`. Files are byte-identical to the collaborator's `main`. Before merging, both histories were rewritten with `git filter-branch --msg-filter` to drop `Co-Authored-By: Claude …` trailers only (123 commits); authors, dates and trees are unchanged. Old master kept locally as `backup/master-before-import`.
+**Why:** the collaborator started from a downloaded copy (`git init` again), so the two repos shared no commit and `git pull` refused. The user wanted every commit kept and only human contributors listed on GitHub.
+**Learned:** a repo copied without `.git` gets an unrelated root commit; check with `git merge-base`. GitHub's contributor list counts the default branch only, and a `Co-Authored-By` trailer counts as a contributor, so cleaning it means rewriting `master` and force-pushing it. Rewriting changes every commit hash, so the collaborator should re-clone rather than pull.
