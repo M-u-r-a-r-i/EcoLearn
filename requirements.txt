@@ -31,3 +31,6 @@ matplotlib            # renders lesson graphs from data specs
 
 # --- Legacy frontend ---------------------------------------------------------
 streamlit             # the legacy UI (app.py + pages/); must keep working
+
+# This repo itself, editable: makes `import ecolearn` (src/ecolearn) work everywhere.
+-e .

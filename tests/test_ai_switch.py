@@ -7,7 +7,7 @@
      - the help chat answers with the lesson's key idea and makes no model call;
      - their coaching note is written by rules and their case is never in the model's message;
      - the teaching assistant's tools never show them, and its plan says how many were left out.
-  3. The doubt tutor (src/learner/doubt_tutor.py): one call, grounded in the student's own lesson;
+  3. The doubt tutor (src/ecolearn/learner/doubt_tutor.py): one call, grounded in the student's own lesson;
      off-topic replies are refused; a reply that fails a check (not JSON, too short, a link, the student's
      name) or a model failure falls back to the lesson's key idea; no model configured falls back too;
      the call is in the usage log as "doubt_chat" with its tokens; the outcome is counted, never the words.
@@ -27,7 +27,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_aiswitch_"))
 _DB = _TMP / "aiswitch.db"
@@ -38,13 +39,13 @@ warnings.simplefilter("ignore")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.errors import NotFoundError  # noqa: E402
-from src.learner import doubt_tutor, help_guard  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.llm.client import LLMError  # noqa: E402
-from src.path import engine  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.errors import NotFoundError  # noqa: E402
+from ecolearn.learner import doubt_tutor, help_guard  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.llm.client import LLMError  # noqa: E402
+from ecolearn.path import engine  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 ps.SYNC = True
 _checks = 0
@@ -192,7 +193,7 @@ def test_help_chat(ctx: dict) -> None:
 def test_usage_log(ctx: dict) -> None:
     print("\n[3b] the usage log")
     import httpx
-    from src.llm import client as llm_client
+    from ecolearn.llm import client as llm_client
     b = ctx["ids"][1]
     api._help_chat = None
     os.environ["LLM_MODEL"] = "free/main-model"

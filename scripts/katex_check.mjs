@@ -4,7 +4,7 @@
 // Input  (stdin):  JSON [{ "id": "...", "tex": "...", "display": true|false }, ...]
 // Output (stdout): JSON [{ "id": "...", "error": "..." }, ...]   (only failures)
 //
-// Called by src/content/validate.py. KaTeX is resolved from web/node_modules so
+// Called by src/ecolearn/content/validate.py. KaTeX is resolved from apps/web/node_modules so
 // the check always uses exactly the version the student's browser gets.
 
 import { createRequire } from "node:module";
@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(path.join(here, "..", "web", "package.json"));
+const require = createRequire(path.join(here, "..", "apps", "web", "package.json"));
 const katex = require("katex");
 
 let input = "";

@@ -32,7 +32,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_agent_"))
 _DB = _TMP / "agent.db"
@@ -42,11 +43,11 @@ warnings.simplefilter("ignore")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.agents import teacher_agent  # noqa: E402
-from src.agents.teacher_agent import ModelTurn  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.errors import NotFoundError  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.agents import teacher_agent  # noqa: E402
+from ecolearn.agents.teacher_agent import ModelTurn  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.errors import NotFoundError  # noqa: E402
 
 CONCEPT = "second_law"
 NAMES = ["Aarav Kumar", "Meera Iyer", "Kabir Shah", "Diya Rao", "Ishaan Das", "Zara Khan"]

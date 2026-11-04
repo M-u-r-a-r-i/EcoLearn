@@ -8,7 +8,7 @@
 Reads the agreed scope (`data/content_scope.yaml`), counts which lesson files
 already exist, and works out progress from the disk alone — so there is no
 hand-maintained checklist to drift out of date. `--brief` fills in
-`content/BATCH_BRIEF.md` for a batch; pass its output, unchanged, as the prompt
+`docs/content/BATCH_BRIEF.md` for a batch; pass its output, unchanged, as the prompt
 of the sub-session that writes the lessons.
 """
 
@@ -23,14 +23,15 @@ from pathlib import Path
 import yaml
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
-from src.content.lesson_schema import LessonFormat  # noqa: E402
-from src.curriculum.interests import load_interests  # noqa: E402
-from src.curriculum.loader import load_subject  # noqa: E402
+from ecolearn.content.lesson_schema import LessonFormat  # noqa: E402
+from ecolearn.curriculum.interests import load_interests  # noqa: E402
+from ecolearn.curriculum.loader import load_subject  # noqa: E402
 
 SCOPE = _ROOT / "data" / "content_scope.yaml"
-BRIEF = _ROOT / "content" / "BATCH_BRIEF.md"
+BRIEF = _ROOT / "docs" / "content" / "BATCH_BRIEF.md"
 LESSONS = _ROOT / "data" / "lessons"
 MEDIA = _ROOT / "data" / "media"
 GOLD = [

@@ -28,7 +28,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_usage_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "usage.db")
@@ -40,11 +41,11 @@ warnings.simplefilter("ignore")
 
 import httpx  # noqa: E402
 
-from src import llm  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.llm import client  # noqa: E402
-from src.progress import metrics, store  # noqa: E402
+from ecolearn import llm  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.llm import client  # noqa: E402
+from ecolearn.progress import metrics, store  # noqa: E402
 
 _checks = 0
 
@@ -176,7 +177,7 @@ def test_report(sid: str) -> None:
           "ai_usage over every logged call")
     real = api.llm_prices()
     check(real["reference_model"] in real["models"], "prices from data/llm_prices.yaml: the reference model is priced")
-    from src.progress import metrics as _m
+    from ecolearn.progress import metrics as _m
     check(_m._price_for("gemini/gemini-3.1-flash-lite", real) == {"input": 0.25, "output": 1.50},
           "the model in use (3.1 flash-lite) is priced at Google's published 0.25 / 1.50")
     check(_m._price_for("gemini/gemini-3.7-flash", real) == _m._price_for("gemini/gemini-3.8-flash", real) is not None,

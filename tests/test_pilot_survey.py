@@ -23,7 +23,8 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 sys.path.insert(0, str(_ROOT / "scripts"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_pilotsurvey_"))
@@ -32,8 +33,8 @@ os.environ["LLM_MODEL"] = ""
 warnings.simplefilter("ignore")
 
 import pilot_report as script  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.progress import metrics, store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.progress import metrics, store  # noqa: E402
 
 _checks = 0
 

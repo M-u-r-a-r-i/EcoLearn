@@ -28,9 +28,10 @@ import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
-from src import platform_api as api  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
 
 
 def pct(value: float | None) -> str:

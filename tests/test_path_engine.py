@@ -21,7 +21,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+sys.path.insert(0, str(_PROJECT_ROOT / "apps"))
 
 # Point the store at a throwaway DB BEFORE importing it, so the real
 # data/progress.db is never touched. store._db_path() reads this lazily.
@@ -30,9 +31,9 @@ if os.path.exists(_TMP_DB):
     os.remove(_TMP_DB)
 os.environ["ECOLEARN_PROGRESS_DB"] = _TMP_DB
 
-from src.curriculum.loader import load_subject, resolve_prerequisites  # noqa: E402
-from src.path import engine  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn.curriculum.loader import load_subject, resolve_prerequisites  # noqa: E402
+from ecolearn.path import engine  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 CHAPTER = "motion_straight_line"
 STUDENT = "sim_student"

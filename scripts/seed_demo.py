@@ -3,7 +3,7 @@
 Usage (from the project root):
     venv\\Scripts\\python.exe scripts\\seed_demo.py --reset
     set ECOLEARN_PROGRESS_DB=data\\demo.db      (PowerShell: $env:ECOLEARN_PROGRESS_DB = "data\\demo.db")
-    venv\\Scripts\\python.exe -m uvicorn api.main:app --port 8000
+    venv\\Scripts\\python.exe -m uvicorn api.main:app --app-dir apps --port 8000
 
 It writes to data/demo.db, never to data/progress.db, so the pilot's numbers stay clean.
 It refuses to touch the pilot database even if you point it there.
@@ -35,13 +35,22 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _DEMO_DB = _ROOT / "data" / "demo.db"
 _PILOT_DB = _ROOT / "data" / "progress.db"
 
-# The demo accounts' shared password (a throwaway for a local demo database).
-DEMO_PASSWORD = "demo-class-2026"
+# The demo accounts' shared password. Never written in the code (it was until 2026-11-04, so the old
+# one is public in git history): ECOLEARN_DEMO_PASSWORD from the environment or .env, else a random
+# one made on the first seed and kept in data/.demo_password (gitignored). The summary prints it.
+DEMO_PASSWORD_FILE = "data/.demo_password"
+
+
+def demo_password() -> str:
+    from ecolearn import env  # noqa: E402
+    return env.get("ECOLEARN_DEMO_PASSWORD") or env.local_secret(DEMO_PASSWORD_FILE, nbytes=9)
+
 TEACHER_USERNAME = "demo.teacher"
 SEED = 2026
 
@@ -126,12 +135,12 @@ def main() -> int:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["ECOLEARN_PROGRESS_DB"] = str(db_path)  # BEFORE importing the app
 
-    from src import platform_api as api  # noqa: E402
-    from src.auth import passwords  # noqa: E402
-    from src.content import lesson_service  # noqa: E402
-    from src.learner import diagnostic, personal_story, survey as survey_mod  # noqa: E402
-    from src.path import engine  # noqa: E402
-    from src.progress import store  # noqa: E402
+    from ecolearn import platform_api as api  # noqa: E402
+    from ecolearn.auth import passwords  # noqa: E402
+    from ecolearn.content import lesson_service  # noqa: E402
+    from ecolearn.learner import diagnostic, personal_story, survey as survey_mod  # noqa: E402
+    from ecolearn.path import engine  # noqa: E402
+    from ecolearn.progress import store  # noqa: E402
 
     rng = random.Random(SEED)
     # The survey draws from its OWN stream, so adding it didn't change the class's checks.
@@ -150,12 +159,13 @@ def main() -> int:
     else:
         teacher_name, teacher_username, class_name, names = (
             "Ms. Priya Nair", TEACHER_USERNAME, "Class 11-B Physics", NAMES)
-    teacher = api.create_teacher(teacher_name, teacher_username, DEMO_PASSWORD)
+    password = demo_password()
+    teacher = api.create_teacher(teacher_name, teacher_username, password)
     teacher_id = teacher["teacher_id"]
     roster = [f"{n}, {i}" for n, i in zip(names, INTERESTS)]
     made = api.create_class(teacher_id, class_name, "Class 11", "cricket", roster)
     class_id = made["class"]["class_id"]
-    shared_hash = passwords.hash_password(DEMO_PASSWORD)
+    shared_hash = passwords.hash_password(password)
     students = made["credentials"]
     for s in students:
         store.update_student_password(s["student_id"], shared_hash)
@@ -494,7 +504,7 @@ def main() -> int:
     # stage demo shows aarav.k's "Before you pick" line, so keep him in the treatment arm of every running
     # experiment: swap with a treatment classmate if needed, which keeps the class balanced. Demo data only;
     # never do this in a pilot.
-    from src.learner import experiments  # noqa: E402
+    from ecolearn.learner import experiments  # noqa: E402
     aarav = students[0]["student_id"]   # aarav.k in the demo class, the first name in the sample class
     for exp in experiments.enabled():
         arm_row = conn.execute("SELECT arm FROM experiment_arms WHERE student_id = ? AND experiment_id = ?",
@@ -512,7 +522,9 @@ def main() -> int:
 
     conn.close()
     print(f"Demo database: {db_path}")
-    print(f"  teacher login : {teacher_username}  (password in scripts/seed_demo.py)")
+    print(f"  teacher login : {teacher_username}")
+    print(f"  password      : {password}  (all demo accounts; set ECOLEARN_DEMO_PASSWORD in .env to choose it,"
+          f" else it is kept in {DEMO_PASSWORD_FILE})")
     print(f"  class         : {class_name}, {len(people)} students, "
           f"{len(takers)} took the starting check, {ended} the end check")
     print(f"  activity      : {lessons_done} lessons checked, {revised} revision answers, "

@@ -13,11 +13,12 @@ from pathlib import Path
 
 # Make `src` importable when running this script directly.
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+sys.path.insert(0, str(_PROJECT_ROOT / "apps"))
 
 from google.genai import errors
 
-from src.agents.analogy_generator import generate_explanation
+from ecolearn.agents.analogy_generator import generate_explanation
 
 
 BENCHMARK_CASES = [

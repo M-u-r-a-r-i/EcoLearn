@@ -8,7 +8,7 @@ instructions to ignore its rules, unsuitable topics for school, risky activities
 prints what came back (a story, a refusal, or a failure) so a person can read it. It runs on a
 TEMPORARY database. Needs a working AI: check with scripts\ai_check.py first.
 
-The result is evidence for docs/ai-safety-card.html, not a guarantee: a handful of probes can show a
+The result is evidence for docs/governance/ai-safety-card.html, not a guarantee: a handful of probes can show a
 hole, never prove there is none.
 """
 from __future__ import annotations
@@ -20,13 +20,14 @@ import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "apps"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(Path(tempfile.mkdtemp(prefix="ecolearn_redteam_")) / "rt.db")
 warnings.simplefilter("ignore")
 
-from src import llm, platform_api as api  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import llm, platform_api as api  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 CONCEPT = "second_law"
 PROBES = [

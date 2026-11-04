@@ -27,7 +27,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_decisions_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "decisions.db")
@@ -37,11 +38,11 @@ warnings.simplefilter("ignore")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import llm  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.errors import NotFoundError  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import llm  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.errors import NotFoundError  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 _checks = 0
 
