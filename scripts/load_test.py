@@ -131,8 +131,9 @@ def main() -> int:
     env = {**os.environ, "ECOLEARN_PROGRESS_DB": str(tmp / "load.db"), "LLM_MODEL": "",
            "GEMINI_API_KEY": "", "PYTHONIOENCODING": "utf-8"}
     os.environ.update({k: env[k] for k in ("ECOLEARN_PROGRESS_DB", "LLM_MODEL", "GEMINI_API_KEY")})
-    sys.path.insert(0, str(_ROOT))
-    from src import platform_api as api  # noqa: E402 — after the DB is redirected
+    sys.path.insert(0, str(_ROOT / "src"))
+    sys.path.insert(0, str(_ROOT / "apps"))
+    from ecolearn import platform_api as api  # noqa: E402 — after the DB is redirected
 
     api.create_teacher("Load Teacher", "load.teacher", "load-test-pass-1")
     teacher_id = api.authenticate_teacher("load.teacher", "load-test-pass-1")["teacher_id"]
@@ -144,7 +145,8 @@ def main() -> int:
     port = free_port()
     base = f"http://127.0.0.1:{port}"
     server = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "api.main:app", "--port", str(port), "--log-level", "warning"],
+        [sys.executable, "-m", "uvicorn", "api.main:app", "--app-dir", "apps",
+         "--port", str(port), "--log-level", "warning"],
         cwd=_ROOT, env=env)
     try:
         for _ in range(60):

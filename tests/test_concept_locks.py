@@ -27,7 +27,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_locks_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "locks.db")
@@ -37,11 +38,11 @@ warnings.simplefilter("ignore")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.errors import EcoLearnError, NotFoundError  # noqa: E402
-from src.path import engine  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.errors import EcoLearnError, NotFoundError  # noqa: E402
+from ecolearn.path import engine  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 CHAPTER = "laws_of_motion"
 CLASS_12_CHAPTER = "current_electricity"

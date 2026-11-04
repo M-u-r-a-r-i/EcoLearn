@@ -27,7 +27,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP_DIR = Path(tempfile.mkdtemp(prefix="ecolearn_api_auth_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP_DIR / "api_auth.db")

@@ -1,6 +1,6 @@
 """The doubt chat's front door: screening, rate limiting, and what is (not) recorded. No network.
 
-A stand-in replaces the live model (the doubt tutor's one call, src/learner/doubt_tutor.py), so we can
+A stand-in replaces the live model (the doubt tutor's one call, src/ecolearn/learner/doubt_tutor.py), so we can
 prove what reaches it and what never does.
 
   1. The screen: harmful or unsafe text is stopped (self-harm, personal details, unsuitable
@@ -28,7 +28,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_helpguard_"))
 _DB = _TMP / "helpguard.db"
@@ -39,9 +40,9 @@ warnings.simplefilter("ignore")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.errors import TooManyRequestsError  # noqa: E402
-from src.learner import help_guard  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.errors import TooManyRequestsError  # noqa: E402
+from ecolearn.learner import help_guard  # noqa: E402
 
 _checks = 0
 

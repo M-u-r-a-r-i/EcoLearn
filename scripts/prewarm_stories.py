@@ -24,14 +24,16 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from src import llm  # noqa: E402
-from src import platform_api  # noqa: E402,F401  (importing it connects the AI usage log, so these calls are counted)
-from src.content import lesson_service  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.path import engine  # noqa: E402
-from src.progress import store  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps"))
+
+from ecolearn import llm  # noqa: E402
+from ecolearn import platform_api  # noqa: E402,F401  (importing it connects the AI usage log, so these calls are counted)
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.path import engine  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 
 def _classes(name: str) -> list[dict]:
@@ -53,7 +55,7 @@ def main() -> int:
     ap.add_argument("--attempts", type=int, default=2, help="tries per story when the model fails (default 2)")
     ap.add_argument("--timeout", type=float, default=150, help="seconds to wait for each model call (default 150)")
     args = ap.parse_args()
-    os.environ["LLM_TIMEOUT_SECONDS"] = str(args.timeout)  # read per call by src/llm
+    os.environ["LLM_TIMEOUT_SECONDS"] = str(args.timeout)  # read per call by src/ecolearn/llm
     only = {u.strip().lower() for u in args.students.split(",") if u.strip()}
     if not llm.is_configured():
         print("No AI configured (LLM_MODEL is empty): nothing to write.")

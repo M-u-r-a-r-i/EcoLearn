@@ -25,9 +25,11 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from src import platform_api as api  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps"))
+
+from ecolearn import platform_api as api  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export_student  # noqa: E402

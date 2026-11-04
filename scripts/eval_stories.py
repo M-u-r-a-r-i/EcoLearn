@@ -26,16 +26,17 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "apps"))
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_eval_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "eval.db")  # before importing the app code
 warnings.simplefilter("ignore")
 
-from src import llm, platform_api as api  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.learner import diagnostic, personal_story as ps  # noqa: E402
-from src.path import engine  # noqa: E402
-from src.progress import metrics, store  # noqa: E402
+from ecolearn import llm, platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.learner import diagnostic, personal_story as ps  # noqa: E402
+from ecolearn.path import engine  # noqa: E402
+from ecolearn.progress import metrics, store  # noqa: E402
 
 INTERESTS = ["cricket", "football", "gaming", "smartphones", "motorsport"]
 

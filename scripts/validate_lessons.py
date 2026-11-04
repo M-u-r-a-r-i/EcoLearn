@@ -7,7 +7,7 @@
     venv\\Scripts\\python.exe scripts\\validate_lessons.py --coverage       # counts per chapter
 
 Exit code 1 if any lesson has an error, so an authoring session can't miss a
-failure. Checks format only — see src/content/validate.py for what it can and
+failure. Checks format only — see src/ecolearn/content/validate.py for what it can and
 cannot catch.
 """
 
@@ -18,10 +18,11 @@ import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
-from src.content.lesson_service import lessons_dir  # noqa: E402
-from src.content.validate import check_media_library, coverage, validate_files  # noqa: E402
+from ecolearn.content.lesson_service import lessons_dir  # noqa: E402
+from ecolearn.content.validate import check_media_library, coverage, validate_files  # noqa: E402
 
 
 def main() -> int:

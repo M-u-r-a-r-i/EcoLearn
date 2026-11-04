@@ -7,10 +7,10 @@ description: The EcoLearn visual and interaction style ("warm field notes, moder
 
 The Replit prototype (`EcoLearn-Physics-Tutor.zip`, app `artifacts/ecolearn`) is the **approved visual
 direction for the entire product** (user decision, 2026-10-08). This skill is its distilled, reusable
-form. Anything you build in `web/` must be indistinguishable in style from it.
+form. Anything you build in `apps/web/` must be indistinguishable in style from it.
 
 > The Replit app ran on **mock data**. Take its *look and behaviour*, never its data layer. Real screens
-> keep calling `web/lib/api.ts` → FastAPI → `src/platform_api.py` (AGENTS.md non-negotiable 1).
+> keep calling `apps/web/lib/api.ts` → FastAPI → `src/ecolearn/platform_api.py` (AGENTS.md non-negotiable 1).
 
 ## How to use this skill
 
@@ -90,7 +90,7 @@ Light is `:root`; dark is `.dark` on `<html>` (**dark is the default**, `classNa
 - **Decor:** `✳` as a quiet motif; dashed dotted-grid "map" backgrounds; a hero card with orbit rings.
   Keep decoration low-contrast and `aria-hidden`.
 - **Maths:** KaTeX (`katex` + `katex/dist/katex.min.css`), `$…$` rendered inline by the `LessonText` helper.
-  In `web/` prefer the existing `components/markdown.tsx` pipeline; only the *look* has to match.
+  In `apps/web/` prefer the existing `components/markdown.tsx` pipeline; only the *look* has to match.
 
 ## Motion
 
@@ -120,17 +120,17 @@ checks at 375px.
 
 ## Porting rules (Replit prototype → this repo)
 
-1. **Data:** never import `mock-data.ts` or use `demo*` fixtures. Call `web/lib/api.ts`. Where the
+1. **Data:** never import `mock-data.ts` or use `demo*` fixtures. Call `apps/web/lib/api.ts`. Where the
    backend lacks a field the prototype showed (streaks, XP, lesson images), **omit it or ask** — don't fake it
    (`UI-DATA-GAPS.md` in the zip says the same). Real lesson images exist in this project; show them.
-2. **Framework:** `web/` is **Next.js 16** (not the prototype's 15). Read `web/node_modules/next/dist/docs/`
+2. **Framework:** `apps/web/` is **Next.js 16** (not the prototype's 15). Read `apps/web/node_modules/next/dist/docs/`
    before touching routing, cookies or error files; `error.tsx` uses `unstable_retry`. Route protection is a
    client guard, not `proxy.ts`. No `wouter`, no Vite.
 3. **Styling:** the prototype uses **plain global CSS classes** (Tailwind v4 is only imported for resets),
    not utility classes. Keep that: put tokens/shell in `globals.css` (or imports of it) and screen CSS in a
    `screen-styles.css`-style file. Don't mix in a second system (no per-component Tailwind colour utilities,
    no hard-coded hex outside the token/pastel lists above).
-4. **Theme:** use the existing `web/components/theme-toggle.tsx` behaviour (dark / light / device) but with
+4. **Theme:** use the existing `apps/web/components/theme-toggle.tsx` behaviour (dark / light / device) but with
    these tokens. The prototype's toggle only stores `ecolearn-theme` in localStorage; keep dark as default.
 5. **Don't ship the prototype's extras:** `components/ui/*` (shadcn, unused by the screens), `mockup-sandbox`,
    `api-server`, Replit/Vite config, `@replit/*` plugins.
@@ -151,7 +151,7 @@ checks at 375px.
 
 ## Checklist (all must be true)
 
-- [ ] Only token colours (or listed pastels with dark twins); no stray greys/blues/indigo (the old `web/` indigo is being retired).
+- [ ] Only token colours (or listed pastels with dark twins); no stray greys/blues/indigo (the old `apps/web/` indigo is being retired).
 - [ ] Eyebrow + display heading + muted description on every page via `PageHeading`.
 - [ ] Buttons are the pressable `.button` family; one primary per view.
 - [ ] Cards are `.surface` (22px radius); selected state = brand tint + brand border.
@@ -162,16 +162,16 @@ checks at 375px.
 - [ ] Per-interest accent still works (`data-interest`).
 - [ ] No mock data; `tsc --noEmit`, `npm run lint`, `npm run build` clean (stop `next dev` before building).
 
-## Where it lives in `web/` (applied 2026-10-08)
+## Where it lives in `apps/web/` (applied 2026-10-08)
 
 The restyle of the real app is done; extend it, don't redo it.
 
-- `web/app/globals.css` – the shadcn tokens now point at the house palette (`--primary` = `var(--brand)`,
+- `apps/web/app/globals.css` – the shadcn tokens now point at the house palette (`--primary` = `var(--brand)`,
   `--card` = `--surface`, `--muted-foreground` = `--ink-muted`, …), plus the `[data-interest]` accents (lighter in
   dark). `ecolearn.css` is imported `layer(components)` so Tailwind utilities still win over it.
-- `web/app/ecolearn.css` – the class-based rules (copy of the reference CSS; `--muted` was renamed `--ink-muted`
+- `apps/web/app/ecolearn.css` – the class-based rules (copy of the reference CSS; `--muted` was renamed `--ink-muted`
   because shadcn owns `--muted`) plus a few additions at the bottom.
-- `web/components/ui-kit.tsx` – `PageHeading`, `Panel`, `Pill`, `Meter`, `EmptyState`, `Skeleton`, `InterestMark`.
+- `apps/web/components/ui-kit.tsx` – `PageHeading`, `Panel`, `Pill`, `Meter`, `EmptyState`, `Skeleton`, `InterestMark`.
 - shadcn primitives (`ui/button|card|badge|input|progress|dialog`) are restyled in place, so every existing
   `<Button>` / `<Card>` is already on-style: the pressable button, 22px cards.
 - `components/site-nav.tsx` is the house top bar + mobile bottom nav; `auth-provider.tsx` sets `data-interest`.

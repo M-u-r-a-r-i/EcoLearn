@@ -12,6 +12,7 @@ Run: venv\Scripts\python.exe tests\test_seed_demo.py
 from __future__ import annotations
 
 import os
+import secrets
 import subprocess
 import sys
 import tempfile
@@ -20,10 +21,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "seed_demo.py"
 tmp = Path(tempfile.mkdtemp())
+# A fresh password per run, so no password is written in the repo (seed_demo reads this variable).
+DEMO_PASSWORD = secrets.token_urlsafe(9)
 
 
 def seed(db: Path, *extra: str) -> subprocess.CompletedProcess:
-    env = {**os.environ, "ECOLEARN_PROGRESS_DB": str(db)}
+    env = {**os.environ, "ECOLEARN_PROGRESS_DB": str(db), "ECOLEARN_DEMO_PASSWORD": DEMO_PASSWORD}
     return subprocess.run([sys.executable, str(SCRIPT), *extra], env=env, cwd=ROOT,
                           capture_output=True, text=True)
 
@@ -42,14 +45,15 @@ print("ok: builds the class; won't overwrite without --reset")
 
 # 2. Read it back through the boundary.
 os.environ["ECOLEARN_PROGRESS_DB"] = str(db)
-sys.path.insert(0, str(ROOT))
-from src import platform_api as api  # noqa: E402
-from src.progress import store  # noqa: E402
+sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "apps"))
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
-teacher = api.authenticate_teacher("demo.teacher", "demo-class-2026")
+teacher = api.authenticate_teacher("demo.teacher", DEMO_PASSWORD)
 klass = store.list_classes(teacher["teacher_id"])[0]
 assert klass["student_count"] == 25
-student = api.authenticate_student("aarav.k", "demo-class-2026")
+student = api.authenticate_student("aarav.k", DEMO_PASSWORD)
 assert student["student_id"]
 summary = api.get_class_checks(teacher["teacher_id"], klass["class_id"])["summary"]
 assert summary["students_started"] == 23 and summary["students_finished"] == 20, summary
@@ -89,15 +93,17 @@ print("ok: deterministic")
 # 6. --south-indian: its own database, never demo.db; everyone who started was last active in the last
 #    two weeks, at a daytime hour in India, and nothing they did comes after that moment.
 refused = subprocess.run([sys.executable, str(SCRIPT), "--south-indian", "--reset",
-                          "--db", str(ROOT / "data" / "demo.db")], cwd=ROOT, capture_output=True, text=True)
+                          "--db", str(ROOT / "data" / "demo.db")], cwd=ROOT, capture_output=True, text=True,
+                         env={**os.environ, "ECOLEARN_DEMO_PASSWORD": DEMO_PASSWORD})
 assert refused.returncode != 0 and "demo.db" in (refused.stdout + refused.stderr)
 db3 = tmp / "sample.db"
 made = subprocess.run([sys.executable, str(SCRIPT), "--south-indian", "--reset", "--db", str(db3)],
-                      cwd=ROOT, capture_output=True, text=True)
+                      cwd=ROOT, capture_output=True, text=True,
+                      env={**os.environ, "ECOLEARN_DEMO_PASSWORD": DEMO_PASSWORD})
 assert made.returncode == 0, made.stderr[-2000:]
 os.environ["ECOLEARN_PROGRESS_DB"] = str(db3)
 from datetime import datetime, timedelta, timezone  # noqa: E402
-t3 = api.authenticate_teacher("sample.teacher", "demo-class-2026")
+t3 = api.authenticate_teacher("sample.teacher", DEMO_PASSWORD)
 k3 = store.list_classes(t3["teacher_id"])[0]
 roster = store.list_class_students(k3["class_id"])
 assert "arjun.k" in {s["username"] for s in roster} and len(roster) == 25

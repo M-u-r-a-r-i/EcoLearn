@@ -1,4 +1,4 @@
-"""Login rate limiting (api/ratelimit.py). No network, a fake clock.
+"""Login rate limiting (apps/api/ratelimit.py). No network, a fake clock.
 
 Proves:
   1. 8 wrong passwords lock the account: the 9th try is 429 with Retry-After
@@ -24,7 +24,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_ratelimit_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "rl.db")
@@ -34,7 +35,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from api import ratelimit  # noqa: E402
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
 
 _checks = 0
 

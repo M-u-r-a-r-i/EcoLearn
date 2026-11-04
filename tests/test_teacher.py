@@ -33,7 +33,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP_DIR = Path(tempfile.mkdtemp(prefix="ecolearn_teacher_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP_DIR / "teacher.db")
@@ -42,9 +43,9 @@ warnings.simplefilter("ignore")  # the dev-secret warning and a TestClient notic
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.errors import AuthError, ConflictError, EcoLearnError, NotFoundError  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.errors import AuthError, ConflictError, EcoLearnError, NotFoundError  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 _checks = 0
 

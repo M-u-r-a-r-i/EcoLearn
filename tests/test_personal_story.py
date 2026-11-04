@@ -1,4 +1,4 @@
-"""Layer 3: personal stories, and the src/llm provider layer. No network.
+"""Layer 3: personal stories, and the src/ecolearn/llm provider layer. No network.
 
 The writer and critic are scripted stand-ins for `personal_story.chat`, and
 the HTTP client is tested against httpx.MockTransport playing OmniRoute.
@@ -37,7 +37,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_story_"))
 _DB = _TMP / "story.db"
@@ -52,11 +53,11 @@ import httpx  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import llm, platform_api as api  # noqa: E402
-from src.agents import teacher_agent  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.llm import client as llm_client  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import llm, platform_api as api  # noqa: E402
+from ecolearn.agents import teacher_agent  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.llm import client as llm_client  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 ps.SYNC = True
 _checks = 0

@@ -2,7 +2,7 @@
 
     venv\\Scripts\\python.exe scripts\\curriculum_report.py
 
-Writes `content/CURRICULUM.md`. The YAML files are the source of truth; this
+Writes `docs/content/CURRICULUM.md`. The YAML files are the source of truth; this
 document is generated from them so the reviewed copy can never drift from what
 the app actually loads. Re-run it after every curriculum edit.
 """
@@ -13,12 +13,13 @@ import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
-from src.curriculum.interests import load_interests  # noqa: E402
-from src.curriculum.loader import all_concepts, load_subject  # noqa: E402
+from ecolearn.curriculum.interests import load_interests  # noqa: E402
+from ecolearn.curriculum.loader import all_concepts, load_subject  # noqa: E402
 
-OUT = _ROOT / "content" / "CURRICULUM.md"
+OUT = _ROOT / "docs" / "content" / "CURRICULUM.md"
 FORMATS = 3
 
 

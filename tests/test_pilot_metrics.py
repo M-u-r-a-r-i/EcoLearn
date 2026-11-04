@@ -2,7 +2,7 @@
 
 Proves:
 
-  1. The aggregation (src/progress/metrics.py), on hand-made rows: first-try
+  1. The aggregation (src/ecolearn/progress/metrics.py), on hand-made rows: first-try
      accuracy ignores retries, misconceptions count students not clicks, the
      share is out of the students who answered, bounces don't count as reading,
      and every number is split by interest.
@@ -36,7 +36,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP_DIR = Path(tempfile.mkdtemp(prefix="ecolearn_metrics_"))
 _DB = _TMP_DIR / "metrics.db"
@@ -46,10 +47,10 @@ warnings.simplefilter("ignore")  # the dev-secret warning and a TestClient notic
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.errors import EcoLearnError, NotFoundError  # noqa: E402
-from src.progress import metrics, store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.errors import EcoLearnError, NotFoundError  # noqa: E402
+from ecolearn.progress import metrics, store  # noqa: E402
 
 # A concept with a cricket and a football lesson (both written in phase 1).
 CONCEPT = "second_law"

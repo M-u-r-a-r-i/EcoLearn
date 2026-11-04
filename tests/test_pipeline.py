@@ -20,9 +20,10 @@ from datetime import datetime
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+sys.path.insert(0, str(_PROJECT_ROOT / "apps"))
 
-from src.pipeline import explain_with_review
+from ecolearn.pipeline import explain_with_review
 
 
 CASES = [

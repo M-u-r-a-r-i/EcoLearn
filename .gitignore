@@ -55,3 +55,11 @@ tests/pipeline_output.md
 # ---------------------------------------------------------------------------
 Thumbs.db
 .DS_Store
+
+# Python packaging (pip install -e .)
+*.egg-info/
+build/
+
+# Local secrets made on first use (ecolearn/env.py local_secret): never commit
+data/.dev_jwt_secret
+data/.demo_password

@@ -20,12 +20,13 @@ from pathlib import Path
 
 # Make `src` importable when running directly.
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+sys.path.insert(0, str(_PROJECT_ROOT / "apps"))
 
 from google.genai import errors  # noqa: E402
 
-from src.agents.analogy_generator import generate_explanation  # noqa: E402
-from src.rag.retrieve import retrieve_concept, retrieve_interest  # noqa: E402
+from ecolearn.agents.analogy_generator import generate_explanation  # noqa: E402
+from ecolearn.rag.retrieve import retrieve_concept, retrieve_interest  # noqa: E402
 
 
 BENCHMARK_CASES = [

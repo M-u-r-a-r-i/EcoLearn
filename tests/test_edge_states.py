@@ -16,15 +16,16 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP_DB = os.path.join(tempfile.gettempdir(), "ecolearn_edge_states.db")
 if os.path.exists(_TMP_DB):
     os.remove(_TMP_DB)
 os.environ["ECOLEARN_PROGRESS_DB"] = _TMP_DB
 
-from src import platform_api as api  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 CHAPTER = "motion_straight_line"
 

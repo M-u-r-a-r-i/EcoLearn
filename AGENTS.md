@@ -6,8 +6,8 @@
 >
 > | File | What it holds | When to read it |
 > |---|---|---|
-> | **[`PROJECT_HISTORY.md`](PROJECT_HISTORY.md)** | What exists today, architecture as built, all 44 commits explained, every design decision + why, hard-won lessons, gotchas | **Read now, in full**, before your first change |
-> | **[`ROADMAP.md`](ROADMAP.md)** | The v2 plan: target architecture, data model, Milestones 0–9 in order with per-milestone files + acceptance criteria | **Read now**, then re-read the milestone you're on |
+> | **[`docs/PROJECT_HISTORY.md`](docs/PROJECT_HISTORY.md)** | What exists today, architecture as built, all 44 commits explained, every design decision + why, hard-won lessons, gotchas | **Read now, in full**, before your first change |
+> | **[`docs/ROADMAP.md`](docs/ROADMAP.md)** | The v2 plan: target architecture, data model, Milestones 0–9 in order with per-milestone files + acceptance criteria | **Read now**, then re-read the milestone you're on |
 > | [`README.md`](README.md) | Evaluator/user-facing overview | Only if editing user-facing docs |
 >
 > Those three plus the code are the complete picture. There is no external context you are missing.
@@ -28,7 +28,7 @@ concepts); lessons exist for an agreed subset, **14 chapters × 5 interests** (`
 
 The one architectural fact everything depends on:
 
-> **All logic lives behind `src/platform_api.py`, which returns plain JSON-serializable dicts.
+> **All logic lives behind `src/ecolearn/platform_api.py`, which returns plain JSON-serializable dicts.
 > Every frontend calls only that boundary.**
 
 *(The project is a physics tutor despite the "EcoLearn" name, a holdover. Don't rename ids or the
@@ -40,8 +40,8 @@ repo; whether to change the display name for the finals is an open question for 
 
 ### Your first session — do these in order, before writing any code
 
-1. **Read `PROJECT_HISTORY.md` §9 onwards (newest last) and `ROADMAP.md` §0.** This file is the
-   summary; those are the substance. (`PROJECT_HISTORY.md` §1–§7 describe the project as of
+1. **Read `docs/PROJECT_HISTORY.md` §9 onwards (newest last) and `docs/ROADMAP.md` §0.** This file is the
+   summary; those are the substance. (`docs/PROJECT_HISTORY.md` §1–§7 describe the project as of
    2026-09-21 and are partly out of date; trust §9+ and this file.)
 2. **Check the handoff state:** `git pull --ff-only`, then `git status` and `git log --oneline -5`.
    **If there are uncommitted changes you didn't make, they are the handoff — never `reset`,
@@ -75,7 +75,7 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
   opens once the one before is done (or the starting check says they know it). Prerequisites and
   recommendations are still only hints. **Only a teacher moves a student between Class 11 and 12.**
 - **Every lesson opens with a story and has images.** **Never download an image without the
-  user's approval**; every famous image needs a manifest entry (`content/AUTHORING_GUIDE.md` §4a, §7a).
+  user's approval**; every famous image needs a manifest entry (`docs/content/AUTHORING_GUIDE.md` §4a, §7a).
 - **Static lessons are written by Claude Code sessions straight to files** — no LLM API for them.
   Quality: the authoring guide + gold examples, a deterministic validator, audits of interrupted
   batches, human reading of pilot chapters.
@@ -88,7 +88,7 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
   counted). Each has a non-AI fallback. **Graded checks stay pre-written and graded without AI** (the user chose practice
   over AI-run assessments on 2026-10-19, because the pilot's numbers need fixed, validated questions).
   Anything else stays pre-generated (non-negotiable 3).
-- **New agents call models through `src/llm/`**, an OpenAI-compatible client. **For now: OmniRoute
+- **New agents call models through `src/ecolearn/llm/`**, an OpenAI-compatible client. **For now: OmniRoute
   and free models; the user will buy a Gemini API key once it works as planned** (then it's a
   config change: Gemini's OpenAI-compatible URL).
 - **Personal stories are shown first, with the lesson's pre-written story in a collapsible box.**
@@ -108,25 +108,25 @@ build deadline, 2026-09-30, has passed; work continues toward the pilot and the 
 - **`data/demo.db` holds 4 real AI stories for `aarav.k`** (position, distance, displacement, speed). A reseed wipes them: re-run
   `prewarm_stories.py --class "Class 11-B Physics" --students aarav.k --concepts 4` with `ECOLEARN_PROGRESS_DB=data\demo.db` (~10 min).
 - **The finals deck in use:** "EcoLearn: learning that fits the learner" (9 slides), a private Claude artifact; source backup and how
-  to edit it in **`docs/finals-deck/README.md`**. The user chose this structure: title, self-learning, problem statement (their exact
+  to edit it in **`docs/presentations/finals-deck/README.md`**. The user chose this structure: title, self-learning, problem statement (their exact
   sentence), solution, how it works (diagram), agent system (diagram), technology readiness (NO internal counts such as lesson numbers;
   feasibility + completeness instead), commercial viability + USPs, thank you. Placeholders left: team names, contact.
-- **`docs/generation-economics.html`** (also a private artifact): per-student syllabus generation vs the shared library. Per student
+- **`docs/reports/generation-economics.html`** (also a private artifact): per-student syllabus generation vs the shared library. Per student
   Rs 103-6,086 over two years by model; library Rs 1,551-30,428 once + Rs 91 per student; the library wins once students outnumber
   interests. Model: `scripts/generation_cost_model.py` (estimates; see the page's limits section).
 - The user asked whether the "agent ecosystem" picture they had (RAG retriever, analogy generator, critic, assessment agent, dialogue
   manager, mastery tracker, profile, path advisor) matches the code: it does only partly. Retrieval is a lookup of the student's own lesson
   (the chromadb RAG is the old, unused pipeline); grading, mastery, path and profile are RULES on purpose; the doubt chat is single-turn
-  (no follow-up memory). The accurate diagram is `docs/finals-deck/diagrams/ecosystem.svg`.
+  (no follow-up memory). The accurate diagram is `docs/presentations/finals-deck/diagrams/ecosystem.svg`.
 
 **How to run the demo (the user uses Command Prompt, not PowerShell):** each in its own window, from `D:\Projects\EcoLearn`
 (`cd /d D:\Projects\EcoLearn`; the user also has a copy in `C:\Users\kvnir\OneDrive\Documents\Ecolearn`, which is NOT this repo):
 1. `set OMNIROUTE_SERVER_HOST=127.0.0.1` then `omniroute`;
 2. `venv\Scripts\python.exe scripts\ai_check.py`;
-3. `set ECOLEARN_PROGRESS_DB=data\demo.db` then `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`;
-4. `cd web` then `npm run dev`; open http://localhost:3000.
+3. `set ECOLEARN_PROGRESS_DB=data\demo.db` then `venv\Scripts\python.exe -m uvicorn api.main:app --app-dir apps --reload --port 8000`;
+4. `cd apps/web` then `npm run dev`; open http://localhost:3000.
 Logins: teacher `demo.teacher`; students `aarav.k` (stories ready), `ananya.r` / `aditya.v` (first sign-in: survey + starting check);
-password = `DEMO_PASSWORD` in `scripts/seed_demo.py`. Rehearsing writes into the demo DB: reseed and re-prewarm before the real demo.
+password = the demo password (`ECOLEARN_DEMO_PASSWORD` in `.env`, else the one `seed_demo.py` prints, kept in `data/.demo_password`). Rehearsing writes into the demo DB: reseed and re-prewarm before the real demo.
 Nothing was left running at the end of the session (ports 20128, 8000, 3000 free).
 
 **Next, if the user asks:** fill the deck placeholders; record a backup demo video; a paid Gemini key (free models are 20-60 s and
@@ -156,14 +156,14 @@ Until they are merged, work from `feature/ai-practice`: `git fetch && git checko
 After merging: `git checkout main && git pull --ff-only`, and delete the merged branches if the user agrees.
 
 **Done in the 2026-10-14 to 2026-10-19 sessions** (each has a PROJECT_HISTORY entry; the last seven entries):
-- Per-student AI switch; the doubt chat rebuilt on `src/llm` (both merged into `main` with PR #1).
-- **Open learner profile** (`src/learner/profiler.py`, `/about-me`, "that's not me"), behaviour correcting the survey, "sure but wrong"
+- Per-student AI switch; the doubt chat rebuilt on `src/ecolearn/llm` (both merged into `main` with PR #1).
+- **Open learner profile** (`src/ecolearn/learner/profiler.py`, `/about-me`, "that's not me"), behaviour correcting the survey, "sure but wrong"
   nudge + sooner revision, keep-it-fresh revision of mastered ideas (7/21/63 days), **coaching actions** the teacher approves.
-- **Pre-registered randomised pilot comparison** (`docs/pilot-experiment.md`, `data/experiments.yaml`, `src/learner/experiments.py`):
+- **Pre-registered randomised pilot comparison** (`docs/research/pilot-experiment.md`, `data/experiments.yaml`, `src/ecolearn/learner/experiments.py`):
   experiment `check_prompt` = the "Before you pick" line on every lesson check for half the students, primary outcome first-try
   accuracy; `scripts/pilot_report.py` prints the comparison with a bootstrap interval. **Never change the outcome after the pilot
   starts**; add a dated note in the doc instead.
-- **Practice with AI** (`src/learner/practice.py`): the fifth live-AI place, approved 2026-10-19. Optional, never counted; writer +
+- **Practice with AI** (`src/ecolearn/learner/practice.py`): the fifth live-AI place, approved 2026-10-19. Optional, never counted; writer +
   independent solver must agree; key stays server-side.
 - Consent note, AI safety card and AGENTS non-negotiable 3 updated for all of the above.
 
@@ -180,14 +180,14 @@ Not run: `npm run build`, a screen reader.
    coaching notes on the demo data. Ideally set a different `LLM_CRITIC_MODEL` for the practice solver.
 3. **Finals pitch and demo**: a 15-minute script built on the judging weights, and a stage-safe backup (a recorded demo journey;
    demo logins below; Aarav is pinned to the treatment arm so his "Before you pick" line shows).
-4. **Pilot online**: CORS origins from config (hardcoded to localhost in `api/main.py`), `ECOLEARN_JWT_SECRET`, nightly backup
+4. **Pilot online**: CORS origins from config (hardcoded to localhost in `apps/api/main.py`), `ECOLEARN_JWT_SECRET`, nightly backup
    script, access/encryption plan; hosting is the user's choice (VPS, or their PC + Cloudflare Tunnel).
 5. People: the school (counsellor alert, ethics sign-off for the experiment), a teacher reads the pilot chapters, a lawyer reads the
    consent note, the display name.
 
 **How to resume quickly:** demo data `venv\Scripts\python.exe scripts\seed_demo.py --reset`, API
-`set ECOLEARN_PROGRESS_DB=data\demo.db` then `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`, web
-`cd web && npm run dev`. Logins: `demo.teacher`, `aarav.k`, `ananya.r`, `aditya.v`; password = `DEMO_PASSWORD` in `scripts/seed_demo.py`.
+`set ECOLEARN_PROGRESS_DB=data\demo.db` then `venv\Scripts\python.exe -m uvicorn api.main:app --app-dir apps --reload --port 8000`, web
+`cd apps/web && npm run dev`. Logins: `demo.teacher`, `aarav.k`, `ananya.r`, `aditya.v`; password = the demo password (`ECOLEARN_DEMO_PASSWORD` in `.env`, else the one `seed_demo.py` prints, kept in `data/.demo_password`).
 Launch entries `api`, `api-demo`, `web` exist in `.claude/launch.json` (local, gitignored).
 
 **Gotchas from these sessions:** heredocs turn `\n` in Python strings into real newlines and `\t` in Windows paths into tabs (use
@@ -197,14 +197,14 @@ must set `ECOLEARN_EXPERIMENTS=off`; remove a worktree's `node_modules` junction
 
 ### UPDATE 2026-10-18, later: branch `feature/open-learner-profile` (open a PR into `main`)
 
-The profiler, improved (PROJECT_HISTORY, last entry): `src/learner/profiler.py` turns survey answers AND behaviour into insights with
+The profiler, improved (PROJECT_HISTORY, last entry): `src/ecolearn/learner/profiler.py` turns survey answers AND behaviour into insights with
 evidence; students see them on `/about-me` and can say "that's not me"; behaviour corrects the survey (skimming fast readers go step by
 step), "sure but wrong" adds a check-before-you-pick line and sooner revision; mastered ideas come back to keep them fresh (7/21/63 days);
 coaching notes propose an action the teacher approves, carried out by rules, with the outcome shown. All rules except the existing AI
 coaching note. Load test fails today on `main` too (machine state).
 
 **Then `feature/pilot-experiment`** (stacked on the branch above; merge that first): a pre-registered randomised comparison
-(`docs/pilot-experiment.md`, `data/experiments.yaml`, `src/learner/experiments.py`). Each new account gets an arm, balanced within its
+(`docs/research/pilot-experiment.md`, `data/experiments.yaml`, `src/ecolearn/learner/experiments.py`). Each new account gets an arm, balanced within its
 class; experiment `check_prompt` (revised 2026-10-19, before the pilot): the "Before you pick" line on every lesson check for the
 treatment half, never for control, primary outcome first-try accuracy; `scripts/pilot_report.py` compares arms with a bootstrap interval.
 `ECOLEARN_EXPERIMENTS=off` switches all experiments off. **Do not change the outcome after the pilot starts**; add a dated note instead.
@@ -217,7 +217,7 @@ never sees the key; shown only if they agree; never counted. Not yet tried on a 
 
 **`design/frontend-v2` is merged into `main`.** The user opened and merged **PR #1** on GitHub (merge commit `3e941bb`, 2026-10-18). `main` is
 now the truth and contains everything described below: the restyled frontend, the four live-AI features, the safety card, the consent-note draft,
-export and erase a student, the per-student AI switch, and the doubt chat rebuilt on `src/llm`. Work on `main` (or a short branch and a PR). Anything
+export and erase a student, the per-student AI switch, and the doubt chat rebuilt on `src/ecolearn/llm`. Work on `main` (or a short branch and a PR). Anything
 below that says "NOT merged into `main`", "always check out `design/frontend-v2`", or describes a design session sharing the folder is out of date.
 
 **Git housekeeping to do once:**
@@ -235,7 +235,7 @@ below that says "NOT merged into `main`", "always check out `design/frontend-v2`
    `survey.story_notes` and `order_hobbies` shape their personal story (plain words for newcomers, warm tone for nervous students), and the starting
    check builds the learning plan (skips what they know, points at mix-ups). Nothing is locked or hidden. These are our rules, not learned, and there is
    NO pilot evidence yet that they help.
-2. **The coaching-note agent: AI, teacher-facing only** (`src/agents/coaching_agent.py`). It turns a small case file per student (counts, days quiet,
+2. **The coaching-note agent: AI, teacher-facing only** (`src/ecolearn/agents/coaching_agent.py`). It turns a small case file per student (counts, days quiet,
    skim share, a few chosen survey answers, names of concepts mixed up; never a name) into a short note for the teacher with evidence and one thing to try.
    Students never see the notes and nothing else reads them: it does not change the roadmap, the lessons or any grade. Its effect on a student is only
    indirect (a teacher may check in). The consent note says survey moods are used.
@@ -248,7 +248,7 @@ a live-model trial of the rebuilt doubt chat (start OmniRoute, try real question
 
 Done (PROJECT_HISTORY, the last two entries): **a per-student AI switch** (teacher's Students tab "AI on/off", or
 `scripts/set_student_ai.py --username X --off`; off = no story, the help chat gives the lesson's key idea, rules-only coaching note,
-left out of the teaching assistant) and **the doubt chat rebuilt on `src/llm`** (`src/learner/doubt_tutor.py`: one call grounded in
+left out of the teaching assistant) and **the doubt chat rebuilt on `src/ecolearn/llm`** (`src/ecolearn/learner/doubt_tutor.py`: one call grounded in
 the student's own lesson, rule checks, a non-AI fallback; no chromadb, so it no longer answers 503 here and its tokens are logged).
 Consent note and safety card updated. New test: `tests/test_ai_switch.py`. **Not yet run on a live model**: start OmniRoute and try a
 few real questions (including off-topic ones) before the pilot. Open item 2 below is now only the access/encryption plan (and the
@@ -264,7 +264,7 @@ The user's friend continues from another laptop on this branch. Pushes to this b
 
 **Set up on a new laptop (nothing secret is in git):**
 1. `git clone https://github.com/Niranjan-207/EcoLearn.git`, `cd EcoLearn`, `git checkout design/frontend-v2`.
-2. `python -m venv venv`, `venv\Scripts\pip install -r requirements.txt`; `cd web && npm install`; create `web/.env.local` with
+2. `python -m venv venv`, `venv\Scripts\pip install -r requirements.txt`; `cd apps/web && npm install`; create `apps/web/.env.local` with
    `NEXT_PUBLIC_API_URL=http://localhost:8000`.
 3. Create `.env` from `.env.example` (gitignored). Without any `LLM_*` the app works and every AI feature uses its fallback. For live AI:
    `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL=gemini/gemini-3.1-flash-lite`, `LLM_FALLBACK_MODELS=gemini/gemini-3.7-flash` (the user runs OmniRoute
@@ -273,16 +273,16 @@ The user's friend continues from another laptop on this branch. Pushes to this b
    `venv\Scripts\python.exe scripts\ai_check.py`: OmniRoute stops when the terminal or session that started it ends.
 4. Demo data (a separate database, fictional class): `venv\Scripts\python.exe scripts\seed_demo.py --reset`, then start the API with
    `ECOLEARN_PROGRESS_DB=data\demo.db` (cmd: `set ECOLEARN_PROGRESS_DB=data\demo.db`, then
-   `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`); web: `cd web && npm run dev`.
-   Logins: teacher `demo.teacher`; students `aarav.k`, `ananya.r`, `aditya.v`, `kabir.s`; the password is `DEMO_PASSWORD` in `scripts/seed_demo.py`.
+   `venv\Scripts\python.exe -m uvicorn api.main:app --app-dir apps --reload --port 8000`); web: `cd apps/web && npm run dev`.
+   Logins: teacher `demo.teacher`; students `aarav.k`, `ananya.r`, `aditya.v`, `kabir.s`; the password is the demo password (`ECOLEARN_DEMO_PASSWORD` in `.env`, else the one `seed_demo.py` prints, kept in `data/.demo_password`).
    **Class ids change on every reseed**, so a bookmarked `?id=...` breaks; and browser testing writes into the demo DB: reseed afterwards.
 
-**Done since the 2026-10-11 handoff** (each has a `PROJECT_HISTORY.md` entry; the last 14 entries, from "Signup / hobby clarity" to "Export and erase"):
+**Done since the 2026-10-11 handoff** (each has a `docs/PROJECT_HISTORY.md` entry; the last 14 entries, from "Signup / hobby clarity" to "Export and erase"):
 - Signup no longer pre-selects an interest; the own-hobby box refuses unsuitable labels (a block list, `diagnostic._UNSUITABLE_HOBBY_RE`).
 - The teaching assistant shows its REAL steps live (`GET /api/teacher/classes/{id}/plan/progress`); an "AI is up" badge (`llm.health`, `scripts/ai_check.py`).
-- **Coaching-note agent** (`src/agents/coaching_agent.py`): a checked, evidence-cited note per student for the teacher, rules fallback per student.
+- **Coaching-note agent** (`src/ecolearn/agents/coaching_agent.py`): a checked, evidence-cited note per student for the teacher, rules fallback per student.
   **The user approved it as a FOURTH live-AI place on 2026-10-13** (non-negotiable 3 is updated).
-- **Doubt chat front door** (`src/learner/help_guard.py`): screens self-harm, personal details, unsuitable requests and injection BEFORE any model, a per-student
+- **Doubt chat front door** (`src/ecolearn/learner/help_guard.py`): screens self-harm, personal details, unsuitable requests and injection BEFORE any model, a per-student
   rate limit (429), and records outcomes only (`help_events`), never the words. The live tutor pipeline still does not run on the dev machine (503), so the
   answered path is only tested with a stand-in.
 - Load test fixed (bcrypt cost 10, `ECOLEARN_BCRYPT_ROUNDS`), p95 4.6 s to 1.5 s. Prices in `data/llm_prices.yaml` verified against Google's pricing page.
@@ -310,14 +310,14 @@ a screen reader, a real phone.
    a person has not read them all, and the app must never say "written and reviewed by people"); a lawyer reads the consent note (India's DPDP Act, section 9);
    translate the note into the families' language; a Word version.
 4. **Deploy** (parked by the user): one small VPS plus Caddy on one domain, `ECOLEARN_ENV=production`, `ECOLEARN_JWT_SECRET`, one uvicorn worker (SQLite and
-   in-memory limits), nightly backups, CORS origins (hardcoded to localhost in `api/main.py`); free option for a demo: the user's PC and a Cloudflare Tunnel.
+   in-memory limits), nightly backups, CORS origins (hardcoded to localhost in `apps/api/main.py`); free option for a demo: the user's PC and a Cloudflare Tunnel.
    Use a PAID Gemini key for children's data (Google says the free tier may use data to improve its products).
 5. **Evidence and quality:** run `eval_stories.py --cases 30` and `redteam_stories.py` after any model change; fairness testing; an outside child-safety
    review; a human-rated score for coaching notes; the doubt chat needs a topic check (it does not judge whether a question is about physics; English only).
 6. Still undone: README, Streamlit (none of the October features), an accessibility pass, automated web tests, the dark-theme check of new screens.
 
 **Gotchas learned this session (add to the ones in §7):**
-- `/teacher/*` returning 404 on a fresh `next dev` is a stale `web/.next` (Turbopack cache): stop the dev server, delete `web/.next`, start again.
+- `/teacher/*` returning 404 on a fresh `next dev` is a stale `apps/web/.next` (Turbopack cache): stop the dev server, delete `apps/web/.next`, start again.
 - Read layout width AFTER animations settle: a page that slides in left `scrollWidth` stale at the pre-animation width (fixed with `.page-shell{overflow-x:clip}`).
   A hidden browser pane reports a 0 px viewport: use the emulated size.
 - Many files have CRLF line endings. When scripting an edit, read and write with `newline=""` and keep the file's own ending. In a Bash heredoc, `\\n` inside a
@@ -334,16 +334,16 @@ untracked `EcoLearn-Physics-Tutor.zip` or `.agents/` (a duplicate of the tracked
 
 **Set up on a new laptop (nothing secret is in git):**
 1. `git clone https://github.com/Niranjan-207/EcoLearn.git`, `cd EcoLearn`, `git checkout design/frontend-v2`.
-2. `python -m venv venv`, `venv\Scripts\pip install -r requirements.txt`; `cd web && npm install`;
-   create `web/.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`.
+2. `python -m venv venv`, `venv\Scripts\pip install -r requirements.txt`; `cd apps/web && npm install`;
+   create `apps/web/.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`.
 3. Create `.env` from `.env.example` (gitignored). Without any `LLM_*` the app works and every AI feature uses its fallback.
    For live AI: `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL=gemini/gemini-3.1-flash-lite`, `LLM_FALLBACK_MODELS=gemini/gemini-3.7-flash`
    (the user runs OmniRoute on their own PC; ask them for a key or use your own Gemini key via
    `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`). Leave `GEMINI_API_KEY` empty.
 4. Demo data (a separate database, fictional class): `venv\Scripts\python.exe scripts\seed_demo.py --reset`, then start the API with
    `ECOLEARN_PROGRESS_DB=data\demo.db`. In `cmd`: `set ECOLEARN_PROGRESS_DB=data\demo.db` then
-   `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`; web: `cd web && npm run dev`.
-   Logins: teacher `demo.teacher`, students `aarav.k`, `ananya.r`, `aditya.v`; the password is `DEMO_PASSWORD` in `scripts/seed_demo.py`.
+   `venv\Scripts\python.exe -m uvicorn api.main:app --app-dir apps --reload --port 8000`; web: `cd apps/web && npm run dev`.
+   Logins: teacher `demo.teacher`, students `aarav.k`, `ananya.r`, `aditya.v`; the password is the demo password (`ECOLEARN_DEMO_PASSWORD` in `.env`, else the one `seed_demo.py` prints, kept in `data/.demo_password`).
 
 **Done this session (each has a PROJECT_HISTORY entry, 9zzzzzzzz to 9zzzzzzzzzzz):** signup no longer pre-selects an
 interest and explains interest vs hobbies; the teaching assistant shows its REAL steps live (polls
@@ -361,14 +361,14 @@ the demo DB: login, `/welcome` gate, all four teacher tabs, the AI badge, a live
 2. **Profiler / coaching-note agent** (rules fallback) for the teacher.
 3. Survey history in `scripts/pilot_report.py` is DONE (§9zzzzzzzzzzzzzz); still to do: verify
    `data/llm_prices.yaml`; unit-economics page.
-4. AI safety card (`docs/ai-safety-card.html`) and DRAFT consent note (`docs/consent-note.md`): a school and a lawyer must
+4. AI safety card (`docs/governance/ai-safety-card.html`) and DRAFT consent note (`docs/governance/consent-note.md`): a school and a lawyer must
    review them. Delete-a-student and export-a-student are DONE (`scripts/delete_student.py`, `scripts/export_student.py`,
    §9zzzzzzzzzzzzzzzzzzzzz; backups are not covered). **Still to build before the pilot, because the note depends on them:** a
    per-student AI switch, and the school's decision on alerting a counsellor (Part A of the note).
 5. Remaining browser checks: phone width, light theme, a real signup, login slips after a reset, end-check questions.
 6. **Deploy** (parked by the user): one small VPS + Caddy (same domain for web and `/api`), `ECOLEARN_ENV=production`,
    `ECOLEARN_JWT_SECRET`, one uvicorn worker (SQLite + in-memory rate limits/progress), nightly DB backup; CORS origins are
-   still hardcoded to localhost in `api/main.py`. Free option for a demo: your PC + a Cloudflare Tunnel.
+   still hardcoded to localhost in `apps/api/main.py`. Free option for a demo: your PC + a Cloudflare Tunnel.
 7. Decide: merge to `main`; the display name; scope (finish motorsport/smartphones or cut); famous images (Volta, Faraday, Joule need approval).
 
 ### SESSION HANDOFF 2026-10-10 — branch `design/frontend-v2` (older: still useful for the style system and the live-AI model findings)
@@ -381,8 +381,8 @@ An untracked `EcoLearn-Physics-Tutor.zip` sits in the repo root: never commit it
 
 **What this session did (UI only unless noted; each has a PROJECT_HISTORY entry, §9zy to §9zzzzzzz):**
 - **House style = the user's Replit design**, for the WHOLE web app. Skill: **`.claude/skills/ecolearn-style/`** (tracked;
-  read `SKILL.md` before any web work; `reference/` has the original Replit code). Tokens in `web/app/globals.css`, class
-  rules in `web/app/ecolearn.css`, blocks in `web/components/ui-kit.tsx`; shadcn primitives restyled in place; the
+  read `SKILL.md` before any web work; `reference/` has the original Replit code). Tokens in `apps/web/app/globals.css`, class
+  rules in `apps/web/app/ecolearn.css`, blocks in `apps/web/components/ui-kit.tsx`; shadcn primitives restyled in place; the
   student's interest tints the app via `data-interest` on `<html>` (set in `auth-provider.tsx`, remembered in
   localStorage so the first paint is right).
 - Restyled: landing (merged with main's copy + showcase), auth, roadmap, lesson, checks, starting check, mix-ups,
@@ -392,8 +392,8 @@ An untracked `EcoLearn-Physics-Tutor.zip` sits in the repo root: never commit it
   `.dash-*` dashboard classes; the check chart, misconception ranks and AI pipeline cards live in `class-checks`,
   `class-insights`, `ai-decisions`.
 - **Login lands on `/start`** until the starting check is taken ("Skip for now" is remembered per device), then an open
-  `/end-check`, else the roadmap (`web/lib/landing.ts`). The survey gate then sends un-surveyed students to `/welcome`.
-- **Backend change (only one):** `src/agents/teacher_agent.py` `call()` drops undeclared tool arguments (Gemini adds `reason`).
+  `/end-check`, else the roadmap (`apps/web/lib/landing.ts`). The survey gate then sends un-surveyed students to `/welcome`.
+- **Backend change (only one):** `src/ecolearn/agents/teacher_agent.py` `call()` drops undeclared tool arguments (Gemini adds `reason`).
 
 **Live AI is configured and was verified once** (§9zzzzzzz). `.env` (gitignored; never print the keys) has
 `LLM_BASE_URL=http://localhost:20128/v1` (OmniRoute), `LLM_API_KEY` (an OmniRoute key), and `LLM_MODEL` / `LLM_CRITIC_MODEL`
@@ -405,15 +405,15 @@ rejected: set it empty. OmniRoute: `set OMNIROUTE_SERVER_HOST=127.0.0.1` then `o
 the user reset its data folder once; the dashboard password is theirs).
 
 **How to run (the user runs their own servers; NEVER stop them):** API
-`venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000` (add `$env:ECOLEARN_PROGRESS_DB="data\demo.db"` for the
-demo class), web `cd web; npm run dev` (port 3000). The user's API on :8000 normally uses THEIR real database, so demo
+`venv\Scripts\python.exe -m uvicorn api.main:app --app-dir apps --reload --port 8000` (add `$env:ECOLEARN_PROGRESS_DB="data\demo.db"` for the
+demo class), web `cd apps/web; npm run dev` (port 3000). The user's API on :8000 normally uses THEIR real database, so demo
 logins (`aarav.k`, `aditya.v`, `demo.teacher`; password in `scripts/seed_demo.py`) only work when the API is started with the
 demo DB. If the ports are taken, verify with `tsc`, lint, the tests and read-only pages instead of logging in.
 
 **Verified at the last full run (post-merge):** all 24 Python test files plus the persistence pair pass, 642 lessons valid,
 `tsc` and lint clean. **Failing:** `scripts/load_test.py` p95 about 4.7 s (30 logins ~5 s each, 0 errors; this branch's
 commits change no backend code except the one agent fix; investigate with the machine note below). **Not done after the
-merge:** `npm run build` (it would clobber the user's running dev server: stop it first, then delete `web/.next` before
+merge:** `npm run build` (it would clobber the user's running dev server: stop it first, then delete `apps/web/.next` before
 running `next dev` again).
 
 **Open items, in priority order (the user picks):**
@@ -431,7 +431,7 @@ running `next dev` again).
    cookie is SameSite=lax so site and API must share one domain). 8. README, Streamlit, accessibility pass, automated web
    tests, finishing motorsport (7 of 14 chapters) and smartphones (13 of 14).
 
-**Gotchas learned this session:** a stale `web/.next` after `npm run build` makes `next dev` 404 real routes (delete it);
+**Gotchas learned this session:** a stale `apps/web/.next` after `npm run build` makes `next dev` 404 real routes (delete it);
 unlayered global CSS beats Tailwind utilities (the house CSS is imported with `layer(components)`); a CSS grid without
 `grid-template-columns` sizes to its content (give it `minmax(0,1fr)`); the browser pane's screenshots are flaky (prefer
 `javascript_tool` DOM checks); shell heredocs with apostrophes can fail here (write a script file instead); the Windows
@@ -481,32 +481,32 @@ snapshot, then four URL-addressable tabs (`?tab=`):
   decided** (§9zp: the story guardrail pipeline with this class's counts, safe fallbacks, plans by AI vs
   rules, model calls, and a decision log with each story's step-by-step trail).
 
-**Where things live** (each with its `PROJECT_HISTORY.md` entry):
+**Where things live** (each with its `docs/PROJECT_HISTORY.md` entry):
 
 | Area | Files | § |
 |---|---|---|
-| Boundary (all logic) | `src/platform_api.py` | — |
-| **"Getting to know you" survey** (first login: hobbies + depth, focus, how they learn, feelings about physics; drives lesson prefs, story notes, teacher profile) | `data/survey.yaml`, `src/learner/survey.py`, `platform_api.{get_survey,submit_survey,get_class_learner_profiles}`, `web/app/(app)/welcome`, `web/components/{survey-flow,welcome-gate,break-nudge,class-profiles}.tsx` | 9zy |
-| Concept locks, class level (teacher-only), Done/Mastered ticks | `platform_api._concept_locks`, `_require_chapter_for_level`, `set_student_level`; `web/components/roadmap-path.tsx` | 9zt |
-| Update my answers (survey history) | `platform_api.update_survey`, `store.update_survey`, `learner_survey_history`; `web/app/(app)/settings/about`, `web/components/about-you-card.tsx` | 9zzb |
+| Boundary (all logic) | `src/ecolearn/platform_api.py` | — |
+| **"Getting to know you" survey** (first login: hobbies + depth, focus, how they learn, feelings about physics; drives lesson prefs, story notes, teacher profile) | `data/survey.yaml`, `src/ecolearn/learner/survey.py`, `platform_api.{get_survey,submit_survey,get_class_learner_profiles}`, `apps/web/app/(app)/welcome`, `apps/web/components/{survey-flow,welcome-gate,break-nudge,class-profiles}.tsx` | 9zy |
+| Concept locks, class level (teacher-only), Done/Mastered ticks | `platform_api._concept_locks`, `_require_chapter_for_level`, `set_student_level`; `apps/web/components/roadmap-path.tsx` | 9zt |
+| Update my answers (survey history) | `platform_api.update_survey`, `store.update_survey`, `learner_survey_history`; `apps/web/app/(app)/settings/about`, `apps/web/components/about-you-card.tsx` | 9zzb |
 | Demo dataset (a separate DB, fictional class) | `scripts/seed_demo.py --reset`, `tests/test_seed_demo.py` | 9zr |
-| Redesigned screens (roadmap, lesson, check, start, welcome, landing, teacher class) | `web/components/{roadmap-path,lesson-stepper,check-feedback,survey-flow,class-overview,tab-bar,landing/*}.tsx` | 9zu-9zza |
-| Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/learner/{diagnostic,plan}.py` | 9zd |
-| Mastery from evidence + revision queue | `learner_plan.mastery_evidence`, `platform_api` §"Mastery from evidence", `web/app/(app)/review` | 9zn |
-| "How the AI decided" (decision trails) | `personal_story.generate` (trail), `platform_api.get_class_ai_decisions`, `web/components/ai-decisions.tsx` | 9zp |
-| AI usage log + cost per student | `src/llm/client.py` (usage sink), `store.llm_calls`, `metrics.ai_usage`, `data/llm_prices.yaml` | 9zn |
-| My mix-ups + "how sure are you?" | `learner_plan.mix_up_history`, `diagnostic.clean_confidence`, `web/app/(app)/mix-ups`, `web/components/confidence-picker.tsx` | 9zm |
-| End check (pilot before → after, counterbalanced forms) | `src/learner/diagnostic.py`, `metrics.check_gains`, `web/app/(app)/end-check`, `web/components/class-checks.tsx` | 9zl |
-| Personal stories (writer + critic agents) | `src/learner/personal_story.py`, `prompts/personal_story_*.txt` | 9ze, 9zf |
-| LLM client (OpenAI-compatible, OmniRoute) | `src/llm/client.py`, `.env.example` (LLM_* vars) | 9ze |
-| Teacher agent | `src/agents/teacher_agent.py`, `prompts/teacher_agent.txt` | 9zc |
-| Pilot metrics + dashboards | `src/progress/metrics.py`, `scripts/pilot_report.py` | 9za |
+| Redesigned screens (roadmap, lesson, check, start, welcome, landing, teacher class) | `apps/web/components/{roadmap-path,lesson-stepper,check-feedback,survey-flow,class-overview,tab-bar,landing/*}.tsx` | 9zu-9zza |
+| Starting check, plan, recommendations | `data/diagnostic.yaml`, `src/ecolearn/learner/{diagnostic,plan}.py` | 9zd |
+| Mastery from evidence + revision queue | `learner_plan.mastery_evidence`, `platform_api` §"Mastery from evidence", `apps/web/app/(app)/review` | 9zn |
+| "How the AI decided" (decision trails) | `personal_story.generate` (trail), `platform_api.get_class_ai_decisions`, `apps/web/components/ai-decisions.tsx` | 9zp |
+| AI usage log + cost per student | `src/ecolearn/llm/client.py` (usage sink), `store.llm_calls`, `metrics.ai_usage`, `data/llm_prices.yaml` | 9zn |
+| My mix-ups + "how sure are you?" | `learner_plan.mix_up_history`, `diagnostic.clean_confidence`, `apps/web/app/(app)/mix-ups`, `apps/web/components/confidence-picker.tsx` | 9zm |
+| End check (pilot before → after, counterbalanced forms) | `src/ecolearn/learner/diagnostic.py`, `metrics.check_gains`, `apps/web/app/(app)/end-check`, `apps/web/components/class-checks.tsx` | 9zl |
+| Personal stories (writer + critic agents) | `src/ecolearn/learner/personal_story.py`, `prompts/personal_story_*.txt` | 9ze, 9zf |
+| LLM client (OpenAI-compatible, OmniRoute) | `src/ecolearn/llm/client.py`, `.env.example` (LLM_* vars) | 9ze |
+| Teacher agent | `src/ecolearn/agents/teacher_agent.py`, `prompts/teacher_agent.txt` | 9zc |
+| Pilot metrics + dashboards | `src/ecolearn/progress/metrics.py`, `scripts/pilot_report.py` | 9za |
 | Chapter coverage / coming soon | `lesson_service.concepts_with_lessons` | 9zb |
-| Login rate limiting | `api/ratelimit.py` | 9zg |
-| Caches (parsed files, scans, schema) | `src/file_cache.py`, `lesson_service`, `store._connect` | 9zh |
+| Login rate limiting | `apps/api/ratelimit.py` | 9zg |
+| Caches (parsed files, scans, schema) | `src/ecolearn/file_cache.py`, `lesson_service`, `store._connect` | 9zh |
 | Load test (30 students at once) | `scripts/load_test.py` (p95 ≈ 1.2 s, 0 errors) | 9zh |
-| Theme, toasts, error pages | `web/components/{theme-toggle,toast}.tsx`, `web/app/{error,not-found,global-error}.tsx` | 9zg, 9zi |
-| 127.0.0.1 vs localhost fix | `web/next.config.ts`, `web/lib/api.ts` (API_URL) | 9zj |
+| Theme, toasts, error pages | `apps/web/components/{theme-toggle,toast}.tsx`, `apps/web/app/{error,not-found,global-error}.tsx` | 9zg, 9zi |
+| 127.0.0.1 vs localhost fix | `apps/web/next.config.ts`, `apps/web/lib/api.ts` (API_URL) | 9zj |
 
 **Content:** `data/curriculum/physics.yaml` (29 chapters / 249 concepts; never rename an id).
 **642 authored lessons, all valid.** Phase 1 (`explain`) is at **62/70 batches**: cricket,
@@ -519,7 +519,7 @@ next batch (the batch procedure is below). Famous images: `data/media/famous/`, 
 - The doubt chat is broken on this machine (see below), and takes ~2 min when it works.
 - Mastery now needs two different questions right (§9zn), but concepts mastered before
   2026-10-03 under the old one-answer rule keep their status.
-- The AI usage log has tokens for `src/llm` calls only; the doubt chat (older google-genai
+- The AI usage log has tokens for `src/ecolearn/llm` calls only; the doubt chat (older google-genai
   pipeline) and the teacher agent's Gemini fallback log no tokens. `data/llm_prices.yaml` was
   verified 2026-10-13 against Google's pricing page (paid-tier list prices); re-check before quoting, and note that
   gemini-3.8-flash doubles on 2027-01-01.
@@ -564,8 +564,8 @@ Candidates (the user picks), by value for the finals:
    traits (check difficulty, pacing of the path) once there is evidence.
 6. **Doubt chat without grpc** (~1 day): chromadb -> grpc is blocked by Windows Application Control, so
    `ask_help` answers 503 here; an in-process numpy search over the existing embeddings would fix it, and
-   moving it onto `src/llm` would add token counts to the usage log.
-7. **Dev-only error detail** on `web/app/error.tsx` (~15 min); a **local GPU backend** (RTX 3090 via
+   moving it onto `src/ecolearn/llm` would add token counts to the usage log.
+7. **Dev-only error detail** on `apps/web/app/error.tsx` (~15 min); a **local GPU backend** (RTX 3090 via
    `LLM_BASE_URL` + `LLM_MODEL`); the **design-session merge** (below); later: teacher report + "assign
    concepts", interactive simulations, the remaining lesson batches (scope question below).
 
@@ -573,8 +573,8 @@ Candidates (the user picks), by value for the finals:
 
 - **Two Claude sessions share this folder.** A separate **design session** works on the branch
   **`design/frontend-v2`** (a copy of the web app in `web-v2/`, three design directions; see
-  `docs/frontend-design-prompt.md`; the user will merge a chosen design later, over the unchanged
-  `web/lib/api.ts` contract). The working folder `D:\Projects\EcoLearn` is often checked out on THAT
+  `docs/design/frontend-design-prompt.md`; the user will merge a chosen design later, over the unchanged
+  `apps/web/lib/api.ts` contract). The working folder `D:\Projects\EcoLearn` is often checked out on THAT
   branch, so it then lacks everything from 2026-10-04 onward. **Always run `git branch --show-current`
   before editing or committing.** `main` is the truth and is pushed. Stage files by name (an untracked
   `web-v2/` may be present); never commit it to `main`.
@@ -584,14 +584,14 @@ Candidates (the user picks), by value for the finals:
   ("points out of the filesystem root"), so run it with `next dev --webpack`. The preview tool only starts
   servers whose `cwd` is inside the project root, and refuses ports already taken by the user's own
   servers (8000/3000 are usually the user's): use 8100/3100, which needs one extra CORS origin in
-  `api/main.py` (a TEMPORARY edit; never commit it; the launch entries `api-main` / `web-main` are in
+  `apps/api/main.py` (a TEMPORARY edit; never commit it; the launch entries `api-main` / `web-main` are in
   `.claude/launch.json`). **Remove the junction with `rmdir` BEFORE removing the worktree**, or Windows may
   follow it and delete the real `node_modules`.
 - **Demo logins** (demo database only, `scripts/seed_demo.py --reset`, then run the API with
   `ECOLEARN_PROGRESS_DB=data\demo.db`): teacher `demo.teacher`; students `aarav.k` (everything done),
   and **`ananya.r` / `aditya.v`, who have never signed in** (they see the first-sign-in survey and the
-  starting check). The shared password is the `DEMO_PASSWORD` constant in `scripts/seed_demo.py` (a
-  throwaway; the file is the only place it is written). Seeding is deterministic. Testing writes into the
+  starting check). The shared password is `ECOLEARN_DEMO_PASSWORD` (`.env`), else a random one the seed makes
+  and prints, kept in `data/.demo_password` (gitignored; never in code since 2026-11-04). Seeding is deterministic. Testing writes into the
   demo DB: reseed afterwards.
 
 - **OmniRoute is not installed** (nothing on `localhost:20128`, checked 2026-10-02). **The user
@@ -603,7 +603,7 @@ Candidates (the user picks), by value for the finals:
 - **Windows Application Control blocks `grpc`'s DLL**, so the doubt chat answers 503 here (§9z).
   A machine setting or a `grpcio` reinstall: the user's call.
 - **The user often starts the API with the system Python** (`WindowsApps\…\Python 3.12`). It works;
-  recommend `venv\Scripts\python.exe -m uvicorn api.main:app --reload --port 8000`. The web app works
+  recommend `venv\Scripts\python.exe -m uvicorn api.main:app --app-dir apps --reload --port 8000`. The web app works
   at both `localhost:3000` and `127.0.0.1:3000` since §9zj. **On 2026-10-03 two API servers were
   running at once** (one from the venv, one from the system Python; only one can hold port 8000).
   Suggest closing the extra terminal.
@@ -641,9 +641,9 @@ Candidates (the user picks), by value for the finals:
    changes (stale dev chunks); a hard refresh should fix it. If it recurs, ask for the red console
    line under the error and the URL. Candidate fix: item 5 in the next-action list.
 
-4. **The design session's merge.** When the user picks a direction, merge it into `web/` with no backend
-   change; keep every function in `web/lib/api.ts`. After merging, re-run the web checks and click through
-   every screen (the redesigned ones above were built in `web/`, so a new design replaces them).
+4. **The design session's merge.** When the user picks a direction, merge it into `apps/web/` with no backend
+   change; keep every function in `apps/web/lib/api.ts`. After merging, re-run the web checks and click through
+   every screen (the redesigned ones above were built in `apps/web/`, so a new design replaces them).
 
 ### Open with the user, don't decide alone
 
@@ -689,7 +689,7 @@ Candidates (the user picks), by value for the finals:
    `[done]` for a session that died before reporting. Then run an **audit sub-session** over that
    batch's lessons: recompute every worked-example and answer-key number with Python, check each
    distractor really is the mistake its misconception names, fix only what is wrong. This is how
-   the one physics error found so far was caught (`PROJECT_HISTORY.md` §9t): a session reported
+   the one physics error found so far was caught (`docs/PROJECT_HISTORY.md` §9t): a session reported
    "found an arithmetic slip, fixing it" and was killed before the fix landed. **The validator
    checks format, never arithmetic** — nothing else will catch this.
 5. **Famous images:** if a sub-session asks for one, check its licence on Commons and **ask the user
@@ -703,19 +703,19 @@ Candidates (the user picks), by value for the finals:
    number.
 
 The auth "breaking flip" is **done**; new work no longer has to be additive for its sake. Streamlit
-still works because it calls `src/platform_api.py` directly rather than over HTTP — keep it that
+still works because it calls `src/ecolearn/platform_api.py` directly rather than over HTTP — keep it that
 way.
 
 ---
 
 ## 3. The phases, in the order they must be done
 
-> **During the sprint to 2026-09-30, `ROADMAP.md` §0 overrides this table.** The sprint drops
+> **During the sprint to 2026-09-30, `docs/ROADMAP.md` §0 overrides this table.** The sprint drops
 > M1a/M1b (no GPU, no API generation), writes all lessons with Claude Code sessions, and defers
 > M2–M5 and M8–M9. The table below is the longer-term plan after the pilot.
 
 Do these in sequence — each unblocks the next. Full specs and acceptance criteria per milestone are
-in [`ROADMAP.md`](ROADMAP.md).
+in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 | # | Milestone | Why this order |
 |---|---|---|
@@ -740,7 +740,7 @@ pre-generated and cached; only the path through it adapts. That is what makes v2
 **The scale-up principle in one line:** *do format-independent work early (structure, the LLM
 layer, corpora), de-risk the thesis cheaply (pilot), and generate in bulk only once (after M6).*
 
-The code audit behind the scale-up plan is **done** — every "*Verified*" note in `ROADMAP.md`
+The code audit behind the scale-up plan is **done** — every "*Verified*" note in `docs/ROADMAP.md`
 §6, §6a, §6b, §6c and §12 was checked against the source on 2026-09-21, naming the exact function.
 Re-check line numbers before you edit (code moves), but don't re-run the audit.
 
@@ -748,8 +748,14 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
 
 ## 4. Non-negotiables — violating these breaks the project
 
-1. **UIs talk ONLY to `src/platform_api.py`.** Never import engine/store/pipeline/agents from a
-   UI. The web app goes `web/lib/api.ts` → FastAPI → boundary.
+**Layout (2026-11-04).** Monorepo: `apps/api` (FastAPI), `apps/web` (Next.js), `apps/streamlit`
+(legacy), and the one Python package `src/ecolearn` (import it as `ecolearn.…`, never `src.…`).
+Apps import the package, never the reverse. A package module that needs a file uses
+`from ecolearn.paths import PROJECT_ROOT`, not `Path(__file__).parents[N]`. Run the API with
+`uvicorn api.main:app --app-dir apps`. `README.md` §4 has the full tree.
+
+1. **UIs talk ONLY to `src/ecolearn/platform_api.py`.** Never import engine/store/pipeline/agents from a
+   UI. The web app goes `apps/web/lib/api.ts` → FastAPI → boundary.
 2. **The boundary returns plain JSON-serializable dicts/lists.** No Pydantic objects cross it.
 3. **Cached vs live:** the **only** live LLM calls are the doubt chat (`ask_help`) and grading
    (`submit_assessment`) — and in the sprint, grading becomes multiple-choice with **no** LLM call.
@@ -765,7 +771,7 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
    anything fails. **Third exception (user request, 2026-10-13): coaching notes**
    (`generate_coaching_notes`, §9zzzzzzzzzzzzz) — teacher-triggered, students as S1, S2…, a rules note per
    student whenever the AI is off, fails or breaks a rule. **Fourth exception (user request, 2026-10-19): Practice with AI**
-   (`start_practice`, `src/learner/practice.py`) — student-triggered and optional, rate-limited, a writer call plus a solver call
+   (`start_practice`, `src/ecolearn/learner/practice.py`) — student-triggered and optional, rate-limited, a writer call plus a solver call
    that must agree with the key, never written to progress, mastery or the pilot metrics, no question at all when anything
    fails, and off with the per-student AI switch. Any further live call needs the user's say-so.
 4. **New chapter/subject = content (YAML + a factory run), not engine code.** Concept `order` is
@@ -774,7 +780,7 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
 5. **Migrations are additive.** Extend the store inside `_connect()` with `CREATE TABLE IF NOT
    EXISTS` + `PRAGMA table_info` / `ALTER TABLE ADD COLUMN`, and a separate `CREATE UNIQUE INDEX`
    for uniqueness (SQLite rejects `ADD COLUMN … UNIQUE`). Legacy rows and Streamlit must keep working.
-6. **Tests are standalone scripts, NOT pytest.** Each sets its own `sys.path` and points
+6. **Tests are standalone scripts, NOT pytest.** Each puts `src/` and `apps/` on `sys.path` and points
    `ECOLEARN_PROGRESS_DB` at a temp file **before** importing the module under test, then
    prints-and-asserts. Add new tests the same way.
 7. **Don't break the pinned contracts.** `_slugify` and `create_or_load_student` must stay as they
@@ -784,16 +790,16 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
 8. **Models and providers.** *Today:* Gemma `gemma-4-31b-it` (generator/assessor), Gemini 2.5
    Flash-Lite (critic/polisher), local `all-MiniLM-L6-v2` embeddings, all via the `google-genai`
    SDK (**not** the deprecated `google-generativeai`). *The plan (user decision):* bulk generation
-   moves to a **self-hosted LLM on a GPU** in M1a, with the Gemini API as fallback. **`src/llm/`
+   moves to a **self-hosted LLM on a GPU** in M1a, with the Gemini API as fallback. **`src/ecolearn/llm/`
    exists since 2026-10-02 (§9ze)**: an OpenAI-compatible client (OmniRoute for the free pilot, the
    user's choice; Gemini's OpenAI-compatible URL later). **New agents call models only through
-   `src/llm/`**; the four older agents still use google-genai directly until the rest of M1a. Don't add a third provider without asking. Judges fail open; key roles keep
+   `src/ecolearn/llm/`**; the four older agents still use google-genai directly until the rest of M1a. Don't add a third provider without asking. Judges fail open; key roles keep
    fallback chains.
 9. **⚠️ Gemma accepts neither `system_instruction` nor `thinking_config`.** The agents prepend the
    system prompt to the user message on purpose. It looks like an oversight; it isn't. Re-adding
    those fields silently breaks generation. **This holds when Gemma is self-hosted too** — its chat
    template has no system role. M1a turns it into a per-model capability flag. And never assume one
-   model can fill every role: Gemma managed only **2/11** clean polishes. See `PROJECT_HISTORY.md` §6.
+   model can fill every role: Gemma managed only **2/11** clean polishes. See `docs/PROJECT_HISTORY.md` §6.
 10. **Never rename an existing unit, chapter or concept id** (`kinematics`,
     `motion_straight_line`, `motion_plane`, and the 17 concept ids). Lesson filenames
     (`{concept_id}__{interest}.json`), student progress rows and tests are all keyed on them — a
@@ -813,10 +819,10 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
 - **The remote is the only backup** — so push after every successful chunk, and never leave a day's
   work only in the working tree.
 - **Log every change.** After any request that adds, modifies or removes something in this
-  directory, append an entry to **`PROJECT_HISTORY.md`** with **Changed / Why / Learned**
+  directory, append an entry to **`docs/PROJECT_HISTORY.md`** with **Changed / Why / Learned**
   (absolute date, terse file-level bullets — the diff is in git, the doc is for narrative
   continuity). Only add to "Hard-won lessons" when the takeaway is genuinely new.
-  *There is no `LOG.md` — it was consolidated into `PROJECT_HISTORY.md` on 2026-09-21. Don't
+  *There is no `LOG.md` — it was consolidated into `docs/PROJECT_HISTORY.md` on 2026-09-21. Don't
   recreate it.*
 - **Explain the why.** Beginner-friendly explanations are appreciated — this is a learning project
   as much as a product. Say what a thing does *and* why it's built that way.
@@ -833,12 +839,12 @@ Re-check line numbers before you edit (code moves), but don't re-run the audit.
 ### First time on a new machine
 
 ```bash
-git clone https://github.com/Niranjan-207/EcoLearn.git && cd EcoLearn
+git clone https://github.com/M-u-r-a-r-i/EcoLearn.git && cd EcoLearn
 python -m venv venv                          # Windows: venv\Scripts\Activate.ps1
-pip install -r requirements.txt               # macOS/Linux: source venv/bin/activate
+pip install -r requirements.txt               # also installs src/ecolearn editable (-e .)
 cp .env.example .env                          # then paste your own GEMINI_API_KEY (optional, see below)
-python src/rag/build_index.py                 # rebuild the vector index (needed for the doubt chat)
-cd web && npm install                         # Node 18+
+python -m ecolearn.rag.build_index                 # rebuild the vector index (needed for the doubt chat)
+cd apps/web && npm install                         # Node 18+
 echo NEXT_PUBLIC_API_URL=http://localhost:8000 > .env.local
 ```
 
@@ -861,24 +867,27 @@ API key.**
 (`D:\Projects\EcoLearn\...`), so it does not come with a clone. Recreate it for your own path if
 you use the preview tools; the `web` entry must use **port 3000**, because the API's CORS list
 allows only `http://localhost:3000` to send the session cookie. It needs three entries: `api`
-(`python -m uvicorn api.main:app --reload --port 8000`, cwd = repo root), `web` (`npm run dev --
---port 3000`, cwd = `web/`) and optionally `streamlit`.
+(`python -m uvicorn api.main:app --app-dir apps --reload --port 8000`, cwd = repo root), `web` (`npm run dev --
+--port 3000`, cwd = `apps/web/`) and optionally `streamlit`.
 
-**Picking up someone else's work:** read `PROJECT_HISTORY.md` from §9 onwards (newest last) for
+**Picking up someone else's work:** read `docs/PROJECT_HISTORY.md` from §9 onwards (newest last) for
 what happened and why, then `venv\Scripts\python.exe scripts\batch_status.py --all` for what is
 written, part-written and still to do. Those two plus this file are the whole handoff.
 
 ### Day to day
 
 ```bash
-python -m uvicorn api.main:app --reload --port 8000    # terminal 1 — API, docs at /docs
-cd web && npm run dev                                   # terminal 2 — http://localhost:3000
-streamlit run app.py                                    # legacy UI (optional)
+python -m uvicorn api.main:app --app-dir apps --reload --port 8000    # terminal 1 — API, docs at /docs
+cd apps/web && npm run dev                                   # terminal 2 — http://localhost:3000
+streamlit run apps/streamlit/app.py                                    # legacy UI (optional)
 ```
 
 ### Verify before you call anything done
 
 ```bash
+# all of the below in one go, with a summary (--fast skips the two slow ones):
+venv\Scripts\python.exe scripts\check.py
+
 # deterministic — no API key needed, these must always pass
 venv\Scripts\python.exe tests\test_auth.py
 venv\Scripts\python.exe tests\test_curriculum.py
@@ -920,7 +929,7 @@ venv\Scripts\python.exe scripts\validate_lessons.py        # every authored less
 venv\Scripts\python.exe scripts\batch_status.py            # lesson plan progress + next batch
 
 # web changes
-cd web && npx tsc --noEmit && npm run lint && npm run build
+cd apps/web && npx tsc --noEmit && npm run lint && npm run build
 ```
 
 `tests/test_platform_api.py` is the live contract canary — it calls real LLMs, is slow, and burns
@@ -931,8 +940,8 @@ quota. Run it deliberately, not routinely.
 ## 7. Gotchas that will cost you an hour
 
 - **Next.js 16 is not the Next.js you know.** `middleware` → `proxy`; `error.tsx` uses
-  `unstable_retry`, not `reset`. **Read `web/node_modules/next/dist/docs/` before touching
-  routing, cookies or error files** (see `web/AGENTS.md`). Do route protection with a **client
+  `unstable_retry`, not `reset`. **Read `apps/web/node_modules/next/dist/docs/` before touching
+  routing, cookies or error files** (see `apps/web/AGENTS.md`). Do route protection with a **client
   guard, not `proxy.ts`** — the API cookie is on a different origin, so a web-origin proxy never
   sees it. The real boundary is the API's `Depends`.
 - **Only ONE `next dev` per project dir** — a second refuses even on another port. Reuse it.
@@ -950,20 +959,20 @@ quota. Run it deliberately, not routinely.
 - **Never import a live-LLM feature's dependencies at module top level** in `platform_api.py`.
   chromadb → grpc native DLLs were once blocked by Windows Application Control, and the top-level
   import took the whole API down (§9z).
-- **Parsed files and lesson scans are cached** (§9zh, `src/file_cache.py`, `lesson_service`):
+- **Parsed files and lesson scans are cached** (§9zh, `src/ecolearn/file_cache.py`, `lesson_service`):
   objects they return are shared — never mutate them. Edits to a file are seen at once (mtime);
   the "which concepts have lessons" lists may lag up to 30 s after a writing session adds files.
   An env var set to empty means "off" (it does not fall back to `.env`).
 - **A new route folder can 404 in `next dev`** while `npm run build` lists it. Restart the dev
   server, and don't run `npm run build` while `next dev` is running (both write `.next`).
 
-Full list: `PROJECT_HISTORY.md` §13.
+Full list: `docs/PROJECT_HISTORY.md` §13.
 
 ---
 
 ## 8. Definition of done
 
 - Relevant deterministic tests pass; `tsc --noEmit` + `npm run build` clean for web changes.
-- `PROJECT_HISTORY.md` updated (Changed / Why / Learned).
-- `ROADMAP.md` milestone status updated if you advanced or finished one.
+- `docs/PROJECT_HISTORY.md` updated (Changed / Why / Learned).
+- `docs/ROADMAP.md` milestone status updated if you advanced or finished one.
 - Committed with a descriptive message and pushed to `origin main`; report the commit hash.

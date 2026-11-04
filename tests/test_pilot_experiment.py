@@ -24,7 +24,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_experiment_"))
 _DB = _TMP / "experiment.db"
@@ -33,10 +34,10 @@ os.environ["LLM_MODEL"] = ""
 os.environ.pop("ECOLEARN_EXPERIMENTS", None)
 warnings.simplefilter("ignore")
 
-from src import platform_api as api  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.learner import diagnostic, experiments  # noqa: E402
-from src.progress import metrics, store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.learner import diagnostic, experiments  # noqa: E402
+from ecolearn.progress import metrics, store  # noqa: E402
 
 EXP = "check_prompt"
 _checks = 0

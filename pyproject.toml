@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ecolearn"
+version = "2.0.0"
+description = "Personalised AI physics tutor for CBSE/ISC Class 11 and 12"
+readme = "README.md"
+requires-python = ">=3.11"
+# Runtime dependencies live in requirements.txt (with a comment on why each one is there).
+# `pip install -r requirements.txt` also installs this package in editable mode (`-e .`),
+# so `import ecolearn` works from apps/, scripts/ and tests/ without path tricks.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["apps/web", "venv", "chroma_db"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+# Tests and scripts put src/ and apps/ on sys.path before importing (see AGENTS.md §4).
+per-file-ignores = { "tests/*" = ["E402"], "scripts/*" = ["E402"] }
+
+[tool.ruff.lint.isort]
+known-first-party = ["ecolearn", "api"]

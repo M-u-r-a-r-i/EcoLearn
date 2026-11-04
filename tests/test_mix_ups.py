@@ -33,7 +33,8 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_mixups_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "mixups.db")
@@ -42,11 +43,11 @@ warnings.simplefilter("ignore")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.errors import EcoLearnError  # noqa: E402
-from src.learner import diagnostic, plan  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.errors import EcoLearnError  # noqa: E402
+from ecolearn.learner import diagnostic, plan  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 _checks = 0
 _n = 0
@@ -212,7 +213,7 @@ def test_insights(sid: str) -> None:
     activity = {"views": [], "ratings": [], "answers": [
         ans("s1", "B", False, "sure"), ans("s2", "B", False, "guess"),
         ans("s1", "A", True, "sure", attempt=2), ans("s2", "A", True, None, attempt=2)]}
-    from src.progress import metrics
+    from ecolearn.progress import metrics
     out = metrics.class_insights(students, activity, lambda c: {"name": c}, lambda c, i: None)
     m = out["misconceptions"][0]
     check(m["students"] == 2 and m["sure"] == 1, "a misconception: 2 students, 1 of them sure")

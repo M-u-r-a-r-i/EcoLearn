@@ -29,22 +29,27 @@ import warnings
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_survey_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP / "survey.db")
+# The survey's own preferences are tested here. With the pilot experiment on, each new student gets a random
+# arm that can turn slow_down on, and the "default preferences" check failed about 1 run in 3.
+# Experiments are tested in test_pilot_experiment.py.
+os.environ["ECOLEARN_EXPERIMENTS"] = "off"
 os.environ["LLM_MODEL"] = ""
 warnings.simplefilter("ignore")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from src import platform_api as api  # noqa: E402
-from src.errors import ConflictError, EcoLearnError, NotFoundError  # noqa: E402
-from src.learner import personal_story as ps  # noqa: E402
-from src.learner import survey  # noqa: E402
-from src.path import engine  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.errors import ConflictError, EcoLearnError, NotFoundError  # noqa: E402
+from ecolearn.learner import personal_story as ps  # noqa: E402
+from ecolearn.learner import survey  # noqa: E402
+from ecolearn.path import engine  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 _checks = 0
 

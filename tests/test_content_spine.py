@@ -22,12 +22,13 @@ import tempfile
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 from pydantic import ValidationError  # noqa: E402
 
-from src.curriculum.interests import active_interests, load_interests  # noqa: E402
-from src.curriculum.loader import all_concepts, load_subject, teaching_order  # noqa: E402
+from ecolearn.curriculum.interests import active_interests, load_interests  # noqa: E402
+from ecolearn.curriculum.loader import all_concepts, load_subject, teaching_order  # noqa: E402
 
 PHYSICS = _ROOT / "data" / "curriculum" / "physics.yaml"
 

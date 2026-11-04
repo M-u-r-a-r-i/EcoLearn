@@ -120,12 +120,12 @@ as a modern **full-stack web app** — with a legacy option for convenience:
 Two frontends, **one backend**, joined at a single plain-data boundary:
 
 ```
-  🐍 Streamlit UI                    ⚛️ Next.js UI (web/)
-  app.py · pages/ · src/ui                 │  fetch() over HTTP
+  🐍 Streamlit UI                    ⚛️ Next.js UI (apps/web/)
+  apps/streamlit/app.py · apps/streamlit/pages/ · src/ecolearn/ui                 │  fetch() over HTTP
         │                                   ▼
-        │                        🚪 FastAPI (api/main.py)  ── thin HTTP wrapper
+        │                        🚪 FastAPI (apps/api/main.py)  ── thin HTTP wrapper
         │                                   │
-        └──────────── both call ───────────┴────────────▶  src/platform_api.py
+        └──────────── both call ───────────┴────────────▶  src/ecolearn/platform_api.py
                                                                    │  orchestrates
              ┌──────────────┬──────────────┬───────────────┬──────────────┐
              ▼              ▼              ▼               ▼              ▼
@@ -141,7 +141,7 @@ Two frontends, **one backend**, joined at a single plain-data boundary:
 - 🔴 **Live pipeline** — used **only** for *"I'm stuck — ask for help"* and for
   grading an assessment on submit. The only expensive/online calls in the app.
 
-### 🚪 The service boundary — `src/platform_api.py`
+### 🚪 The service boundary — `src/ecolearn/platform_api.py`
 
 Every UI talks to the platform through **one module** returning **plain
 JSON-serializable data** — never reaching into the engine, store, or pipeline
@@ -158,7 +158,7 @@ six functions:
 | `submit_assessment(student_id, concept_id, answer)` | Grades the answer against the lesson's check question. |
 | `ask_help(student_id, concept_id, question)` | Live, grounded tutor answer (the only expensive call). |
 
-### 🌐 The HTTP API — `api/main.py`
+### 🌐 The HTTP API — `apps/api/main.py`
 
 A thin FastAPI layer maps each endpoint to one boundary function (no logic of its
 own). CORS is opened to the Next.js dev origin (`http://localhost:3000`).
@@ -175,11 +175,11 @@ own). CORS is opened to the Next.js dev origin (`http://localhost:3000`).
 *(`list_chapters` is not yet exposed over HTTP — the Next.js app currently
 targets the first chapter.)*
 
-### ⚛️ The Next.js frontend — `web/`
+### ⚛️ The Next.js frontend — `apps/web/`
 
 Routes mirror the journey: `/` (landing) → `/onboarding` → `/roadmap` →
 `/lesson` (with the live **"I'm stuck" help widget**) → `/assessment`. A typed
-`web/lib/api.ts` client wraps `fetch`; the created student is held in React
+`apps/web/lib/api.ts` client wraps `fetch`; the created student is held in React
 Context. Instant screens (roadmap, lesson) render cached data; help & grading
 show a "thinking/grading" state because they hit the live pipeline.
 
@@ -212,51 +212,66 @@ show a "thinking/grading" state because they hit the live pipeline.
 
 ---
 
-## 4. 🗺️ Repository layout (load-bearing files)
+## 4. 🗺️ Repository layout
+
+A monorepo: one Python package with all the logic, three thin apps on top of it, and the
+content, scripts, tests and docs beside them.
 
 ```text
-🧩 Domain (shared by both frontends)
-├─ src/platform_api.py            THE service boundary (6 functions)
-├─ src/curriculum/                Pydantic schema + YAML loader (order, validation)
-├─ src/path/engine.py             next_concept, get_roadmap, list_chapters
-├─ src/progress/store.py          SQLite progress + students
-├─ src/content/                   lesson schema · read service · offline factory
-├─ src/agents/                    generator · critic · assessor · polisher (+ fallbacks)
-├─ src/pipeline.py                explain_with_review: RAG→gen→critic→retry
-└─ src/rag/                       ingest · build_index · retrieve (ChromaDB)
-
-🌐 Web API (FastAPI)
-└─ api/main.py                    Thin HTTP layer over platform_api (health + 5 endpoints)
-
-⚛️ Next.js frontend
-├─ web/app/                       Routes: / · /onboarding · /roadmap · /lesson · /assessment
-├─ web/lib/api.ts                 Typed fetch client (createStudent, getRoadmap,
-│                                  getNextLesson, askHelp, submitAssessment)
-├─ web/components/                site-nav · page-container · section-heading ·
-│                                  primary-button · markdown · help-widget ·
-│                                  student-provider · ui/ (shadcn)
-└─ web/.env.local                 NEXT_PUBLIC_API_URL (gitignored)
-
-🐍 Streamlit frontend
-├─ app.py                         Onboarding / landing (multi-page entry)
-├─ pages/1_Roadmap.py · 2_Lesson.py · 3_Assessment.py
-├─ ui_common.py · src/ui/         Session helpers + CSS design system
-└─ .streamlit/config.toml         Pinned LIGHT base theme + palette
-
-📦 Data & content
-├─ data/curriculum/physics.yaml   Curriculum source of truth (2 chapters · 17 concepts)
-├─ data/lessons/*.json            34 pre-generated, polished lessons (committed)
-└─ prompts/*.txt                  System prompts (generator / critic / assessor)
-
-📚 Docs & tests
-├─ tests/                         Deterministic + LLM-backed suites (standalone scripts)
-├─ PROJECT_HISTORY.md             What exists, every commit explained, decisions, lessons
-└─ ROADMAP.md                     The v2 plan: milestones, acceptance criteria, open decisions
+EcoLearn/
+├─ apps/                          Everything a user talks to (thin; no business logic)
+│  ├─ api/                        FastAPI HTTP layer: main.py · security.py (JWT cookie) · ratelimit.py
+│  ├─ web/                        Next.js 16 app (primary UI): app/ · components/ · lib/api.ts
+│  └─ streamlit/                  Legacy Streamlit UI: app.py · pages/ · ui_common.py · theme.py
+│
+├─ src/ecolearn/                  The Python package: ALL logic lives here
+│  ├─ platform_api.py             THE service boundary: every app calls only this (plain dicts out)
+│  ├─ paths.py                    PROJECT_ROOT: the one place that knows where the repo is
+│  ├─ curriculum/                 YAML → Pydantic: chapters, concepts, interests, content scope
+│  ├─ path/                       Learning-path engine: what to learn next
+│  ├─ learner/                    Starting check, profiler, plan, survey, doubt tutor, stories, practice
+│  ├─ progress/                   SQLite store (additive migrations) + class metrics
+│  ├─ content/                    Lesson schema, read service, validation, offline factory
+│  ├─ agents/                     AI agents: teacher, coaching, critic, assessor, generator, polisher
+│  ├─ llm/                        One provider layer for every model call
+│  ├─ auth/                       Password hashing (bcrypt)
+│  └─ rag/                        ChromaDB ingest · build_index · retrieve
+│
+├─ data/                          Content and config (the app reads this at runtime)
+│  ├─ curriculum/                 physics.yaml: the syllabus, source of truth
+│  ├─ lessons/                    Pre-written lessons: 11/ and 12/ by chapter
+│  ├─ media/                      Lesson figures, scenes, famous images
+│  ├─ corpora/                    RAG text: curriculum/ and interests/
+│  └─ *.yaml                      Survey, diagnostic, experiments, interests, scope, LLM prices
+│
+├─ prompts/                       System prompts for every agent (.txt)
+├─ scripts/                       CLI tools: check.py (test runner), seed_demo, validate_lessons, …
+├─ tests/                         Standalone test scripts (not pytest; see AGENTS.md §4)
+│
+├─ docs/
+│  ├─ PROJECT_HISTORY.md          Every change, with why and what was learned
+│  ├─ ROADMAP.md                  The plan: milestones and acceptance criteria
+│  ├─ architecture/               System map
+│  ├─ content/                    Authoring guide, curriculum report, batch brief
+│  ├─ design/                     Frontend design prompt, slide style guide
+│  ├─ governance/                 AI safety card, consent note
+│  ├─ research/                   Pilot experiment, evaluation samples
+│  ├─ reports/                    Unit and generation economics
+│  └─ presentations/              Finals deck, case-study deck
+│
+├─ AGENTS.md                      Briefing for AI coding agents (CLAUDE.md points here)
+├─ pyproject.toml                 Package metadata (installs src/ecolearn) + ruff config
+├─ requirements.txt               Python dependencies (includes `-e .`)
+└─ .env.example                   Every environment variable, documented
 ```
 
+**Why this shape.** Apps depend on the package; the package never imports an app. So a new
+frontend, or a new chapter of content, never touches the logic, and the logic can be tested
+without starting a server.
+
 > [!NOTE]
-> Not in the repo (created locally): `venv/`, `.env`, `web/node_modules/`,
-> `web/.env.local`, `chroma_db/` (rebuildable), `data/progress.db` (runtime
+> Not in the repo (created locally): `venv/`, `.env`, `apps/web/node_modules/`,
+> `apps/web/.env.local`, `chroma_db/` (rebuildable), `data/progress.db` (runtime
 > state). The 34 cached lessons **are** committed, so the core experience works
 > on first run.
 
@@ -333,7 +348,7 @@ Then open `.env` and set `GEMINI_API_KEY=<your-key>`.
 ### 🔹 Step 5 — Build the RAG index *(optional)*
 Needed **only** for the live "ask for help" pipeline; cached lessons don't need it.
 ```bash
-python src/rag/build_index.py
+python -m ecolearn.rag.build_index
 ```
 
 ### 🔹 Step 6 — Run it 🚀
@@ -349,7 +364,7 @@ The web app is two programs that run **together**: the **FastAPI backend**
 <tr><td>
 
 ```powershell
-cd web
+cd apps/web
 npm install
 "NEXT_PUBLIC_API_URL=http://localhost:8000" | Out-File -Encoding utf8 .env.local
 cd ..
@@ -358,7 +373,7 @@ cd ..
 </td><td>
 
 ```bash
-cd web
+cd apps/web
 npm install
 echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 cd ..
@@ -369,13 +384,13 @@ cd ..
 
 **Terminal 1 — backend (from the project root, venv active):**
 ```bash
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --app-dir apps --reload --port 8000
 ```
 Interactive API docs at **http://localhost:8000/docs**.
 
 **Terminal 2 — frontend:**
 ```bash
-cd web
+cd apps/web
 npm run dev
 ```
 
@@ -386,7 +401,7 @@ assessment.
 > Both servers must be running at once. Keep the frontend on port **3000** —
 > that's the origin the backend's CORS allows. (If Next.js says the port is busy
 > and switches to 3001, either free 3000 or add the new origin to the CORS list
-> in `api/main.py`.)
+> in `apps/api/main.py`.)
 
 #### 🐍 Option B — Streamlit (legacy, all-in-one Python)
 
@@ -394,7 +409,7 @@ assessment.
 <summary>Prefer the original zero-Node UI? Expand.</summary>
 
 ```bash
-streamlit run app.py
+streamlit run apps/streamlit/app.py
 ```
 Opens at **http://localhost:8501**. No Node.js and no separate backend required —
 Streamlit imports `platform_api` directly. Same features, same backend.
@@ -403,12 +418,9 @@ Streamlit imports `platform_api` directly. Same features, same backend.
 ### 🔹 Step 7 — Run the tests *(optional)*
 The **deterministic** suites need no API key and prove the core logic:
 ```bash
-python tests/test_curriculum.py
-python tests/test_path_engine.py
-python tests/test_edge_states.py
-python tests/test_scale_chapter2.py
-python tests/test_persistence.py seed     # then:
-python tests/test_persistence.py verify
+python scripts/check.py          # the whole deterministic suite, with a pass/fail summary
+python scripts/check.py --fast   # skip the two slow ones
+python scripts/check.py auth     # only tests whose name contains "auth"
 ```
 The **LLM-backed** suites (`test_platform_api.py`, `test_pipeline.py`,
 `test_assessor.py`, …) require a key and consume quota.
@@ -418,7 +430,7 @@ The **LLM-backed** suites (`test_platform_api.py`, `test_pipeline.py`,
 ## 6. ⚙️ Environment variables
 
 Only `GEMINI_API_KEY` is required for live features; the rest have sensible code
-defaults (see `.env.example`). The one frontend var lives in `web/.env.local`.
+defaults (see `.env.example`). The one frontend var lives in `apps/web/.env.local`.
 
 | Variable | Where | Required? | Default | Purpose |
 |---|---|:---:|---|---|
@@ -430,7 +442,7 @@ defaults (see `.env.example`). The one frontend var lives in `web/.env.local`.
 | `POLISHER_MODEL` | `.env` | no | `gemini-2.5-flash-lite` | Polisher model. |
 | `ECOLEARN_PROGRESS_DB` | `.env` | no | `data/progress.db` | SQLite path (tests use a temp file). |
 | `ECOLEARN_REVIEW_DAYS` | `.env` | no | `7` | Days before a mastered concept resurfaces for review. |
-| `NEXT_PUBLIC_API_URL` | `web/.env.local` | for Next.js | `http://localhost:8000` | Where the Next.js app finds the FastAPI backend. |
+| `NEXT_PUBLIC_API_URL` | `apps/web/.env.local` | for Next.js | `http://localhost:8000` | Where the Next.js app finds the FastAPI backend. |
 
 ---
 
@@ -459,7 +471,7 @@ mitigation.
 <summary><b>🖌️ Streamlit was the right tool, but fought us on polish</b></summary>
 
 - **Default look is generic.** We added a full custom **design system**
-  (`src/ui/theme.py`) that injects global CSS — pinned palette, Inter typeface,
+  (`apps/streamlit/theme.py`) that injects global CSS — pinned palette, Inter typeface,
   hidden Streamlit chrome, restyled buttons/sidebar/inputs, constrained
   max-width — to reach a premium, calm, Brilliant.org-style register. It depends
   on Streamlit's internal `data-testid` selectors, which can change between

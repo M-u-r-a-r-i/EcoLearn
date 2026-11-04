@@ -22,15 +22,17 @@ import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps"))
 
 _DB = Path(tempfile.gettempdir()) / "ecolearn_test_mcq.db"
 _DB.unlink(missing_ok=True)
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_DB)
 
-from src.content import lesson_service  # noqa: E402
-from src.errors import EcoLearnError  # noqa: E402
-from src import platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.errors import EcoLearnError  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
 
 _checks = 0
 _failed = 0

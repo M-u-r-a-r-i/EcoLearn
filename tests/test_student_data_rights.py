@@ -29,7 +29,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_rights_"))
 _DB = _TMP / "rights.db"
@@ -43,11 +44,11 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from api import security  # noqa: E402
 from api.main import app  # noqa: E402
-from src import llm, platform_api as api  # noqa: E402
-from src.content import lesson_service  # noqa: E402
-from src.errors import NotFoundError  # noqa: E402
-from src.learner import diagnostic, personal_story as ps  # noqa: E402
-from src.progress import store  # noqa: E402
+from ecolearn import llm, platform_api as api  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.errors import NotFoundError  # noqa: E402
+from ecolearn.learner import diagnostic, personal_story as ps  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 _checks = 0
 

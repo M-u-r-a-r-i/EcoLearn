@@ -23,7 +23,8 @@ import tempfile
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+sys.path.insert(0, str(_PROJECT_ROOT / "apps"))
 
 # Throwaway DB so the real data/progress.db is untouched. Set before import.
 _TMP_DB = os.path.join(tempfile.gettempdir(), "ecolearn_test_platform.db")
@@ -31,7 +32,7 @@ if os.path.exists(_TMP_DB):
     os.remove(_TMP_DB)
 os.environ["ECOLEARN_PROGRESS_DB"] = _TMP_DB
 
-from src import platform_api as api  # noqa: E402  (the ONLY domain import)
+from ecolearn import platform_api as api  # noqa: E402  (the ONLY domain import)
 
 CHAPTER = "motion_straight_line"
 

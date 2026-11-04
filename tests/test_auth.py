@@ -31,7 +31,8 @@ import tempfile
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 # Point the store at a throwaway DB BEFORE importing anything that opens it.
 # (The store resolves this env var lazily inside _connect(), which is exactly
@@ -39,15 +40,15 @@ sys.path.insert(0, str(_ROOT))
 _TMP_DIR = Path(tempfile.mkdtemp(prefix="ecolearn_auth_test_"))
 os.environ["ECOLEARN_PROGRESS_DB"] = str(_TMP_DIR / "auth_test.db")
 
-from src import platform_api as api  # noqa: E402
-from src.auth import passwords  # noqa: E402
-from src.errors import (  # noqa: E402
+from ecolearn import platform_api as api  # noqa: E402
+from ecolearn.auth import passwords  # noqa: E402
+from ecolearn.errors import (  # noqa: E402
     AuthError,
     ConflictError,
     EcoLearnError,
     NotFoundError,
 )
-from src.progress import store  # noqa: E402
+from ecolearn.progress import store  # noqa: E402
 
 _CHECKS = 0
 

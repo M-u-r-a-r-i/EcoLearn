@@ -28,15 +28,16 @@ import tempfile
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "src"))
+sys.path.insert(0, str(_ROOT / "apps"))
 
 _TMP = Path(tempfile.mkdtemp(prefix="ecolearn_lessons_"))
 _MEDIA = Path(tempfile.mkdtemp(prefix="ecolearn_media_"))
 os.environ["ECOLEARN_LESSONS_DIR"] = str(_TMP)  # before importing lesson_service
 
-from src.content import lesson_service  # noqa: E402
-from src.content.authored import parse_lesson_text, student_view, to_legacy_lesson  # noqa: E402
-from src.content.validate import validate_files  # noqa: E402
+from ecolearn.content import lesson_service  # noqa: E402
+from ecolearn.content.authored import parse_lesson_text, student_view, to_legacy_lesson  # noqa: E402
+from ecolearn.content.validate import validate_files  # noqa: E402
 
 _checks = 0
 
@@ -222,7 +223,7 @@ def test_images() -> None:
     ok = famous.replace('"Georg Simon Ohm."', '"Georg Simon Ohm. Public domain, via Wikimedia Commons."')
     check(not errors_for(ok, media=_MEDIA), "famous image with licence in caption passes")
     (_MEDIA / "famous" / "unlisted.jpg").write_bytes(b"x")
-    from src.content.validate import check_media_library
+    from ecolearn.content.validate import check_media_library
     lib = [i.message for i in check_media_library(_MEDIA)]
     check(any("no manifest entry" in m for m in lib), "an unlisted famous image is flagged library-wide")
 
