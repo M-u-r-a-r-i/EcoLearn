@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A body moving round a circle at constant speed: velocity arrows are tangent to the circle, all the same length, pointing in different directions</title>
+  <defs><marker id="hblue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="hred" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="hgreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="horange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/></marker><marker id="hpurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="hteal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker><marker id="hgray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker><marker id="hdark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111827"/></marker></defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20.0" y="30.0" font-size="17" fill="#111827" font-weight="700" text-anchor="start">Uniform circular motion: same speed, turning velocity</text>
+  <circle cx="200" cy="225" r="115" fill="none" stroke="#9ca3af" stroke-width="2.5"/>
+  <circle cx="200" cy="225" r="4" fill="#111827"/>
+  <circle cx="200.0" cy="110.0" r="7" fill="#b91c1c"/>
+  <line x1="200.0" y1="110.0" x2="135.0" y2="110.0" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <circle cx="299.6" cy="167.5" r="7" fill="#b91c1c"/>
+  <line x1="299.6" y1="167.5" x2="267.1" y2="111.2" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <circle cx="299.6" cy="282.5" r="7" fill="#b91c1c"/>
+  <line x1="299.6" y1="282.5" x2="332.1" y2="226.2" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <circle cx="200.0" cy="340.0" r="7" fill="#b91c1c"/>
+  <line x1="200.0" y1="340.0" x2="265.0" y2="340.0" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <circle cx="100.4" cy="282.5" r="7" fill="#b91c1c"/>
+  <line x1="100.4" y1="282.5" x2="132.9" y2="338.8" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <circle cx="100.4" cy="167.5" r="7" fill="#b91c1c"/>
+  <line x1="100.4" y1="167.5" x2="67.9" y2="223.8" stroke="#2563eb" stroke-width="3.5" marker-end="url(#hblue)"/>
+  <line x1="140" y1="110" x2="10" y2="110" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <text x="220.0" y="84.0" font-size="12" fill="#2563eb" font-weight="400" text-anchor="start">let go here: it leaves</text>
+  <text x="220.0" y="98.0" font-size="12" fill="#2563eb" font-weight="400" text-anchor="start">along the tangent</text>
+  <text x="200.0" y="380.0" font-size="13" fill="#6b7280" font-weight="400" text-anchor="middle">moving anticlockwise at constant speed</text>
+  <line x1="390" y1="50" x2="390" y2="380" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="405.0" y="70.0" font-size="14" fill="#111827" font-weight="600" text-anchor="start">The same six velocities,</text>
+  <text x="405.0" y="88.0" font-size="14" fill="#111827" font-weight="600" text-anchor="start">drawn from one point:</text>
+  <line x1="510.0" y1="220.0" x2="435.0" y2="220.0" stroke="#2563eb" stroke-width="3" marker-end="url(#hblue)"/>
+  <line x1="510.0" y1="220.0" x2="472.5" y2="155.0" stroke="#2563eb" stroke-width="3" marker-end="url(#hblue)"/>
+  <line x1="510.0" y1="220.0" x2="547.5" y2="155.0" stroke="#2563eb" stroke-width="3" marker-end="url(#hblue)"/>
+  <line x1="510.0" y1="220.0" x2="585.0" y2="220.0" stroke="#2563eb" stroke-width="3" marker-end="url(#hblue)"/>
+  <line x1="510.0" y1="220.0" x2="547.5" y2="285.0" stroke="#2563eb" stroke-width="3" marker-end="url(#hblue)"/>
+  <line x1="510.0" y1="220.0" x2="472.5" y2="285.0" stroke="#2563eb" stroke-width="3" marker-end="url(#hblue)"/>
+  <circle cx="510" cy="220" r="4" fill="#111827"/>
+  <text x="405.0" y="340.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">Same length (speed), different</text>
+  <text x="405.0" y="358.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">directions: so the velocity</text>
+  <text x="405.0" y="376.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">keeps changing.</text>
+</svg>

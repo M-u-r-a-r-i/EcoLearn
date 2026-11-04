@@ -1,0 +1,27 @@
+# Four processes starting from the same state A: V = 2.0 L, p = 2.0e5 Pa (so pV = 400 J).
+# Isobaric: p = 2.0 constant, V 2 -> 5 L.
+# Isochoric: V = 2.0 constant, p 2 -> 4 (heating at fixed volume).
+# Isothermal: pV = 4.0 (in these units) -> p = 4/V.
+# Adiabatic (gamma = 1.4): p = 2.0 * (2/V)^1.4.
+#   V = 2.5: 0.8^1.4 = 0.7317 -> 1.463; V = 3: 0.5669 -> 1.134; V = 3.5: 0.4568 -> 0.914;
+#   V = 4: 0.3789 -> 0.758; V = 4.5: 0.3213 -> 0.643; V = 5: 0.2772 -> 0.554.
+# The adiabatic curve falls more steeply than the isotherm through A.
+title: "Four processes from the same starting state"
+x: {label: "Volume $V$ (L)", min: 0, max: 6}
+y: {label: "Pressure $p$ ($10^5$ Pa)", min: 0, max: 4.5}
+legend: upper right
+series:
+  - label: "Isobaric (p constant)"
+    points: [[2.0, 2.0], [5.0, 2.0]]
+    color: orange
+  - label: "Isochoric (V constant)"
+    points: [[2.0, 2.0], [2.0, 4.0]]
+    color: purple
+  - label: "Isothermal ($pV$ constant)"
+    points: [[2.0, 2.0], [2.5, 1.6], [3.0, 1.333], [3.5, 1.143], [4.0, 1.0], [4.5, 0.889], [5.0, 0.8]]
+    color: blue
+  - label: "Adiabatic ($pV^{1.4}$ constant)"
+    points: [[2.0, 2.0], [2.5, 1.463], [3.0, 1.134], [3.5, 0.914], [4.0, 0.758], [4.5, 0.643], [5.0, 0.554]]
+    color: red
+marks:
+  - {x: 2.0, y: 2.0, text: "A", color: gray, offset: [-18, -4]}

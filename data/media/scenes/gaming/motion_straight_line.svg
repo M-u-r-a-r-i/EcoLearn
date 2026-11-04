@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A gaming desk at night: a monitor shows a side-scrolling game whose runner moves along a straight track marked like a number line, with a position and velocity readout; beside it a tablet replays a velocity-time graph, and a controller rests on the desk</title>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#2e1065"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#room)"/>
+  <ellipse cx="320" cy="170" rx="340" ry="170" fill="url(#glow)"/>
+
+  <!-- monitor -->
+  <rect x="80" y="40" width="440" height="252" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <rect x="92" y="52" width="416" height="228" fill="url(#sky)"/>
+  <!-- distant hills -->
+  <path d="M 92 200 Q 160 150 230 190 Q 300 140 380 185 Q 440 155 508 180 L 508 232 L 92 232 z" fill="#4c1d95" opacity="0.7"/>
+  <!-- ground -->
+  <rect x="92" y="232" width="416" height="48" fill="#166534"/>
+  <rect x="92" y="232" width="416" height="6" fill="#4ade80"/>
+  <!-- number-line ruler on the ground: 7.2 px per metre, x = 0 at 192 -->
+  <line x1="106" y1="256" x2="494" y2="256" stroke="#f8fafc" stroke-width="2"/>
+  <g stroke="#f8fafc" stroke-width="2">
+    <line x1="120" y1="250" x2="120" y2="262"/><line x1="192" y1="248" x2="192" y2="264"/>
+    <line x1="264" y1="250" x2="264" y2="262"/><line x1="336" y1="250" x2="336" y2="262"/>
+    <line x1="408" y1="250" x2="408" y2="262"/><line x1="480" y1="250" x2="480" y2="262"/>
+  </g>
+  <polygon points="494,251 504,256 494,261" fill="#f8fafc"/>
+  <g font-size="11" fill="#f0fdf4" text-anchor="middle" font-weight="600">
+    <text x="120" y="275">−10</text><text x="192" y="275">0</text><text x="264" y="275">10</text>
+    <text x="336" y="275">20</text><text x="408" y="275">30</text><text x="480" y="275">40 m</text>
+  </g>
+  <!-- checkpoint flag at the origin -->
+  <line x1="192" y1="186" x2="192" y2="233" stroke="#e2e8f0" stroke-width="3"/>
+  <polygon points="194,187 222,195 194,203" fill="#facc15"/>
+  <!-- coin at x = 30 m -->
+  <circle cx="408" cy="212" r="8" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+  <!-- enemy drone at x = 40 m -->
+  <ellipse cx="470" cy="178" rx="16" ry="8" fill="#dc2626"/>
+  <line x1="452" y1="170" x2="488" y2="170" stroke="#fecaca" stroke-width="2"/>
+  <circle cx="470" cy="180" r="3" fill="#fef2f2"/>
+  <!-- runner at x = 20 m -->
+  <circle cx="336" cy="190" r="8" fill="#fde68a"/>
+  <rect x="330" y="198" width="12" height="18" rx="3" fill="#0ea5e9"/>
+  <line x1="333" y1="215" x2="324" y2="232" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+  <line x1="339" y1="215" x2="348" y2="231" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+  <line x1="332" y1="202" x2="322" y2="210" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+  <line x1="341" y1="202" x2="351" y2="196" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+  <!-- velocity arrow (blue) -->
+  <line x1="322" y1="170" x2="374" y2="170" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="374,163 388,170 374,177" fill="#2563eb"/>
+  <text x="352" y="162" font-size="13" fill="#bfdbfe" font-weight="700" text-anchor="middle">v</text>
+  <!-- HUD -->
+  <rect x="100" y="60" width="140" height="48" rx="5" fill="#020617" opacity="0.85"/>
+  <text x="110" y="80" font-size="14" fill="#fbbf24" font-weight="700" font-family="Consolas, monospace">x = +20.0 m</text>
+  <text x="110" y="99" font-size="14" fill="#93c5fd" font-weight="700" font-family="Consolas, monospace">v = +6.0 m/s</text>
+  <rect x="420" y="60" width="80" height="26" rx="4" fill="#020617" opacity="0.85"/>
+  <text x="428" y="79" font-size="14" fill="#4ade80" font-weight="700" font-family="Consolas, monospace">60 FPS</text>
+  <!-- stand -->
+  <rect x="285" y="292" width="30" height="34" fill="#334155"/>
+  <rect x="235" y="324" width="130" height="10" rx="4" fill="#334155"/>
+
+  <!-- tablet with a velocity-time replay -->
+  <rect x="560" y="96" width="210" height="160" rx="12" fill="#0f172a" stroke="#64748b" stroke-width="3"/>
+  <rect x="572" y="108" width="186" height="136" rx="4" fill="#f8fafc"/>
+  <text x="582" y="126" font-size="12" fill="#0f172a" font-weight="700">REPLAY: v against t</text>
+  <line x1="592" y1="140" x2="592" y2="228" stroke="#334155" stroke-width="2"/>
+  <line x1="592" y1="228" x2="746" y2="228" stroke="#334155" stroke-width="2"/>
+  <polyline points="592,228 640,160 690,160 730,228" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <text x="580" y="146" font-size="11" fill="#334155" font-style="italic">v</text>
+  <text x="742" y="240" font-size="11" fill="#334155" font-style="italic">t</text>
+  <rect x="646" y="326" width="28" height="40" fill="#334155"/>
+  <path d="M 640 256 L 680 256 L 666 330 L 654 330 z" fill="#334155"/>
+
+  <!-- desk -->
+  <rect x="0" y="334" width="800" height="116" fill="#3f2a1d"/>
+  <rect x="0" y="334" width="800" height="8" fill="#5b3b28"/>
+
+  <!-- controller -->
+  <path d="M 90 406 Q 96 366 130 370 L 194 370 Q 228 366 234 406 Q 224 418 206 408 L 118 408 Q 100 418 90 406 z" fill="#1f2937"/>
+  <circle cx="130" cy="386" r="8" fill="#475569"/>
+  <circle cx="178" cy="394" r="8" fill="#475569"/>
+  <g fill="#38bdf8"><circle cx="206" cy="378" r="4"/><circle cx="215" cy="387" r="4"/><circle cx="197" cy="387" r="4"/><circle cx="206" cy="396" r="4"/></g>
+  <path d="M 234 396 Q 280 400 300 340" fill="none" stroke="#94a3b8" stroke-width="3"/>
+
+  <!-- mouse -->
+  <rect x="420" y="360" width="150" height="72" rx="8" fill="#111827"/>
+  <ellipse cx="495" cy="394" rx="18" ry="25" fill="#e5e7eb"/>
+  <line x1="495" y1="371" x2="495" y2="386" stroke="#64748b" stroke-width="2"/>
+  <path d="M 495 369 Q 486 352 470 350" fill="none" stroke="#94a3b8" stroke-width="3"/>
+</svg>

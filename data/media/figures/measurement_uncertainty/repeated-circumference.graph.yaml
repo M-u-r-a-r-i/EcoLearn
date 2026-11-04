@@ -1,0 +1,25 @@
+# Five tape readings of the same ball's circumference: 68.8, 69.2, 69.0, 68.9, 69.1 cm.
+# Mean = 345.0 / 5 = 69.0 cm. Deviations 0.2, 0.2, 0.0, 0.1, 0.1 -> mean absolute error 0.12 cm.
+# The readings are plotted as marks (not a joined line: they are separate trials).
+title: "Five readings of one circumference"
+x: {label: "Reading number", min: 0.5, max: 5.5}
+y: {label: "Circumference measured $C$ (cm)", min: 68.6, max: 69.4}
+legend: below
+series:
+  - label: "mean = 69.0 cm"
+    points: [[0.5, 69.0], [5.5, 69.0]]
+    color: gray
+    style: dashed
+  - label: "mean ± mean absolute error (± 0.12 cm)"
+    points: [[0.5, 69.12], [5.5, 69.12]]
+    color: orange
+    style: dotted
+  - points: [[0.5, 68.88], [5.5, 68.88]]
+    color: orange
+    style: dotted
+marks:
+  - {x: 1, y: 68.8, text: "68.8", color: blue, offset: [8, 5]}
+  - {x: 2, y: 69.2, text: "69.2", color: blue, offset: [8, 3]}
+  - {x: 3, y: 69.0, text: "69.0", color: blue, offset: [8, -14]}
+  - {x: 4, y: 68.9, text: "68.9", color: blue, offset: [8, -4]}
+  - {x: 5, y: 69.1, text: "69.1", color: blue, offset: [-36, -4]}

@@ -1,26 +1,105 @@
-# EcoLearn — curriculum spine for Class 11 Physics.
+# EcoLearn — curriculum spine for CBSE/ISC Physics, Class 11 and Class 12.
 #
-# This file is the source of truth for what the platform teaches and in
-# what order. Concepts are nested under Chapters under Units under the
-# Subject; the loader fills in the parent ids (chapter_id, unit_id,
-# subject_id) so authors don't need to repeat them on every concept.
+# This file is the source of truth for what the platform teaches and in what
+# order: Subject -> Unit -> Chapter -> Concept. The loader fills in the parent
+# ids (subject_id, unit_id, chapter_id) and stamps each unit's `grade` onto its
+# chapters and concepts, so authors don't repeat them on every concept.
 #
-# Add a new chapter by appending another `- id: ...` entry under
-# `chapters:`. Add a new unit the same way under `units:`. Add a new
-# subject by creating a sibling YAML file (e.g., chemistry.yaml).
+# Structure follows the NCERT rationalised textbooks / CBSE 2025-26
+# syllabus: 14 chapters per class, plus the ISC-only Communication Systems
+# chapter (29 in total). Verified against the official
+# CBSE 2025-26 syllabus. Each concept lists the exam `boards` that teach it
+# (default: cbse + isc). ISC-only concepts say `boards: [isc]`; enrichment
+# beyond both syllabuses says `boards: []` and explains why in `syllabus_note`.
+#
+# RULES (the loader enforces the first three and fails loudly):
+#   1. Ids are unique across the WHOLE subject, per kind — lessons are stored
+#      as files keyed on concept id, so a duplicate would overwrite on disk.
+#   2. `order` is GLOBAL across the subject, not per chapter. Convention:
+#      chapter_seq * 1000 + position * 10  (2030 = chapter 2, 3rd concept).
+#      The gaps leave room to insert concepts without renumbering.
+#   3. A concept's prerequisites must all have a smaller `order`.
+#   4. NEVER rename an existing id. Lesson filenames, student progress rows and
+#      tests are keyed on them; a rename silently orphans all three.
+#   5. Unknown keys are rejected, so a typo like `prerequisite:` fails loudly.
 
 subject:
   id: physics
   name: Physics
   description: >-
-    Class 11 physics curriculum aligned to the CBSE/ISC scope —
-    kinematics, dynamics, work-energy, oscillations, and related topics.
+    CBSE/ISC Physics for Class 11 and Class 12 — 28 chapters from Units and
+    Measurement to Semiconductor Electronics, aligned to the NCERT rationalised
+    textbooks.
   units:
+
+    # ======================================================================
+    # CLASS 11
+    # ======================================================================
+
+    - id: measurement
+      name: Physical World and Measurement
+      grade: 11
+      chapters:
+        - id: units_measurement
+          name: Units and Measurement
+          domain: general
+          concepts:
+            - id: si_units
+              name: SI base and derived units
+              prerequisites: []
+              learning_objective: "Identify the seven SI base units and express a derived unit such as the newton or joule in terms of base units."
+              bloom_target: understand
+              order: 1010
+            - id: significant_figures
+              name: Significant figures
+              prerequisites: [si_units]
+              learning_objective: "Count the significant figures in a measured value and explain what they say about the precision of the measurement."
+              bloom_target: understand
+              order: 1020
+            - id: significant_figures_arithmetic
+              name: Rounding and arithmetic with significant figures
+              prerequisites: [significant_figures]
+              learning_objective: "Round results and report sums, differences, products and quotients to the correct number of significant figures."
+              bloom_target: apply
+              order: 1030
+            - id: measurement_uncertainty
+              name: Errors and uncertainty in measurement
+              prerequisites: [significant_figures]
+              learning_objective: "Estimate the absolute, relative and percentage error in a measurement and combine errors when results are added, multiplied or raised to a power."
+              bloom_target: apply
+              order: 1035
+            - id: dimensional_formulae
+              name: Dimensions and dimensional formulae
+              prerequisites: [si_units]
+              learning_objective: "Write the dimensional formula of a physical quantity such as velocity, force or energy in terms of M, L and T."
+              bloom_target: understand
+              order: 1040
+            - id: dimensional_consistency
+              name: Checking equations with dimensions
+              prerequisites: [dimensional_formulae]
+              learning_objective: "Use the principle of homogeneity to test whether a physical equation is dimensionally consistent."
+              bloom_target: apply
+              order: 1050
+            - id: unit_conversion
+              name: Converting units using dimensions
+              prerequisites: [dimensional_formulae]
+              learning_objective: "Convert a physical quantity from one system of units to another using its dimensional formula."
+              bloom_target: apply
+              order: 1060
+            - id: dimensional_derivation
+              name: Deriving relations with dimensional analysis
+              prerequisites: [dimensional_consistency]
+              learning_objective: "Derive the form of a physical relation (such as the period of a pendulum) by dimensional analysis and state the method's limitations."
+              bloom_target: analyze
+              order: 1070
+
     - id: kinematics
       name: Kinematics
+      grade: 11
       chapters:
         - id: motion_straight_line
           name: Motion in a Straight Line
+          domain: mechanics
           concepts:
 
             - id: position
@@ -30,7 +109,7 @@ subject:
                 Describe the location of an object along a line using a chosen
                 origin and a chosen positive direction.
               bloom_target: understand
-              order: 1
+              order: 2010
 
             - id: distance
               name: Distance
@@ -39,7 +118,7 @@ subject:
                 Recognise distance as a non-negative scalar equal to the total
                 length of the path travelled, independent of direction.
               bloom_target: understand
-              order: 2
+              order: 2020
 
             - id: displacement
               name: Displacement
@@ -48,7 +127,7 @@ subject:
                 Distinguish displacement as a vector pointing from the initial
                 position to the final position, with sign in one dimension.
               bloom_target: understand
-              order: 3
+              order: 2030
 
             - id: speed
               name: Speed
@@ -57,7 +136,7 @@ subject:
                 Compute average speed as total distance over total time and
                 explain why speed cannot be negative.
               bloom_target: understand
-              order: 4
+              order: 2040
 
             - id: velocity
               name: Velocity
@@ -66,7 +145,7 @@ subject:
                 Define velocity as the rate of change of displacement and
                 contrast it with speed using a concrete example.
               bloom_target: understand
-              order: 5
+              order: 2050
 
             - id: average_vs_instantaneous
               name: Average vs instantaneous velocity
@@ -76,7 +155,7 @@ subject:
                 instantaneous velocity as the limit over a vanishingly small
                 time interval.
               bloom_target: apply
-              order: 6
+              order: 2060
 
             - id: acceleration
               name: Acceleration
@@ -85,7 +164,21 @@ subject:
                 Define acceleration as the rate of change of velocity and read
                 its sign and magnitude off a velocity-time graph.
               bloom_target: understand
-              order: 7
+              order: 2070
+
+            - id: motion_graphs
+              name: Position-time and velocity-time graphs
+              prerequisites: [velocity, acceleration]
+              learning_objective: "Read velocity from the slope of a position-time graph, and acceleration and displacement from the slope and area of a velocity-time graph."
+              bloom_target: apply
+              order: 2073
+
+            - id: calculus_for_motion
+              name: Differentiation and integration for describing motion
+              prerequisites: [average_vs_instantaneous, acceleration]
+              learning_objective: "Use derivatives to get velocity and acceleration from position as a function of time, and integrals to recover displacement from velocity."
+              bloom_target: apply
+              order: 2076
 
             - id: equations_of_motion
               name: Equations of motion (uniform acceleration)
@@ -94,7 +187,7 @@ subject:
                 Apply v = u + at, s = ut + (1/2) a t^2, and v^2 = u^2 + 2 a s to
                 solve one-dimensional uniformly accelerated motion problems.
               bloom_target: apply
-              order: 8
+              order: 2080
 
             - id: relative_velocity_1d
               name: Relative velocity (one dimension)
@@ -103,15 +196,13 @@ subject:
                 Compute the velocity of one object as observed from another's
                 frame in one dimension using v_AB = v_A - v_B with signed values.
               bloom_target: apply
-              order: 9
+              order: 2090
 
-        # Chapter 2. NOTE: `order` continues globally from the previous chapter
-        # (10+), because teaching_order() sorts the whole subject by `order`.
-        # Several prerequisites point back into Chapter 1 (distance, displacement,
-        # acceleration, equations_of_motion, relative_velocity_1d) — the loader
-        # resolves prerequisites subject-wide, so cross-chapter links just work.
+        # Several prerequisites point back into Motion in a Straight Line — the
+        # loader resolves prerequisites subject-wide, so cross-chapter links work.
         - id: motion_plane
           name: Motion in a Plane
+          domain: mechanics
           concepts:
 
             - id: scalars_and_vectors
@@ -122,7 +213,7 @@ subject:
                 distance (scalar) and displacement (vector) as the anchoring
                 contrast.
               bloom_target: understand
-              order: 10
+              order: 3010
 
             - id: vector_addition
               name: Vector addition
@@ -131,7 +222,7 @@ subject:
                 Add two vectors using the triangle and parallelogram rules and
                 explain why the resultant depends on their directions.
               bloom_target: apply
-              order: 11
+              order: 3020
 
             - id: vector_components
               name: Resolving vectors into components
@@ -140,7 +231,14 @@ subject:
                 Resolve a vector into perpendicular x and y components and
                 reconstruct the vector from its components.
               bloom_target: apply
-              order: 12
+              order: 3030
+
+            - id: unit_vectors
+              name: Unit vectors and vector notation
+              prerequisites: [vector_components]
+              learning_objective: "Write a vector as a_x i-hat + a_y j-hat and use that notation to add, subtract and scale vectors."
+              bloom_target: apply
+              order: 3035
 
             - id: relative_velocity_2d
               name: Relative velocity (two dimensions)
@@ -149,7 +247,14 @@ subject:
                 Compute the relative velocity of one object with respect to
                 another in a plane by subtracting velocity vectors.
               bloom_target: apply
-              order: 13
+              order: 3040
+
+            - id: motion_plane_constant_acceleration
+              name: Motion in a plane with constant acceleration
+              prerequisites: [unit_vectors, equations_of_motion]
+              learning_objective: "Apply r = r0 + v0 t + (1/2) a t^2 and v = v0 + a t in vector form, treating the x and y motions independently."
+              bloom_target: apply
+              order: 3045
 
             - id: projectile_motion
               name: Projectile motion
@@ -158,7 +263,7 @@ subject:
                 Treat projectile motion as independent horizontal (constant
                 velocity) and vertical (uniform acceleration) motions.
               bloom_target: apply
-              order: 14
+              order: 3050
 
             - id: projectile_trajectory
               name: Range, height and trajectory
@@ -167,7 +272,7 @@ subject:
                 Derive time of flight, maximum height and horizontal range for a
                 projectile and identify the launch angle for maximum range.
               bloom_target: analyze
-              order: 15
+              order: 3060
 
             - id: uniform_circular_motion
               name: Uniform circular motion
@@ -176,7 +281,7 @@ subject:
                 Describe uniform circular motion and explain why velocity changes
                 direction even when speed is constant.
               bloom_target: understand
-              order: 16
+              order: 3070
 
             - id: centripetal_acceleration
               name: Centripetal acceleration
@@ -185,4 +290,1577 @@ subject:
                 Apply a = v^2 / r to compute the centripetal acceleration of an
                 object in uniform circular motion and state its direction.
               bloom_target: apply
-              order: 17
+              order: 3080
+
+    - id: dynamics
+      name: Laws of Motion
+      grade: 11
+      chapters:
+        - id: laws_of_motion
+          name: Laws of Motion
+          domain: mechanics
+          concepts:
+            - id: inertia_first_law
+              name: Inertia and Newton's first law
+              prerequisites: [velocity]
+              learning_objective: "Explain inertia and use Newton's first law to predict the motion of an object when the net force on it is zero."
+              bloom_target: understand
+              order: 4010
+            - id: momentum
+              name: Linear momentum
+              prerequisites: [velocity]
+              learning_objective: "Calculate linear momentum as p = mv and explain why it is a vector quantity."
+              bloom_target: understand
+              order: 4020
+            - id: second_law
+              name: Newton's second law
+              prerequisites: [momentum, acceleration]
+              learning_objective: "Apply F = dp/dt, and F = ma for constant mass, to relate the net force on a body to its acceleration."
+              bloom_target: apply
+              order: 4030
+            - id: impulse
+              name: Impulse
+              prerequisites: [second_law]
+              learning_objective: "Calculate impulse as force times time, or change in momentum, and explain why extending the collision time reduces the force."
+              bloom_target: apply
+              order: 4040
+            - id: third_law
+              name: Newton's third law
+              prerequisites: [second_law]
+              learning_objective: "Identify action-reaction pairs and explain why they act on different bodies and never cancel each other."
+              bloom_target: understand
+              order: 4050
+            - id: momentum_conservation
+              name: Conservation of linear momentum
+              prerequisites: [third_law, impulse]
+              learning_objective: "Apply conservation of linear momentum to recoil, explosions and collisions of an isolated system."
+              bloom_target: apply
+              order: 4060
+            - id: free_body_diagrams
+              name: Free-body diagrams and equilibrium
+              prerequisites: [third_law, vector_components]
+              learning_objective: "Draw a free-body diagram for a body and use the equilibrium of concurrent forces to find unknown forces."
+              bloom_target: apply
+              order: 4070
+            - id: connected_bodies
+              name: Connected bodies and pulleys
+              prerequisites: [free_body_diagrams]
+              learning_objective: "Solve for the acceleration and tensions in a system of bodies connected by strings and pulleys."
+              bloom_target: apply
+              order: 4080
+            - id: friction
+              name: Friction
+              prerequisites: [free_body_diagrams]
+              learning_objective: "Distinguish static, kinetic and rolling friction, apply f = mu N to decide whether a body slides, and explain how lubrication reduces friction."
+              bloom_target: apply
+              order: 4090
+            - id: circular_motion_dynamics
+              name: Dynamics of circular motion
+              prerequisites: [friction, centripetal_acceleration]
+              learning_objective: "Identify the force that supplies the centripetal force and find the maximum safe speed of a vehicle on a level or banked road."
+              bloom_target: analyze
+              order: 4100
+
+    - id: work_energy
+      name: Work, Energy and Power
+      grade: 11
+      chapters:
+        - id: work_energy_power
+          name: Work, Energy and Power
+          domain: mechanics
+          concepts:
+            - id: dot_product
+              name: Scalar (dot) product
+              prerequisites: [vector_components]
+              learning_objective: "Compute the scalar product of two vectors from their magnitudes and angle, or from their components."
+              bloom_target: apply
+              order: 5010
+            - id: work_constant_force
+              name: Work done by a constant force
+              prerequisites: [dot_product, second_law]
+              learning_objective: "Calculate the work done by a constant force as W = F.d and explain when work is positive, negative or zero."
+              bloom_target: apply
+              order: 5020
+            - id: work_variable_force
+              name: Work done by a variable force
+              prerequisites: [work_constant_force]
+              learning_objective: "Find the work done by a variable force as the area under its force-displacement graph."
+              bloom_target: apply
+              order: 5030
+            - id: kinetic_energy
+              name: Kinetic energy
+              prerequisites: [work_constant_force]
+              learning_objective: "Calculate kinetic energy as (1/2) m v^2 and relate it to the work needed to bring a body to that speed."
+              bloom_target: understand
+              order: 5040
+            - id: work_energy_theorem
+              name: Work-energy theorem
+              prerequisites: [kinetic_energy, work_variable_force]
+              learning_objective: "Apply the work-energy theorem to find a body's change in speed from the net work done on it."
+              bloom_target: apply
+              order: 5050
+            - id: potential_energy_conservative_forces
+              name: Potential energy and conservative forces
+              prerequisites: [work_energy_theorem]
+              learning_objective: "Distinguish conservative from non-conservative forces and calculate gravitational potential energy near the Earth as mgh."
+              bloom_target: understand
+              order: 5060
+            - id: spring_potential_energy
+              name: Potential energy of a spring
+              prerequisites: [potential_energy_conservative_forces, work_variable_force]
+              learning_objective: "Calculate the potential energy stored in a spring as (1/2) k x^2 and use it in energy problems."
+              bloom_target: apply
+              order: 5070
+            - id: mechanical_energy_conservation
+              name: Conservation of mechanical energy
+              prerequisites: [potential_energy_conservative_forces]
+              learning_objective: "Apply conservation of mechanical energy to find speeds and heights when only conservative forces do work."
+              bloom_target: apply
+              order: 5080
+            - id: vertical_circle_motion
+              name: Motion in a vertical circle
+              prerequisites: [mechanical_energy_conservation, circular_motion_dynamics]
+              learning_objective: "Use energy conservation and the centripetal force condition to find the minimum speeds needed at the top and bottom of a vertical circle."
+              bloom_target: analyze
+              order: 5085
+            - id: power
+              name: Power
+              prerequisites: [work_constant_force]
+              learning_objective: "Calculate average and instantaneous power, including P = F.v, and convert between watts and horsepower."
+              bloom_target: apply
+              order: 5090
+            - id: collisions
+              name: Elastic and inelastic collisions
+              prerequisites: [momentum_conservation, mechanical_energy_conservation]
+              learning_objective: "Classify collisions as elastic or inelastic, find final velocities in one dimension, and apply momentum conservation to collisions in two dimensions."
+              bloom_target: analyze
+              order: 5100
+
+    - id: rigid_body
+      name: Motion of System of Particles and Rigid Body
+      grade: 11
+      chapters:
+        - id: rotational_motion
+          name: System of Particles and Rotational Motion
+          domain: mechanics
+          concepts:
+            - id: centre_of_mass
+              name: Centre of mass
+              prerequisites: [vector_components]
+              learning_objective: "Locate the centre of mass of a two-particle system and of symmetric bodies such as a uniform rod."
+              bloom_target: apply
+              order: 6010
+            - id: motion_of_centre_of_mass
+              name: Motion of the centre of mass
+              prerequisites: [centre_of_mass, momentum_conservation]
+              learning_objective: "Explain why the centre of mass of a system moves as if all external forces acted on a single particle of the total mass."
+              bloom_target: understand
+              order: 6020
+            - id: cross_product
+              name: Vector (cross) product
+              prerequisites: [vector_components]
+              learning_objective: "Compute the magnitude and direction of a vector product using the right-hand rule."
+              bloom_target: apply
+              order: 6030
+            - id: rotational_kinematics
+              name: Angular velocity and angular acceleration
+              prerequisites: [uniform_circular_motion]
+              learning_objective: "Relate angular displacement, velocity and acceleration to linear motion and apply the equations of uniformly accelerated rotation."
+              bloom_target: apply
+              order: 6040
+            - id: torque
+              name: Torque
+              prerequisites: [cross_product, second_law]
+              learning_objective: "Calculate torque as r x F and explain why the same force can produce different turning effects."
+              bloom_target: apply
+              order: 6050
+            - id: angular_momentum
+              name: Angular momentum
+              prerequisites: [torque, momentum]
+              learning_objective: "Calculate the angular momentum of a particle as r x p and relate its rate of change to torque."
+              bloom_target: understand
+              order: 6060
+            - id: rigid_body_equilibrium
+              name: Equilibrium of a rigid body
+              prerequisites: [torque, free_body_diagrams]
+              learning_objective: "Apply the conditions of zero net force and zero net torque to solve rigid-body equilibrium problems such as levers and beams."
+              bloom_target: apply
+              order: 6070
+            - id: moment_of_inertia
+              name: Moment of inertia and radius of gyration
+              prerequisites: [centre_of_mass, rotational_kinematics]
+              learning_objective: "Explain moment of inertia as rotational inertia, use standard values for simple bodies, and calculate the radius of gyration."
+              bloom_target: understand
+              order: 6080
+            - id: axis_theorems
+              name: Parallel and perpendicular axes theorems
+              prerequisites: [moment_of_inertia]
+              learning_objective: "Apply the parallel and perpendicular axes theorems to find moments of inertia about new axes."
+              bloom_target: apply
+              order: 6085
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: rotational_dynamics
+              name: Dynamics of rotation
+              prerequisites: [moment_of_inertia, torque, kinetic_energy]
+              learning_objective: "Apply torque = I alpha, rotational kinetic energy and rotational power, comparing each with its linear counterpart."
+              bloom_target: apply
+              order: 6090
+            - id: angular_momentum_conservation
+              name: Conservation of angular momentum
+              prerequisites: [angular_momentum, rotational_dynamics]
+              learning_objective: "Apply conservation of angular momentum to explain why a spinning body speeds up when its moment of inertia decreases."
+              bloom_target: apply
+              order: 6100
+
+    - id: gravity
+      name: Gravitation
+      grade: 11
+      chapters:
+        - id: gravitation
+          name: Gravitation
+          domain: mechanics
+          concepts:
+            - id: kepler_laws
+              name: Kepler's laws of planetary motion
+              prerequisites: [angular_momentum_conservation]
+              learning_objective: "State Kepler's three laws and connect the law of areas to conservation of angular momentum."
+              bloom_target: understand
+              order: 7010
+            - id: universal_gravitation
+              name: Newton's law of universal gravitation
+              prerequisites: [second_law]
+              learning_objective: "Apply F = G m1 m2 / r^2 to calculate the gravitational force between two masses."
+              bloom_target: apply
+              order: 7020
+            - id: acceleration_due_to_gravity
+              name: Acceleration due to gravity and its variation
+              prerequisites: [universal_gravitation]
+              learning_objective: "Derive g from the law of gravitation and calculate how it changes with height above and depth below the Earth's surface."
+              bloom_target: apply
+              order: 7030
+            - id: gravitational_potential_energy
+              name: Gravitational potential energy and potential
+              prerequisites: [universal_gravitation, potential_energy_conservative_forces]
+              learning_objective: "Calculate gravitational potential energy as -G M m / r and explain why mgh is only a near-surface approximation."
+              bloom_target: apply
+              order: 7040
+            - id: escape_speed
+              name: Escape speed
+              prerequisites: [gravitational_potential_energy, mechanical_energy_conservation]
+              learning_objective: "Derive and calculate the escape speed from a planet using conservation of energy."
+              bloom_target: apply
+              order: 7050
+            - id: orbital_velocity
+              name: Orbital velocity of a satellite
+              prerequisites: [universal_gravitation, circular_motion_dynamics]
+              learning_objective: "Calculate the orbital speed and period of a satellite in a circular orbit."
+              bloom_target: apply
+              order: 7060
+            - id: geostationary_satellites
+              name: Geostationary satellites
+              prerequisites: [orbital_velocity]
+              learning_objective: "Calculate the orbital radius of a geostationary satellite and explain why it must orbit above the equator."
+              bloom_target: apply
+              order: 7065
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: satellite_energy
+              name: Energy of an orbiting satellite
+              prerequisites: [orbital_velocity, gravitational_potential_energy]
+              learning_objective: "Calculate the kinetic, potential and total energy of a satellite and explain why the total energy is negative."
+              bloom_target: analyze
+              order: 7070
+
+    - id: bulk_matter
+      name: Properties of Bulk Matter
+      grade: 11
+      chapters:
+        - id: solids_mechanical
+          name: Mechanical Properties of Solids
+          domain: mechanics
+          concepts:
+            - id: stress_strain
+              name: Stress and strain
+              prerequisites: [second_law]
+              learning_objective: "Define stress and strain and distinguish tensile, compressive, shearing and hydraulic (volume) stress."
+              bloom_target: understand
+              order: 8010
+            - id: hookes_law
+              name: Hooke's law and the stress-strain curve
+              prerequisites: [stress_strain]
+              learning_objective: "State Hooke's law and identify the proportional limit, elastic limit, yield point and fracture point on a stress-strain curve."
+              bloom_target: understand
+              order: 8020
+            - id: youngs_modulus
+              name: Young's modulus
+              prerequisites: [hookes_law]
+              learning_objective: "Calculate Young's modulus and use it to find the extension of a wire under load."
+              bloom_target: apply
+              order: 8030
+            - id: shear_modulus
+              name: Shear modulus
+              prerequisites: [youngs_modulus]
+              learning_objective: "Explain shear modulus (modulus of rigidity) qualitatively and compare it with Young's modulus for the same material."
+              bloom_target: understand
+              order: 8040
+            - id: bulk_modulus
+              name: Bulk modulus and compressibility
+              prerequisites: [youngs_modulus]
+              learning_objective: "Calculate bulk modulus and compressibility and explain why liquids are far less compressible than gases."
+              bloom_target: apply
+              order: 8050
+            - id: poissons_ratio
+              name: Poisson's ratio
+              prerequisites: [youngs_modulus]
+              learning_objective: "Define Poisson's ratio as lateral strain over longitudinal strain and interpret its value for common materials."
+              bloom_target: understand
+              order: 8060
+            - id: elastic_potential_energy
+              name: Elastic potential energy in a stretched wire
+              prerequisites: [youngs_modulus, work_variable_force]
+              learning_objective: "Calculate the elastic energy stored per unit volume of a stretched wire as (1/2) stress x strain."
+              bloom_target: apply
+              order: 8065
+            - id: elasticity_applications
+              name: Applications of elasticity
+              prerequisites: [youngs_modulus]
+              learning_objective: "Use elastic properties to explain design choices such as crane rope thickness and I-shaped beams."
+              bloom_target: apply
+              order: 8070
+        - id: fluids_mechanical
+          name: Mechanical Properties of Fluids
+          domain: mechanics
+          concepts:
+            - id: fluid_pressure
+              name: Pressure in a fluid
+              prerequisites: [second_law]
+              learning_objective: "Calculate the pressure at a depth in a fluid using P = P0 + rho g h."
+              bloom_target: apply
+              order: 9010
+            - id: pascals_law
+              name: Pascal's law and hydraulic machines
+              prerequisites: [fluid_pressure]
+              learning_objective: "Apply Pascal's law to explain and calculate force multiplication in a hydraulic lift or brake."
+              bloom_target: apply
+              order: 9020
+            - id: atmospheric_gauge_pressure
+              name: Atmospheric and gauge pressure
+              prerequisites: [fluid_pressure]
+              learning_objective: "Distinguish absolute, atmospheric and gauge pressure and explain how a barometer and a manometer work."
+              bloom_target: understand
+              order: 9030
+            - id: streamline_flow
+              name: Streamline flow and the equation of continuity
+              prerequisites: [fluid_pressure, velocity]
+              learning_objective: "Distinguish streamline from turbulent flow and apply A1 v1 = A2 v2 to find fluid speeds in a pipe."
+              bloom_target: apply
+              order: 9040
+            - id: bernoullis_principle
+              name: Bernoulli's principle
+              prerequisites: [streamline_flow, mechanical_energy_conservation]
+              learning_objective: "Apply Bernoulli's equation to explain lift, the Venturi meter and the speed of efflux from a tank."
+              bloom_target: apply
+              order: 9050
+            - id: viscosity
+              name: Viscosity
+              prerequisites: [streamline_flow]
+              learning_objective: "Explain viscosity as internal friction between fluid layers and describe how it depends on temperature."
+              bloom_target: understand
+              order: 9060
+            - id: stokes_law_terminal_velocity
+              name: Stokes' law and terminal velocity
+              prerequisites: [viscosity, free_body_diagrams]
+              learning_objective: "Apply Stokes' law to find the terminal velocity of a small sphere falling through a viscous fluid."
+              bloom_target: apply
+              order: 9070
+            - id: surface_tension
+              name: Surface tension and surface energy
+              prerequisites: [work_constant_force]
+              learning_objective: "Explain surface tension from molecular forces and relate it to the surface energy of a liquid film."
+              bloom_target: understand
+              order: 9080
+            - id: excess_pressure_curved_surface
+              name: Excess pressure in drops and bubbles
+              prerequisites: [surface_tension, fluid_pressure]
+              learning_objective: "Calculate the excess pressure inside a liquid drop and a soap bubble."
+              bloom_target: apply
+              order: 9090
+            - id: capillary_rise
+              name: Angle of contact and capillary rise
+              prerequisites: [excess_pressure_curved_surface]
+              learning_objective: "Relate the angle of contact to wetting and calculate the height of capillary rise in a narrow tube."
+              bloom_target: apply
+              order: 9100
+        - id: thermal_properties
+          name: Thermal Properties of Matter
+          domain: thermal
+          concepts:
+            - id: temperature_scales
+              name: Temperature and temperature scales
+              prerequisites: []
+              learning_objective: "Distinguish heat from temperature and convert between the Celsius, Fahrenheit and Kelvin scales."
+              bloom_target: understand
+              order: 10010
+            - id: thermal_expansion
+              name: Thermal expansion
+              prerequisites: [temperature_scales]
+              learning_objective: "Calculate linear, area and volume expansion and explain the anomalous expansion of water."
+              bloom_target: apply
+              order: 10020
+            - id: specific_heat_calorimetry
+              name: Specific heat capacity and calorimetry
+              prerequisites: [temperature_scales]
+              learning_objective: "Apply Q = m c delta-T and the principle of calorimetry to find a final mixture temperature."
+              bloom_target: apply
+              order: 10030
+            - id: latent_heat
+              name: Change of state and latent heat
+              prerequisites: [specific_heat_calorimetry]
+              learning_objective: "Explain why temperature stays constant during a change of state and calculate the heat needed using Q = m L."
+              bloom_target: apply
+              order: 10040
+            - id: heat_conduction
+              name: Conduction and thermal conductivity
+              prerequisites: [temperature_scales]
+              learning_objective: "Apply the conduction equation to calculate the rate of heat flow through a slab."
+              bloom_target: apply
+              order: 10050
+            - id: convection
+              name: Convection
+              prerequisites: [heat_conduction]
+              learning_objective: "Explain natural and forced convection and use them to account for sea breezes and cooling systems."
+              bloom_target: understand
+              order: 10060
+            - id: thermal_radiation
+              name: Radiation, Stefan's law and Wien's law
+              prerequisites: [heat_conduction]
+              learning_objective: "Describe black-body radiation qualitatively and apply Stefan's law and Wien's displacement law."
+              bloom_target: understand
+              order: 10070
+            - id: newtons_law_of_cooling
+              name: Newton's law of cooling
+              prerequisites: [specific_heat_calorimetry, thermal_radiation]
+              learning_objective: "Apply Newton's law of cooling to estimate how quickly a hot body cools to its surroundings."
+              bloom_target: apply
+              order: 10080
+              boards: []
+              syllabus_note: "Not in CBSE 2025-26 or the ISC syllabus — kept at the user's request as enrichment."
+
+    - id: heat
+      name: Thermodynamics
+      grade: 11
+      chapters:
+        - id: thermodynamics
+          name: Thermodynamics
+          domain: thermal
+          concepts:
+            - id: zeroth_law
+              name: Thermal equilibrium and the zeroth law
+              prerequisites: [temperature_scales]
+              learning_objective: "State the zeroth law of thermodynamics and explain how it makes temperature measurable."
+              bloom_target: understand
+              order: 11010
+            - id: heat_work_internal_energy
+              name: Heat, work and internal energy
+              prerequisites: [zeroth_law, work_constant_force]
+              learning_objective: "Distinguish heat, work and internal energy and explain why internal energy is a state variable while heat and work are not."
+              bloom_target: understand
+              order: 11020
+            - id: work_done_by_gas
+              name: Work done by a gas
+              prerequisites: [heat_work_internal_energy, work_variable_force]
+              learning_objective: "Calculate the work done by a gas as the area under its p-V curve."
+              bloom_target: apply
+              order: 11030
+            - id: first_law_thermodynamics
+              name: First law of thermodynamics
+              prerequisites: [work_done_by_gas]
+              learning_objective: "Apply delta-Q = delta-U + delta-W with correct sign conventions to a gas taking in or giving out heat."
+              bloom_target: apply
+              order: 11040
+            - id: thermodynamic_processes
+              name: Isothermal, adiabatic, isobaric and isochoric processes
+              prerequisites: [first_law_thermodynamics]
+              learning_objective: "Apply the first law to isothermal, adiabatic, isobaric, isochoric and cyclic processes and sketch each on a p-V diagram."
+              bloom_target: apply
+              order: 11050
+            - id: reversible_irreversible
+              name: Reversible and irreversible processes
+              prerequisites: [thermodynamic_processes]
+              learning_objective: "Distinguish reversible from irreversible processes and explain why every real process is irreversible."
+              bloom_target: understand
+              order: 11060
+            - id: heat_engines
+              name: Heat engines and efficiency
+              prerequisites: [thermodynamic_processes]
+              learning_objective: "Describe a heat engine as a cycle and calculate its efficiency from the heat absorbed and rejected."
+              bloom_target: apply
+              order: 11070
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: refrigerators_heat_pumps
+              name: Refrigerators and heat pumps
+              prerequisites: [heat_engines]
+              learning_objective: "Explain a refrigerator as a heat engine run in reverse and calculate its coefficient of performance."
+              bloom_target: apply
+              order: 11080
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: second_law_thermodynamics
+              name: Second law of thermodynamics
+              prerequisites: [refrigerators_heat_pumps, reversible_irreversible]
+              learning_objective: "State the Kelvin-Planck and Clausius forms of the second law and explain why no engine can be 100% efficient."
+              bloom_target: understand
+              order: 11090
+
+    - id: gases
+      name: Behaviour of Perfect Gases and Kinetic Theory of Gases
+      grade: 11
+      chapters:
+        - id: kinetic_theory
+          name: Kinetic Theory
+          domain: thermal
+          concepts:
+            - id: ideal_gas_equation
+              name: The ideal gas equation
+              prerequisites: [temperature_scales]
+              learning_objective: "Apply PV = nRT to relate the pressure, volume, temperature and amount of an ideal gas."
+              bloom_target: apply
+              order: 12010
+            - id: kinetic_theory_assumptions
+              name: Molecular model of a gas
+              prerequisites: [ideal_gas_equation, momentum]
+              learning_objective: "State the assumptions of the kinetic theory of an ideal gas and explain what each simplifies."
+              bloom_target: understand
+              order: 12020
+            - id: pressure_of_ideal_gas
+              name: Pressure of an ideal gas from molecular collisions
+              prerequisites: [kinetic_theory_assumptions, impulse]
+              learning_objective: "Derive P = (1/3) rho v_rms^2 from molecular collisions with a container wall."
+              bloom_target: analyze
+              order: 12030
+            - id: kinetic_interpretation_temperature
+              name: Kinetic interpretation of temperature
+              prerequisites: [pressure_of_ideal_gas, kinetic_energy]
+              learning_objective: "Relate the average kinetic energy of gas molecules to absolute temperature and calculate the rms speed."
+              bloom_target: apply
+              order: 12040
+            - id: equipartition_of_energy
+              name: Degrees of freedom and equipartition of energy
+              prerequisites: [kinetic_interpretation_temperature]
+              learning_objective: "Count the degrees of freedom of monatomic, diatomic and polyatomic molecules and apply the law of equipartition."
+              bloom_target: understand
+              order: 12050
+            - id: specific_heat_of_gases
+              name: Specific heat capacities of gases
+              prerequisites: [equipartition_of_energy, first_law_thermodynamics]
+              learning_objective: "Derive Cv, Cp and their ratio gamma for ideal gases using equipartition, and explain why Cp is greater than Cv."
+              bloom_target: apply
+              order: 12060
+            - id: mean_free_path
+              name: Mean free path
+              prerequisites: [kinetic_theory_assumptions]
+              learning_objective: "Explain mean free path and describe how it depends on molecular size and gas density."
+              bloom_target: understand
+              order: 12070
+
+    - id: oscillations_waves
+      name: Oscillations and Waves
+      grade: 11
+      chapters:
+        - id: oscillations
+          name: Oscillations
+          domain: waves
+          concepts:
+            - id: periodic_motion
+              name: Periodic and oscillatory motion
+              prerequisites: []
+              learning_objective: "Distinguish periodic from oscillatory motion and relate period to frequency."
+              bloom_target: understand
+              order: 13010
+            - id: simple_harmonic_motion
+              name: Simple harmonic motion
+              prerequisites: [periodic_motion, uniform_circular_motion]
+              learning_objective: "Describe SHM with x = A cos(omega t + phi) and identify its amplitude, angular frequency and phase."
+              bloom_target: understand
+              order: 13020
+            - id: shm_circular_motion
+              name: SHM as the projection of circular motion
+              prerequisites: [simple_harmonic_motion]
+              learning_objective: "Explain simple harmonic motion as the projection of uniform circular motion onto a diameter."
+              bloom_target: understand
+              order: 13030
+            - id: shm_velocity_acceleration
+              name: Velocity and acceleration in SHM
+              prerequisites: [simple_harmonic_motion]
+              learning_objective: "Calculate velocity and acceleration at any point in SHM and state where each is maximum or zero."
+              bloom_target: apply
+              order: 13040
+            - id: shm_force_law
+              name: Force law for SHM
+              prerequisites: [shm_velocity_acceleration, second_law]
+              learning_objective: "Apply F = -kx to show a spring-mass system performs SHM and calculate its period."
+              bloom_target: apply
+              order: 13050
+            - id: shm_energy
+              name: Energy in SHM
+              prerequisites: [shm_force_law, spring_potential_energy]
+              learning_objective: "Describe how kinetic and potential energy exchange during SHM while their total stays constant."
+              bloom_target: apply
+              order: 13060
+            - id: simple_pendulum
+              name: The simple pendulum
+              prerequisites: [shm_force_law]
+              learning_objective: "Derive the period of a simple pendulum for small oscillations and explain why it does not depend on mass."
+              bloom_target: apply
+              order: 13070
+            - id: damped_forced_resonance
+              name: Damped and forced oscillations, resonance
+              prerequisites: [shm_energy]
+              learning_objective: "Explain damping, forced oscillations and resonance and give everyday examples of each."
+              bloom_target: understand
+              order: 13080
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Kept for ISC students; verify against the official CISCE syllabus."
+        - id: waves
+          name: Waves
+          domain: waves
+          concepts:
+            - id: wave_types
+              name: Transverse and longitudinal waves
+              prerequisites: [simple_harmonic_motion]
+              learning_objective: "Distinguish transverse from longitudinal mechanical waves and give an example of each."
+              bloom_target: understand
+              order: 14010
+            - id: wave_equation
+              name: Displacement relation of a progressive wave
+              prerequisites: [wave_types]
+              learning_objective: "Interpret y = a sin(kx - omega t) and identify the amplitude, wavelength, wave number, frequency and phase."
+              bloom_target: apply
+              order: 14020
+            - id: wave_speed
+              name: Speed of a travelling wave
+              prerequisites: [wave_equation, bulk_modulus]
+              learning_objective: "Calculate wave speed on a stretched string and the speed of sound, including Laplace's correction."
+              bloom_target: apply
+              order: 14030
+            - id: superposition_principle
+              name: Principle of superposition
+              prerequisites: [wave_equation]
+              learning_objective: "Apply the principle of superposition to find the resultant of overlapping waves."
+              bloom_target: understand
+              order: 14040
+            - id: reflection_of_waves
+              name: Reflection of waves
+              prerequisites: [superposition_principle]
+              learning_objective: "Describe reflection of a wave at a rigid and at an open boundary, including any phase change."
+              bloom_target: understand
+              order: 14050
+            - id: standing_waves_strings
+              name: Standing waves on strings
+              prerequisites: [reflection_of_waves, wave_speed]
+              learning_objective: "Find the normal modes and harmonics of a string fixed at both ends."
+              bloom_target: apply
+              order: 14060
+            - id: standing_waves_pipes
+              name: Standing waves in air columns
+              prerequisites: [standing_waves_strings]
+              learning_objective: "Find the harmonics of open and closed pipes and explain why a closed pipe has only odd harmonics."
+              bloom_target: apply
+              order: 14070
+            - id: beats
+              name: Beats
+              prerequisites: [superposition_principle]
+              learning_objective: "Explain beats as superposition of two close frequencies and calculate the beat frequency."
+              bloom_target: apply
+              order: 14080
+            - id: doppler_effect
+              name: Doppler effect
+              prerequisites: [wave_speed]
+              learning_objective: "Explain the Doppler effect for sound and calculate the apparent frequency for a moving source or observer."
+              bloom_target: apply
+              order: 14090
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Kept for ISC students; verify against the official CISCE syllabus."
+
+    # ======================================================================
+    # CLASS 12
+    # ======================================================================
+
+    - id: electrostatics
+      name: Electrostatics
+      grade: 12
+      chapters:
+        - id: electric_charges_fields
+          name: Electric Charges and Fields
+          domain: electricity
+          concepts:
+            - id: electric_charge
+              name: Electric charge and its properties
+              prerequisites: []
+              learning_objective: "Describe the two kinds of charge and explain additivity, quantisation and conservation of charge."
+              bloom_target: understand
+              order: 15010
+            - id: charging_methods
+              name: Conductors, insulators and charging by induction
+              prerequisites: [electric_charge]
+              learning_objective: "Distinguish conductors from insulators and explain charging by friction, conduction and induction."
+              bloom_target: understand
+              order: 15020
+            - id: coulombs_law
+              name: Coulomb's law
+              prerequisites: [electric_charge, vector_addition]
+              learning_objective: "Apply Coulomb's law to calculate the magnitude and direction of the force between two point charges."
+              bloom_target: apply
+              order: 15030
+            - id: superposition_of_forces
+              name: Forces between multiple charges
+              prerequisites: [coulombs_law]
+              learning_objective: "Use the superposition principle to find the net electrostatic force on a charge due to several point charges or a continuous charge distribution."
+              bloom_target: apply
+              order: 15040
+            - id: electric_field
+              name: Electric field
+              prerequisites: [coulombs_law]
+              learning_objective: "Define the electric field as force per unit positive test charge and calculate the field of a point charge."
+              bloom_target: apply
+              order: 15050
+            - id: electric_field_lines
+              name: Electric field lines
+              prerequisites: [electric_field]
+              learning_objective: "Sketch field lines for simple charge arrangements and state the rules they obey."
+              bloom_target: understand
+              order: 15060
+            - id: electric_dipole
+              name: Electric dipole
+              prerequisites: [electric_field]
+              learning_objective: "Define the dipole moment and calculate the field of a dipole on its axis and on its equatorial line."
+              bloom_target: apply
+              order: 15070
+            - id: dipole_in_uniform_field
+              name: Dipole in a uniform electric field
+              prerequisites: [electric_dipole, torque]
+              learning_objective: "Calculate the torque on an electric dipole in a uniform field and explain why the net force on it is zero."
+              bloom_target: apply
+              order: 15080
+            - id: electric_flux
+              name: Electric flux
+              prerequisites: [electric_field_lines, dot_product]
+              learning_objective: "Calculate electric flux through a surface as E.A and interpret it as a count of field lines."
+              bloom_target: understand
+              order: 15090
+            - id: gauss_law
+              name: Gauss's law
+              prerequisites: [electric_flux]
+              learning_objective: "State Gauss's law and use it to relate the flux through a closed surface to the charge enclosed."
+              bloom_target: apply
+              order: 15100
+            - id: gauss_law_applications
+              name: Applications of Gauss's law
+              prerequisites: [gauss_law]
+              learning_objective: "Use Gauss's law to find the field of a long straight wire, an infinite plane sheet and a thin spherical shell."
+              bloom_target: apply
+              order: 15110
+        - id: potential_capacitance
+          name: Electrostatic Potential and Capacitance
+          domain: electricity
+          concepts:
+            - id: electric_potential
+              name: Electrostatic potential
+              prerequisites: [electric_field, potential_energy_conservative_forces]
+              learning_objective: "Define electrostatic potential as work done per unit charge and relate potential difference to the electric field."
+              bloom_target: understand
+              order: 16010
+            - id: potential_point_charge_dipole
+              name: Potential due to a point charge and a dipole
+              prerequisites: [electric_potential, electric_dipole]
+              learning_objective: "Calculate the potential due to a point charge, a dipole and a system of charges."
+              bloom_target: apply
+              order: 16020
+            - id: equipotential_surfaces
+              name: Equipotential surfaces
+              prerequisites: [electric_potential, electric_field_lines]
+              learning_objective: "Sketch equipotential surfaces and explain why they are always perpendicular to field lines."
+              bloom_target: understand
+              order: 16030
+            - id: electrostatic_potential_energy
+              name: Potential energy of a system of charges
+              prerequisites: [potential_point_charge_dipole]
+              learning_objective: "Calculate the potential energy of a system of point charges and of a dipole in an external field."
+              bloom_target: apply
+              order: 16040
+            - id: conductors_electrostatics
+              name: Conductors in electrostatics
+              prerequisites: [gauss_law_applications, electric_potential]
+              learning_objective: "Explain why the field inside a conductor is zero, why charge resides on its surface and how electrostatic shielding works."
+              bloom_target: understand
+              order: 16050
+            - id: dielectrics_polarisation
+              name: Dielectrics and polarisation
+              prerequisites: [electric_dipole]
+              learning_objective: "Explain how a dielectric polarises in an electric field and reduces the field inside it."
+              bloom_target: understand
+              order: 16060
+            - id: capacitance
+              name: Capacitors and capacitance
+              prerequisites: [conductors_electrostatics]
+              learning_objective: "Define capacitance and derive the capacitance of a parallel-plate capacitor."
+              bloom_target: apply
+              order: 16070
+            - id: capacitors_combination
+              name: Capacitors in series and parallel
+              prerequisites: [capacitance]
+              learning_objective: "Calculate the equivalent capacitance of capacitors connected in series and in parallel."
+              bloom_target: apply
+              order: 16080
+            - id: capacitor_energy
+              name: Energy stored in a capacitor
+              prerequisites: [capacitance, electrostatic_potential_energy]
+              learning_objective: "Calculate the energy stored in a charged capacitor and the energy density of its field."
+              bloom_target: apply
+              order: 16090
+            - id: capacitor_dielectric
+              name: Effect of a dielectric on capacitance
+              prerequisites: [capacitance, dielectrics_polarisation]
+              learning_objective: "Explain and calculate how inserting a dielectric slab changes a capacitor's capacitance."
+              bloom_target: apply
+              order: 16100
+
+    - id: current
+      name: Current Electricity
+      grade: 12
+      chapters:
+        - id: current_electricity
+          name: Current Electricity
+          domain: electricity
+          concepts:
+            - id: electric_current
+              name: Electric current
+              prerequisites: [electric_charge]
+              learning_objective: "Define electric current as the rate of flow of charge and state the conventional direction of current."
+              bloom_target: understand
+              order: 17010
+            - id: drift_velocity
+              name: Drift velocity and mobility
+              prerequisites: [electric_current, electric_field]
+              learning_objective: "Explain drift velocity and mobility and derive I = n e A v_d for a metallic conductor."
+              bloom_target: apply
+              order: 17020
+            - id: ohms_law
+              name: Ohm's law and V-I characteristics
+              prerequisites: [drift_velocity, electric_potential]
+              learning_objective: "Apply Ohm's law and distinguish linear (ohmic) from non-linear V-I characteristics."
+              bloom_target: apply
+              order: 17030
+            - id: resistivity
+              name: Resistivity and its temperature dependence
+              prerequisites: [ohms_law]
+              learning_objective: "Calculate resistance from resistivity and dimensions, and describe how resistivity varies with temperature in metals and semiconductors."
+              bloom_target: apply
+              order: 17040
+            - id: electrical_power
+              name: Electrical energy and power
+              prerequisites: [ohms_law, power]
+              learning_objective: "Calculate electrical power as VI, I^2 R and V^2 / R and the energy used by an appliance."
+              bloom_target: apply
+              order: 17050
+            - id: resistors_combination
+              name: Resistors in series and parallel
+              prerequisites: [ohms_law]
+              learning_objective: "Calculate the equivalent resistance of resistors in series, in parallel and in simple combinations."
+              bloom_target: apply
+              order: 17060
+              syllabus_note: "CBSE assumes it from Class 10; ISC lists it. Kept as the bridge to Kirchhoff's rules."
+            - id: emf_internal_resistance
+              name: EMF and internal resistance of a cell
+              prerequisites: [ohms_law]
+              learning_objective: "Distinguish emf from terminal potential difference and calculate the effect of a cell's internal resistance."
+              bloom_target: apply
+              order: 17070
+            - id: cells_combination
+              name: Cells in series and parallel
+              prerequisites: [emf_internal_resistance]
+              learning_objective: "Calculate the equivalent emf and internal resistance of cells connected in series and in parallel."
+              bloom_target: apply
+              order: 17080
+            - id: kirchhoffs_rules
+              name: Kirchhoff's rules
+              prerequisites: [emf_internal_resistance, resistors_combination]
+              learning_objective: "Apply Kirchhoff's junction and loop rules to find the currents in a multi-loop circuit."
+              bloom_target: apply
+              order: 17090
+            - id: wheatstone_bridge
+              name: Wheatstone bridge
+              prerequisites: [kirchhoffs_rules]
+              learning_objective: "Derive the balance condition of a Wheatstone bridge and use it to find an unknown resistance."
+              bloom_target: apply
+              order: 17100
+
+            - id: meter_bridge
+              name: Metre bridge
+              prerequisites: [wheatstone_bridge, resistivity]
+              learning_objective: "Explain how a metre bridge applies the Wheatstone balance condition and use it to find an unknown resistance."
+              bloom_target: apply
+              order: 17110
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: potentiometer
+              name: Potentiometer
+              prerequisites: [emf_internal_resistance, resistivity]
+              learning_objective: "Explain the principle of a potentiometer and use it to compare emfs and measure a cell's internal resistance."
+              bloom_target: apply
+              order: 17120
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+
+    - id: magnetism
+      name: Magnetic Effects of Current and Magnetism
+      grade: 12
+      chapters:
+        - id: moving_charges_magnetism
+          name: Moving Charges and Magnetism
+          domain: magnetism
+          concepts:
+            - id: magnetic_field_oersted
+              name: Magnetic field and Oersted's experiment
+              prerequisites: [electric_current]
+              learning_objective: "Describe Oersted's experiment and use the right-hand rule to find the direction of the magnetic field around a current-carrying wire."
+              bloom_target: understand
+              order: 18005
+            - id: magnetic_force_on_charge
+              name: Magnetic force on a moving charge
+              prerequisites: [cross_product, electric_field]
+              learning_objective: "Apply F = q v x B to find the magnitude and direction of the magnetic force on a moving charge."
+              bloom_target: apply
+              order: 18010
+            - id: charge_in_magnetic_field
+              name: Motion of a charge in a magnetic field
+              prerequisites: [magnetic_force_on_charge, circular_motion_dynamics]
+              learning_objective: "Calculate the radius and period of a charged particle's circular path in a uniform magnetic field and explain helical motion."
+              bloom_target: apply
+              order: 18020
+            - id: cyclotron
+              name: The cyclotron
+              prerequisites: [charge_in_magnetic_field]
+              learning_objective: "Explain how a cyclotron accelerates charged particles and calculate its cyclotron frequency."
+              bloom_target: apply
+              order: 18025
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: force_on_current_conductor
+              name: Force on a current-carrying conductor
+              prerequisites: [magnetic_force_on_charge, electric_current]
+              learning_objective: "Apply F = I L x B to find the force on a straight current-carrying wire in a magnetic field."
+              bloom_target: apply
+              order: 18030
+            - id: biot_savart_law
+              name: Biot-Savart law
+              prerequisites: [electric_current, cross_product]
+              learning_objective: "State the Biot-Savart law and use it to explain how a current element produces a magnetic field."
+              bloom_target: understand
+              order: 18040
+            - id: circular_loop_field
+              name: Magnetic field on the axis of a circular loop
+              prerequisites: [biot_savart_law]
+              learning_objective: "Calculate the magnetic field at the centre and on the axis of a current-carrying circular loop."
+              bloom_target: apply
+              order: 18050
+            - id: amperes_circuital_law
+              name: Ampere's circuital law
+              prerequisites: [biot_savart_law]
+              learning_objective: "State Ampere's circuital law and use it to find the field of a long straight wire."
+              bloom_target: apply
+              order: 18060
+            - id: solenoid_field
+              name: Magnetic field of a solenoid
+              prerequisites: [amperes_circuital_law]
+              learning_objective: "Use Ampere's law to find the magnetic field inside a long solenoid."
+              bloom_target: apply
+              order: 18070
+            - id: parallel_currents_force
+              name: Force between two parallel currents
+              prerequisites: [force_on_current_conductor, amperes_circuital_law]
+              learning_objective: "Calculate the force per unit length between two parallel currents and explain the definition of the ampere."
+              bloom_target: apply
+              order: 18080
+            - id: torque_on_current_loop
+              name: Torque on a current loop and magnetic dipole moment
+              prerequisites: [force_on_current_conductor, torque]
+              learning_objective: "Calculate the torque on a current loop in a uniform field and define its magnetic dipole moment."
+              bloom_target: apply
+              order: 18090
+            - id: moving_coil_galvanometer
+              name: Moving coil galvanometer
+              prerequisites: [torque_on_current_loop]
+              learning_objective: "Explain how a moving coil galvanometer works and how it is converted into an ammeter or a voltmeter."
+              bloom_target: apply
+              order: 18100
+        - id: magnetism_matter
+          name: Magnetism and Matter
+          domain: magnetism
+          concepts:
+            - id: bar_magnet
+              name: The bar magnet and magnetic field lines
+              prerequisites: [solenoid_field]
+              learning_objective: "Describe a bar magnet's field lines and explain the bar magnet as an equivalent solenoid."
+              bloom_target: understand
+              order: 19010
+            - id: magnetic_dipole_in_field
+              name: Magnetic dipole in a uniform field
+              prerequisites: [bar_magnet, torque_on_current_loop]
+              learning_objective: "Describe qualitatively the torque on, and potential energy of, a bar magnet in a uniform magnetic field."
+              bloom_target: understand
+              order: 19020
+            - id: gauss_law_magnetism
+              name: Gauss's law for magnetism
+              prerequisites: [bar_magnet, electric_flux]
+              learning_objective: "State Gauss's law for magnetism and explain why it means isolated magnetic poles do not exist."
+              bloom_target: understand
+              order: 19030
+            - id: magnetisation
+              name: Magnetisation, intensity and susceptibility
+              prerequisites: [magnetic_dipole_in_field]
+              learning_objective: "Define magnetisation, magnetic intensity and susceptibility and relate them to the magnetic field in a material."
+              bloom_target: understand
+              order: 19040
+            - id: magnetic_materials
+              name: Diamagnetic, paramagnetic and ferromagnetic materials
+              prerequisites: [magnetisation]
+              learning_objective: "Classify materials as dia-, para- or ferromagnetic from their behaviour in a magnetic field, with examples."
+              bloom_target: understand
+              order: 19050
+            - id: temperature_magnetism
+              name: Effect of temperature on magnetic properties
+              prerequisites: [magnetic_materials]
+              learning_objective: "Explain Curie's law and why a ferromagnet becomes paramagnetic above its Curie temperature."
+              bloom_target: understand
+              order: 19060
+
+    - id: induction_ac
+      name: Electromagnetic Induction and Alternating Currents
+      grade: 12
+      chapters:
+        - id: electromagnetic_induction
+          name: Electromagnetic Induction
+          domain: magnetism
+          concepts:
+            - id: magnetic_flux
+              name: Magnetic flux
+              prerequisites: [solenoid_field, dot_product]
+              learning_objective: "Calculate magnetic flux through a surface as B.A and identify the ways it can be changed."
+              bloom_target: understand
+              order: 20010
+            - id: faradays_law
+              name: Faraday's law of induction
+              prerequisites: [magnetic_flux]
+              learning_objective: "Apply Faraday's law to calculate the emf induced by a changing magnetic flux."
+              bloom_target: apply
+              order: 20020
+            - id: lenzs_law
+              name: Lenz's law
+              prerequisites: [faradays_law, mechanical_energy_conservation]
+              learning_objective: "Use Lenz's law to find the direction of an induced current and explain it as conservation of energy."
+              bloom_target: apply
+              order: 20030
+            - id: motional_emf
+              name: Motional emf
+              prerequisites: [faradays_law, magnetic_force_on_charge]
+              learning_objective: "Calculate the emf induced in a rod moving through a magnetic field, e = B l v, and explain it using the magnetic force on charges."
+              bloom_target: apply
+              order: 20040
+            - id: eddy_currents
+              name: Eddy currents
+              prerequisites: [lenzs_law]
+              learning_objective: "Explain eddy currents and their uses in magnetic braking and induction heating, and how laminated cores reduce them."
+              bloom_target: understand
+              order: 20050
+              boards: []
+              syllabus_note: "Not in CBSE 2025-26 or the ISC syllabus — kept at the user's request as enrichment."
+            - id: self_inductance
+              name: Self-inductance
+              prerequisites: [faradays_law, solenoid_field]
+              learning_objective: "Define self-inductance, calculate it for a long solenoid, and explain the back emf in a coil."
+              bloom_target: apply
+              order: 20060
+            - id: mutual_inductance
+              name: Mutual inductance
+              prerequisites: [self_inductance]
+              learning_objective: "Define mutual inductance and calculate it for two coaxial solenoids."
+              bloom_target: apply
+              order: 20070
+        - id: alternating_current
+          name: Alternating Current
+          domain: electricity
+          concepts:
+            - id: ac_generator
+              name: AC generator
+              prerequisites: [faradays_law, rotational_kinematics]
+              learning_objective: "Explain how a rotating coil in a magnetic field produces a sinusoidal emf e = N B A omega sin(omega t)."
+              bloom_target: understand
+              order: 21005
+            - id: ac_rms_values
+              name: Alternating current and RMS values
+              prerequisites: [electrical_power, simple_harmonic_motion]
+              learning_objective: "Describe a sinusoidal alternating voltage and calculate peak and rms values of current and voltage."
+              bloom_target: apply
+              order: 21010
+            - id: phasors
+              name: Phasors
+              prerequisites: [ac_rms_values, vector_addition]
+              learning_objective: "Represent alternating voltages and currents as rotating phasors and read phase differences from a phasor diagram."
+              bloom_target: understand
+              order: 21020
+            - id: ac_reactance
+              name: Resistor, inductor and capacitor in an AC circuit
+              prerequisites: [phasors, self_inductance, capacitance]
+              learning_objective: "Calculate inductive and capacitive reactance and state the phase relation between current and voltage for R, L and C alone."
+              bloom_target: apply
+              order: 21030
+            - id: series_lcr_circuit
+              name: Series LCR circuit and impedance
+              prerequisites: [ac_reactance]
+              learning_objective: "Use a phasor diagram to find the impedance and phase angle of a series LCR circuit."
+              bloom_target: apply
+              order: 21040
+            - id: lcr_resonance
+              name: Resonance in a series LCR circuit
+              prerequisites: [series_lcr_circuit]
+              learning_objective: "Calculate the resonant frequency of a series LCR circuit and explain how it is used to tune a radio."
+              bloom_target: apply
+              order: 21050
+            - id: ac_power_factor
+              name: Power in AC circuits and power factor
+              prerequisites: [series_lcr_circuit]
+              learning_objective: "Calculate average power and power factor in an AC circuit and explain wattless current."
+              bloom_target: apply
+              order: 21060
+            - id: transformer
+              name: Transformers
+              prerequisites: [mutual_inductance, ac_rms_values]
+              learning_objective: "Apply the turns ratio to calculate the output voltage and current of a transformer and explain why power is transmitted at high voltage."
+              bloom_target: apply
+              order: 21070
+
+    - id: em_radiation
+      name: Electromagnetic Waves
+      grade: 12
+      chapters:
+        - id: electromagnetic_waves
+          name: Electromagnetic Waves
+          domain: optics
+          concepts:
+            - id: displacement_current
+              name: Displacement current
+              prerequisites: [amperes_circuital_law, capacitance]
+              learning_objective: "Explain why Ampere's law needs a displacement-current term, using a charging capacitor."
+              bloom_target: understand
+              order: 22010
+            - id: em_wave_properties
+              name: Nature of electromagnetic waves
+              prerequisites: [displacement_current, wave_equation]
+              learning_objective: "Describe an electromagnetic wave as mutually perpendicular oscillating E and B fields travelling at c = 1 / sqrt(mu0 epsilon0)."
+              bloom_target: understand
+              order: 22020
+            - id: em_spectrum_low
+              name: "EM spectrum I: radio waves, microwaves and infrared"
+              prerequisites: [em_wave_properties]
+              learning_objective: "Place radio waves, microwaves and infrared on the spectrum by wavelength and describe how each is produced and used."
+              bloom_target: understand
+              order: 22030
+            - id: em_spectrum_high
+              name: "EM spectrum II: visible, ultraviolet, X-rays and gamma rays"
+              prerequisites: [em_spectrum_low]
+              learning_objective: "Place visible light, ultraviolet, X-rays and gamma rays on the spectrum and describe how each is produced and used."
+              bloom_target: understand
+              order: 22040
+
+    - id: optics
+      name: Optics
+      grade: 12
+      chapters:
+        - id: ray_optics
+          name: Ray Optics and Optical Instruments
+          domain: optics
+          concepts:
+            - id: spherical_mirrors
+              name: Spherical mirrors and sign convention
+              prerequisites: []
+              learning_objective: "Apply the Cartesian sign convention and locate the focus and centre of curvature of concave and convex mirrors."
+              bloom_target: understand
+              order: 23010
+            - id: mirror_equation
+              name: The mirror equation and magnification
+              prerequisites: [spherical_mirrors]
+              learning_objective: "Apply 1/v + 1/u = 1/f and m = -v/u to find the position, size and nature of an image formed by a mirror."
+              bloom_target: apply
+              order: 23020
+            - id: refraction_snells_law
+              name: Refraction and Snell's law
+              prerequisites: []
+              learning_objective: "Apply Snell's law and explain apparent depth using refractive index."
+              bloom_target: apply
+              order: 23030
+            - id: total_internal_reflection
+              name: Total internal reflection
+              prerequisites: [refraction_snells_law]
+              learning_objective: "Calculate the critical angle and explain total internal reflection in optical fibres and prisms."
+              bloom_target: apply
+              order: 23040
+            - id: refraction_spherical_surface
+              name: Refraction at a spherical surface
+              prerequisites: [refraction_snells_law, spherical_mirrors]
+              learning_objective: "Apply the refraction formula for a single spherical surface to locate the image."
+              bloom_target: apply
+              order: 23050
+            - id: thin_lenses
+              name: Thin lenses and the lens maker's formula
+              prerequisites: [refraction_spherical_surface]
+              learning_objective: "Apply the lens maker's formula and the thin lens equation to find the focal length and image position of a lens."
+              bloom_target: apply
+              order: 23060
+            - id: lens_power_combination
+              name: Power of a lens and lens combinations
+              prerequisites: [thin_lenses]
+              learning_objective: "Calculate lens power in dioptres and the equivalent focal length and power of lenses in contact."
+              bloom_target: apply
+              order: 23070
+            - id: prism_refraction
+              name: Refraction through a prism
+              prerequisites: [refraction_snells_law]
+              learning_objective: "Relate the angle of deviation to the angle of incidence for a prism and use minimum deviation to find refractive index."
+              bloom_target: apply
+              order: 23080
+            - id: dispersion
+              name: Dispersion of light by a prism
+              prerequisites: [prism_refraction]
+              learning_objective: "Explain dispersion as a refractive index that varies with wavelength and calculate the angular dispersion of a thin prism."
+              bloom_target: apply
+              order: 23085
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: microscope
+              name: Simple and compound microscopes
+              prerequisites: [lens_power_combination]
+              learning_objective: "Explain how simple and compound microscopes form magnified images and calculate their magnifying power."
+              bloom_target: apply
+              order: 23090
+            - id: telescope
+              name: Telescopes
+              prerequisites: [lens_power_combination]
+              learning_objective: "Explain how refracting and reflecting telescopes work and calculate the magnifying power of a refracting telescope."
+              bloom_target: apply
+              order: 23100
+        - id: wave_optics
+          name: Wave Optics
+          domain: optics
+          concepts:
+            - id: huygens_principle
+              name: Wavefronts and Huygens' principle
+              prerequisites: [wave_types, refraction_snells_law]
+              learning_objective: "Describe wavefronts and use Huygens' principle to construct a wavefront at a later time."
+              bloom_target: understand
+              order: 24010
+            - id: huygens_reflection_refraction
+              name: Reflection and refraction using wavefronts
+              prerequisites: [huygens_principle]
+              learning_objective: "Use Huygens' principle to prove the laws of reflection and refraction for a plane wave."
+              bloom_target: apply
+              order: 24020
+            - id: coherent_interference
+              name: Coherent sources and interference
+              prerequisites: [superposition_principle, huygens_principle]
+              learning_objective: "Explain why sustained interference needs coherent sources and state the conditions for constructive and destructive interference."
+              bloom_target: understand
+              order: 24030
+            - id: youngs_double_slit
+              name: Young's double-slit experiment
+              prerequisites: [coherent_interference]
+              learning_objective: "Apply the fringe-width expression beta = lambda D / d to Young's double-slit experiment."
+              bloom_target: apply
+              order: 24040
+            - id: single_slit_diffraction
+              name: Diffraction at a single slit
+              prerequisites: [youngs_double_slit]
+              learning_objective: "Describe the single-slit diffraction pattern qualitatively and relate the width of the central maximum to slit width."
+              bloom_target: understand
+              order: 24050
+            - id: polarisation
+              name: Polarisation
+              prerequisites: [em_wave_properties]
+              learning_objective: "Explain polarisation as evidence that light is a transverse wave and apply Malus's law and Brewster's law."
+              bloom_target: understand
+              order: 24060
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Kept for ISC students; verify against the official CISCE syllabus."
+
+    - id: quantum
+      name: Dual Nature of Radiation and Matter
+      grade: 12
+      chapters:
+        - id: dual_nature
+          name: Dual Nature of Radiation and Matter
+          domain: modern
+          concepts:
+            - id: electron_emission
+              name: Electron emission and work function
+              prerequisites: [electric_potential]
+              learning_objective: "Explain work function and list the ways electrons can be emitted from a metal surface."
+              bloom_target: understand
+              order: 25010
+            - id: photoelectric_observations
+              name: The photoelectric effect — experimental observations
+              prerequisites: [electron_emission]
+              learning_objective: "Describe how photocurrent depends on intensity, frequency and potential, and why these results defy the wave theory."
+              bloom_target: understand
+              order: 25020
+            - id: einstein_photoelectric_equation
+              name: Einstein's photoelectric equation
+              prerequisites: [photoelectric_observations, em_wave_properties]
+              learning_objective: "Apply K_max = h nu - phi to find threshold frequency, stopping potential and maximum kinetic energy."
+              bloom_target: apply
+              order: 25030
+            - id: photon_particle_nature
+              name: Particle nature of light — the photon
+              prerequisites: [einstein_photoelectric_equation, momentum]
+              learning_objective: "Calculate the energy and momentum of a photon and summarise the evidence for light's particle nature."
+              bloom_target: understand
+              order: 25040
+            - id: de_broglie_wavelength
+              name: Matter waves and the de Broglie wavelength
+              prerequisites: [photon_particle_nature]
+              learning_objective: "Calculate the de Broglie wavelength of a moving particle and explain why it is unnoticeable for everyday objects."
+              bloom_target: apply
+              order: 25050
+
+            - id: davisson_germer
+              name: The Davisson-Germer experiment
+              prerequisites: [de_broglie_wavelength]
+              learning_objective: "Describe how electron diffraction in the Davisson-Germer experiment confirmed the de Broglie wavelength."
+              bloom_target: understand
+              order: 25060
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+
+    - id: atomic
+      name: Atoms and Nuclei
+      grade: 12
+      chapters:
+        - id: atoms
+          name: Atoms
+          domain: modern
+          concepts:
+            - id: rutherford_model
+              name: Alpha-particle scattering and Rutherford's nuclear model
+              prerequisites: [coulombs_law]
+              learning_objective: "Explain how the alpha-particle scattering experiment led to the nuclear model of the atom."
+              bloom_target: understand
+              order: 26010
+            - id: bohr_postulates
+              name: Bohr's postulates
+              prerequisites: [rutherford_model, angular_momentum]
+              learning_objective: "State Bohr's postulates and explain how they fix the instability problem of Rutherford's model."
+              bloom_target: understand
+              order: 26020
+            - id: bohr_energy_levels
+              name: Bohr radius and energy levels of hydrogen
+              prerequisites: [bohr_postulates, circular_motion_dynamics, electrostatic_potential_energy]
+              learning_objective: "Calculate orbit radii and energy levels of the hydrogen atom and explain why the energies are negative."
+              bloom_target: apply
+              order: 26030
+            - id: hydrogen_spectrum
+              name: Line spectra of hydrogen
+              prerequisites: [bohr_energy_levels, photon_particle_nature]
+              learning_objective: "Relate spectral lines to transitions between energy levels and calculate the wavelength of an emitted photon."
+              bloom_target: apply
+              order: 26040
+            - id: de_broglie_bohr
+              name: De Broglie's explanation of Bohr's postulate
+              prerequisites: [bohr_postulates, de_broglie_wavelength]
+              learning_objective: "Explain quantisation of angular momentum as standing electron waves fitting a whole number of wavelengths round the orbit."
+              bloom_target: understand
+              order: 26050
+        - id: nuclei
+          name: Nuclei
+          domain: modern
+          concepts:
+            - id: nuclear_composition
+              name: Composition and size of the nucleus
+              prerequisites: [rutherford_model]
+              learning_objective: "Describe the nucleus in terms of protons and neutrons, use A, Z and N notation, and apply R = R0 A^(1/3)."
+              bloom_target: understand
+              order: 27010
+            - id: mass_energy_equivalence
+              name: Mass-energy equivalence and mass defect
+              prerequisites: [nuclear_composition, kinetic_energy]
+              learning_objective: "Apply E = m c^2 and calculate the mass defect of a nucleus in atomic mass units."
+              bloom_target: apply
+              order: 27020
+            - id: binding_energy
+              name: Binding energy per nucleon
+              prerequisites: [mass_energy_equivalence]
+              learning_objective: "Calculate binding energy per nucleon and interpret the binding-energy curve to explain nuclear stability."
+              bloom_target: apply
+              order: 27030
+            - id: nuclear_force
+              name: The nuclear force
+              prerequisites: [nuclear_composition, coulombs_law]
+              learning_objective: "Describe the short-range, charge-independent nuclear force and explain why it must overcome proton repulsion."
+              bloom_target: understand
+              order: 27040
+            - id: fission_fusion
+              name: Nuclear fission and fusion
+              prerequisites: [binding_energy]
+              learning_objective: "Use the binding-energy curve to explain why both fission of heavy nuclei and fusion of light nuclei release energy."
+              bloom_target: apply
+              order: 27050
+            - id: radioactivity
+              name: Radioactivity and half-life
+              prerequisites: [nuclear_composition]
+              learning_objective: "Describe alpha, beta and gamma decay and apply the radioactive decay law and half-life."
+              bloom_target: apply
+              order: 27060
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Kept for ISC students; verify against the official CISCE syllabus."
+
+    - id: electronics
+      name: Electronic Devices
+      grade: 12
+      chapters:
+        - id: semiconductors
+          name: Semiconductor Electronics
+          domain: modern
+          concepts:
+            - id: energy_bands
+              name: Energy bands in conductors, semiconductors and insulators
+              prerequisites: [bohr_energy_levels]
+              learning_objective: "Use energy-band diagrams to distinguish conductors, semiconductors and insulators qualitatively."
+              bloom_target: understand
+              order: 28010
+            - id: intrinsic_semiconductors
+              name: Intrinsic semiconductors
+              prerequisites: [energy_bands]
+              learning_objective: "Explain how electrons and holes carry current in a pure semiconductor and why conductivity rises with temperature."
+              bloom_target: understand
+              order: 28020
+            - id: extrinsic_semiconductors
+              name: Extrinsic semiconductors — n-type and p-type
+              prerequisites: [intrinsic_semiconductors]
+              learning_objective: "Explain how doping with pentavalent or trivalent impurities creates n-type and p-type semiconductors."
+              bloom_target: understand
+              order: 28030
+            - id: pn_junction
+              name: Formation of a p-n junction
+              prerequisites: [extrinsic_semiconductors, electric_field]
+              learning_objective: "Explain how diffusion and drift create the depletion region and barrier potential at a p-n junction."
+              bloom_target: understand
+              order: 28040
+            - id: diode_characteristics
+              name: Junction diode in forward and reverse bias
+              prerequisites: [pn_junction, ohms_law]
+              learning_objective: "Describe the I-V characteristics of a junction diode in forward and reverse bias."
+              bloom_target: apply
+              order: 28050
+            - id: diode_rectifier
+              name: The diode as a rectifier
+              prerequisites: [diode_characteristics, ac_rms_values]
+              learning_objective: "Explain how half-wave and full-wave rectifiers convert alternating current into direct current."
+              bloom_target: apply
+              order: 28060
+            - id: zener_diode
+              name: Zener diode as a voltage regulator
+              prerequisites: [diode_characteristics]
+              learning_objective: "Explain reverse breakdown in a Zener diode and how it holds an output voltage steady."
+              bloom_target: apply
+              order: 28070
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: junction_transistor
+              name: Junction transistors
+              prerequisites: [diode_characteristics]
+              learning_objective: "Describe the structure and action of n-p-n and p-n-p transistors and read their input and output characteristics."
+              bloom_target: understand
+              order: 28080
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: transistor_amplifier
+              name: The transistor as an amplifier
+              prerequisites: [junction_transistor]
+              learning_objective: "Explain how a common-emitter transistor amplifies a signal and calculate its current and voltage gain."
+              bloom_target: apply
+              order: 28090
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: logic_gates
+              name: Logic gates
+              prerequisites: [diode_characteristics]
+              learning_objective: "Write truth tables for AND, OR, NOT, NAND and NOR gates and combine them using Boolean expressions."
+              bloom_target: apply
+              order: 28100
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+
+    - id: communication
+      name: Communication Systems
+      grade: 12
+      chapters:
+        - id: communication_systems
+          name: Communication Systems
+          domain: waves
+          concepts:
+            - id: communication_elements
+              name: Elements of a communication system
+              prerequisites: [em_spectrum_low]
+              learning_objective: "Identify the transmitter, channel and receiver in a communication system and explain how noise enters the channel."
+              bloom_target: understand
+              order: 29010
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: signal_bandwidth
+              name: Signals and bandwidth
+              prerequisites: [communication_elements]
+              learning_objective: "Distinguish analogue from digital signals and relate the bandwidth a signal needs to the information it carries."
+              bloom_target: understand
+              order: 29020
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: em_wave_propagation
+              name: Ground, sky and space wave propagation
+              prerequisites: [communication_elements, em_spectrum_low]
+              learning_objective: "Explain ground wave, sky wave and space wave propagation and estimate the range of a line-of-sight antenna from its height."
+              bloom_target: apply
+              order: 29030
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: need_for_modulation
+              name: The need for modulation
+              prerequisites: [signal_bandwidth]
+              learning_objective: "Explain why a low-frequency message is carried on a high-frequency carrier, using antenna size and signal mixing as reasons."
+              bloom_target: understand
+              order: 29040
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: amplitude_modulation
+              name: Amplitude and frequency modulation
+              prerequisites: [need_for_modulation, superposition_principle]
+              learning_objective: "Describe amplitude modulation, calculate the modulation index and side-band frequencies, and contrast AM with FM qualitatively."
+              bloom_target: apply
+              order: 29050
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: am_detection
+              name: Detection of an AM signal
+              prerequisites: [amplitude_modulation, diode_rectifier]
+              learning_objective: "Explain how a rectifier and a filter recover the message from an amplitude-modulated wave."
+              bloom_target: understand
+              order: 29060
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."
+            - id: modern_communication
+              name: Internet, mobile telephony and GPS
+              prerequisites: [em_wave_propagation]
+              learning_objective: "Describe qualitatively how the internet, mobile phone networks and GPS use electromagnetic communication."
+              bloom_target: understand
+              order: 29070
+              boards: [isc]
+              syllabus_note: "ISC only — not in CBSE 2025-26. Verify against the official CISCE syllabus."

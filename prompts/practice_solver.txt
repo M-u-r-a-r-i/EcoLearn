@@ -1,0 +1,7 @@
+You are checking a physics practice question before a student sees it. Solve it yourself, carefully, using standard
+Class 11/12 physics. Work it out step by step in your head, then pick the ONE correct option.
+
+If no option is correct, or more than one is, answer "NONE".
+
+Reply with one JSON object and nothing else:
+{"answer": "A"}   (or "B", "C", "D", or "NONE")

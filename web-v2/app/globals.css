@@ -1,0 +1,328 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Tailwind Typography — gives us the `prose` classes for beautiful long-form
+   text rendered from backend markdown (lesson body / worked example). */
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  /* EcoLearn brand amber — a reusable accent. Use as bg-brand-accent /
+     text-brand-accent (with optional opacity, e.g. bg-brand-accent/10). */
+  --color-brand-accent: var(--brand-accent);
+  /* Success green — use as bg-success / text-success. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  /* Soft shadow scale — use as shadow-soft / shadow-card / shadow-card-hover. */
+  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(79, 70, 229, 0.14);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* ---- EcoLearn brand palette ---------------------------------------- */
+  --background: #FAFAFB;          /* near-white page background */
+  --foreground: #1E293B;          /* dark slate text */
+  --card: #FFFFFF;                /* cards sit slightly brighter than the page */
+  --card-foreground: #1E293B;
+  --popover: #FFFFFF;
+  --popover-foreground: #1E293B;
+  --primary: #4F46E5;             /* indigo — primary buttons & actions */
+  --primary-foreground: #FFFFFF;  /* text on indigo */
+  /* Amber and green are the -700 shades: the -500s (#F59E0B, #10B981) are only
+     2.2:1 and 2.5:1 on white, below WCAG AA (4.5:1) for the small labels that
+     use them. Measured 2026-10-02; these are 5.0:1 and 5.5:1. */
+  --brand-accent: #B45309;        /* amber — highlights (see --color-brand-accent) */
+  --success: #047857;             /* green — mastered / passed states */
+  --success-foreground: #FFFFFF;
+  --ring: #4F46E5;                /* indigo focus ring */
+  --secondary: #F1F5F9;           /* light slate surface */
+  --secondary-foreground: #1E293B;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;    /* muted slate text */
+  --accent: #F1F5F9;
+  --accent-foreground: #1E293B;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #E2E8F0;              /* hairline borders */
+  --input: #E2E8F0;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Dark mode: the EcoLearn palette on slate, not shadcn's grey default.
+   Contrast measured (WCAG): text #E2E8F0 on card 11.9:1, muted text 5.7:1,
+   indigo #818CF8 as text on card 4.9:1. That indigo is too light for white
+   text, so buttons use dark text on it (--primary-foreground), which is why
+   components say text-primary-foreground, never text-white. */
+.dark {
+  --background: #0F172A;          /* slate-900 page */
+  --foreground: #E2E8F0;
+  --card: #1E293B;                /* slate-800 cards */
+  --card-foreground: #E2E8F0;
+  --popover: #1E293B;
+  --popover-foreground: #E2E8F0;
+  --primary: #818CF8;             /* indigo-400: readable as text on dark */
+  --primary-foreground: #0F172A;  /* dark text on indigo buttons */
+  --brand-accent: #F59E0B;        /* the bright amber passes on dark (6.8:1 on card) */
+  --success: #34D399;             /* emerald-400, 7.6:1 on card */
+  --success-foreground: #0F172A;
+  --ring: #818CF8;
+  --secondary: #1E293B;
+  --secondary-foreground: #E2E8F0;
+  --muted: #334155;               /* slate-700: skeletons and chips stand out from cards */
+  --muted-foreground: #A3B2C7;
+  --accent: #334155;
+  --accent-foreground: #E2E8F0;
+  --destructive: #F87171;
+  --border: #334155;
+  --input: #334155;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: #1E293B;
+  --sidebar-foreground: #E2E8F0;
+  --sidebar-primary: #818CF8;
+  --sidebar-primary-foreground: #0F172A;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: #334155;
+  --sidebar-ring: #818CF8;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Roadmap motion (2026-10-04). Plain CSS, no animation library, and only for
+   people who haven't asked for reduced motion: without it the roadmap is the
+   same, just still.
+   ------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rm-pulse {
+    0% { transform: scale(1); opacity: 0.55; }
+    80%, 100% { transform: scale(1.55); opacity: 0; }
+  }
+  @keyframes rm-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes rm-pop {
+    0% { transform: scale(0.6); }
+    55% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes rm-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+  @keyframes rm-sheet {
+    from { transform: translateY(14px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes rm-draw {
+    from { stroke-dashoffset: var(--len, 200); }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes rm-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45); }
+    50% { box-shadow: 0 0 0 9px rgba(251, 191, 36, 0); }
+  }
+  @keyframes rm-slide-next {
+    from { transform: translateX(28px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes rm-slide-prev {
+    from { transform: translateX(-28px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .rm-slide-next { animation: rm-slide-next 0.28s ease-out both; }
+  .rm-slide-prev { animation: rm-slide-prev 0.28s ease-out both; }
+  @keyframes rm-confetti {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
+  }
+  .rm-confetti-piece {
+    display: block;
+    animation: rm-confetti 1.3s cubic-bezier(0.15, 0.7, 0.3, 1) var(--d, 0s) both;
+  }
+  .rm-pulse { animation: rm-pulse 1.8s ease-out infinite; }
+  .rm-bob { animation: rm-bob 1.6s ease-in-out infinite; }
+  .rm-pop { animation: rm-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+  .rm-shake { animation: rm-shake 0.4s ease-in-out; }
+  .rm-sheet { animation: rm-sheet 0.25s ease-out both; }
+  .rm-glow { animation: rm-glow 2.4s ease-in-out infinite; }
+  .rm-draw { stroke-dasharray: var(--len, 200); animation: rm-draw 0.9s ease-out both; }
+}
+
+/* Confetti is decoration: gone entirely unless motion is welcome. */
+.rm-confetti-piece { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rm-confetti-piece { display: block; }
+}
+
+/* ---------------------------------------------------------------------------
+   Design previews (/preview). Three directions share one token vocabulary,
+   --pv-*, that each direction sets differently for light and dark. The
+   interest only supplies a hue (--h); every direction decides how loudly to
+   use it. Phase 2 keeps the winning direction's block and drops the others.
+   ------------------------------------------------------------------------ */
+@theme inline {
+  --color-pv-bg: var(--pv-bg);
+  --color-pv-surface: var(--pv-surface);
+  --color-pv-surface2: var(--pv-surface2);
+  --color-pv-ink: var(--pv-ink);
+  --color-pv-mute: var(--pv-mute);
+  --color-pv-line: var(--pv-line);
+  --color-pv-accent: var(--pv-accent);
+  --color-pv-accent-ink: var(--pv-accent-ink);
+  --color-pv-soft: var(--pv-soft);
+  --color-pv-good: var(--pv-good);
+  --color-pv-gold: var(--pv-gold);
+  --color-pv-gold-ink: var(--pv-gold-ink);
+  --color-pv-bad: var(--pv-bad);
+  --color-pv-slab: var(--pv-slab);
+  --color-pv-slab-ink: var(--pv-slab-ink);
+  --font-pv-display: var(--pv-display);
+  --font-pv-body: var(--pv-body);
+  --font-pv-mono: var(--pv-mono);
+}
+
+.pv-root { --h: 25; background: var(--pv-bg); color: var(--pv-ink); font-family: var(--pv-body); min-height: 100%; }
+.pv-root[data-interest="cricket"] { --h: 25; }
+.pv-root[data-interest="football"] { --h: 150; }
+.pv-root[data-interest="gaming"] { --h: 295; }
+.pv-root[data-interest="smartphones"] { --h: 235; }
+.pv-root[data-interest="motorsport"] { --h: 55; }
+
+/* A: Trailhead. Playful game map. Chunky, rounded, tinted by the interest. */
+.pv-root[data-dir="a"] {
+  --pv-display: var(--f-a-display); --pv-body: var(--f-a-body); --pv-mono: ui-monospace, monospace;
+  --pv-bg: oklch(0.985 0.012 var(--h)); --pv-surface: #fff; --pv-surface2: oklch(0.955 0.025 var(--h));
+  --pv-ink: oklch(0.27 0.04 270); --pv-mute: oklch(0.46 0.03 270); --pv-line: oklch(0.89 0.025 var(--h));
+  --pv-accent: oklch(0.5 0.2 var(--h)); --pv-accent-ink: #fff; --pv-soft: oklch(0.94 0.05 var(--h));
+  --pv-good: oklch(0.48 0.13 155); --pv-gold: oklch(0.84 0.15 88); --pv-gold-ink: oklch(0.28 0.06 80); --pv-bad: oklch(0.5 0.19 25);
+}
+.pv-root[data-dir="a"][data-theme="dark"] {
+  --pv-bg: oklch(0.2 0.04 var(--h)); --pv-surface: oklch(0.26 0.045 var(--h)); --pv-surface2: oklch(0.31 0.05 var(--h));
+  --pv-ink: oklch(0.96 0.012 var(--h)); --pv-mute: oklch(0.78 0.03 var(--h)); --pv-line: oklch(0.38 0.05 var(--h));
+  --pv-accent: oklch(0.8 0.15 var(--h)); --pv-accent-ink: oklch(0.2 0.05 var(--h)); --pv-soft: oklch(0.33 0.07 var(--h));
+  --pv-good: oklch(0.8 0.15 155); --pv-gold: oklch(0.84 0.15 88); --pv-bad: oklch(0.76 0.15 25);
+}
+
+/* B: Field Notes. Editorial notebook. Paper, ink, ruled lines, no shadows. */
+.pv-root[data-dir="b"] {
+  --pv-display: var(--f-b-display); --pv-body: var(--f-b-body); --pv-mono: ui-monospace, monospace;
+  --pv-bg: oklch(0.965 0.02 85); --pv-surface: oklch(0.985 0.012 85); --pv-surface2: oklch(0.935 0.025 85);
+  --pv-ink: oklch(0.24 0.02 60); --pv-mute: oklch(0.45 0.02 60); --pv-line: oklch(0.84 0.025 80);
+  --pv-accent: oklch(0.44 0.13 var(--h)); --pv-accent-ink: oklch(0.985 0.012 85); --pv-soft: oklch(0.92 0.05 var(--h));
+  --pv-good: oklch(0.46 0.1 150); --pv-gold: oklch(0.9 0.13 95); --pv-gold-ink: oklch(0.25 0.04 80); --pv-bad: oklch(0.48 0.16 28);
+}
+.pv-root[data-dir="b"][data-theme="dark"] {
+  --pv-bg: oklch(0.2 0.012 60); --pv-surface: oklch(0.24 0.014 60); --pv-surface2: oklch(0.29 0.016 60);
+  --pv-ink: oklch(0.94 0.015 85); --pv-mute: oklch(0.75 0.02 80); --pv-line: oklch(0.36 0.02 60);
+  --pv-accent: oklch(0.78 0.11 var(--h)); --pv-accent-ink: oklch(0.2 0.012 60); --pv-soft: oklch(0.32 0.05 var(--h));
+  --pv-good: oklch(0.78 0.12 150); --pv-gold: oklch(0.84 0.13 95); --pv-bad: oklch(0.76 0.13 28);
+}
+
+/* C: Matchday. Sports broadcast. Black slabs, angled cuts, neon team colour. */
+.pv-root[data-dir="c"] {
+  --pv-display: var(--f-c-display); --pv-body: var(--f-c-body); --pv-mono: var(--f-c-mono);
+  --pv-bg: oklch(0.965 0.004 250); --pv-surface: #fff; --pv-surface2: oklch(0.93 0.006 250);
+  --pv-ink: oklch(0.16 0.012 260); --pv-mute: oklch(0.44 0.015 260); --pv-line: oklch(0.85 0.008 250);
+  --pv-accent: oklch(0.52 0.23 var(--h)); --pv-accent-ink: #fff; --pv-soft: oklch(0.93 0.05 var(--h));
+  --pv-good: oklch(0.47 0.14 155); --pv-gold: oklch(0.86 0.16 95); --pv-gold-ink: oklch(0.2 0.03 80); --pv-bad: oklch(0.5 0.21 25);
+  --pv-slab: oklch(0.16 0.012 260); --pv-slab-ink: #fff;
+}
+.pv-root[data-dir="c"][data-theme="dark"] {
+  --pv-bg: oklch(0.14 0.012 260); --pv-surface: oklch(0.2 0.016 260); --pv-surface2: oklch(0.26 0.02 260);
+  --pv-ink: oklch(0.97 0.004 250); --pv-mute: oklch(0.78 0.012 255); --pv-line: oklch(0.32 0.02 260);
+  --pv-accent: oklch(0.85 0.19 var(--h)); --pv-accent-ink: oklch(0.15 0.02 260); --pv-soft: oklch(0.3 0.08 var(--h));
+  --pv-good: oklch(0.82 0.17 155); --pv-gold: oklch(0.86 0.16 95); --pv-bad: oklch(0.74 0.17 25);
+  --pv-slab: oklch(0.09 0.01 260); --pv-slab-ink: oklch(0.97 0.004 250);
+}
+.pv-cut { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); }
+.pv-cut-sm { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+.pv-ruled { background-image: repeating-linear-gradient(transparent 0 31px, var(--pv-line) 31px 32px); }
+
+.pv-root :focus-visible { outline: 3px solid var(--pv-accent); outline-offset: 3px; }
+.pv-root button, .pv-root a { cursor: pointer; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes pv-rise { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pv-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes pv-tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes pv-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
+  @keyframes pv-pulse { 0% { box-shadow: 0 0 0 0 var(--pv-accent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+  .pv-rise { animation: pv-rise 0.3s ease-out both; }
+  .pv-wipe { animation: pv-wipe 0.35s ease-out both; }
+  .pv-tick { animation: pv-tick 30s linear infinite; }
+  .pv-float { animation: pv-float 3s ease-in-out infinite; }
+  .pv-pulse { animation: pv-pulse 1.6s ease-out infinite; }
+}

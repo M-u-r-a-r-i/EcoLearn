@@ -1,5 +1,5 @@
 // A branded wrapper around the shadcn <Button>. It doesn't reinvent the button —
-// it reuses shadcn's (which already inherits our indigo --primary) and just locks
+// it reuses shadcn's (which already inherits our --primary) and just locks
 // in EcoLearn's defaults: larger size, comfortable padding, soft shadow, and a
 // subtle lift on hover. Use <PrimaryButton> for the main action on any screen so
 // every primary CTA looks identical site-wide.
@@ -16,7 +16,7 @@ export function PrimaryButton({ className, size = "lg", ...props }: PrimaryButto
     <Button
       size={size}
       className={cn(
-        "h-12 rounded-xl px-8 text-base font-semibold shadow-soft transition-shadow hover:shadow-card-hover",
+        "h-12 px-8 text-base",
         className,
       )}
       {...props}

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A logarithmic scale of de Broglie wavelengths from ten to the minus thirty-five metres to ten to the minus five metres, showing an everyday object at about ten to the minus thirty-four metres, a speck of dust at ten to the minus twenty-one metres and an electron accelerated through one hundred volts at ten to the minus ten metres, compared with the size of a nucleus and the spacing between atoms in a crystal</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+  <rect width="760" height="400" fill="#ffffff"/>
+
+  <text x="380" y="32" font-size="16" text-anchor="middle" fill="#111827" font-weight="700">Every moving thing has a wavelength. Only the light ones have a useful one.</text>
+
+  <!-- axis -->
+  <line x1="60" y1="230" x2="716" y2="230" stroke="#374151" stroke-width="2.5" marker-end="url(#ar)"/>
+  <g stroke="#374151" stroke-width="2">
+    <line x1="60" y1="224" x2="60" y2="236"/>
+    <line x1="167" y1="224" x2="167" y2="236"/>
+    <line x1="273" y1="224" x2="273" y2="236"/>
+    <line x1="380" y1="224" x2="380" y2="236"/>
+    <line x1="487" y1="224" x2="487" y2="236"/>
+    <line x1="593" y1="224" x2="593" y2="236"/>
+    <line x1="700" y1="224" x2="700" y2="236"/>
+  </g>
+  <g font-size="12" fill="#6b7280" text-anchor="middle">
+    <text x="60" y="252">10&#8315;&#179;&#8309;</text>
+    <text x="167" y="252">10&#8315;&#179;&#8304;</text>
+    <text x="273" y="252">10&#8315;&#178;&#8309;</text>
+    <text x="380" y="252">10&#8315;&#178;&#8304;</text>
+    <text x="487" y="252">10&#8315;&#185;&#8309;</text>
+    <text x="593" y="252">10&#8315;&#185;&#8304;</text>
+    <text x="700" y="252">10&#8315;&#8309;</text>
+  </g>
+  <text x="380" y="380" font-size="14" text-anchor="middle" fill="#374151" font-weight="700">de Broglie wavelength &#955; (metres, each step is 100 000 times bigger)</text>
+
+  <!-- markers above -->
+  <g stroke="#1e3a8a" stroke-width="2.5">
+    <line x1="81" y1="228" x2="81" y2="126"/>
+    <line x1="359" y1="228" x2="359" y2="172"/>
+    <line x1="593" y1="228" x2="593" y2="126"/>
+  </g>
+  <g fill="#1e3a8a">
+    <circle cx="81" cy="230" r="5"/>
+    <circle cx="359" cy="230" r="5"/>
+    <circle cx="593" cy="230" r="5"/>
+  </g>
+  <text x="72" y="100" font-size="15" fill="#1e3a8a" font-weight="700">&#955; &#8776; 10&#8315;&#179;&#8308; m</text>
+  <text x="72" y="118" font-size="13" fill="#374151">a hand-sized object at everyday speed</text>
+  <text x="359" y="146" font-size="15" text-anchor="middle" fill="#1e3a8a" font-weight="700">&#955; &#8776; 10&#8315;&#178;&#185; m</text>
+  <text x="359" y="164" font-size="13" text-anchor="middle" fill="#374151">a speck of dust drifting in air</text>
+  <text x="593" y="100" font-size="15" text-anchor="middle" fill="#1e3a8a" font-weight="700">&#955; &#8776; 10&#8315;&#185;&#8304; m</text>
+  <text x="593" y="118" font-size="13" text-anchor="middle" fill="#374151">an electron accelerated through 100 V</text>
+
+  <!-- reference sizes below -->
+  <g stroke="#b45309" stroke-width="2.5" stroke-dasharray="6 4">
+    <line x1="487" y1="262" x2="487" y2="278"/>
+    <line x1="593" y1="262" x2="593" y2="312"/>
+  </g>
+  <text x="487" y="296" font-size="13" text-anchor="middle" fill="#b45309" font-weight="700">the size of a nucleus</text>
+  <text x="593" y="330" font-size="13" text-anchor="middle" fill="#b45309" font-weight="700">the spacing between atoms in a crystal</text>
+  <text x="593" y="348" font-size="12" text-anchor="middle" fill="#92400e">the only ruler fine enough to reveal these waves</text>
+</svg>

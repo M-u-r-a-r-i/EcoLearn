@@ -1,0 +1,50 @@
+# EcoLearn — what gets written, and in what order (user decision, 2026-09-22).
+#
+# The full matrix (29 chapters × 10 interests × 3 formats = 7,470 lessons) does
+# not fit the Claude Pro plan before the 2026-10-29 finals. This file is the
+# agreed subset. `scripts/batch_status.py` reads it, checks what already exists
+# on disk, and prints the next batch plus a ready-to-use brief for the writing
+# session — so any new session can carry on without re-deriving the plan.
+#
+# One BATCH = one chapter × one interest × the phase's formats.
+# Order: phases in sequence; within a phase, chapters in teaching order (the
+# order below), and within a chapter, interests in the order below — so the
+# first interest of each chapter draws the chapter's figures and the rest reuse
+# them.
+
+decided: 2026-09-22
+
+# 7 Class 11 + 7 Class 12 chapters: "the most important" set (option A).
+chapters:
+  - units_measurement
+  - motion_straight_line
+  - motion_plane
+  - laws_of_motion
+  - work_energy_power
+  - gravitation
+  - thermodynamics
+  - electric_charges_fields
+  - potential_capacitance
+  - current_electricity
+  - moving_charges_magnetism
+  - electromagnetic_induction
+  - ray_optics
+  - dual_nature
+
+# Chosen for fit with these chapters: between them every domain in the set has
+# at least two natural interests (motorsport replaces music, whose strength —
+# waves — has no chapter in this set).
+interests:
+  - cricket
+  - football
+  - gaming
+  - smartphones
+  - motorsport
+
+phases:
+  - id: explain
+    formats: [explain]
+    target: 2026-09-28      # a complete, usable app before the 2026-09-30 deadline
+  - id: extra_formats
+    formats: [challenge, misconception]
+    target: 2026-10-06      # all three formats before the finals

@@ -1,0 +1,26 @@
+title: Why a prism splits white light — n is not one number
+x:
+  label: "Wavelength in vacuum $\\lambda$ (nm)"
+  min: 380
+  max: 720
+y:
+  label: "Refractive index $n$ of the glass"
+  min: 1.510
+  max: 1.534
+series:
+  - label: "a typical crown glass (illustrative values)"
+    color: purple
+    style: solid
+    markers: true
+    points:
+      - [400, 1.5309]
+      - [450, 1.5253]
+      - [500, 1.5214]
+      - [550, 1.5185]
+      - [600, 1.5163]
+      - [650, 1.5145]
+      - [700, 1.5132]
+marks:
+  - {x: 400, y: 1.5309, text: "violet", color: purple, offset: [10, 4]}
+  - {x: 700, y: 1.5132, text: "red", color: red, offset: [-38, 12]}
+legend: below

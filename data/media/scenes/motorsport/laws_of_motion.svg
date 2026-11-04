@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A race car in a braking zone: the brake discs glow red hot, a locked front tyre lays a dark skid mark and smoke, a stack of tyres forms a barrier in front of the concrete wall, a braking marker board stands on the grass and a marshal waves a yellow flag</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fef08a"/>
+      <stop offset="0.55" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#fb923c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+
+  <!-- distant hills -->
+  <path d="M0,196 Q160,152 340,190 T800,180 L800,236 L0,236 z" fill="#86efac"/>
+
+  <!-- grandstand -->
+  <rect x="30" y="126" width="290" height="72" fill="#64748b"/>
+  <polygon points="20,126 330,126 312,104 38,104" fill="#334155"/>
+  <g fill="#cbd5e1">
+    <rect x="42" y="138" width="266" height="6"/>
+    <rect x="42" y="154" width="266" height="6"/>
+    <rect x="42" y="170" width="266" height="6"/>
+  </g>
+
+  <!-- concrete wall and tyre barrier on the outside of the corner -->
+  <text x="516" y="184" font-size="13" fill="#14532d" font-weight="700">tyre barrier in front of the wall</text>
+  <rect x="500" y="190" width="300" height="22" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <g>
+    <rect x="504" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="534" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="564" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="594" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="624" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="654" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="684" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="714" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="744" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+    <rect x="774" y="204" width="26" height="22" rx="9" fill="#1f2937"/>
+  </g>
+
+  <!-- track edge, kerb and tarmac -->
+  <rect x="0" y="236" width="800" height="12" fill="#e5e7eb"/>
+  <g fill="#dc2626">
+    <rect x="0" y="240" width="40" height="6"/><rect x="80" y="240" width="40" height="6"/>
+    <rect x="160" y="240" width="40" height="6"/><rect x="240" y="240" width="40" height="6"/>
+    <rect x="320" y="240" width="40" height="6"/><rect x="400" y="240" width="40" height="6"/>
+    <rect x="480" y="240" width="40" height="6"/><rect x="560" y="240" width="40" height="6"/>
+    <rect x="640" y="240" width="40" height="6"/><rect x="720" y="240" width="40" height="6"/>
+  </g>
+  <rect x="0" y="248" width="800" height="114" fill="#475569"/>
+  <rect x="0" y="356" width="800" height="6" fill="#f8fafc"/>
+
+  <!-- skid mark left by the locked front tyre -->
+  <rect x="60" y="348" width="330" height="6" rx="3" fill="#1e293b" opacity="0.65"/>
+
+  <!-- label above the car -->
+  <text x="232" y="272" font-size="14" fill="#f8fafc" font-weight="700">brake discs glowing red hot</text>
+
+  <!-- race car (generic open-wheel, no markings), braking, nose to the right -->
+  <g transform="translate(-110,14)">
+    <rect x="300" y="286" width="46" height="12" rx="2" fill="#0f172a"/>
+    <rect x="540" y="290" width="20" height="34" rx="2" fill="#0f172a"/>
+    <path d="M320,300 L380,288 L470,286 L540,298 L556,312 L540,322 L470,326 L380,324 L320,318 z" fill="#0d9488"/>
+    <path d="M430,288 Q445,272 468,280 L470,290 z" fill="#1e293b"/>
+    <circle cx="452" cy="283" r="7" fill="#facc15"/>
+    <rect x="345" y="276" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="345" y="314" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="490" y="278" width="36" height="16" rx="6" fill="#111827"/>
+    <rect x="490" y="316" width="36" height="16" rx="6" fill="#111827"/>
+  </g>
+
+  <!-- glowing brake discs at the two near wheels -->
+  <circle cx="255" cy="337" r="16" fill="url(#glow)"/>
+  <circle cx="398" cy="338" r="16" fill="url(#glow)"/>
+  <circle cx="255" cy="337" r="6" fill="#fde047"/>
+  <circle cx="398" cy="338" r="6" fill="#fde047"/>
+
+  <!-- tyre smoke drifting back from the locked front wheel -->
+  <g fill="#e2e8f0" opacity="0.85">
+    <circle cx="196" cy="344" r="9"/>
+    <circle cx="164" cy="340" r="13"/>
+    <circle cx="128" cy="344" r="10"/>
+    <circle cx="98" cy="340" r="7"/>
+  </g>
+
+  <!-- grass verge in front -->
+  <rect x="0" y="362" width="800" height="88" fill="#16a34a"/>
+
+  <!-- braking marker board -->
+  <rect x="64" y="378" width="8" height="46" fill="#334155"/>
+  <rect x="40" y="370" width="56" height="30" rx="3" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <text x="68" y="392" font-size="18" fill="#0f172a" font-weight="700" text-anchor="middle">100</text>
+  <text x="20" y="442" font-size="13" fill="#f0fdf4" font-weight="600">braking marker: 100 m to the corner</text>
+
+  <!-- marshal waving a yellow flag -->
+  <g stroke-linecap="round">
+    <line x1="698" y1="408" x2="690" y2="444" stroke="#0f172a" stroke-width="12"/>
+    <line x1="702" y1="408" x2="710" y2="444" stroke="#0f172a" stroke-width="12"/>
+    <line x1="700" y1="410" x2="700" y2="372" stroke="#f97316" stroke-width="24"/>
+    <line x1="702" y1="378" x2="734" y2="362" stroke="#c08457" stroke-width="6"/>
+    <line x1="734" y1="362" x2="746" y2="334" stroke="#78350f" stroke-width="4"/>
+  </g>
+  <circle cx="700" cy="352" r="13" fill="#c08457"/>
+  <polygon points="746,334 792,342 748,358" fill="#facc15"/>
+  <text x="520" y="442" font-size="13" fill="#f0fdf4" font-weight="600">marshal post</text>
+</svg>

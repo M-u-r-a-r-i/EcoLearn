@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A race track on a sunny day: a race car passes the start-finish line, a timing screen and a speed-trap board show readings, a braking marker stands by the track, and a marshal holds a stopwatch</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+
+  <!-- distant hills and grandstand -->
+  <path d="M0,200 Q150,150 320,190 T800,180 L800,230 L0,230 z" fill="#86efac"/>
+  <rect x="40" y="150" width="300" height="70" fill="#64748b"/>
+  <polygon points="30,150 350,150 330,128 50,128" fill="#334155"/>
+  <g fill="#cbd5e1">
+    <rect x="52" y="162" width="276" height="6"/>
+    <rect x="52" y="178" width="276" height="6"/>
+    <rect x="52" y="194" width="276" height="6"/>
+  </g>
+
+  <!-- timing screen on the pit wall gantry -->
+  <rect x="440" y="36" width="300" height="120" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <text x="460" y="64" font-size="14" fill="#94a3b8" font-weight="600">LAP TIME</text>
+  <text x="460" y="102" font-size="34" fill="#fbbf24" font-weight="700" font-family="Consolas, monospace">1:32.418</text>
+  <text x="630" y="64" font-size="14" fill="#94a3b8" font-weight="600">SPEED TRAP</text>
+  <text x="630" y="102" font-size="30" fill="#34d399" font-weight="700" font-family="Consolas, monospace">306</text>
+  <text x="694" y="102" font-size="14" fill="#34d399" font-weight="600">km/h</text>
+  <text x="460" y="138" font-size="13" fill="#64748b">official timing, to 0.001 s</text>
+  <rect x="470" y="156" width="10" height="84" fill="#334155"/>
+  <rect x="700" y="156" width="10" height="84" fill="#334155"/>
+
+  <!-- track -->
+  <rect x="0" y="230" width="800" height="12" fill="#e5e7eb"/>
+  <rect x="0" y="242" width="800" height="120" fill="#475569"/>
+  <g fill="#dc2626">
+    <rect x="0" y="236" width="40" height="6"/><rect x="80" y="236" width="40" height="6"/>
+    <rect x="160" y="236" width="40" height="6"/><rect x="240" y="236" width="40" height="6"/>
+    <rect x="320" y="236" width="40" height="6"/><rect x="400" y="236" width="40" height="6"/>
+    <rect x="480" y="236" width="40" height="6"/><rect x="560" y="236" width="40" height="6"/>
+    <rect x="640" y="236" width="40" height="6"/><rect x="720" y="236" width="40" height="6"/>
+  </g>
+  <!-- chequered start-finish line -->
+  <g>
+    <rect x="590" y="242" width="20" height="120" fill="#f8fafc"/>
+    <g fill="#0f172a">
+      <rect x="590" y="242" width="10" height="10"/><rect x="600" y="252" width="10" height="10"/>
+      <rect x="590" y="262" width="10" height="10"/><rect x="600" y="272" width="10" height="10"/>
+      <rect x="590" y="282" width="10" height="10"/><rect x="600" y="292" width="10" height="10"/>
+      <rect x="590" y="302" width="10" height="10"/><rect x="600" y="312" width="10" height="10"/>
+      <rect x="590" y="322" width="10" height="10"/><rect x="600" y="332" width="10" height="10"/>
+      <rect x="590" y="342" width="10" height="10"/><rect x="600" y="352" width="10" height="10"/>
+    </g>
+  </g>
+
+  <!-- race car (generic open-wheel, no markings) -->
+  <g>
+    <rect x="300" y="286" width="46" height="12" rx="2" fill="#0f172a"/>
+    <rect x="540" y="290" width="20" height="34" rx="2" fill="#0f172a"/>
+    <path d="M320,300 L380,288 L470,286 L540,298 L556,312 L540,322 L470,326 L380,324 L320,318 z" fill="#dc2626"/>
+    <path d="M430,288 Q445,272 468,280 L470,290 z" fill="#1e293b"/>
+    <circle cx="452" cy="283" r="7" fill="#facc15"/>
+    <rect x="345" y="276" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="345" y="314" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="490" y="278" width="36" height="16" rx="6" fill="#111827"/>
+    <rect x="490" y="316" width="36" height="16" rx="6" fill="#111827"/>
+    <g stroke="#e0f2fe" stroke-width="3" stroke-linecap="round" opacity="0.8">
+      <line x1="220" y1="292" x2="290" y2="292"/>
+      <line x1="200" y1="306" x2="290" y2="306"/>
+      <line x1="230" y1="320" x2="290" y2="320"/>
+    </g>
+  </g>
+
+  <!-- grass verge -->
+  <rect x="0" y="362" width="800" height="88" fill="#16a34a"/>
+
+  <!-- braking marker board with a tape measure laid along the verge -->
+  <rect x="104" y="372" width="8" height="46" fill="#334155"/>
+  <rect x="80" y="364" width="56" height="30" rx="3" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <text x="108" y="386" font-size="18" fill="#0f172a" font-weight="700" text-anchor="middle">100</text>
+  <rect x="140" y="410" width="200" height="12" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
+  <g stroke="#0f172a" stroke-width="1.5">
+    <line x1="150" y1="410" x2="150" y2="418"/><line x1="170" y1="410" x2="170" y2="415"/>
+    <line x1="190" y1="410" x2="190" y2="418"/><line x1="210" y1="410" x2="210" y2="415"/>
+    <line x1="230" y1="410" x2="230" y2="418"/><line x1="250" y1="410" x2="250" y2="415"/>
+    <line x1="270" y1="410" x2="270" y2="418"/><line x1="290" y1="410" x2="290" y2="415"/>
+    <line x1="310" y1="410" x2="310" y2="418"/><line x1="330" y1="410" x2="330" y2="415"/>
+  </g>
+  <rect x="124" y="404" width="22" height="24" rx="4" fill="#ca8a04"/>
+  <text x="150" y="442" font-size="13" fill="#f0fdf4" font-weight="600">braking marker: 100 m to the corner</text>
+
+  <!-- marshal with a stopwatch -->
+  <g stroke-linecap="round">
+    <line x1="660" y1="408" x2="652" y2="444" stroke="#0f172a" stroke-width="12"/>
+    <line x1="664" y1="408" x2="672" y2="444" stroke="#0f172a" stroke-width="12"/>
+    <line x1="662" y1="410" x2="662" y2="372" stroke="#f97316" stroke-width="24"/>
+    <line x1="664" y1="378" x2="694" y2="366" stroke="#c08457" stroke-width="6"/>
+  </g>
+  <circle cx="662" cy="352" r="13" fill="#c08457"/>
+  <circle cx="704" cy="360" r="14" fill="#f8fafc" stroke="#0f172a" stroke-width="3"/>
+  <rect x="700" y="340" width="8" height="6" fill="#0f172a"/>
+  <line x1="704" y1="360" x2="711" y2="353" stroke="#dc2626" stroke-width="2"/>
+  <text x="724" y="364" font-size="13" fill="#f0fdf4" font-weight="600">hand timing</text>
+</svg>

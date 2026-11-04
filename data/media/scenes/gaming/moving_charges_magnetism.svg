@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A gaming workbench at night. On the left a bartop arcade cabinet with a CRT screen and a round analogue needle meter on its front panel. In the middle a labelled cutaway panel showing the coil of a pinball flipper, with the current in blue, the field along the axis in purple and a red arrow showing the iron plunger being pulled in. Below it a game controller with its shell off, showing the small magnet under a thumbstick above its sensor chip and a flat haptic coil beside its magnet. A monitor stands in the middle right. On the right an open PC case with a case fan, whose hub holds four coils inside a ring magnet. Across the front of the bench a thick power cable runs, with a phone lying on it whose compass needle has swung well away from north.</title>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#818cf8" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#room)"/>
+  <ellipse cx="400" cy="170" rx="380" ry="180" fill="url(#glow)"/>
+
+  <!-- bench -->
+  <rect x="0" y="330" width="800" height="46" fill="#5b3b28"/>
+  <rect x="0" y="376" width="800" height="74" fill="#3f2a1d"/>
+  <rect x="0" y="330" width="800" height="4" fill="#7c5236"/>
+
+  <!-- ============ left: bartop arcade cabinet with a CRT ============ -->
+  <text x="110" y="46" font-size="11" fill="#bfdbfe" text-anchor="middle" font-weight="600">bartop arcade cabinet</text>
+  <rect x="20" y="56" width="180" height="274" rx="7" fill="#1f2937" stroke="#475569" stroke-width="3"/>
+  <rect x="32" y="66" width="156" height="24" rx="3" fill="#111827"/>
+  <text x="110" y="83" font-size="13" fill="#fbbf24" text-anchor="middle" font-weight="700" letter-spacing="3">RETRO</text>
+
+  <!-- CRT screen -->
+  <rect x="32" y="98" width="156" height="112" rx="5" fill="#050914" stroke="#334155" stroke-width="3"/>
+  <g fill="#34d399">
+    <rect x="46" y="176" width="18" height="10"/><rect x="72" y="176" width="18" height="10"/>
+    <rect x="98" y="176" width="18" height="10"/><rect x="124" y="176" width="18" height="10"/>
+  </g>
+  <rect x="82" y="150" width="14" height="10" fill="#f87171"/>
+  <rect x="120" y="128" width="14" height="10" fill="#f87171"/>
+  <rect x="54" y="128" width="14" height="10" fill="#f87171"/>
+  <rect x="100" y="194" width="14" height="8" fill="#60a5fa"/>
+  <text x="110" y="118" font-size="9" fill="#e9d5ff" text-anchor="middle" letter-spacing="1">INSERT COIN</text>
+
+  <!-- control panel -->
+  <rect x="26" y="218" width="168" height="42" rx="5" fill="#334155"/>
+  <circle cx="58" cy="239" r="9" fill="#ef4444" stroke="#fecaca" stroke-width="1.5"/>
+  <circle cx="84" cy="239" r="9" fill="#facc15" stroke="#fef9c3" stroke-width="1.5"/>
+  <circle cx="110" cy="239" r="9" fill="#38bdf8" stroke="#e0f2fe" stroke-width="1.5"/>
+  <line x1="162" y1="239" x2="162" y2="224" stroke="#94a3b8" stroke-width="4"/>
+  <circle cx="162" cy="222" r="7" fill="#e11d48"/>
+  <ellipse cx="162" cy="242" rx="13" ry="5" fill="#0f172a"/>
+
+  <!-- analogue needle meter on the front -->
+  <circle cx="62" cy="294" r="24" fill="#f8fafc" stroke="#94a3b8" stroke-width="2.5"/>
+  <path d="M 45 284 A 22 22 0 0 1 79 284" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <line x1="62" y1="294" x2="76" y2="280" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="62" cy="294" r="3" fill="#334155"/>
+  <text x="62" y="310" font-size="9" fill="#334155" text-anchor="middle" font-weight="700">A</text>
+  <text x="140" y="290" font-size="10" fill="#e2e8f0" text-anchor="middle">a coil and a</text>
+  <text x="140" y="303" font-size="10" fill="#e2e8f0" text-anchor="middle">spring, nothing</text>
+  <text x="140" y="316" font-size="10" fill="#e2e8f0" text-anchor="middle">electronic</text>
+
+  <!-- ============ middle top: pinball flipper coil cutaway ============ -->
+  <rect x="224" y="74" width="188" height="122" rx="6" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+  <text x="318" y="92" font-size="11" fill="#cbd5e1" text-anchor="middle" font-weight="600">inside a pinball flipper</text>
+
+  <!-- the coil, drawn as open turns so the inside stays visible -->
+  <g fill="none" stroke="#2563eb" stroke-width="2.5">
+    <ellipse cx="302" cy="142" rx="6" ry="22"/><ellipse cx="316" cy="142" rx="6" ry="22"/>
+    <ellipse cx="330" cy="142" rx="6" ry="22"/><ellipse cx="344" cy="142" rx="6" ry="22"/>
+    <ellipse cx="358" cy="142" rx="6" ry="22"/><ellipse cx="372" cy="142" rx="6" ry="22"/>
+    <ellipse cx="386" cy="142" rx="6" ry="22"/>
+  </g>
+  <text x="344" y="112" font-size="10" fill="#93c5fd" text-anchor="middle">current I in the turns</text>
+
+  <!-- field along the axis, purple -->
+  <line x1="300" y1="142" x2="374" y2="142" stroke="#7c3aed" stroke-width="3"/>
+  <polygon points="374,136 390,142 374,148" fill="#7c3aed"/>
+  <text x="344" y="182" font-size="10" fill="#c4b5fd" text-anchor="middle">B along the axis</text>
+
+  <!-- iron plunger and the force pulling it in -->
+  <rect x="234" y="134" width="52" height="16" rx="3" fill="#94a3b8" stroke="#e2e8f0" stroke-width="1.5"/>
+  <line x1="238" y1="124" x2="276" y2="124" stroke="#dc2626" stroke-width="3"/>
+  <polygon points="276,118 290,124 276,130" fill="#dc2626"/>
+  <text x="258" y="168" font-size="10" fill="#fca5a5" text-anchor="middle">plunger</text>
+
+  <!-- ============ middle bottom: controller with the shell off ============ -->
+  <text x="318" y="214" font-size="11" fill="#bfdbfe" text-anchor="middle" font-weight="600">controller, shell off</text>
+  <text x="266" y="234" font-size="10" fill="#bbf7d0" text-anchor="middle">magnet + sensor</text>
+  <text x="378" y="234" font-size="10" fill="#93c5fd" text-anchor="middle">haptic coil</text>
+  <rect x="228" y="246" width="184" height="84" rx="26" fill="#1f2937" stroke="#64748b" stroke-width="2.5"/>
+
+  <!-- thumbstick with a magnet under it, over a sensor chip -->
+  <circle cx="270" cy="270" r="15" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="256" y="290" width="14" height="11" fill="#dc2626"/>
+  <rect x="270" y="290" width="14" height="11" fill="#2563eb"/>
+  <rect x="254" y="308" width="32" height="13" rx="2" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+
+  <!-- haptic coil and its magnet -->
+  <g fill="none" stroke="#2563eb" stroke-width="2.5">
+    <ellipse cx="344" cy="278" rx="5" ry="14"/><ellipse cx="358" cy="278" rx="5" ry="14"/>
+    <ellipse cx="372" cy="278" rx="5" ry="14"/><ellipse cx="386" cy="278" rx="5" ry="14"/>
+  </g>
+  <rect x="338" y="302" width="26" height="13" fill="#dc2626"/>
+  <rect x="364" y="302" width="26" height="13" fill="#2563eb"/>
+
+  <!-- ============ middle right: monitor ============ -->
+  <rect x="430" y="96" width="156" height="126" rx="6" fill="#020617" stroke="#475569" stroke-width="3"/>
+  <rect x="440" y="106" width="136" height="106" fill="#050914"/>
+  <path d="M 452 200 L 490 132 L 526 132 L 564 200 z" fill="#1e293b"/>
+  <line x1="470" y1="200" x2="498" y2="132" stroke="#facc15" stroke-width="2" stroke-dasharray="8 8"/>
+  <rect x="448" y="112" width="44" height="7" rx="3" fill="#22c55e"/>
+  <rect x="448" y="112" width="44" height="7" rx="3" fill="none" stroke="#065f46" stroke-width="1"/>
+  <rect x="494" y="222" width="28" height="42" fill="#334155"/>
+  <rect x="466" y="264" width="84" height="9" rx="4" fill="#334155"/>
+
+  <!-- ============ right: PC case with a fan ============ -->
+  <text x="690" y="52" font-size="11" fill="#bfdbfe" text-anchor="middle" font-weight="600">case fan: coils in a ring magnet</text>
+  <rect x="596" y="60" width="188" height="270" rx="7" fill="#0f172a" stroke="#475569" stroke-width="3"/>
+  <rect x="608" y="70" width="164" height="250" fill="#111827"/>
+
+  <!-- fan -->
+  <rect x="632" y="84" width="116" height="116" rx="8" fill="#0b1220" stroke="#475569" stroke-width="2.5"/>
+  <circle cx="690" cy="142" r="50" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+  <g fill="#334155" stroke="#64748b" stroke-width="1.5">
+    <path d="M 690 114 Q 728 112 734 142 Q 712 132 690 114 z"/>
+    <path d="M 714 128 Q 734 160 710 178 Q 710 154 714 128 z"/>
+    <path d="M 712 156 Q 700 192 670 180 Q 692 170 712 156 z"/>
+    <path d="M 690 170 Q 652 172 646 142 Q 668 152 690 170 z"/>
+    <path d="M 666 156 Q 646 124 670 106 Q 670 130 666 156 z"/>
+    <path d="M 668 128 Q 680 92 710 104 Q 688 114 668 128 z"/>
+  </g>
+  <circle cx="690" cy="142" r="27" fill="#0b1220" stroke="#7c3aed" stroke-width="6"/>
+  <g fill="none" stroke="#2563eb" stroke-width="2.5">
+    <rect x="682" y="122" width="16" height="12"/>
+    <rect x="682" y="150" width="16" height="12"/>
+    <rect x="664" y="136" width="12" height="12"/>
+    <rect x="704" y="136" width="12" height="12"/>
+  </g>
+  <text x="690" y="214" font-size="10" fill="#c4b5fd" text-anchor="middle">purple ring = magnet, blue = coils</text>
+
+  <!-- graphics card and cables -->
+  <rect x="616" y="238" width="140" height="26" rx="3" fill="#1f2937" stroke="#64748b" stroke-width="1.5"/>
+  <circle cx="648" cy="251" r="8" fill="#334155" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="686" cy="251" r="8" fill="#334155" stroke="#94a3b8" stroke-width="1"/>
+  <rect x="616" y="284" width="140" height="7" rx="3" fill="#7c3aed" opacity="0.8"/>
+
+  <!-- ============ front of the bench: power cable and a phone ============ -->
+  <polyline points="660,338 540,350 380,344 210,352 96,346" fill="none" stroke="#111827" stroke-width="11" stroke-linecap="round"/>
+  <polyline points="660,338 540,350 380,344 210,352 96,346" fill="none" stroke="#3b3f4a" stroke-width="4" stroke-linecap="round"/>
+
+  <rect x="436" y="330" width="86" height="44" rx="7" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="479" cy="352" r="18" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/>
+  <text x="479" y="342" font-size="8" fill="#334155" text-anchor="middle" font-weight="700">N</text>
+  <line x1="479" y1="352" x2="493" y2="363" stroke="#dc2626" stroke-width="3"/>
+  <line x1="479" y1="352" x2="465" y2="341" stroke="#64748b" stroke-width="3"/>
+  <circle cx="479" cy="352" r="2.5" fill="#334155"/>
+  <text x="479" y="392" font-size="11" fill="#fde68a" text-anchor="middle">the compass app swings only here —</text>
+  <text x="479" y="407" font-size="11" fill="#fde68a" text-anchor="middle">right over the cable feeding the rig</text>
+  <text x="150" y="400" font-size="11" fill="#e5e7eb" text-anchor="middle">every machine on this bench</text>
+  <text x="150" y="415" font-size="11" fill="#e5e7eb" text-anchor="middle">runs on a current in a magnetic field</text>
+</svg>

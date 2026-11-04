@@ -1,0 +1,258 @@
+<title>EcoLearn India Numbers</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one reading column of chart cards, the calculator last; the house palette of the EcoLearn app */
+:root{
+  --bg:#FFFFFF; --card:#F8F8F4; --line:#DEDFD4; --ink:#202A27; --muted:#5F6862;
+  --brand:#26745D; --brand-soft:#B9D8C8; --orange:#E99B61; --orange-soft:#F2C3A0; --gold:#E6BD4D; --track:#EBEAE1;
+  --display:'Trebuchet MS', Tahoma, sans-serif; --body:'Nunito Sans', 'Segoe UI', Tahoma, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17231F; --card:#202E29; --line:#394940; --ink:#F1F2E7; --muted:#A2AEA4;
+  --brand:#79C29B; --brand-soft:#3B6150; --orange:#EC9575; --orange-soft:#8A5A40; --gold:#E6BD4D; --track:#293A33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17231F; --card:#202E29; --line:#394940; --ink:#F1F2E7; --muted:#A2AEA4;
+  --brand:#79C29B; --brand-soft:#3B6150; --orange:#EC9575; --orange-soft:#8A5A40; --gold:#E6BD4D; --track:#293A33; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);margin:0}
+h1,h2{font-family:var(--display);letter-spacing:-.02em;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.1}
+h2{font-size:clamp(22px,3vw,28px);line-height:1.2}
+p{margin:0}
+.lede{font-size:18px;color:var(--muted);max-width:64ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:720px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.chart{position:relative;height:320px}
+.chart.short{height:260px}
+.note{font-size:14px;color:var(--muted)}
+.src{font-size:13px;color:var(--muted)}
+.src a{color:var(--brand)}
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+@media (max-width:720px){.calc{grid-template-columns:minmax(0,1fr)}}
+label{font-weight:700;display:flex;justify-content:space-between;gap:12px}
+label output{font-variant-numeric:tabular-nums;color:var(--brand)}
+input[type=range]{width:100%;accent-color:var(--brand)}
+input[type=range]:focus-visible{outline:2px solid var(--brand);outline-offset:4px}
+.controls{display:flex;flex-direction:column;gap:20px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi b{display:block;font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+.chips button:hover,.chips button:focus-visible{border-color:var(--brand);outline:none}
+ul.sources{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+ul.sources a{color:var(--brand)}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <p class="eyebrow">EcoLearn · Class 11 and 12 physics in India</p>
+    <h1>India’s numbers, and what EcoLearn can reach</h1>
+    <p class="lede">Hover or tap any chart for the exact figure. The calculator at the end uses our assumed price and our estimated AI cost; change them to see what moves.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-enrol">
+    <p class="eyebrow">Students</p>
+    <h2 id="h-enrol">2.7 to 2.9 crore students in Class 11 and 12 every year</h2>
+    <div class="chart"><canvas id="cEnrol" aria-label="Higher secondary enrolment by year, crore"></canvas></div>
+    <p class="src">UDISE+ 2021-22 to 2025-26, higher secondary (Classes 11-12), as analysed by <a href="https://educationforallinindia.com/status-of-school-education-in-india-an-analysis-based-on-udise-2021-22-to-2024-25/">educationforallinindia.com</a>.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-exams">
+    <p class="eyebrow">Physics exams, 2025</p>
+    <h2 id="h-exams">Lakhs of students sit an exam with physics in it</h2>
+    <div class="chart short"><canvas id="cExams" aria-label="NEET UG, CBSE Class 12 and JEE Main candidates 2025, lakh"></canvas></div>
+    <p class="note">The groups overlap (many take both NEET and JEE, and most are also board students), so they don’t add up.</p>
+    <p class="src">NTA: <a href="https://medicine.careers360.com/articles/how-many-students-registered-for-neet-2025">NEET UG 2025</a>, <a href="https://myexam.allen.in/wp-content/uploads/2025/04/JEE-Main-2025-Result-Official-notice_compressed.pdf">JEE Main 2025 notice</a>; <a href="https://news.careers360.com/cbse-class-12-board-results-2025-declared-over-17-lakh-at-cbseresults-nic-in-88-39-pass-digilocker-download">CBSE Class 12 results 2025</a>.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="h-coach">
+      <p class="eyebrow">Private coaching</p>
+      <h2 id="h-coach">Who pays for coaching in Class 11-12</h2>
+      <div class="chips" role="group" aria-label="Choose area">
+        <button type="button" id="bUrban" aria-pressed="true">Urban</button>
+        <button type="button" id="bRural" aria-pressed="false">Rural</button>
+      </div>
+      <div class="chart short"><canvas id="cCoach" aria-label="Share of higher secondary students taking private coaching"></canvas></div>
+      <p class="src"><a href="https://news.careers360.com/27-of-students-rely-on-private-coaching-urban-participation-higher-cms-education-survey-2025">NSS CMS: Education 2025</a> (MoSPI), higher secondary.</p>
+    </section>
+    <section class="card" aria-labelledby="h-spend">
+      <p class="eyebrow">Spend per student, per year</p>
+      <h2 id="h-spend">EcoLearn next to what families pay</h2>
+      <div class="chart short"><canvas id="cSpend" aria-label="Coaching spend per year urban and rural, and EcoLearn assumed price"></canvas></div>
+      <p class="note">EcoLearn’s Rs 1,200 a year (Rs 100 a month) is our assumption, not a decided price.</p>
+      <p class="src"><a href="https://educationforallinindia.com/is-school-education-in-india-truly-free-nsso-cms-education-2025/">NSS CMS: Education 2025</a>, higher secondary coaching spend.</p>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="h-phone">
+    <p class="eyebrow">Access</p>
+    <h2 id="h-phone">The phone is already at home</h2>
+    <div class="grid2">
+      <div class="chart short"><canvas id="cPhone" aria-label="Rural 14-16 year olds with a smartphone at home"></canvas></div>
+      <div class="chart short"><canvas id="cPhoneUse" aria-label="Rural 14-16 year olds who can use or own a smartphone"></canvas></div>
+    </div>
+    <p class="src"><a href="https://pib.gov.in/FactsheetDetails.aspx?Id=149118">ASER 2024 (Rural)</a>, 14-16 year olds, self-reported.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-calc">
+    <p class="eyebrow">The value it can reach</p>
+    <h2 id="h-calc">What a share of Class 11-12 is worth</h2>
+    <div class="calc">
+      <div class="controls">
+        <div><label for="reach">Students reached <output id="oReach">1.0%</output></label><input id="reach" type="range" min="0.1" max="20" step="0.1" value="1"></div>
+        <div><label for="price">Price per month <output id="oPrice">Rs 100</output></label><input id="price" type="range" min="25" max="300" step="5" value="100"></div>
+        <div><label for="aicost">AI cost per student per year <output id="oAi">Rs 63</output></label><input id="aicost" type="range" min="20" max="600" step="1" value="63"></div>
+        <p class="note">Base: 2,88,59,146 students (UDISE+ 2025-26). AI cost default Rs 63 a year: our model with lessons written once per kind of learner and reused (Gemini Flash-Lite prices). An estimate, not a measurement.</p>
+      </div>
+      <div class="controls">
+        <div class="kpis">
+          <div class="kpi"><b id="kStudents">2.89 lakh</b><span>students</span></div>
+          <div class="kpi"><b id="kRevenue">Rs 34.6 cr</b><span>revenue a year</span></div>
+          <div class="kpi"><b id="kAi">Rs 1.8 cr</b><span>AI cost a year</span></div>
+          <div class="kpi"><b id="kShare">5.3%</b><span>AI cost as share of price</span></div>
+        </div>
+        <div class="chart short"><canvas id="cValue" aria-label="Revenue per year by share of students reached"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-src">
+    <h2 id="h-src">Sources and limits</h2>
+    <ul class="sources">
+      <li>Enrolment: Ministry of Education UDISE+ reports, via analyses on educationforallinindia.com (not the official tables directly).</li>
+      <li>Exams: National Testing Agency (NEET UG, JEE Main 2025); CBSE Class 12 results, 13 May 2025.</li>
+      <li>Coaching: NSS 80th round, Comprehensive Modular Survey: Education 2025, higher secondary level.</li>
+      <li>Phones: ASER 2024 (Rural), 6,49,491 children in 605 districts.</li>
+      <li>Price, reach and AI cost are EcoLearn’s assumptions and estimates, not results. Figures checked 28 Oct 2026.</li>
+    </ul>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script>
+(function(){
+  var BASE = 28859146;
+  var charts = [];
+  function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function inr(v){ return 'Rs ' + Math.round(v).toLocaleString('en-IN'); }
+  function crore(v){ return v >= 1e7 ? (v/1e7).toFixed(v >= 1e9 ? 0 : 1) + ' cr' : (v/1e5).toFixed(1) + ' lakh'; }
+  function people(n){ return n >= 1e7 ? (n/1e7).toFixed(2) + ' crore' : (n/1e5).toFixed(2) + ' lakh'; }
+  var area = 'urban';
+
+  function build(){
+    charts.forEach(function(c){ c.destroy(); }); charts = [];
+    if (!window.Chart) return;
+    var ink = tok('--ink'), muted = tok('--muted'), line = tok('--line'), brand = tok('--brand'),
+        soft = tok('--brand-soft'), orange = tok('--orange'), osoft = tok('--orange-soft'), gold = tok('--gold'), track = tok('--track');
+    Chart.defaults.font.family = "'Nunito Sans', 'Segoe UI', Tahoma, sans-serif";
+    Chart.defaults.font.size = 14;
+    Chart.defaults.color = muted;
+    var grid = { color: line }, noGrid = { display: false };
+
+    charts.push(new Chart(document.getElementById('cEnrol'), {
+      type: 'bar',
+      data: { labels: ['2021-22','2022-23','2023-24','2024-25','2025-26'],
+        datasets: [{ data: [2.86,2.78,2.71,2.76,2.89], backgroundColor: [soft,soft,soft,soft,brand], borderRadius: 8 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: function(c){ return c.raw.toFixed(2) + ' crore students'; } } } },
+        scales: { y: { beginAtZero: true, max: 3.5, grid: grid, title: { display: true, text: 'crore students' } }, x: { grid: noGrid } } }
+    }));
+
+    charts.push(new Chart(document.getElementById('cExams'), {
+      type: 'bar',
+      data: { labels: ['NEET UG (registered)','CBSE Class 12 (appeared)','JEE Main (registered, unique)'],
+        datasets: [{ data: [22.76,16.93,15.40], backgroundColor: [orange, brand, gold], borderRadius: 8 }] },
+      options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: function(c){ return c.raw.toFixed(2) + ' lakh students'; } } } },
+        scales: { x: { beginAtZero: true, grid: grid, title: { display: true, text: 'lakh students' } }, y: { grid: noGrid, ticks: { color: ink } } } }
+    }));
+
+    var share = area === 'urban' ? 44.6 : 33.1;
+    charts.push(new Chart(document.getElementById('cCoach'), {
+      type: 'doughnut',
+      data: { labels: ['Take coaching','Don’t'], datasets: [{ data: [share, +(100-share).toFixed(1)], backgroundColor: [area === 'urban' ? orange : osoft, track], borderColor: tok('--card'), borderWidth: 3 }] },
+      options: { maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { color: ink } },
+          tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.raw + '%'; } } } } },
+      plugins: [{ id: 'center', afterDraw: function(ch){ var a = ch.chartArea, x = (a.left+a.right)/2, y = (a.top+a.bottom)/2, g = ch.ctx;
+        g.save(); g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = "800 30px 'Trebuchet MS', Tahoma, sans-serif";
+        g.fillText(share + '%', x, y); g.restore(); } }]
+    }));
+
+    charts.push(new Chart(document.getElementById('cSpend'), {
+      type: 'bar',
+      data: { labels: ['Urban coaching','Rural coaching','EcoLearn (assumed)'],
+        datasets: [{ data: [9950,4548,1200], backgroundColor: [orange, osoft, brand], borderRadius: 8 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: function(c){ return inr(c.raw) + ' a year'; } } } },
+        scales: { y: { beginAtZero: true, grid: grid, ticks: { callback: function(v){ return 'Rs ' + v.toLocaleString('en-IN'); } } }, x: { grid: noGrid, ticks: { color: ink } } } }
+    }));
+
+    charts.push(new Chart(document.getElementById('cPhone'), {
+      type: 'doughnut',
+      data: { labels: ['Smartphone at home','No smartphone'], datasets: [{ data: [90,10], backgroundColor: [brand, track], borderColor: tok('--card'), borderWidth: 3 }] },
+      options: { maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { color: ink } },
+          tooltip: { callbacks: { label: function(c){ return c.label + ': about ' + c.raw + '%'; } } } } },
+      plugins: [{ id: 'center2', afterDraw: function(ch){ var a = ch.chartArea, g = ch.ctx; g.save(); g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.font = "800 30px 'Trebuchet MS', Tahoma, sans-serif"; g.fillText('~90%', (a.left+a.right)/2, (a.top+a.bottom)/2); g.restore(); } }]
+    }));
+
+    charts.push(new Chart(document.getElementById('cPhoneUse'), {
+      type: 'bar',
+      data: { labels: ['Can use one','Boys who own one','Girls who own one'], datasets: [{ data: [82.2,36.2,26.9], backgroundColor: [brand, gold, orange], borderRadius: 8 }] },
+      options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: function(c){ return c.raw + '%'; } } } },
+        scales: { x: { beginAtZero: true, max: 100, grid: grid, ticks: { callback: function(v){ return v + '%'; } } }, y: { grid: noGrid, ticks: { color: ink } } } }
+    }));
+
+    var vc = new Chart(document.getElementById('cValue'), {
+      type: 'line',
+      data: { labels: [], datasets: [
+        { label: 'Revenue a year', data: [], borderColor: brand, backgroundColor: soft, fill: true, tension: .2, pointRadius: 0 },
+        { label: 'AI cost a year', data: [], borderColor: orange, backgroundColor: 'transparent', tension: .2, pointRadius: 0 },
+        { label: 'You are here', data: [], type: 'scatter', backgroundColor: ink, pointRadius: 6 } ] },
+      options: { maintainAspectRatio: false, parsing: false, interaction: { mode: 'nearest', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { color: ink, boxWidth: 12 } },
+          tooltip: { callbacks: { title: function(it){ return it[0].parsed.x.toFixed(1) + '% of students'; }, label: function(c){ return c.dataset.label + ': Rs ' + (c.parsed.y).toFixed(1) + ' crore'; } } } },
+        scales: { x: { type: 'linear', min: 0, max: 20, grid: grid, ticks: { callback: function(v){ return v + '%'; } }, title: { display: true, text: 'share of Class 11-12 students reached' } },
+                  y: { beginAtZero: true, grid: grid, title: { display: true, text: 'Rs crore a year' } } } }
+    });
+    charts.push(vc);
+    window.__vc = vc;
+    calc();
+  }
+
+  function calc(){
+    var reach = +document.getElementById('reach').value, price = +document.getElementById('price').value, ai = +document.getElementById('aicost').value;
+    var n = BASE * reach / 100, rev = n * price * 12, cost = n * ai;
+    document.getElementById('oReach').textContent = reach.toFixed(1) + '%';
+    document.getElementById('oPrice').textContent = 'Rs ' + price;
+    document.getElementById('oAi').textContent = 'Rs ' + ai;
+    document.getElementById('kStudents').textContent = people(n);
+    document.getElementById('kRevenue').textContent = 'Rs ' + crore(rev);
+    document.getElementById('kAi').textContent = 'Rs ' + crore(cost);
+    document.getElementById('kShare').textContent = (100 * ai / (price * 12)).toFixed(1) + '%';
+    var vc = window.__vc; if (!vc) return;
+    var r = [], c = [];
+    for (var p = 0; p <= 20.0001; p += 0.5){ var k = BASE * p / 100; r.push({ x: p, y: k * price * 12 / 1e7 }); c.push({ x: p, y: k * ai / 1e7 }); }
+    vc.data.datasets[0].data = r; vc.data.datasets[1].data = c; vc.data.datasets[2].data = [{ x: reach, y: rev / 1e7 }];
+    vc.update('none');
+  }
+
+  ['reach','price','aicost'].forEach(function(id){ document.getElementById(id).addEventListener('input', calc); });
+  function setArea(a){ area = a; document.getElementById('bUrban').setAttribute('aria-pressed', a === 'urban'); document.getElementById('bRural').setAttribute('aria-pressed', a === 'rural');
+    document.getElementById('bUrban').style.borderColor = a === 'urban' ? tok('--brand') : ''; document.getElementById('bRural').style.borderColor = a === 'rural' ? tok('--brand') : ''; build(); }
+  document.getElementById('bUrban').addEventListener('click', function(){ setArea('urban'); });
+  document.getElementById('bRural').addEventListener('click', function(){ setArea('rural'); });
+  if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', build); } catch(e){} }
+  new MutationObserver(build).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches && window.Chart) Chart.defaults.animation = false;
+  setArea('urban');
+})();
+</script>

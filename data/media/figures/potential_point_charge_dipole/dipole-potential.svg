@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">An electric dipole: charge minus q and plus q a distance 2a apart, dipole moment p pointing from minus to plus, a point P at distance r from the centre at angle theta to the axis, and the equatorial line where the potential is zero</title>
+  <defs>
+    <marker id="pa" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+  </defs>
+  <rect width="640" height="380" fill="#ffffff"/>
+
+  <!-- axis and equatorial line -->
+  <line x1="60" y1="240" x2="600" y2="240" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="560" y="262" font-size="13" fill="#374151">axis</text>
+  <line x1="240" y1="40" x2="240" y2="366" stroke="#ea580c" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="248" y="360" font-size="13" fill="#ea580c" font-weight="700">equatorial line: V = 0</text>
+
+  <!-- charges -->
+  <circle cx="200" cy="240" r="13" fill="#2563eb"/>
+  <text x="200" y="246" font-size="18" text-anchor="middle" fill="#fff" font-weight="700">−</text>
+  <circle cx="280" cy="240" r="13" fill="#dc2626"/>
+  <text x="280" y="246" font-size="18" text-anchor="middle" fill="#fff" font-weight="700">+</text>
+  <text x="200" y="298" font-size="14" text-anchor="middle" fill="#111827">−q</text>
+  <text x="280" y="298" font-size="14" text-anchor="middle" fill="#111827">+q</text>
+  <!-- 2a marker -->
+  <line x1="200" y1="310" x2="280" y2="310" stroke="#374151" stroke-width="1.5"/>
+  <line x1="200" y1="304" x2="200" y2="316" stroke="#374151" stroke-width="1.5"/>
+  <line x1="280" y1="304" x2="280" y2="316" stroke="#374151" stroke-width="1.5"/>
+  <text x="214" y="332" font-size="14" fill="#374151">2a</text>
+
+  <!-- dipole moment -->
+  <line x1="196" y1="266" x2="276" y2="266" stroke="#16a34a" stroke-width="3" marker-end="url(#pa)"/>
+  <text x="180" y="272" font-size="16" fill="#16a34a" font-weight="700">p</text>
+
+  <!-- point P at angle theta = 40 degrees -->
+  <line x1="240" y1="240" x2="393" y2="111" stroke="#111827" stroke-width="2" stroke-dasharray="5 4"/>
+  <circle cx="393" cy="111" r="6" fill="#111827"/>
+  <text x="403" y="104" font-size="16" fill="#111827" font-weight="700">P</text>
+  <text x="300" y="164" font-size="15" fill="#111827" font-weight="700">r</text>
+  <path d="M 300 240 A 60 60 0 0 0 286 201" fill="none" stroke="#111827" stroke-width="1.5"/>
+  <text x="306" y="224" font-size="15" fill="#111827">θ</text>
+  <text x="224" y="232" font-size="13" fill="#374151">O</text>
+
+  <!-- formula box -->
+  <rect x="420" y="150" width="200" height="74" rx="8" fill="#f0fdf4" stroke="#16a34a"/>
+  <text x="520" y="178" font-size="15" text-anchor="middle" fill="#111827" font-weight="700">V = p cos θ / (4πε₀r²)</text>
+  <text x="520" y="200" font-size="13" text-anchor="middle" fill="#374151">for r much larger than a</text>
+  <text x="520" y="216" font-size="13" text-anchor="middle" fill="#374151">p = q × 2a</text>
+</svg>

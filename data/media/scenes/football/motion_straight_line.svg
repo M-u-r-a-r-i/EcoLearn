@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A winger dribbles the ball along the touchline towards goal while a defender chases from behind and the goalkeeper comes off the line; a number line along the touchline marks an origin and a positive direction</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <marker id="vb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/>
+    </marker>
+  </defs>
+
+  <!-- sky and stands -->
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <path d="M0,215 Q400,150 800,215 L800,262 L0,262 z" fill="#1e3a8a"/>
+  <path d="M0,232 Q400,172 800,232 L800,262 L0,262 z" fill="#3b5bdb"/>
+  <g fill="#f8fafc" opacity="0.55">
+    <circle cx="90" cy="222" r="3"/><circle cx="160" cy="214" r="3"/><circle cx="250" cy="205" r="3"/>
+    <circle cx="330" cy="199" r="3"/><circle cx="420" cy="197" r="3"/><circle cx="520" cy="202" r="3"/>
+  </g>
+
+  <!-- floodlight, left -->
+  <rect x="36" y="70" width="8" height="150" fill="#64748b"/>
+  <rect x="14" y="52" width="52" height="24" rx="3" fill="#334155"/>
+  <g fill="#fef9c3"><circle cx="24" cy="64" r="5"/><circle cx="40" cy="64" r="5"/><circle cx="56" cy="64" r="5"/></g>
+
+  <!-- tracking board, right -->
+  <rect x="618" y="118" width="8" height="100" fill="#64748b"/>
+  <rect x="734" y="118" width="8" height="100" fill="#64748b"/>
+  <rect x="590" y="36" width="180" height="86" rx="6" fill="#0f172a"/>
+  <text x="680" y="62" font-size="14" fill="#94a3b8" text-anchor="middle" letter-spacing="2">PLAYER TRACKING</text>
+  <text x="680" y="104" font-size="30" font-weight="700" fill="#fbbf24" text-anchor="middle">7.8 m/s</text>
+
+  <!-- striped grass -->
+  <rect x="0" y="262" width="800" height="188" fill="#22c55e"/>
+  <rect x="0" y="286" width="800" height="30" fill="#16a34a"/>
+  <rect x="0" y="352" width="800" height="40" fill="#16a34a"/>
+  <rect x="0" y="428" width="800" height="22" fill="#16a34a"/>
+
+  <!-- touchline the players run along -->
+  <line x1="0" y1="392" x2="800" y2="392" stroke="#ffffff" stroke-width="3"/>
+
+  <!-- goal, side view, at the right -->
+  <g stroke="#e2e8f0" stroke-width="1" opacity="0.85">
+    <line x1="728" y1="300" x2="784" y2="392"/>
+    <line x1="740" y1="300" x2="790" y2="370"/>
+    <line x1="752" y1="300" x2="794" y2="350"/>
+    <line x1="710" y1="330" x2="770" y2="330"/>
+    <line x1="710" y1="360" x2="780" y2="360"/>
+  </g>
+  <path d="M710,392 L710,300 L760,300 L792,392" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- defender (purple), chasing -->
+  <g stroke-linecap="round">
+    <line x1="200" y1="332" x2="178" y2="384" stroke="#334155" stroke-width="14"/>
+    <line x1="200" y1="332" x2="178" y2="384" stroke="#1e293b" stroke-width="10"/>
+    <line x1="200" y1="332" x2="226" y2="376" stroke="#334155" stroke-width="14"/>
+    <line x1="200" y1="332" x2="226" y2="376" stroke="#1e293b" stroke-width="10"/>
+    <line x1="200" y1="334" x2="212" y2="290" stroke="#334155" stroke-width="22"/>
+    <line x1="200" y1="334" x2="212" y2="290" stroke="#7c3aed" stroke-width="18"/>
+    <line x1="210" y1="298" x2="190" y2="318" stroke="#334155" stroke-width="9"/>
+    <line x1="210" y1="298" x2="190" y2="318" stroke="#92400e" stroke-width="5"/>
+    <line x1="212" y1="298" x2="234" y2="312" stroke="#334155" stroke-width="9"/>
+    <line x1="212" y1="298" x2="234" y2="312" stroke="#92400e" stroke-width="5"/>
+  </g>
+  <circle cx="218" cy="272" r="12" fill="#92400e" stroke="#334155" stroke-width="2"/>
+  <rect x="170" y="382" width="16" height="7" rx="3" fill="#0f172a"/>
+  <rect x="222" y="372" width="16" height="7" rx="3" fill="#0f172a"/>
+
+  <!-- winger (orange), dribbling -->
+  <g stroke-linecap="round">
+    <line x1="400" y1="332" x2="380" y2="386" stroke="#334155" stroke-width="14"/>
+    <line x1="400" y1="332" x2="380" y2="386" stroke="#f8fafc" stroke-width="10"/>
+    <line x1="400" y1="332" x2="428" y2="372" stroke="#334155" stroke-width="14"/>
+    <line x1="400" y1="332" x2="428" y2="372" stroke="#f8fafc" stroke-width="10"/>
+    <line x1="400" y1="334" x2="410" y2="290" stroke="#334155" stroke-width="22"/>
+    <line x1="400" y1="334" x2="410" y2="290" stroke="#f97316" stroke-width="18"/>
+    <line x1="408" y1="298" x2="386" y2="316" stroke="#334155" stroke-width="9"/>
+    <line x1="408" y1="298" x2="386" y2="316" stroke="#a16207" stroke-width="5"/>
+    <line x1="410" y1="298" x2="432" y2="314" stroke="#334155" stroke-width="9"/>
+    <line x1="410" y1="298" x2="432" y2="314" stroke="#a16207" stroke-width="5"/>
+  </g>
+  <circle cx="416" cy="272" r="12" fill="#a16207" stroke="#334155" stroke-width="2"/>
+  <rect x="372" y="384" width="16" height="7" rx="3" fill="#0f172a"/>
+  <rect x="424" y="368" width="16" height="7" rx="3" fill="#0f172a"/>
+
+  <!-- ball -->
+  <circle cx="470" cy="381" r="10" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+  <polygon points="470,377 474,380 472,385 468,385 466,380" fill="#0f172a"/>
+
+  <!-- goalkeeper (yellow), coming off the line -->
+  <g stroke-linecap="round">
+    <line x1="646" y1="340" x2="630" y2="388" stroke="#334155" stroke-width="14"/>
+    <line x1="646" y1="340" x2="630" y2="388" stroke="#1e293b" stroke-width="10"/>
+    <line x1="646" y1="340" x2="664" y2="388" stroke="#334155" stroke-width="14"/>
+    <line x1="646" y1="340" x2="664" y2="388" stroke="#1e293b" stroke-width="10"/>
+    <line x1="646" y1="342" x2="646" y2="298" stroke="#334155" stroke-width="22"/>
+    <line x1="646" y1="342" x2="646" y2="298" stroke="#facc15" stroke-width="18"/>
+    <line x1="640" y1="304" x2="620" y2="326" stroke="#334155" stroke-width="9"/>
+    <line x1="640" y1="304" x2="620" y2="326" stroke="#facc15" stroke-width="5"/>
+    <line x1="652" y1="304" x2="672" y2="326" stroke="#334155" stroke-width="9"/>
+    <line x1="652" y1="304" x2="672" y2="326" stroke="#facc15" stroke-width="5"/>
+  </g>
+  <circle cx="620" cy="328" r="5" fill="#16a34a"/>
+  <circle cx="672" cy="328" r="5" fill="#16a34a"/>
+  <circle cx="646" cy="280" r="12" fill="#78350f" stroke="#334155" stroke-width="2"/>
+  <rect x="622" y="386" width="16" height="7" rx="3" fill="#0f172a"/>
+  <rect x="658" y="386" width="16" height="7" rx="3" fill="#0f172a"/>
+
+  <!-- velocity arrows (blue): the defender's is longer, the keeper's points back -->
+  <g fill="#ffffff" opacity="0.9">
+    <rect x="180" y="234" width="108" height="24" rx="12"/>
+    <rect x="380" y="234" width="94" height="24" rx="12"/>
+    <rect x="606" y="244" width="70" height="24" rx="12"/>
+  </g>
+  <line x1="190" y1="246" x2="276" y2="246" stroke="#2563eb" stroke-width="5" marker-end="url(#vb)"/>
+  <line x1="390" y1="246" x2="462" y2="246" stroke="#2563eb" stroke-width="5" marker-end="url(#vb)"/>
+  <line x1="664" y1="256" x2="618" y2="256" stroke="#2563eb" stroke-width="5" marker-end="url(#vb)"/>
+
+  <!-- number line: origin and positive direction -->
+  <line x1="30" y1="418" x2="770" y2="418" stroke="#0f172a" stroke-width="2.5" marker-end="url(#ax)"/>
+  <g stroke="#0f172a" stroke-width="2">
+    <line x1="100" y1="411" x2="100" y2="425"/><line x1="220" y1="413" x2="220" y2="423"/>
+    <line x1="340" y1="413" x2="340" y2="423"/><line x1="460" y1="413" x2="460" y2="423"/>
+    <line x1="580" y1="413" x2="580" y2="423"/><line x1="700" y1="413" x2="700" y2="423"/>
+  </g>
+  <rect x="84" y="426" width="32" height="20" rx="4" fill="#ffffff"/>
+  <text x="100" y="441" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">O</text>
+  <rect x="728" y="426" width="44" height="20" rx="4" fill="#ffffff"/>
+  <text x="750" y="441" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">+x</text>
+</svg>

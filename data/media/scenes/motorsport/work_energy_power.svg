@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A circuit seen from the side: a hill road drops from the left onto the track, with a car coasting down it; a car runs along the straight with a blue velocity arrow and speed lines; a third car brakes with glowing red discs and a red braking-force arrow pointing backwards; and in the grass in front, two people push a kart with a red force arrow</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fef08a"/>
+      <stop offset="0.55" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#fb923c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+
+  <!-- hills -->
+  <path d="M0,158 Q160,120 340,154 T800,146 L800,222 L0,222 z" fill="#86efac"/>
+
+  <!-- hill road dropping from the left down onto the circuit -->
+  <polygon points="24,140 240,214 228,240 12,166" fill="#9ca3af"/>
+  <text x="14" y="130" font-size="13" fill="#0f172a" font-weight="700">hill road: height turns into speed</text>
+
+  <!-- car coasting down the hill road, engine off -->
+  <g transform="translate(80,158) scale(0.3) rotate(19)">
+    <rect x="0" y="14" width="46" height="12" fill="#0f172a"/>
+    <path d="M20,28 L80,16 L170,14 L240,26 L256,40 L240,50 L170,54 L80,52 L20,46 z" fill="#ea580c"/>
+    <rect x="240" y="18" width="20" height="34" fill="#0f172a"/>
+    <path d="M130,16 Q145,0 168,8 L170,18 z" fill="#1e293b"/>
+    <circle cx="152" cy="11" r="7" fill="#facc15"/>
+    <rect x="45" y="4" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="45" y="42" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="190" y="6" width="36" height="16" rx="6" fill="#111827"/>
+    <rect x="190" y="44" width="36" height="16" rx="6" fill="#111827"/>
+  </g>
+
+  <!-- kerb, tarmac and edge line -->
+  <rect x="0" y="220" width="800" height="10" fill="#e5e7eb"/>
+  <g fill="#dc2626">
+    <rect x="0" y="223" width="40" height="5"/><rect x="80" y="223" width="40" height="5"/>
+    <rect x="160" y="223" width="40" height="5"/><rect x="240" y="223" width="40" height="5"/>
+    <rect x="320" y="223" width="40" height="5"/><rect x="400" y="223" width="40" height="5"/>
+    <rect x="480" y="223" width="40" height="5"/><rect x="560" y="223" width="40" height="5"/>
+    <rect x="640" y="223" width="40" height="5"/><rect x="720" y="223" width="40" height="5"/>
+  </g>
+  <rect x="0" y="230" width="800" height="128" fill="#475569"/>
+  <rect x="0" y="352" width="800" height="5" fill="#f8fafc"/>
+
+  <!-- speed lines behind the car on the straight -->
+  <g stroke="#cbd5e1" stroke-width="4" stroke-linecap="round">
+    <line x1="196" y1="262" x2="250" y2="262"/>
+    <line x1="204" y1="272" x2="250" y2="272"/>
+    <line x1="196" y1="282" x2="250" y2="282"/>
+  </g>
+
+  <!-- car at speed on the straight -->
+  <text x="260" y="246" font-size="13" fill="#f8fafc" font-weight="700">carrying energy just by moving</text>
+  <g transform="translate(260,252) scale(0.62)">
+    <rect x="0" y="14" width="46" height="12" fill="#0f172a"/>
+    <path d="M20,28 L80,16 L170,14 L240,26 L256,40 L240,50 L170,54 L80,52 L20,46 z" fill="#0d9488"/>
+    <rect x="240" y="18" width="20" height="34" fill="#0f172a"/>
+    <path d="M130,16 Q145,0 168,8 L170,18 z" fill="#1e293b"/>
+    <circle cx="152" cy="11" r="7" fill="#facc15"/>
+    <rect x="45" y="4" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="45" y="42" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="190" y="6" width="36" height="16" rx="6" fill="#111827"/>
+    <rect x="190" y="44" width="36" height="16" rx="6" fill="#111827"/>
+  </g>
+  <line x1="434" y1="270" x2="490" y2="270" stroke="#2563eb" stroke-width="5"/>
+  <polygon points="500,270 486,263 486,277" fill="#2563eb"/>
+  <text x="452" y="262" font-size="13" fill="#bfdbfe" font-weight="700">velocity</text>
+
+  <!-- car braking, discs glowing -->
+  <text x="510" y="292" font-size="13" fill="#f8fafc" font-weight="700">brake discs glowing red hot</text>
+  <g transform="translate(520,300) scale(0.62)">
+    <rect x="0" y="14" width="46" height="12" fill="#0f172a"/>
+    <path d="M20,28 L80,16 L170,14 L240,26 L256,40 L240,50 L170,54 L80,52 L20,46 z" fill="#1d4ed8"/>
+    <rect x="240" y="18" width="20" height="34" fill="#0f172a"/>
+    <path d="M130,16 Q145,0 168,8 L170,18 z" fill="#1e293b"/>
+    <circle cx="152" cy="11" r="7" fill="#facc15"/>
+    <rect x="45" y="4" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="45" y="42" width="40" height="18" rx="6" fill="#111827"/>
+    <rect x="190" y="6" width="36" height="16" rx="6" fill="#111827"/>
+    <rect x="190" y="44" width="36" height="16" rx="6" fill="#111827"/>
+  </g>
+  <circle cx="560" cy="332" r="15" fill="url(#glow)"/>
+  <circle cx="649" cy="332" r="15" fill="url(#glow)"/>
+  <circle cx="560" cy="332" r="6" fill="#fde047"/>
+  <circle cx="649" cy="332" r="6" fill="#fde047"/>
+  <line x1="695" y1="318" x2="745" y2="318" stroke="#2563eb" stroke-width="5"/>
+  <polygon points="755,318 741,311 741,325" fill="#2563eb"/>
+  <line x1="630" y1="346" x2="562" y2="346" stroke="#dc2626" stroke-width="5"/>
+  <polygon points="550,346 564,339 564,353" fill="#dc2626"/>
+  <text x="424" y="351" font-size="13" fill="#fecaca" font-weight="700">braking force</text>
+
+  <!-- grass verge in front -->
+  <rect x="0" y="357" width="800" height="93" fill="#16a34a"/>
+
+  <!-- two people pushing a kart: a force acting through a distance -->
+  <g stroke-linecap="round">
+    <line x1="68" y1="412" x2="60" y2="444" stroke="#0f172a" stroke-width="10"/>
+    <line x1="76" y1="412" x2="86" y2="444" stroke="#0f172a" stroke-width="10"/>
+    <line x1="72" y1="412" x2="72" y2="386" stroke="#fbbf24" stroke-width="20"/>
+    <line x1="80" y1="394" x2="110" y2="404" stroke="#8d5524" stroke-width="6"/>
+    <line x1="114" y1="410" x2="106" y2="444" stroke="#0f172a" stroke-width="11"/>
+    <line x1="122" y1="410" x2="132" y2="444" stroke="#0f172a" stroke-width="11"/>
+    <line x1="118" y1="410" x2="118" y2="382" stroke="#f97316" stroke-width="22"/>
+    <line x1="126" y1="390" x2="156" y2="402" stroke="#c08457" stroke-width="7"/>
+  </g>
+  <circle cx="72" cy="376" r="10" fill="#8d5524"/>
+  <circle cx="118" cy="372" r="11" fill="#c08457"/>
+
+  <circle cx="172" cy="394" r="8" fill="#1f2937"/>
+  <circle cx="250" cy="394" r="8" fill="#1f2937"/>
+  <rect x="160" y="400" width="100" height="18" rx="6" fill="#0d9488"/>
+  <rect x="196" y="386" width="22" height="16" rx="4" fill="#1e293b"/>
+  <line x1="232" y1="400" x2="242" y2="390" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="166" cy="426" r="11" fill="#111827"/>
+  <circle cx="254" cy="426" r="11" fill="#111827"/>
+
+  <line x1="174" y1="372" x2="238" y2="372" stroke="#dc2626" stroke-width="5"/>
+  <polygon points="248,372 234,365 234,379" fill="#dc2626"/>
+  <text x="256" y="377" font-size="13" fill="#fecaca" font-weight="700">push</text>
+  <text x="290" y="398" font-size="13" fill="#f0fdf4" font-weight="700">work: a force acting through a distance</text>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">The photoelectric apparatus: light enters an evacuated tube through a quartz window and strikes the emitter plate, electrons cross to the collector plate, a microammeter in the circuit measures the photocurrent, a voltmeter reads the plate voltage, and a battery with a sliding contact sets that voltage to either sign</title>
+  <defs>
+    <marker id="eArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1e3a8a"/>
+    </marker>
+    <marker id="lArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ca8a04"/>
+    </marker>
+  </defs>
+  <rect width="720" height="450" fill="#ffffff"/>
+  <text x="360" y="26" font-size="16" text-anchor="middle" fill="#111827" font-weight="700">Measuring the photoelectric effect</text>
+
+  <!-- evacuated tube -->
+  <text x="335" y="66" font-size="13" text-anchor="middle" fill="#475569" font-weight="600">evacuated glass tube</text>
+  <rect x="170" y="76" width="330" height="152" rx="26" fill="#f1f5f9" stroke="#334155" stroke-width="3"/>
+
+  <!-- quartz window -->
+  <rect x="164" y="126" width="12" height="60" fill="#bae6fd" stroke="#0369a1" stroke-width="2"/>
+  <text x="96" y="236" font-size="12" text-anchor="middle" fill="#0369a1" font-weight="600">quartz window</text>
+  <line x1="120" y1="224" x2="164" y2="192" stroke="#0369a1" stroke-width="1.5"/>
+
+  <!-- light in -->
+  <g stroke="#ca8a04" stroke-width="2.5" marker-end="url(#lArr)">
+    <line x1="30" y1="130" x2="196" y2="134"/>
+    <line x1="30" y1="152" x2="196" y2="152"/>
+    <line x1="30" y1="174" x2="196" y2="170"/>
+  </g>
+  <text x="30" y="112" font-size="13" fill="#a16207" font-weight="700">light of frequency &#957;</text>
+
+  <!-- emitter plate C -->
+  <rect x="206" y="118" width="12" height="72" fill="#64748b"/>
+  <text x="212" y="212" font-size="13" text-anchor="middle" fill="#0f172a" font-weight="700">C &#8212; emitter</text>
+
+  <!-- collector plate A -->
+  <rect x="452" y="118" width="12" height="72" fill="#64748b"/>
+  <text x="440" y="212" font-size="13" text-anchor="middle" fill="#0f172a" font-weight="700">A &#8212; collector</text>
+
+  <!-- electrons crossing -->
+  <g fill="#1e3a8a">
+    <circle cx="290" cy="130" r="5"/><circle cx="360" cy="154" r="5"/><circle cx="320" cy="178" r="5"/>
+  </g>
+  <g stroke="#1e3a8a" stroke-width="2" marker-end="url(#eArr)">
+    <line x1="224" y1="130" x2="280" y2="130"/>
+    <line x1="224" y1="154" x2="350" y2="154"/>
+    <line x1="224" y1="178" x2="310" y2="178"/>
+    <line x1="374" y1="154" x2="444" y2="154"/>
+  </g>
+  <text x="330" y="108" font-size="13" text-anchor="middle" fill="#1e3a8a" font-weight="700">photoelectrons</text>
+
+  <!-- leads out of the tube and the circuit below -->
+  <g stroke="#111827" stroke-width="3" fill="none" stroke-linecap="round">
+    <line x1="212" y1="190" x2="212" y2="340"/>
+    <line x1="458" y1="190" x2="458" y2="340"/>
+    <line x1="212" y1="340" x2="262" y2="340"/>
+    <line x1="298" y1="340" x2="376" y2="340"/>
+    <line x1="424" y1="340" x2="458" y2="340"/>
+    <!-- voltmeter branch across the plates -->
+    <line x1="212" y1="272" x2="300" y2="272"/>
+    <line x1="360" y1="272" x2="458" y2="272"/>
+  </g>
+
+  <!-- microammeter in series -->
+  <circle cx="280" cy="340" r="18" fill="#eff6ff" stroke="#111827" stroke-width="3"/>
+  <text x="280" y="346" font-size="14" text-anchor="middle" fill="#111827" font-weight="700">&#956;A</text>
+  <text x="280" y="316" font-size="12.5" text-anchor="middle" fill="#374151">photocurrent</text>
+
+  <!-- voltmeter in parallel -->
+  <circle cx="330" cy="272" r="18" fill="#fef3c7" stroke="#111827" stroke-width="3"/>
+  <text x="330" y="278" font-size="15" text-anchor="middle" fill="#111827" font-weight="700">V</text>
+  <text x="330" y="248" font-size="12.5" text-anchor="middle" fill="#374151">plate voltage</text>
+
+  <!-- battery with a sliding contact -->
+  <line x1="376" y1="326" x2="376" y2="354" stroke="#111827" stroke-width="3"/>
+  <line x1="388" y1="332" x2="388" y2="348" stroke="#111827" stroke-width="6"/>
+  <line x1="400" y1="326" x2="400" y2="354" stroke="#111827" stroke-width="3"/>
+  <line x1="412" y1="332" x2="412" y2="348" stroke="#111827" stroke-width="6"/>
+  <line x1="412" y1="340" x2="424" y2="340" stroke="#111827" stroke-width="3"/>
+  <text x="440" y="380" font-size="12.5" text-anchor="middle" fill="#374151">battery with a sliding contact:</text>
+  <text x="440" y="396" font-size="12.5" text-anchor="middle" fill="#374151">any voltage, either sign</text>
+
+  <text x="360" y="432" font-size="14" text-anchor="middle" fill="#111827" font-weight="700">Three dials to turn: how bright the light is, its frequency, and the plate voltage.</text>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A narrow beam of white light enters a glass prism and leaves it spread into a fan of colours. Red is deviated least and violet most, because the refractive index of the glass is slightly larger for violet light than for red. The spread is drawn much larger than it really is.</title>
+  <defs>
+    <marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <path d="M 320 96.8 L 420 270 L 220 270 Z" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- incoming white beam -->
+  <line x1="60" y1="235" x2="270" y2="183.4" stroke="#6b7280" stroke-width="5" marker-end="url(#w)"/>
+  <text x="60" y="218" font-size="14" fill="#374151" font-weight="700">white light</text>
+
+  <!-- inside the prism -->
+  <line x1="270" y1="183.4" x2="370" y2="183.4" stroke="#94a3b8" stroke-width="4.5"/>
+
+  <!-- emergent fan -->
+  <line x1="370" y1="183.4" x2="536.3" y2="218.7" stroke="#dc2626" stroke-width="3.2"/>
+  <line x1="370" y1="183.4" x2="533.4" y2="230.3" stroke="#f59e0b" stroke-width="3.2"/>
+  <line x1="370" y1="183.4" x2="529.7" y2="241.5" stroke="#16a34a" stroke-width="3.2"/>
+  <line x1="370" y1="183.4" x2="525.3" y2="252.5" stroke="#2563eb" stroke-width="3.2"/>
+  <line x1="370" y1="183.4" x2="520.1" y2="263.2" stroke="#7c3aed" stroke-width="3.2"/>
+
+  <text x="548" y="214" font-size="13.5" fill="#dc2626" font-weight="700">red</text>
+  <text x="548" y="268" font-size="13.5" fill="#7c3aed" font-weight="700">violet</text>
+  <text x="552" y="240" font-size="12.5" fill="#334155">the spectrum</text>
+
+  <text x="452" y="168" font-size="13" fill="#dc2626" font-weight="700">smallest n, bent least</text>
+  <text x="418" y="296" font-size="13" fill="#7c3aed" font-weight="700">largest n, bent most</text>
+
+  <rect x="30" y="300" width="580" height="80" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#cbd5e1"/>
+  <text x="320" y="328" font-size="15.5" fill="#111827" text-anchor="middle" font-weight="700">δ = (n − 1)A for a thin prism, and n depends on the colour</text>
+  <text x="320" y="352" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">angular dispersion  θ = (n<tspan font-size="11" dy="3">violet</tspan><tspan font-size="15" dy="-3"> − n</tspan><tspan font-size="11" dy="3">red</tspan><tspan font-size="15" dy="-3">) A</tspan></text>
+  <text x="320" y="372" font-size="12.5" fill="#334155" text-anchor="middle">The colour spread here is drawn far larger than it is in reality — for ordinary glass it is a fraction of a degree.</text>
+
+  <text x="320" y="40" font-size="13" fill="#6b7280" text-anchor="middle">White light is a mixture. The prism does not add the colours — it separates them.</text>
+</svg>

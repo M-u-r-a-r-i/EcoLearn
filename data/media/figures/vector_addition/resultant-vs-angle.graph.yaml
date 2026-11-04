@@ -1,0 +1,14 @@
+# Magnitude of R = A + B for A = 3 and B = 4 (any units), as the angle between them changes.
+# R = sqrt(A^2 + B^2 + 2AB cos(theta)) = sqrt(25 + 24 cos(theta)).
+title: "Resultant of two vectors of sizes 3 and 4"
+panels:
+  - x: {label: "Angle $\\theta$ between the vectors (degrees)", min: 0, max: 190}
+    y: {label: "Size of resultant $R$", min: 0, max: 8}
+    series:
+      - label: "$R = \\sqrt{A^2 + B^2 + 2AB\\cos\\theta}$"
+        points: [[0, 7.0], [5, 6.993], [10, 6.974], [15, 6.941], [20, 6.896], [25, 6.837], [30, 6.766], [35, 6.683], [40, 6.587], [45, 6.478], [50, 6.358], [55, 6.226], [60, 6.083], [65, 5.928], [70, 5.763], [75, 5.587], [80, 5.401], [85, 5.205], [90, 5.0], [95, 4.786], [100, 4.564], [105, 4.335], [110, 4.098], [115, 3.854], [120, 3.606], [125, 3.352], [130, 3.094], [135, 2.834], [140, 2.572], [145, 2.311], [150, 2.053], [155, 1.802], [160, 1.564], [165, 1.348], [170, 1.168], [175, 1.045], [180, 1.0]]
+        color: purple
+    marks:
+      - {x: 0, y: 7, text: "same direction: 3 + 4 = 7", color: purple, offset: [10, 6]}
+      - {x: 90, y: 5, text: "at right angles: 5", color: purple, offset: [10, 8]}
+      - {x: 180, y: 1, text: "opposite: 4 − 3 = 1", color: purple, offset: [-125, -22]}

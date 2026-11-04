@@ -1,0 +1,17 @@
+# A trip along a line: 18 m out in 4 s, rest for 2 s, 18 m back in 4 s.
+# Distance travelled only ever grows; position rises and falls.
+title: "Distance only ever grows"
+x: {label: "Time $t$ (s)", min: 0, max: 10.5}
+y: {label: "Metres", min: 0, max: 40}
+series:
+  - label: "Distance travelled (total path)"
+    points: [[0, 0], [4, 18], [6, 18], [10, 36]]
+    color: orange
+  - label: "Position $x$ (from the start)"
+    points: [[0, 0], [4, 18], [6, 18], [10, 0]]
+    color: purple
+    style: dashed
+marks:
+  - {x: 10, y: 36, text: "36 m in 10 s", color: orange, offset: [-80, -6]}
+  - {x: 10, y: 0, text: "back at the start", color: purple, offset: [-110, 8]}
+legend: below

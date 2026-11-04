@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two like charges push each other apart and two unlike charges pull together; in each case the forces on the two charges are equal in size and opposite in direction, along the line joining them.</title>
+  <defs>
+    <marker id="f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="640" height="380" fill="#ffffff"/>
+
+  <text x="30" y="40" font-size="16" font-weight="700" fill="#111827">Like charges repel</text>
+  <line x1="240" y1="100" x2="400" y2="100" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="222" y1="100" x2="130" y2="100" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <line x1="418" y1="100" x2="510" y2="100" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <circle cx="240" cy="100" r="16" fill="#dc2626"/><text x="240" y="107" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <circle cx="400" cy="100" r="16" fill="#dc2626"/><text x="400" y="107" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <text x="240" y="140" font-size="15" fill="#111827" text-anchor="middle">q₁</text>
+  <text x="400" y="140" font-size="15" fill="#111827" text-anchor="middle">q₂</text>
+  <text x="130" y="80" font-size="15" fill="#dc2626" font-weight="600">F on q₁</text>
+  <text x="440" y="80" font-size="15" fill="#dc2626" font-weight="600">F on q₂</text>
+  <text x="320" y="92" font-size="15" fill="#374151" text-anchor="middle">r</text>
+
+  <text x="30" y="200" font-size="16" font-weight="700" fill="#111827">Unlike charges attract</text>
+  <line x1="240" y1="260" x2="400" y2="260" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="258" y1="260" x2="306" y2="260" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <line x1="382" y1="260" x2="334" y2="260" stroke="#dc2626" stroke-width="4" marker-end="url(#f)"/>
+  <circle cx="240" cy="260" r="16" fill="#dc2626"/><text x="240" y="267" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">+</text>
+  <circle cx="400" cy="260" r="16" fill="#2563eb"/><text x="400" y="267" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">−</text>
+  <text x="240" y="300" font-size="15" fill="#111827" text-anchor="middle">q₁</text>
+  <text x="400" y="300" font-size="15" fill="#111827" text-anchor="middle">q₂</text>
+  <text x="320" y="240" font-size="15" fill="#374151" text-anchor="middle">r</text>
+  <text x="258" y="236" font-size="15" fill="#dc2626" font-weight="600" text-anchor="end">F on q₁ →</text>
+  <text x="382" y="236" font-size="15" fill="#dc2626" font-weight="600">← F on q₂</text>
+
+  <rect x="120" y="322" width="400" height="44" rx="8" fill="#f1f5f9"/>
+  <text x="320" y="350" font-size="17" fill="#111827" text-anchor="middle">F = k |q₁ q₂| / r²   ·   equal and opposite, along the line</text>
+</svg>

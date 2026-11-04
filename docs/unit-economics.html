@@ -1,0 +1,271 @@
+<title>EcoLearn Unit Economics</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: inputs on the left (sticky), the answer on the right: four headline numbers, where the rupees go,
+   how cost per student falls as the school grows, and the same usage priced on each model. Every number is
+   tagged Measured, Estimate or Your assumption, so nothing invented passes as data. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --ink: #12202c;
+  --muted: #566877;
+  --line: #d5dde3;
+  --accent: #0e7a6b;
+  --accent-soft: #d8efea;
+  --warn: #a4570b;
+  --warn-soft: #fbead6;
+  --c-story: #2b62c9;
+  --c-plan: #7a4fc9;
+  --c-coach: #0e7a6b;
+  --c-doubt: #b7791f;
+  --c-fixed: #6c7b88;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d171e; --surface: #15232c; --ink: #e6eef2; --muted: #93a8b4; --line: #2a404c;
+    --accent: #3cc4b0; --accent-soft: #113a35; --warn: #e6a35b; --warn-soft: #3a2a14;
+    --c-story: #6fa3f5; --c-plan: #b295f2; --c-coach: #3cc4b0; --c-doubt: #e0a94a; --c-fixed: #93a8b4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d171e; --surface: #15232c; --ink: #e6eef2; --muted: #93a8b4; --line: #2a404c;
+  --accent: #3cc4b0; --accent-soft: #113a35; --warn: #e6a35b; --warn-soft: #3a2a14;
+  --c-story: #6fa3f5; --c-plan: #b295f2; --c-coach: #3cc4b0; --c-doubt: #e0a94a; --c-fixed: #93a8b4;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.5; padding-inline: 16px; }
+.wrap { max-width: 1200px; margin-inline: auto; padding-block: 22px 56px; }
+h1 { font-family: var(--f-display); font-size: clamp(26px, 4vw, 38px); line-height: 1.05; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-size: 18px; margin: 0 0 10px; }
+.lede { color: var(--muted); max-width: 68ch; margin: 8px 0 20px; }
+.grid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.inputs { position: sticky; top: 12px; display: grid; gap: 18px; max-height: calc(100vh - 24px); overflow: auto; }
+@media (max-width: 900px) { .inputs { position: static; max-height: none; } }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; min-width: 0; }
+legend { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 0; margin-bottom: 8px; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 4px 10px; align-items: center; }
+.field label { font-weight: 500; }
+.field small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+input[type="number"], select { font: 500 14px var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; width: 100%; min-width: 0; }
+select { font-family: var(--f-body); grid-column: 1 / -1; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tag { display: inline-block; font: 600 10px var(--f-mono); letter-spacing: 0.05em; text-transform: uppercase; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+.tag.m { background: var(--accent-soft); color: var(--accent); }
+.tag.e { background: var(--warn-soft); color: var(--warn); }
+.tag.a { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.tile .k { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.tile .v { font: 700 30px var(--f-display); font-variant-numeric: tabular-nums; margin: 2px 0; overflow-wrap: anywhere; }
+.tile .s { color: var(--muted); font-size: 12px; }
+.tile.good .v { color: var(--accent); }
+.tile.bad .v { color: var(--warn); }
+.stack { display: flex; height: 22px; border-radius: 6px; overflow: hidden; background: var(--bg); margin: 8px 0 12px; }
+.stack i { display: block; min-width: 2px; }
+.legend { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.legend li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.legend b { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend .n { font-variant-numeric: tabular-nums; font-family: var(--f-mono); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--f-mono); white-space: nowrap; }
+.scroll { overflow-x: auto; }
+tr.now td { background: var(--accent-soft); }
+.stackcol { display: grid; gap: 18px; min-width: 0; }
+.note { background: var(--warn-soft); border-radius: 10px; padding: 12px 14px; color: var(--ink); }
+.note ul { margin: 6px 0 0; padding-left: 18px; }
+.note li { margin-bottom: 3px; }
+svg text { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+.gl { stroke: var(--line); stroke-width: 1; }
+.themebtn { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); font: 600 13px var(--f-body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.src { color: var(--muted); font-size: 12px; margin-top: 8px; }
+</style>
+
+<div class="wrap">
+  <h1>EcoLearn unit economics</h1>
+  <p class="lede">What one student costs per month to serve, built from token counts measured on real runs and Google's published prices. Change the assumptions on the left. The answer is mostly hosting and people, not AI.</p>
+
+  <div class="grid">
+    <form class="card inputs" id="inputs" onsubmit="return false">
+      <fieldset>
+        <legend>Class and use</legend>
+        <div class="field"><label for="size">Students in a class <span class="tag a">Your assumption</span></label><input id="size" type="number" min="1" max="200" step="1" value="30"></div>
+        <div class="field"><label for="students">Students in total <span class="tag a">Your assumption</span></label><input id="students" type="number" min="1" max="100000" step="10" value="300"><small>Fixed costs are shared across these.</small></div>
+        <div class="field"><label for="concepts">Concepts studied a month, per student <span class="tag a">Your assumption</span></label><input id="concepts" type="number" min="0" max="120" step="1" value="20"></div>
+        <div class="field"><label for="fit">Share that get a personal story <span class="tag e">Estimate</span></label><input id="fit" type="number" min="0" max="100" step="5" value="85"><small>Needs a hobby that fits the physics topic. 22 of 25 demo students had one for the first concept.</small></div>
+        <div class="field"><label for="plans">Class plans a month, per class <span class="tag a">Your assumption</span></label><input id="plans" type="number" min="0" max="60" step="1" value="8"></div>
+        <div class="field"><label for="coaching">Coaching-note runs a month, per class <span class="tag a">Your assumption</span></label><input id="coaching" type="number" min="0" max="60" step="1" value="4"></div>
+        <div class="field"><label for="doubts">Doubt-chat questions a month, per student <span class="tag e">Estimate</span></label><input id="doubts" type="number" min="0" max="500" step="1" value="5"><small>Not measured: the doubt chat doesn't log tokens yet.</small></div>
+      </fieldset>
+      <fieldset>
+        <legend>Model and prices</legend>
+        <div class="field"><label for="model" style="grid-column:1/-1">Model used for every call</label>
+          <select id="model"></select>
+          <small>Same tokens assumed on every model; real counts differ a little.</small></div>
+        <div class="field"><label for="fx">Rupees per US dollar <span class="tag a">Your assumption</span></label><input id="fx" type="number" min="50" max="150" step="1" value="88"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Business</legend>
+        <div class="field"><label for="price">Price per student, per month (₹) <span class="tag a">Your assumption</span></label><input id="price" type="number" min="0" max="5000" step="5" value="100"><small>Set from market research, not from here.</small></div>
+        <div class="field"><label for="server">Server (₹ a month) <span class="tag e">Estimate</span></label><input id="server" type="number" min="0" max="500000" step="50" value="700"></div>
+        <div class="field"><label for="other">Everything else fixed (₹ a month) <span class="tag a">Your assumption</span></label><input id="other" type="number" min="0" max="5000000" step="500" value="2000"><small>Domain, backups, support, your own time. The honest big number.</small></div>
+      </fieldset>
+    </form>
+
+    <div class="stackcol">
+      <section class="tiles" id="tiles" aria-live="polite"></section>
+
+      <section class="card">
+        <h2>Where each student's rupees go, per month</h2>
+        <div class="stack" id="stack" role="img" aria-label="Cost split by item"></div>
+        <ul class="legend" id="legend"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Cost per student as the school grows</h2>
+        <p class="src" style="margin:0 0 6px">Fixed costs are spread over more students; the AI cost per student stays flat.</p>
+        <div class="scroll"><svg id="chart" viewBox="0 0 640 300" width="100%" role="img" aria-label="Cost per student against number of students"></svg></div>
+      </section>
+
+      <section class="card">
+        <h2>The same usage on each model</h2>
+        <div class="scroll"><table id="models"></table></div>
+        <p class="src">Prices: Google's published paid-tier list prices, per 1M tokens, checked 2026-10-13 (<code>data/llm_prices.yaml</code>). Re-check before the finals.</p>
+      </section>
+
+      <section class="card">
+        <h2>Where the token counts come from</h2>
+        <div class="scroll"><table>
+          <thead><tr><th>AI feature</th><th class="num">Tokens in</th><th class="num">Tokens out</th><th>Basis</th></tr></thead>
+          <tbody id="feat"></tbody>
+        </table></div>
+      </section>
+
+      <section class="note">
+        <strong>What this leaves out</strong>
+        <ul>
+          <li>Writing the lessons. The 642 lessons were written once, by Claude sessions, and are shared by every student. That cost doesn't grow with students, but it isn't free: it is your time and plan usage.</li>
+          <li>Payment fees, taxes, sales and support staff, and anything a school asks for (training, integration).</li>
+          <li><b>Free tier</b>: ₹0 on this page means list price, not a bill. The free tier also lets Google use the data to improve its products, so use a paid key for children's data. Ask your school and a lawyer.</li>
+          <li>Prices move: Google's gemini-3.8-flash is half price until 2026-12-31 and doubles from 2027-01-01.</li>
+          <li>The token counts come from few runs (6 stories, 4 plans, 1 coaching run). Treat the AI figure as the right size, not exact. Run <code>scripts\pilot_report.py</code> after the pilot for measured cost per student.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+<button class="themebtn" id="themebtn" type="button">Theme</button>
+
+<script>
+/* Tokens per use. Measured on live runs through OmniRoute to gemini-3.1-flash-lite, 2026-10-11 to 2026-10-13. */
+const FEATURES = {
+  story:    { name: "Personal story",      unit: "per story",              tin: 3289, tout: 812,  tag: "m", basis: "6 stories (writer + critic, 2.8 calls each); scripts/eval_stories.py, docs/eval-stories-sample.md" },
+  plan:     { name: "Class plan",          unit: "per plan",               tin: 5754, tout: 824,  tag: "m", basis: "4 live teaching-assistant plans, 3 model calls each (demo database usage log)" },
+  coaching: { name: "Coaching notes",      unit: "per student per run",    tin: 218,  tout: 217,  tag: "m", basis: "1 run for 25 students, 4 calls: 5,460 in and 5,420 out in total" },
+  doubt:    { name: "Doubt-chat question", unit: "per question",           tin: 2500, tout: 400,  tag: "e", basis: "Not measured. A guess for one lesson passage plus an answer." },
+};
+/* Google's paid-tier list prices, USD per 1M tokens (data/llm_prices.yaml, checked 2026-10-13). */
+const MODELS = [
+  { id: "flashlite31", name: "Gemini 3.1 Flash-Lite (used today)", in: 0.25, out: 1.50 },
+  { id: "flashlite25", name: "Gemini 2.5 Flash-Lite",              in: 0.10, out: 0.40 },
+  { id: "flash38",     name: "Gemini 3.8 Flash, until 2026-12-31", in: 0.75, out: 3.75 },
+  { id: "flash38b",    name: "Gemini 3.8 Flash, from 2027-01-01",  in: 1.50, out: 7.50 },
+  { id: "flash25",     name: "Gemini 2.5 Flash",                   in: 0.30, out: 2.50 },
+];
+const $ = (id) => document.getElementById(id);
+const val = (id) => Math.max(0, Number($(id).value) || 0);
+const inr = (n, d) => "₹" + n.toLocaleString("en-IN", { minimumFractionDigits: d ?? (Math.abs(n) < 10 ? 2 : 0), maximumFractionDigits: d ?? (Math.abs(n) < 10 ? 2 : 0) });
+
+MODELS.forEach((m) => $("model").add(new Option(`${m.name}: $${m.in} in / $${m.out} out`, m.id)));
+
+function usd(f, m) { return (FEATURES[f].tin * m.in + FEATURES[f].tout * m.out) / 1e6; }
+
+function compute(m) {
+  const fx = val("fx"), size = Math.max(1, val("size")), n = Math.max(1, val("students"));
+  const stories = val("concepts") * val("fit") / 100;
+  const per = {
+    story: stories * usd("story", m) * fx,
+    plan: val("plans") * usd("plan", m) * fx / size,
+    coaching: val("coaching") * usd("coaching", m) * fx,
+    doubt: val("doubts") * usd("doubt", m) * fx,
+  };
+  const ai = per.story + per.plan + per.coaching + per.doubt;
+  const fixedTotal = val("server") + val("other");
+  const fixed = fixedTotal / n;
+  const price = val("price");
+  const margin = price - ai - fixed;
+  const contribution = price - ai;
+  return { per, ai, fixed, fixedTotal, total: ai + fixed, price, margin, n,
+           breakeven: contribution > 0 ? Math.ceil(fixedTotal / contribution) : null };
+}
+
+function render() {
+  const m = MODELS.find((x) => x.id === $("model").value) || MODELS[0];
+  const r = compute(m);
+  const pct = r.price ? Math.round(100 * r.margin / r.price) : null;
+  $("tiles").innerHTML = `
+    <div class="tile"><div class="k">AI cost per student</div><div class="v">${inr(r.ai)}</div><div class="s">a month, ${inr(r.ai * 12)} a year</div></div>
+    <div class="tile"><div class="k">All-in cost per student</div><div class="v">${inr(r.total)}</div><div class="s">${inr(r.fixed)} of it is fixed costs at ${r.n.toLocaleString("en-IN")} students</div></div>
+    <div class="tile ${r.margin >= 0 ? "good" : "bad"}"><div class="k">Margin per student</div><div class="v">${inr(r.margin)}</div><div class="s">${pct === null ? "no price set" : pct + "% of the " + inr(r.price) + " price"}</div></div>
+    <div class="tile"><div class="k">Break-even</div><div class="v">${r.breakeven === null ? "none" : r.breakeven.toLocaleString("en-IN")}</div><div class="s">${r.breakeven === null ? "the price doesn't cover the AI" : "students to cover " + inr(r.fixedTotal) + " a month of fixed costs"}</div></div>`;
+
+  const parts = [
+    ["Personal stories", r.per.story, "--c-story"], ["Class plans (share of one class)", r.per.plan, "--c-plan"],
+    ["Coaching notes", r.per.coaching, "--c-coach"], ["Doubt chat", r.per.doubt, "--c-doubt"],
+    ["Fixed costs (server, domain, support)", r.fixed, "--c-fixed"],
+  ];
+  const sum = parts.reduce((a, p) => a + p[1], 0) || 1;
+  $("stack").innerHTML = parts.map((p) => `<i style="width:${(100 * p[1] / sum).toFixed(2)}%;background:var(${p[2]})" title="${p[0]}"></i>`).join("");
+  $("legend").innerHTML = parts.map((p) => `<li><b style="background:var(${p[2]})"></b><span>${p[0]}</span><span class="n">${inr(p[1])} · ${Math.round(100 * p[1] / sum)}%</span></li>`).join("");
+
+  // models table
+  const rows = MODELS.map((x) => { const c = compute(x); return { x, c }; });
+  $("models").innerHTML = `<thead><tr><th>Model</th><th class="num">$ in / out</th><th class="num">AI ₹ per student</th><th class="num">Margin per student</th></tr></thead><tbody>` +
+    rows.map(({ x, c }) => `<tr class="${x.id === m.id ? "now" : ""}"><td>${x.name}</td><td class="num">${x.in} / ${x.out}</td><td class="num">${inr(c.ai)}</td><td class="num">${inr(c.margin)}</td></tr>`).join("") + "</tbody>";
+
+  drawChart(m, r);
+}
+
+function drawChart(m, r) {
+  const W = 640, H = 300, L = 46, R = 14, T = 14, B = 34;
+  const xs = [10, 20, 50, 100, 200, 500, 1000, 2000];
+  const pts = (fn) => xs.map((x) => [x, fn(x)]);
+  const fixedTotal = r.fixedTotal;
+  const total = pts((x) => r.ai + fixedTotal / x);
+  const maxY = Math.max(r.price, total[0][1]) * 1.1 || 1;
+  const px = (x) => L + (Math.log(x) - Math.log(xs[0])) / (Math.log(xs[xs.length - 1]) - Math.log(xs[0])) * (W - L - R);
+  const py = (y) => T + (1 - y / maxY) * (H - T - B);
+  const line = (arr) => arr.map((p, i) => (i ? "L" : "M") + px(p[0]).toFixed(1) + "," + py(p[1]).toFixed(1)).join(" ");
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * maxY);
+  let s = ticks.map((t) => `<line class="gl" x1="${L}" x2="${W - R}" y1="${py(t)}" y2="${py(t)}"/><text x="${L - 6}" y="${py(t) + 4}" text-anchor="end">${inr(t, 0)}</text>`).join("");
+  s += xs.map((x) => `<text x="${px(x)}" y="${H - 12}" text-anchor="middle">${x}</text>`).join("");
+  s += `<text x="${(L + W - R) / 2}" y="${H - 0}" text-anchor="middle">students in total (log scale)</text>`;
+  s += `<path d="${line(pts(() => r.price))}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4"/>`;
+  s += `<path d="${line(pts(() => r.ai))}" fill="none" stroke="var(--c-story)" stroke-width="2"/>`;
+  s += `<path d="${line(total)}" fill="none" stroke="var(--warn)" stroke-width="2.5"/>`;
+  const end = (arr, color, label, dy) => `<circle cx="${px(arr[arr.length - 1][0])}" cy="${py(arr[arr.length - 1][1])}" r="3.5" fill="${color}"/><text x="${W - R - 4}" y="${py(arr[arr.length - 1][1]) + dy}" text-anchor="end" style="fill:${color}">${label}</text>`;
+  s += end(pts(() => r.price), "var(--accent)", "price " + inr(r.price, 0), -8);
+  s += end(total, "var(--warn)", "all-in cost", 16);
+  s += end(pts(() => r.ai), "var(--c-story)", "AI only " + inr(r.ai), -8);
+  $("chart").innerHTML = s;
+}
+
+$("feat").innerHTML = Object.keys(FEATURES).map((k) => { const f = FEATURES[k];
+  return `<tr><td>${f.name}<br><span class="src">${f.unit}</span></td><td class="num">${f.tin.toLocaleString("en-IN")}</td><td class="num">${f.tout.toLocaleString("en-IN")}</td><td>${f.basis} <span class="tag ${f.tag}">${f.tag === "m" ? "Measured" : "Estimate"}</span></td></tr>`; }).join("");
+
+$("inputs").addEventListener("input", render);
+$("themebtn").addEventListener("click", () => {
+  const root = document.documentElement, dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = (root.dataset.theme || (dark ? "dark" : "light")) === "dark" ? "light" : "dark"; render();
+});
+try { document.fonts && document.fonts.ready.then(render); } catch (_) {}
+render();
+</script>

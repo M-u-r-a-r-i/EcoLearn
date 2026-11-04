@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720" font-family="Segoe UI, Nunito Sans, Tahoma, sans-serif">
+  <defs>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#26745D"/></marker>
+    <marker id="ru" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#A2AEA4"/></marker>
+    <marker id="go" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C9A23A"/></marker>
+    <filter id="sh" x="-5%" y="-10%" width="110%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#202A27" flood-opacity="0.07"/></filter>
+  </defs>
+  <rect width="1600" height="720" fill="#F4F3ED"/>
+  <circle cx="800" cy="250" r="190" fill="none" stroke="#26745D" stroke-width="2" stroke-dasharray="6 10" opacity="0.25"/>
+
+  <!-- connectors -->
+  <g stroke-width="3" fill="none">
+    <line x1="530" y1="145" x2="678" y2="203" stroke="#26745D" marker-end="url(#ag)" marker-start="url(#ag)"/>
+    <line x1="530" y1="315" x2="673" y2="280" stroke="#26745D" marker-end="url(#ag)" marker-start="url(#ag)"/>
+    <line x1="530" y1="485" x2="702" y2="335" stroke="#26745D" marker-end="url(#ag)" marker-start="url(#ag)"/>
+    <line x1="1070" y1="125" x2="918" y2="195" stroke="#A2AEA4" marker-end="url(#ru)" marker-start="url(#ru)"/>
+    <line x1="1070" y1="249" x2="930" y2="249" stroke="#A2AEA4" marker-end="url(#ru)" marker-start="url(#ru)"/>
+    <line x1="1070" y1="373" x2="918" y2="304" stroke="#A2AEA4" marker-end="url(#ru)" marker-start="url(#ru)"/>
+    <line x1="1070" y1="497" x2="896" y2="338" stroke="#A2AEA4" marker-end="url(#ru)" marker-start="url(#ru)"/>
+    <line x1="530" y1="650" x2="716" y2="628" stroke="#C9A23A" marker-end="url(#go)" marker-start="url(#go)"/>
+    <line x1="1070" y1="650" x2="884" y2="628" stroke="#C9A23A" marker-end="url(#go)" marker-start="url(#go)"/>
+    <line x1="800" y1="384" x2="800" y2="532" stroke="#747C73" stroke-dasharray="7 7"/>
+  </g>
+  <text x="815" y="452" font-size="18" fill="#747C73">class mix-ups</text>
+  <text x="815" y="476" font-size="18" fill="#747C73">and progress</text>
+
+  <!-- hubs -->
+  <circle cx="800" cy="250" r="130" fill="#FFFEF9" stroke="#26745D" stroke-width="4" filter="url(#sh)"/>
+  <text x="800" y="220" font-size="30" font-weight="800" fill="#202A27" text-anchor="middle" letter-spacing="3">STUDENT</text>
+  <text x="800" y="256" font-size="20" fill="#202A27" text-anchor="middle">a lesson in their interest</text>
+  <text x="800" y="284" font-size="20" fill="#202A27" text-anchor="middle">+ a story about</text><text x="800" y="310" font-size="20" fill="#202A27" text-anchor="middle">their hobby</text>
+  <circle cx="800" cy="620" r="88" fill="#F5EDDA" stroke="#E6BD4D" stroke-width="4" filter="url(#sh)"/>
+  <text x="800" y="614" font-size="24" font-weight="800" fill="#202A27" text-anchor="middle" letter-spacing="2">TEACHER</text>
+  <text x="800" y="642" font-size="18" fill="#202A27" text-anchor="middle">approves actions</text>
+
+  <!-- column headers -->
+  <text x="30" y="50" font-size="18" font-weight="800" fill="#26745D" letter-spacing="2">AI AGENTS · FOR THE STUDENT</text>
+  <text x="1070" y="50" font-size="18" font-weight="800" fill="#747C73" letter-spacing="2">RULES · NO AI, BY DESIGN</text>
+  <text x="30" y="582" font-size="18" font-weight="800" fill="#96691F" letter-spacing="2">AI AGENT · FOR THE TEACHER</text>
+  <text x="1070" y="582" font-size="18" font-weight="800" fill="#96691F" letter-spacing="2">AI AGENT · FOR THE TEACHER</text>
+
+  <!-- AI cards (student) -->
+  <g filter="url(#sh)">
+    <rect x="30" y="70" width="500" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="30" y="240" width="500" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="30" y="410" width="500" height="150" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="1070" y="70" width="500" height="110" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="1070" y="194" width="500" height="110" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="1070" y="318" width="500" height="110" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="1070" y="442" width="500" height="110" rx="20" fill="#FFFEF9" stroke="#DEDFD4"/>
+    <rect x="30" y="595" width="500" height="115" rx="20" fill="#FFFEF9" stroke="#E6BD4D" stroke-width="2"/>
+    <rect x="1070" y="595" width="500" height="115" rx="20" fill="#FFFEF9" stroke="#E6BD4D" stroke-width="2"/>
+  </g>
+  <rect x="30" y="70" width="10" height="150" rx="5" fill="#26745D"/>
+  <rect x="30" y="240" width="10" height="150" rx="5" fill="#26745D"/>
+  <rect x="30" y="410" width="10" height="150" rx="5" fill="#26745D"/>
+
+  <!-- chips -->
+  <g font-size="16" font-weight="800" text-anchor="middle" letter-spacing="1">
+    <rect x="456" y="86" width="56" height="28" rx="14" fill="#26745D"/><text x="484" y="106" fill="#FFFEF9">AI</text>
+    <rect x="456" y="256" width="56" height="28" rx="14" fill="#26745D"/><text x="484" y="276" fill="#FFFEF9">AI</text>
+    <rect x="456" y="426" width="56" height="28" rx="14" fill="#26745D"/><text x="484" y="446" fill="#FFFEF9">AI</text>
+    <rect x="456" y="610" width="56" height="28" rx="14" fill="#26745D"/><text x="484" y="630" fill="#FFFEF9">AI</text>
+    <rect x="1496" y="610" width="56" height="28" rx="14" fill="#26745D"/><text x="1524" y="630" fill="#FFFEF9">AI</text>
+    <rect x="1472" y="86" width="82" height="28" rx="14" fill="#EBEAE1"/><text x="1513" y="106" fill="#747C73">RULES</text>
+    <rect x="1472" y="210" width="82" height="28" rx="14" fill="#EBEAE1"/><text x="1513" y="230" fill="#747C73">RULES</text>
+    <rect x="1472" y="334" width="82" height="28" rx="14" fill="#EBEAE1"/><text x="1513" y="354" fill="#747C73">RULES</text>
+    <rect x="1472" y="458" width="82" height="28" rx="14" fill="#EBEAE1"/><text x="1513" y="478" fill="#747C73">RULES</text>
+  </g>
+
+  <!-- card text -->
+  <g fill="#202A27">
+    <text x="60" y="110" font-size="25" font-weight="800">Story writer + critic</text>
+    <text x="60" y="144" font-size="19">Writes a story around the student’s own hobby.</text>
+    <text x="60" y="170" font-size="19">A second AI checks the physics, the analogy,</text>
+    <text x="60" y="196" font-size="19">its stated limit and safety; fail → rewrite.</text>
+
+    <text x="60" y="280" font-size="25" font-weight="800">Doubt chat</text>
+    <text x="60" y="314" font-size="19">Answers from the student’s own lesson.</text>
+    <text x="60" y="340" font-size="19">Self-harm, personal details and tricks are</text>
+    <text x="60" y="366" font-size="19">stopped before any AI sees them.</text>
+
+    <text x="60" y="450" font-size="25" font-weight="800">Practice writer + solver</text>
+    <text x="60" y="484" font-size="19">An optional extra question, shown only if a</text>
+    <text x="60" y="510" font-size="19">second AI solves it to the same answer key.</text>
+    <text x="60" y="536" font-size="19">Never counted towards marks.</text>
+
+    <text x="1100" y="110" font-size="25" font-weight="800">Profile &amp; memory</text>
+    <text x="1100" y="142" font-size="19">Survey answers, corrected by behaviour;</text>
+    <text x="1100" y="166" font-size="19">students can say “that’s not me”.</text>
+
+    <text x="1100" y="234" font-size="25" font-weight="800">Learning path</text>
+    <text x="1100" y="266" font-size="19">A plan from the starting check: skip what</text>
+    <text x="1100" y="290" font-size="19">they know, start where the mix-ups are.</text>
+
+    <text x="1100" y="358" font-size="25" font-weight="800">Graded checks</text>
+    <text x="1100" y="390" font-size="19">Pre-written multiple choice, marked by rules;</text>
+    <text x="1100" y="414" font-size="19">each wrong option reveals one mix-up.</text>
+
+    <text x="1100" y="482" font-size="25" font-weight="800">Mastery tracker</text>
+    <text x="1100" y="514" font-size="19">Two different questions right = mastered;</text>
+    <text x="1100" y="538" font-size="19">revision after 7, 21 and 63 days.</text>
+
+    <text x="56" y="634" font-size="25" font-weight="800">Teaching assistant</text>
+    <text x="56" y="666" font-size="19">Plans the next lesson with tool calls on class</text>
+    <text x="56" y="690" font-size="19">data; students appear only as S1, S2…</text>
+
+    <text x="1096" y="634" font-size="25" font-weight="800">Coaching notes</text>
+    <text x="1096" y="666" font-size="19">One action per student, from evidence.</text>
+    <text x="1096" y="690" font-size="19">The teacher approves; the result is measured.</text>
+  </g>
+</svg>

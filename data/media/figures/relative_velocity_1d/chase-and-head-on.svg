@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Relative velocity on a line: a chase where A at +8 m/s follows B at +6 m/s, and a head-on case where A at +5 m/s meets B at −6 m/s</title>
+  <defs>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111827"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <line x1="470" y1="24" x2="600" y2="24" stroke="#111827" stroke-width="2" marker-end="url(#ak)"/>
+  <text x="460" y="29" font-size="14" fill="#111827" text-anchor="end">positive direction</text>
+
+  <!-- chase -->
+  <text x="20" y="62" font-size="16" font-weight="700" fill="#111827">Same direction (a chase)</text>
+  <line x1="40" y1="130" x2="600" y2="130" stroke="#9ca3af" stroke-width="2"/>
+  <circle cx="110" cy="130" r="14" fill="#ea580c"/><text x="110" y="135" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">A</text>
+  <circle cx="330" cy="130" r="14" fill="#0f766e"/><text x="330" y="135" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">B</text>
+  <!-- 1 m/s = 20 px -->
+  <line x1="110" y1="100" x2="270" y2="100" stroke="#2563eb" stroke-width="4" marker-end="url(#ab)"/>
+  <text x="190" y="80" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle">v_A = +8 m/s</text>
+  <line x1="330" y1="100" x2="450" y2="100" stroke="#2563eb" stroke-width="4" marker-end="url(#ab)"/>
+  <text x="390" y="80" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle">v_B = +6 m/s</text>
+  <text x="20" y="172" font-size="15" fill="#111827">v_AB = v_A − v_B = (+8) − (+6) = +2 m/s: seen from B, A creeps closer at 2 m/s.</text>
+
+  <!-- head on -->
+  <text x="20" y="232" font-size="16" font-weight="700" fill="#111827">Opposite directions (head-on)</text>
+  <line x1="40" y1="300" x2="600" y2="300" stroke="#9ca3af" stroke-width="2"/>
+  <circle cx="150" cy="300" r="14" fill="#ea580c"/><text x="150" y="305" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">A</text>
+  <circle cx="500" cy="300" r="14" fill="#0f766e"/><text x="500" y="305" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">B</text>
+  <line x1="150" y1="270" x2="250" y2="270" stroke="#2563eb" stroke-width="4" marker-end="url(#ab)"/>
+  <text x="200" y="250" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle">v_A = +5 m/s</text>
+  <line x1="500" y1="270" x2="380" y2="270" stroke="#2563eb" stroke-width="4" marker-end="url(#ab)"/>
+  <text x="440" y="250" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle">v_B = −6 m/s</text>
+  <text x="20" y="342" font-size="15" fill="#111827">v_AB = v_A − v_B = (+5) − (−6) = +11 m/s: seen from B, A rushes in at 11 m/s.</text>
+  <text x="20" y="378" font-size="13" fill="#374151">Arrow lengths are drawn to scale: 1 m/s = 20 px.</text>
+</svg>

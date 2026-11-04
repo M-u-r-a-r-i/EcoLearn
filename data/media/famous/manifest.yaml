@@ -1,0 +1,82 @@
+# Famous images — historical photographs, portraits and documents.
+#
+# Every file in this folder MUST have an entry here, and the validator refuses a
+# lesson that uses an image without one. Only public-domain or openly licensed
+# images (CC0 / CC BY / CC BY-SA), each verified on its Wikimedia Commons page.
+# `credit` is shown under the image in the app; for CC BY / BY-SA it is a
+# licence requirement, for public domain it is courtesy.
+#
+# Files are ~960px web-sized versions, not the originals.
+
+images:
+  - file: newton-principia-title-page.jpg
+    title: Title page of Newton's Principia (1687)
+    source: https://commons.wikimedia.org/wiki/File:Newton%27s_Principia_title_page.png
+    license: Public domain
+    credit: "Isaac Newton, Philosophiæ Naturalis Principia Mathematica (1687). Scan: Internet Archive (Bern Dibner copy), via Wikimedia Commons. Public domain."
+    concepts: [inertia_first_law, second_law, third_law, universal_gravitation]
+    downloaded: 2026-09-21
+
+  - file: georg-simon-ohm-portrait.jpg
+    title: Portrait of Georg Simon Ohm
+    source: https://commons.wikimedia.org/wiki/File:Georg_Simon_Ohm3.jpg
+    license: Public domain
+    credit: "Georg Simon Ohm (1789–1854). Artist unknown; source: Lebendiges Museum Online, via Wikimedia Commons. Public domain."
+    concepts: [ohms_law, resistivity]
+    downloaded: 2026-09-21
+
+  - file: us-prototype-kilogram-k20.jpg
+    title: Display replica of the US national prototype kilogram K20 under its glass bell jars
+    source: https://commons.wikimedia.org/wiki/File:National_prototype_kilogram_K20_replica.jpg
+    license: Public domain
+    credit: "An exact replica of national prototype kilogram K20 (a platinum-iridium cylinder kept by NIST), made for public display. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
+    concepts: [si_units, unit_conversion]
+    downloaded: 2026-09-21
+
+  - file: us-prototype-metre-bar-27.jpg
+    title: National Prototype Metre Bar No. 27 (1889)
+    source: https://commons.wikimedia.org/wiki/File:US_National_Length_Meter.JPG
+    license: Public domain
+    credit: "National Prototype Metre Bar No. 27 (1889), the US length standard from 1893 to 1960. Photo: NIST Virtual Museum, via Wikimedia Commons. Public domain."
+    concepts: [si_units, significant_figures, measurement_uncertainty]
+    downloaded: 2026-09-21
+
+  - file: rudolf-clausius.jpg
+    title: Portrait photograph of Rudolf Clausius (before 1888)
+    source: https://commons.wikimedia.org/wiki/File:Clausius.jpg
+    license: Public domain
+    credit: "Rudolf Clausius (1822-1888), who stated the second law of thermodynamics in terms of heat flow and coined the word entropy. Photographer unknown, before 1888. Via Wikimedia Commons (from the MacTutor archive, University of St Andrews). Public domain."
+    concepts: [second_law_thermodynamics]
+    downloaded: 2026-09-22
+
+  - file: hans-christian-oersted.jpg
+    title: Hans Christian Orsted, daguerreotype (before 1851)
+    source: https://commons.wikimedia.org/wiki/File:Hans_Christian_%C3%98rsted_daguerreotype.jpg
+    license: Public domain
+    credit: "Hans Christian Orsted (1777-1851), who found in 1820 that a current deflects a compass needle. Daguerreotype, photographer unknown, before 1851. Via Wikimedia Commons. Public domain."
+    concepts: [magnetic_field_oersted]
+    downloaded: 2026-09-23
+
+  - file: andre-marie-ampere-1825.jpg
+    title: Andre-Marie Ampere, engraving by Ambroise Tardieu (1825)
+    source: https://commons.wikimedia.org/wiki/File:Ampere_Andre_1825.jpg
+    license: Public domain
+    credit: "Andre-Marie Ampere (1775-1836), who turned Orsted's discovery into a law relating current and magnetic field. Engraving by Ambroise Tardieu, 1825. Via Wikimedia Commons. Public domain."
+    concepts: [amperes_circuital_law, parallel_currents_force]
+    downloaded: 2026-09-23
+
+  - file: johann-christian-poggendorff.jpg
+    title: Johann Christian Poggendorff, portrait photograph
+    source: https://commons.wikimedia.org/wiki/File:Johann_Christian_Poggendorff.jpg
+    license: Public domain
+    credit: "Johann Christian Poggendorff (1796-1877), who devised the potentiometer method of comparing emfs without drawing current. Photographer unknown. Via Wikimedia Commons. Public domain."
+    concepts: [potentiometer]
+    downloaded: 2026-09-23
+
+  - file: davisson-and-germer.jpg
+    title: Clinton Davisson and Lester Germer with their apparatus (1927)
+    source: https://commons.wikimedia.org/wiki/File:Davisson_and_Germer.jpg
+    license: Public domain
+    credit: "Clinton Davisson (left) and Lester Germer, whose 1927 experiment at Bell Labs showed electrons diffracting like waves. Photographer unknown; published in Electronics, 1935, without a copyright notice. Via Wikimedia Commons. Public domain."
+    concepts: [davisson_germer]
+    downloaded: 2026-09-23

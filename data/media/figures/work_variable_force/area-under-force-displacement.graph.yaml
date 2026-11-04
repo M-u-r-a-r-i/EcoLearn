@@ -1,0 +1,19 @@
+# A force that changes with displacement: rises 0 -> 120 N over the first 0.05 m,
+# stays at 120 N until 0.25 m, falls back to 0 at 0.30 m.
+# Area = 0.5*0.05*120 + 0.20*120 + 0.5*0.05*120 = 3 + 24 + 3 = 30 J.
+# Dashed steps: strips 0.05 m wide at each strip's midpoint force (60, 120 x4, 60 N):
+# sum = 0.05*(60 + 4*120 + 60) = 0.05*600 = 30 J (exact here, because each piece is a straight line).
+title: "Work = area under the force-displacement graph"
+x: {label: "Displacement $x$ (m)", min: 0, max: 0.34}
+y: {label: "Force $F$ (N)", min: 0, max: 150}
+series:
+  - label: "Force $F(x)$"
+    points: [[0, 0], [0.05, 120], [0.25, 120], [0.30, 0]]
+    color: red
+  - label: 'Strips of width $\Delta x$ = 0.05 m'
+    points: [[0, 0], [0, 60], [0.05, 60], [0.05, 0], [0.05, 120], [0.10, 120], [0.10, 0], [0.10, 120], [0.15, 120], [0.15, 0], [0.15, 120], [0.20, 120], [0.20, 0], [0.20, 120], [0.25, 120], [0.25, 0], [0.25, 60], [0.30, 60], [0.30, 0]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 0.15, y: 120, text: "total area = 30 J", color: red, offset: [-40, 10]}
+legend: below

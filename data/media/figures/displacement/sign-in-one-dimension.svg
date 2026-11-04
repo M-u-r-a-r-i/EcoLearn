@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Three trips on a line: displacement +4 m, displacement −3 m, and displacement zero for a round trip</title>
+  <defs>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="28" font-size="15" fill="#374151">Positive direction: to the right. Scale in metres, origin at 0.</text>
+
+  <!-- row a -->
+  <text x="20" y="72" font-size="15" font-weight="700" fill="#111827">(a)</text>
+  <line x1="80" y1="100" x2="600" y2="100" stroke="#111827" stroke-width="2"/>
+  <g font-size="12" fill="#374151" text-anchor="middle">
+    <text x="100" y="120">0</text><text x="180" y="120">1</text><text x="260" y="120">2</text><text x="340" y="120">3</text><text x="420" y="120">4</text><text x="500" y="120">5</text><text x="580" y="120">6</text>
+  </g>
+  <circle cx="180" cy="100" r="6" fill="#111827"/><circle cx="500" cy="100" r="6" fill="#7c3aed"/>
+  <line x1="180" y1="78" x2="494" y2="78" stroke="#7c3aed" stroke-width="4" marker-end="url(#ap)"/>
+  <text x="340" y="66" font-size="14" font-weight="700" fill="#7c3aed" text-anchor="middle">Δx = 5 − 1 = +4 m</text>
+
+  <!-- row b -->
+  <text x="20" y="182" font-size="15" font-weight="700" fill="#111827">(b)</text>
+  <line x1="80" y1="210" x2="600" y2="210" stroke="#111827" stroke-width="2"/>
+  <g font-size="12" fill="#374151" text-anchor="middle">
+    <text x="100" y="230">0</text><text x="180" y="230">1</text><text x="260" y="230">2</text><text x="340" y="230">3</text><text x="420" y="230">4</text><text x="500" y="230">5</text><text x="580" y="230">6</text>
+  </g>
+  <circle cx="500" cy="210" r="6" fill="#111827"/><circle cx="260" cy="210" r="6" fill="#7c3aed"/>
+  <line x1="500" y1="188" x2="266" y2="188" stroke="#7c3aed" stroke-width="4" marker-end="url(#ap)"/>
+  <text x="380" y="176" font-size="14" font-weight="700" fill="#7c3aed" text-anchor="middle">Δx = 2 − 5 = −3 m</text>
+
+  <!-- row c -->
+  <text x="20" y="292" font-size="15" font-weight="700" fill="#111827">(c)</text>
+  <line x1="80" y1="330" x2="600" y2="330" stroke="#111827" stroke-width="2"/>
+  <g font-size="12" fill="#374151" text-anchor="middle">
+    <text x="100" y="350">0</text><text x="180" y="350">1</text><text x="260" y="350">2</text><text x="340" y="350">3</text><text x="420" y="350">4</text><text x="500" y="350">5</text><text x="580" y="350">6</text>
+  </g>
+  <line x1="180" y1="306" x2="414" y2="306" stroke="#ea580c" stroke-width="3" marker-end="url(#ao)"/>
+  <line x1="420" y1="316" x2="186" y2="316" stroke="#ea580c" stroke-width="3" marker-end="url(#ao)"/>
+  <circle cx="180" cy="330" r="6" fill="#7c3aed"/>
+  <text x="440" y="300" font-size="14" font-weight="700" fill="#ea580c">path: 3 m out, 3 m back</text>
+  <text x="330" y="385" font-size="14" font-weight="700" fill="#7c3aed" text-anchor="middle">start = end, so Δx = 1 − 1 = 0 m, though the distance is 6 m</text>
+
+  <g font-size="12" fill="#374151">
+    <circle cx="470" cy="24" r="5" fill="#111827"/><text x="480" y="28">start</text>
+    <circle cx="530" cy="24" r="5" fill="#7c3aed"/><text x="540" y="28">end</text>
+  </g>
+</svg>

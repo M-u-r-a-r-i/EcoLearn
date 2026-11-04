@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A bar magnet being pushed into a coil connected to a galvanometer, with the needle deflecting; a second panel shows the magnet resting inside the coil and the needle at zero</title>
+  <defs>
+    <marker id="bv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">An emf appears only while the flux is changing</text>
+
+  <!-- panel A: moving -->
+  <g>
+    <rect x="14" y="40" width="612" height="152" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <path d="M 300 155 L 300 180 L 495 180 L 495 150" fill="none" stroke="#b45309" stroke-width="3"/>
+    <path d="M 366 75 L 366 58 L 560 58 L 560 116 L 525 116" fill="none" stroke="#b45309" stroke-width="3"/>
+    <g stroke="#b45309" stroke-width="4" fill="none">
+      <ellipse cx="300" cy="115" rx="10" ry="40"/>
+      <ellipse cx="322" cy="115" rx="10" ry="40"/>
+      <ellipse cx="344" cy="115" rx="10" ry="40"/>
+      <ellipse cx="366" cy="115" rx="10" ry="40"/>
+    </g>
+    <circle cx="495" cy="116" r="30" fill="#ffffff" stroke="#0f172a" stroke-width="3"/>
+    <line x1="495" y1="116" x2="476" y2="95" stroke="#dc2626" stroke-width="3"/>
+    <text x="495" y="122" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="700">G</text>
+    <rect x="110" y="100" width="55" height="30" fill="#dc2626"/>
+    <rect x="165" y="100" width="55" height="30" fill="#1e40af"/>
+    <text x="137" y="121" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">S</text>
+    <text x="192" y="121" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">N</text>
+    <line x1="228" y1="115" x2="270" y2="115" stroke="#2563eb" stroke-width="4" marker-end="url(#bv)"/>
+    <text x="249" y="104" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">v</text>
+    <text x="150" y="166" font-size="13" fill="#0f172a" text-anchor="middle">magnet moving in</text>
+    <text x="440" y="166" font-size="14" fill="#15803d" text-anchor="middle" font-weight="700">the needle kicks</text>
+  </g>
+
+  <!-- panel B: at rest, inside the coil -->
+  <g>
+    <rect x="14" y="208" width="612" height="152" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+    <path d="M 300 323 L 300 348 L 495 348 L 495 318" fill="none" stroke="#b45309" stroke-width="3"/>
+    <path d="M 366 243 L 366 226 L 560 226 L 560 284 L 525 284" fill="none" stroke="#b45309" stroke-width="3"/>
+    <rect x="258" y="269" width="55" height="30" fill="#dc2626"/>
+    <rect x="313" y="269" width="55" height="30" fill="#1e40af"/>
+    <text x="285" y="290" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">S</text>
+    <text x="340" y="290" font-size="15" fill="#ffffff" text-anchor="middle" font-weight="700">N</text>
+    <g stroke="#b45309" stroke-width="4" fill="none">
+      <ellipse cx="300" cy="283" rx="10" ry="40"/>
+      <ellipse cx="322" cy="283" rx="10" ry="40"/>
+      <ellipse cx="344" cy="283" rx="10" ry="40"/>
+      <ellipse cx="366" cy="283" rx="10" ry="40"/>
+    </g>
+    <circle cx="495" cy="284" r="30" fill="#ffffff" stroke="#0f172a" stroke-width="3"/>
+    <line x1="495" y1="284" x2="495" y2="256" stroke="#dc2626" stroke-width="3"/>
+    <text x="495" y="290" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="700">G</text>
+    <text x="150" y="290" font-size="13" fill="#0f172a" text-anchor="middle">magnet at rest inside the coil</text>
+    <text x="440" y="334" font-size="14" fill="#b91c1c" text-anchor="middle" font-weight="700">the needle reads zero</text>
+  </g>
+
+  <text x="320" y="384" font-size="13" fill="#475569" text-anchor="middle">A magnet sitting inside the coil gives a large flux but no emf: only the rate of change matters.</text>
+</svg>

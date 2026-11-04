@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A night-time gaming corner: a monitor showing a pinball table with a steel ball rolling up a two-wire ramp; on the desk a wireless headset sits on a charging pad with purple field lines looping from the pad's coil through the headset's coil; beside it a controller is cut away to show its rumble motor, a coil with a small magnet; further along, a battery-free tablet pen hovers over a drawing tablet with field lines between them; on the right an arcade cabinet is cut away at the coin chute, where a bar magnet faces a falling metal token</title>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#818cf8" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#room)"/>
+  <ellipse cx="200" cy="150" rx="320" ry="170" fill="url(#glow)"/>
+
+  <!-- monitor showing a pinball table -->
+  <rect x="20" y="24" width="320" height="220" rx="8" fill="#020617" stroke="#475569" stroke-width="4"/>
+  <rect x="32" y="36" width="296" height="196" fill="#060c1c"/>
+  <rect x="44" y="46" width="272" height="176" fill="#101d36"/>
+  <text x="54" y="64" font-size="11" fill="#4ade80" font-family="Consolas, monospace">SCORE 12 500</text>
+  <!-- wireform ramp: two parallel wires the steel ball rides on -->
+  <path d="M 92 200 C 124 152, 196 124, 262 108" fill="none" stroke="#94a3b8" stroke-width="3"/>
+  <path d="M 100 208 C 132 160, 204 132, 270 116" fill="none" stroke="#94a3b8" stroke-width="3"/>
+  <circle cx="166" cy="152" r="8" fill="#e2e8f0"/>
+  <!-- bumpers -->
+  <circle cx="106" cy="92" r="13" fill="#1f2937" stroke="#64748b" stroke-width="2"/>
+  <circle cx="152" cy="74" r="13" fill="#1f2937" stroke="#64748b" stroke-width="2"/>
+  <!-- flippers -->
+  <line x1="110" y1="214" x2="144" y2="204" stroke="#f59e0b" stroke-width="7" stroke-linecap="round"/>
+  <line x1="250" y1="214" x2="216" y2="204" stroke="#f59e0b" stroke-width="7" stroke-linecap="round"/>
+  <text x="290" y="216" font-size="10" fill="#cbd5e1" text-anchor="end">pinball</text>
+
+  <!-- monitor stand -->
+  <rect x="165" y="244" width="30" height="72" fill="#334155"/>
+  <rect x="120" y="316" width="120" height="12" rx="4" fill="#334155"/>
+
+  <!-- headline -->
+  <text x="470" y="104" font-size="16" font-weight="700" fill="#bfdbfe" text-anchor="middle">A magnetic field is changing</text>
+  <text x="470" y="128" font-size="16" font-weight="700" fill="#bfdbfe" text-anchor="middle">inside every one of these</text>
+  <text x="470" y="154" font-size="11" fill="#93c5fd" text-anchor="middle">nothing here touches what it drives</text>
+
+  <!-- desk -->
+  <rect x="0" y="328" width="800" height="122" fill="#3b2a1f"/>
+  <rect x="0" y="328" width="800" height="8" fill="#5b3f2c"/>
+
+  <!-- charging pad with a headset earcup on it -->
+  <path d="M 56 412 C 40 316, 212 316, 196 412" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#fl)"/>
+  <path d="M 76 412 C 66 350, 186 350, 176 412" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#fl)"/>
+  <rect x="76" y="352" width="100" height="36" rx="10" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <g stroke="#b45309" stroke-width="3" fill="none">
+    <ellipse cx="96" cy="370" rx="6" ry="11"/>
+    <ellipse cx="116" cy="370" rx="6" ry="11"/>
+    <ellipse cx="136" cy="370" rx="6" ry="11"/>
+    <ellipse cx="156" cy="370" rx="6" ry="11"/>
+  </g>
+  <rect x="44" y="400" width="164" height="20" rx="6" fill="#111827" stroke="#64748b" stroke-width="2"/>
+  <g stroke="#b45309" stroke-width="3" fill="none">
+    <ellipse cx="74" cy="410" rx="7" ry="6"/>
+    <ellipse cx="102" cy="410" rx="7" ry="6"/>
+    <ellipse cx="130" cy="410" rx="7" ry="6"/>
+    <ellipse cx="158" cy="410" rx="7" ry="6"/>
+    <ellipse cx="186" cy="410" rx="7" ry="6"/>
+  </g>
+  <text x="126" y="433" font-size="11" fill="#e2e8f0" text-anchor="middle">headset on a charging pad</text>
+  <text x="126" y="445" font-size="10" fill="#c4b5fd" text-anchor="middle">two coils, nothing touching</text>
+
+  <!-- controller, cut away at the rumble motor -->
+  <text x="357" y="348" font-size="11" fill="#e2e8f0" text-anchor="middle">rumble motor: a coil and a magnet</text>
+  <g transform="translate(86,6)">
+    <path d="M 214 368 q 40 -18 92 0 q 26 8 22 34 q -4 22 -26 16 q -20 -6 -42 -6 q -22 0 -42 6 q -22 6 -26 -16 q -4 -26 22 -34 z" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="242" cy="386" r="8" fill="#374151" stroke="#9ca3af" stroke-width="1.5"/>
+    <circle cx="242" cy="386" r="3" fill="#cbd5e1"/>
+  </g>
+  <circle cx="368" cy="396" r="25" fill="#0b1220" stroke="#cbd5e1" stroke-width="2.5"/>
+  <g stroke="#b45309" stroke-width="2.5" fill="none">
+    <ellipse cx="356" cy="396" rx="5" ry="13"/>
+    <ellipse cx="366" cy="396" rx="5" ry="13"/>
+  </g>
+  <rect x="376" y="386" width="10" height="10" fill="#dc2626"/>
+  <rect x="376" y="396" width="10" height="10" fill="#1e40af"/>
+
+  <!-- graphics tablet with a battery-free pen hovering above it -->
+  <line x1="498" y1="342" x2="526" y2="368" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 524 366 L 534 376 L 522 374 z" fill="#e2e8f0"/>
+  <path d="M 512 380 q 18 10 36 0" fill="none" stroke="#a78bfa" stroke-width="2.5"/>
+  <path d="M 504 376 q 26 16 52 0" fill="none" stroke="#a78bfa" stroke-width="2.5"/>
+  <rect x="444" y="386" width="140" height="34" rx="5" fill="#1f2937" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="456" y="392" width="116" height="22" rx="3" fill="#0b1220"/>
+  <text x="514" y="438" font-size="11" fill="#e2e8f0" text-anchor="middle">tablet pen: no battery inside</text>
+
+  <!-- arcade cabinet, cut away at the coin chute -->
+  <rect x="580" y="46" width="192" height="282" rx="8" fill="#0f172a" stroke="#475569" stroke-width="3"/>
+  <rect x="594" y="58" width="164" height="28" rx="3" fill="#1e293b"/>
+  <text x="676" y="78" font-size="13" fill="#fcd34d" text-anchor="middle" font-weight="700">ARCADE</text>
+  <rect x="594" y="96" width="164" height="94" fill="#06121f"/>
+  <g fill="#38bdf8" opacity="0.8">
+    <rect x="610" y="112" width="18" height="10"/>
+    <rect x="642" y="132" width="18" height="10"/>
+    <rect x="690" y="120" width="18" height="10"/>
+    <rect x="666" y="158" width="18" height="10"/>
+  </g>
+  <rect x="640" y="172" width="26" height="8" fill="#4ade80"/>
+  <rect x="594" y="198" width="164" height="34" rx="3" fill="#1f2937"/>
+  <line x1="620" y1="226" x2="620" y2="210" stroke="#94a3b8" stroke-width="4"/>
+  <circle cx="620" cy="206" r="6" fill="#dc2626"/>
+  <circle cx="654" cy="216" r="7" fill="#f59e0b"/>
+  <circle cx="676" cy="216" r="7" fill="#38bdf8"/>
+  <rect x="594" y="240" width="164" height="78" rx="4" fill="#111827" stroke="#475569" stroke-width="1.5"/>
+  <line x1="632" y1="250" x2="632" y2="296" stroke="#94a3b8" stroke-width="3"/>
+  <line x1="652" y1="250" x2="652" y2="296" stroke="#94a3b8" stroke-width="3"/>
+  <circle cx="642" cy="268" r="8" fill="#cbd5e1"/>
+  <rect x="668" y="258" width="24" height="20" fill="#dc2626"/>
+  <rect x="692" y="258" width="24" height="20" fill="#1e40af"/>
+  <text x="680" y="273" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">S</text>
+  <text x="704" y="273" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">N</text>
+  <text x="676" y="310" font-size="10" fill="#cbd5e1" text-anchor="middle">coin chute: a magnet slows a token</text>
+</svg>

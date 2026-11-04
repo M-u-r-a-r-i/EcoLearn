@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Class-based house style, layered under Tailwind utilities so utilities still win. */
+@import "./ecolearn.css" layer(components);
 
 /* Tailwind Typography — gives us the `prose` classes for beautiful long-form
    text rendered from backend markdown (lesson body / worked example). */
@@ -8,12 +10,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -50,9 +53,9 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   /* Soft shadow scale — use as shadow-soft / shadow-card / shadow-card-hover. */
-  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.06);
-  --shadow-card-hover: 0 8px 24px rgba(79, 70, 229, 0.14);
+  --shadow-soft: 0 2px 8px rgba(51, 67, 51, 0.08);
+  --shadow-card: var(--shadow);
+  --shadow-card-hover: 0 12px 32px rgba(51, 67, 51, 0.14);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -63,77 +66,96 @@
 }
 
 :root {
-  /* ---- EcoLearn brand palette ---------------------------------------- */
-  --background: #FAFAFB;          /* near-white page background */
-  --foreground: #1E293B;          /* dark slate text */
-  --card: #FFFFFF;                /* cards sit slightly brighter than the page */
-  --card-foreground: #1E293B;
-  --popover: #FFFFFF;
-  --popover-foreground: #1E293B;
-  --primary: #4F46E5;             /* indigo — primary buttons & actions */
-  --primary-foreground: #FFFFFF;  /* text on indigo */
-  --brand-accent: #F59E0B;        /* amber — highlights (see --color-brand-accent) */
-  --success: #10B981;             /* green — mastered / passed states */
+  color-scheme: light;
+  /* ---- EcoLearn house style (skill: .claude/skills/ecolearn-style) ----------
+     Warm "field notes" palette from the Replit design. The class-based rules in
+     ecolearn.css use the plain names (--surface, --ink, --brand ...); the shadcn
+     names below point at them, so both vocabularies stay one palette. */
+  --surface: #fffef9;
+  --surface-soft: #ebeae1;
+  --ink: #202a27;
+  --ink-muted: #667066;            /* 5:1 on --surface (the original #747c73 was 4.2:1) */
+  --line: #dedfd4;
+  --brand: #26745d;
+  --brand-dark: #1b5b48;
+  --lime: #d4ef7a;
+  --orange: #e99b61;
+  --gold: #e6bd4d;
+  --danger: #b0463b;
+  --shadow: 0 16px 48px rgba(51, 67, 51, 0.08);
+  --font-display: 'Trebuchet MS', 'Avenir Next', sans-serif;
+  --font-body: 'Avenir Next', 'Trebuchet MS', sans-serif;
+
+  --background: #f4f3ed;
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: #FFFFFF;
+  --brand-accent: #8a5f17;         /* gold, as text: 5.3:1 on --surface */
+  --success: #26745d;
   --success-foreground: #FFFFFF;
-  --ring: #4F46E5;                /* indigo focus ring */
-  --secondary: #F1F5F9;           /* light slate surface */
-  --secondary-foreground: #1E293B;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;    /* muted slate text */
-  --accent: #F1F5F9;
-  --accent-foreground: #1E293B;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #E2E8F0;              /* hairline borders */
-  --input: #E2E8F0;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --ring: var(--brand);
+  --secondary: var(--surface-soft);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-soft);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--surface-soft);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line);
+  --chart-1: #26745d;
+  --chart-2: #e6bd4d;
+  --chart-3: #e99b61;
+  --chart-4: #8763b0;
+  --chart-5: #4e8e9b;
+  --radius: 0.8rem;
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--surface-soft);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--brand);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+  --surface: #202e29;
+  --surface-soft: #293a33;
+  --ink: #f1f2e7;
+  --ink-muted: #a2aea4;
+  --line: #394940;
+  --brand: #79c29b;
+  --brand-dark: #a5d7b6;
+  --danger: #f18579;
+  --shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+
+  --background: #17231f;
+  --primary-foreground: #14241c;   /* dark text on the light green */
+  --brand-accent: #e6bd4d;
+  --success: #79c29b;
+  --success-foreground: #14241c;
+  --sidebar-primary-foreground: #14241c;
 }
+
+/* The student's interest re-themes the accent: set data-interest on <html>
+   (components/auth-provider.tsx). Dark gets lighter shades so text in the accent
+   stays readable. */
+[data-interest="cricket"] { --brand: #96691f; --brand-dark: #7a5419; }
+[data-interest="football"] { --brand: #3f7a4c; --brand-dark: #356543; }
+[data-interest="gaming"] { --brand: #7551a0; --brand-dark: #604582; }
+[data-interest="smartphones"] { --brand: #3d7c89; --brand-dark: #326873; }
+[data-interest="motorsport"] { --brand: #b65a3d; --brand-dark: #934b37; }
+.dark[data-interest="cricket"] { --brand: #e0ae62; --brand-dark: #ecc58a; }
+.dark[data-interest="football"] { --brand: #84c690; --brand-dark: #a6d9ae; }
+.dark[data-interest="gaming"] { --brand: #bda0e6; --brand-dark: #d3bff0; }
+.dark[data-interest="smartphones"] { --brand: #7fc0cd; --brand-dark: #a4d3dc; }
+.dark[data-interest="motorsport"] { --brand: #ec9575; --brand-dark: #f3b39a; }
 
 @layer base {
   * {
@@ -144,5 +166,86 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Roadmap motion (2026-10-04). Plain CSS, no animation library, and only for
+   people who haven't asked for reduced motion: without it the roadmap is the
+   same, just still.
+   ------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rm-pulse {
+    0% { transform: scale(1); opacity: 0.55; }
+    80%, 100% { transform: scale(1.55); opacity: 0; }
+  }
+  @keyframes rm-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes rm-pop {
+    0% { transform: scale(0.6); }
+    55% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes rm-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+  @keyframes rm-sheet {
+    from { transform: translateY(14px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes rm-draw {
+    from { stroke-dashoffset: var(--len, 200); }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes rm-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45); }
+    50% { box-shadow: 0 0 0 9px rgba(251, 191, 36, 0); }
+  }
+  @keyframes rm-slide-next {
+    from { transform: translateX(28px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes rm-slide-prev {
+    from { transform: translateX(-28px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .rm-slide-next { animation: rm-slide-next 0.28s ease-out both; }
+  .rm-slide-prev { animation: rm-slide-prev 0.28s ease-out both; }
+  @keyframes rm-confetti {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
+  }
+  .rm-confetti-piece {
+    display: block;
+    animation: rm-confetti 1.3s cubic-bezier(0.15, 0.7, 0.3, 1) var(--d, 0s) both;
+  }
+  .rm-pulse { animation: rm-pulse 1.8s ease-out infinite; }
+  .rm-bob { animation: rm-bob 1.6s ease-in-out infinite; }
+  .rm-pop { animation: rm-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+  .rm-shake { animation: rm-shake 0.4s ease-in-out; }
+  .rm-sheet { animation: rm-sheet 0.25s ease-out both; }
+  .rm-glow { animation: rm-glow 2.4s ease-in-out infinite; }
+  .rm-draw { stroke-dasharray: var(--len, 200); animation: rm-draw 0.9s ease-out both; }
+}
+
+/* Confetti is decoration: gone entirely unless motion is welcome. */
+.rm-confetti-piece { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rm-confetti-piece { display: block; }
+}
+
+/* Landing page: sections fade up as they scroll into view (components/landing/reveal.tsx).
+   The hidden state exists only for people who welcome motion AND only after JS has marked
+   the element, so without JS or with reduced motion the page is simply fully visible. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal="wait"] { opacity: 0; transform: translateY(18px); }
+  [data-reveal="in"] {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.6s ease-out var(--reveal-delay, 0s), transform 0.6s ease-out var(--reveal-delay, 0s);
   }
 }

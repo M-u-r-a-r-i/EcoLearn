@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Distance versus displacement: a winding path and an out-and-back trip</title>
+  <defs><marker id="hblue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="hred" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="hgreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="horange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/></marker><marker id="hpurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="hteal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0891b2"/></marker><marker id="hgray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker><marker id="hdark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111827"/></marker></defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20.0" y="30.0" font-size="17" fill="#111827" font-weight="700" text-anchor="start">Distance (scalar) vs displacement (vector)</text>
+  <line x1="320" y1="50" x2="320" y2="380" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="30.0" y="70.0" font-size="15" fill="#111827" font-weight="600" text-anchor="start">One trip, a winding path</text>
+  <path d="M 50 300 C 60 150, 170 330, 190 200 S 250 120, 280 150" fill="none" stroke="#6b7280" stroke-width="3" stroke-dasharray="7 5"/>
+  <line x1="50.0" y1="300.0" x2="276.0" y2="154.0" stroke="#7c3aed" stroke-width="4" marker-end="url(#hpurple)"/>
+  <circle cx="50" cy="300" r="6" fill="#111827"/><circle cx="280" cy="150" r="6" fill="#111827"/>
+  <text x="40.0" y="325.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">start</text>
+  <text x="292.0" y="150.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">end</text>
+  <text x="30.0" y="360.0" font-size="13" fill="#6b7280" font-weight="400" text-anchor="start">dashed: path length = distance</text>
+  <text x="30.0" y="378.0" font-size="13" fill="#7c3aed" font-weight="400" text-anchor="start">arrow: displacement (size + direction)</text>
+  <text x="340.0" y="70.0" font-size="15" fill="#111827" font-weight="600" text-anchor="start">There and back again</text>
+  <circle cx="380" cy="200" r="6" fill="#111827"/><circle cx="580" cy="200" r="6" fill="#111827"/>
+  <text x="380.0" y="225.0" font-size="14" fill="#111827" font-weight="600" text-anchor="middle">A</text>
+  <text x="580.0" y="225.0" font-size="14" fill="#111827" font-weight="600" text-anchor="middle">B</text>
+  <line x1="388.0" y1="182.0" x2="572.0" y2="182.0" stroke="#6b7280" stroke-width="3" marker-end="url(#hgray)"/>
+  <line x1="572.0" y1="166.0" x2="388.0" y2="166.0" stroke="#6b7280" stroke-width="3" marker-end="url(#hgray)"/>
+  <text x="480.0" y="150.0" font-size="13" fill="#6b7280" font-weight="400" text-anchor="middle">out L, back L</text>
+  <text x="340.0" y="280.0" font-size="15" fill="#6b7280" font-weight="600" text-anchor="start">distance = 2L</text>
+  <text x="340.0" y="305.0" font-size="15" fill="#7c3aed" font-weight="600" text-anchor="start">displacement = 0 (back at A)</text>
+  <text x="340.0" y="345.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">Distance adds up every metre travelled;</text>
+  <text x="340.0" y="363.0" font-size="13" fill="#111827" font-weight="400" text-anchor="start">displacement only compares start and end.</text>
+</svg>

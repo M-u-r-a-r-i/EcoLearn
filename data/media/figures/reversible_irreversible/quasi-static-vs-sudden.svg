@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two ways to let a gas expand: removing sand grains one at a time from a piston, or releasing a pinned piston suddenly</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <line x1="320" y1="20" x2="320" y2="380" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- left: quasi-static -->
+  <text x="160" y="36" font-size="16" font-weight="700" fill="#15803d" text-anchor="middle">Nearly reversible</text>
+  <path d="M 80 70 L 80 300 L 240 300 L 240 70" fill="none" stroke="#1f2937" stroke-width="5"/>
+  <rect x="83" y="160" width="154" height="137" fill="#dbeafe"/>
+  <rect x="83" y="146" width="154" height="14" fill="#9ca3af" stroke="#374151" stroke-width="2"/>
+  <path d="M 100 146 Q 160 96 220 146 z" fill="#d6c08f" stroke="#92400e" stroke-width="1.5"/>
+  <circle cx="262" cy="96" r="3" fill="#92400e"/>
+  <path d="M 222 118 Q 240 96 256 96" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="160" y="235" font-size="14" fill="#1e3a8a" text-anchor="middle">gas</text>
+  <text x="160" y="330" font-size="13" fill="#111827" text-anchor="middle">Remove one grain of sand at a time.</text>
+  <text x="160" y="348" font-size="13" fill="#111827" text-anchor="middle">Each step is tiny; the gas stays in equilibrium.</text>
+  <text x="160" y="366" font-size="13" fill="#111827" text-anchor="middle">Add the grains back: it retraces its path.</text>
+
+  <!-- right: sudden -->
+  <text x="480" y="36" font-size="16" font-weight="700" fill="#b91c1c" text-anchor="middle">Irreversible</text>
+  <path d="M 400 70 L 400 300 L 560 300 L 560 70" fill="none" stroke="#1f2937" stroke-width="5"/>
+  <rect x="403" y="100" width="154" height="197" fill="#dbeafe"/>
+  <rect x="403" y="86" width="154" height="14" fill="#9ca3af" stroke="#374151" stroke-width="2"/>
+  <rect x="403" y="200" width="154" height="10" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="566" y="210" font-size="11" fill="#6b7280">was here</text>
+  <g stroke="#2563eb" stroke-width="2" fill="none">
+    <path d="M 420 130 q 12 -10 24 0 t 24 0"/>
+    <path d="M 480 170 q 12 -10 24 0 t 24 0"/>
+    <path d="M 430 240 q 12 -10 24 0 t 24 0"/>
+  </g>
+  <text x="480" y="275" font-size="14" fill="#1e3a8a" text-anchor="middle">swirling gas</text>
+  <text x="480" y="330" font-size="13" fill="#111827" text-anchor="middle">Pull the pin: the piston shoots up.</text>
+  <text x="480" y="348" font-size="13" fill="#111827" text-anchor="middle">Pressure is not even; eddies and friction.</text>
+  <text x="480" y="366" font-size="13" fill="#111827" text-anchor="middle">No small nudge can send it back.</text>
+</svg>

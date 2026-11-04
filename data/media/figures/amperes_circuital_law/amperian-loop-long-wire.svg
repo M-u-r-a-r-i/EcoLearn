@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A long straight wire seen end on, carrying current out of the page, with a circular Amperian loop of radius r around it. The field is tangential and has the same size all the way round, giving B equals mu-nought I over two pi r. A second loop that does not enclose the wire gives zero.</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-size="15" font-weight="700" fill="#111827">Ampere's law: ∮ B·d𝑙 = μ₀ I(enclosed)</text>
+
+  <!-- wire end-on, current out of page -->
+  <circle cx="190" cy="210" r="15" fill="#fff" stroke="#2563eb" stroke-width="4"/>
+  <circle cx="190" cy="210" r="5" fill="#2563eb"/>
+  <text x="190" y="252" font-size="13.5" fill="#2563eb" font-weight="700" text-anchor="middle">I out of the page</text>
+
+  <!-- amperian circle -->
+  <circle cx="190" cy="210" r="110" fill="none" stroke="#0e7490" stroke-width="3" stroke-dasharray="10 6"/>
+  <line x1="190" y1="210" x2="300" y2="210" stroke="#111827" stroke-width="2"/>
+  <text x="246" y="202" font-size="14" fill="#111827" font-weight="700" text-anchor="middle">r</text>
+  <text x="30" y="120" font-size="13" fill="#0e7490" font-weight="700">Amperian loop</text>
+
+  <!-- B tangent arrows, anticlockwise on screen (right-hand rule for current out of page) -->
+  <g fill="#7c3aed">
+    <path d="M 300 210 l -10 16 l 20 0 z"/>
+    <path d="M 190 100 l -16 -10 l 0 20 z"/>
+    <path d="M 80 210 l 10 -16 l -20 0 z"/>
+    <path d="M 190 320 l 16 10 l 0 -20 z"/>
+  </g>
+  <text x="166" y="76" font-size="13.5" fill="#7c3aed" font-weight="700">B (same size all round)</text>
+
+  <rect x="336" y="60" width="284" height="92" rx="8" fill="#f1f5f9"/>
+  <text x="478" y="90" font-size="14" fill="#111827" text-anchor="middle">B is the same everywhere on the circle,</text>
+  <text x="478" y="110" font-size="14" fill="#111827" text-anchor="middle">so B × (2πr) = μ₀I</text>
+  <text x="478" y="138" font-size="17" fill="#111827" text-anchor="middle" font-weight="700">B = μ₀I / 2πr</text>
+
+  <!-- second loop enclosing nothing -->
+  <ellipse cx="490" cy="272" rx="86" ry="60" fill="none" stroke="#dc2626" stroke-width="3" stroke-dasharray="10 6"/>
+  <text x="490" y="352" font-size="13.5" fill="#dc2626" font-weight="700" text-anchor="middle">encloses no current → ∮ B·d𝑙 = 0</text>
+  <text x="490" y="372" font-size="12.5" fill="#475569" text-anchor="middle">(B is not zero there — the integral is)</text>
+</svg>

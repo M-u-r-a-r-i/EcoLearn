@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A phone beside a sunny window, its screen showing a UV-index meter, its flashlight beam drawn half as a wave and half as a stream of packets, and a magnified camera pixel where light frees electrons</title>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fef9c3" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#fef9c3" stop-opacity="0.08"/>
+    </linearGradient>
+    <marker id="arrY" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#fde047"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#60a5fa"/>
+    </marker>
+    <marker id="arrV" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c084fc"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#wall)"/>
+
+  <!-- window with sun -->
+  <rect x="40" y="40" width="170" height="200" rx="4" fill="url(#sky)" stroke="#e2e8f0" stroke-width="6"/>
+  <line x1="125" y1="40" x2="125" y2="240" stroke="#e2e8f0" stroke-width="5"/>
+  <line x1="40" y1="140" x2="210" y2="140" stroke="#e2e8f0" stroke-width="5"/>
+  <circle cx="82" cy="88" r="24" fill="#facc15"/>
+  <g stroke="#facc15" stroke-width="3" stroke-linecap="round">
+    <line x1="82" y1="52" x2="82" y2="58"/><line x1="82" y1="118" x2="82" y2="124"/>
+    <line x1="46" y1="88" x2="52" y2="88"/><line x1="112" y1="88" x2="118" y2="88"/>
+    <line x1="57" y1="63" x2="61" y2="67"/><line x1="103" y1="109" x2="107" y2="113"/>
+    <line x1="107" y1="63" x2="103" y2="67"/><line x1="61" y1="109" x2="57" y2="113"/>
+  </g>
+  <text x="125" y="28" font-size="13" fill="#e2e8f0" font-weight="600" text-anchor="middle">sunlight (with UV)</text>
+
+  <!-- UV rays from the window to the phone -->
+  <path d="M 190 170 L 262 222" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrV)"/>
+  <path d="M 190 205 L 258 245" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrV)"/>
+
+  <!-- table -->
+  <rect x="20" y="330" width="760" height="14" rx="3" fill="#b45309"/>
+  <rect x="50" y="344" width="12" height="76" fill="#78350f"/>
+  <rect x="738" y="344" width="12" height="76" fill="#78350f"/>
+  <rect x="0" y="420" width="800" height="30" fill="#57534e"/>
+
+  <!-- phone standing in a stand -->
+  <polygon points="262,330 330,330 318,316 274,316" fill="#475569"/>
+  <rect x="266" y="176" width="60" height="140" rx="9" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="272" y="188" width="48" height="116" rx="4" fill="#1e3a8a"/>
+  <!-- UV meter on screen -->
+  <text x="296" y="206" font-size="11" fill="#e2e8f0" font-weight="700" text-anchor="middle">UV</text>
+  <path d="M 280 240 A 16 16 0 0 1 312 240" fill="none" stroke="#334155" stroke-width="6"/>
+  <path d="M 280 240 A 16 16 0 0 1 296 224" fill="none" stroke="#4ade80" stroke-width="6"/>
+  <path d="M 296 224 A 16 16 0 0 1 307.3 228.7" fill="none" stroke="#f59e0b" stroke-width="6"/>
+  <path d="M 307.3 228.7 A 16 16 0 0 1 312 240" fill="none" stroke="#dc2626" stroke-width="6"/>
+  <line x1="296" y1="240" x2="306" y2="229" stroke="#f8fafc" stroke-width="2"/>
+  <rect x="280" y="256" width="32" height="5" rx="2" fill="#64748b"/>
+  <rect x="280" y="268" width="24" height="5" rx="2" fill="#64748b"/>
+  <text x="296" y="360" font-size="13" fill="#fef3c7" font-weight="600" text-anchor="middle">UV meter</text>
+
+  <!-- flashlight on the phone edge -->
+  <circle cx="326" cy="196" r="4" fill="#fef9c3"/>
+
+  <!-- flashlight beam -->
+  <polygon points="330,196 560,150 560,242" fill="url(#beam)"/>
+  <!-- wave half -->
+  <path d="M 336 196 q 10 -14 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+  <text x="396" y="168" font-size="13" fill="#fde047" font-weight="600" text-anchor="middle">wave</text>
+  <!-- packet half -->
+  <g fill="#fde047">
+    <circle cx="468" cy="196" r="5"/>
+    <circle cx="494" cy="196" r="5"/>
+    <circle cx="520" cy="196" r="5"/>
+  </g>
+  <line x1="530" y1="196" x2="556" y2="196" stroke="#fde047" stroke-width="2.5" marker-end="url(#arrY)"/>
+  <text x="506" y="168" font-size="13" fill="#fde047" font-weight="600" text-anchor="middle">packets</text>
+  <text x="446" y="275" font-size="13" fill="#fef3c7" font-weight="600" text-anchor="middle">flashlight beam</text>
+
+  <!-- magnified camera pixel inset -->
+  <line x1="306" y1="184" x2="604" y2="94" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="300" cy="184" r="5" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
+  <circle cx="670" cy="120" r="84" fill="#0f172a" stroke="#94a3b8" stroke-width="3"/>
+  <text x="670" y="22" font-size="13" fill="#e2e8f0" font-weight="600" text-anchor="middle">camera pixel, magnified</text>
+  <!-- pixel block -->
+  <rect x="616" y="130" width="108" height="50" rx="3" fill="#475569" stroke="#cbd5e1" stroke-width="1.5"/>
+  <!-- incoming photons -->
+  <line x1="630" y1="56" x2="650" y2="122" stroke="#fde047" stroke-width="2.5" marker-end="url(#arrY)"/>
+  <line x1="680" y1="50" x2="686" y2="122" stroke="#fde047" stroke-width="2.5" marker-end="url(#arrY)"/>
+  <!-- freed electrons -->
+  <circle cx="654" cy="156" r="7" fill="#60a5fa"/>
+  <text x="654" y="160" font-size="10" fill="#0f172a" font-weight="700" text-anchor="middle">e</text>
+  <circle cx="690" cy="156" r="7" fill="#60a5fa"/>
+  <text x="690" y="160" font-size="10" fill="#0f172a" font-weight="700" text-anchor="middle">e</text>
+  <line x1="662" y1="156" x2="676" y2="166" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrB)"/>
+  <text x="670" y="198" font-size="11" fill="#e2e8f0" text-anchor="middle">light frees electrons</text>
+
+  <!-- caption strip -->
+  <text x="400" y="395" font-size="15" fill="#e2e8f0" text-anchor="middle">Light arrives as a wave and as packets — and each packet can free one electron.</text>
+</svg>

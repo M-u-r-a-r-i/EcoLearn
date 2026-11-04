@@ -10,6 +10,7 @@ Functions:
     teaching_order(subject)       -> list[Concept]    # sorted by `order`
     resolve_prerequisites(...)    -> list[Concept]    # walk the prereq graph
     validate_ordering(subject)    -> None             # raises if order vs prereqs disagree
+    validate_unique_ids(subject)  -> None             # raises on any duplicate id
 """
 
 from __future__ import annotations
@@ -35,10 +36,13 @@ def _inject_parent_ids(raw_subject: dict[str, Any]) -> dict[str, Any]:
     subject_id = raw_subject["id"]
     for unit in raw_subject.get("units", []) or []:
         unit["subject_id"] = subject_id
+        grade = unit.get("grade")
         for chapter in unit.get("chapters", []) or []:
             chapter["unit_id"] = unit["id"]
+            chapter["grade"] = grade
             for concept in chapter.get("concepts", []) or []:
                 concept["chapter_id"] = chapter["id"]
+                concept["grade"] = grade
     return raw_subject
 
 
@@ -49,7 +53,8 @@ def load_subject(path: str | Path) -> Subject:
         FileNotFoundError: if `path` doesn't exist.
         yaml.YAMLError:    if the file isn't valid YAML.
         ValidationError:   if the data doesn't match the schema.
-        ValueError:        if the teaching order violates prerequisites.
+        ValueError:        if any id is duplicated, or the teaching order
+                           violates prerequisites.
     """
     yaml_path = Path(path)
     raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
@@ -60,6 +65,10 @@ def load_subject(path: str | Path) -> Subject:
 
     subject_dict = _inject_parent_ids(raw["subject"])
     subject = Subject.model_validate(subject_dict)
+    # Uniqueness first: every index below is a dict keyed on id, so a
+    # duplicate would silently overwrite (last one wins) before any other
+    # check could see it.
+    validate_unique_ids(subject)
     # Fail fast if the author's declared `order` contradicts their declared
     # prereqs. Better to crash at load time than to surface confusion later.
     validate_ordering(subject)
@@ -82,15 +91,45 @@ def all_concepts(subject: Subject) -> list[Concept]:
 def teaching_order(subject: Subject) -> list[Concept]:
     """Return all concepts sorted by their declared `order` field.
 
-    `order` is set per-concept by the author. Within a chapter the field is
-    1, 2, 3, …; across chapters and units we sort by (unit_order_implicit,
-    chapter_order_implicit, order) using the document's natural sequence.
+    `order` is GLOBAL across the subject (chapter_seq * 1000 + position * 10
+    by convention), so a plain sort yields the whole-subject teaching sequence
+    and filtering it to one chapter yields that chapter's sequence.
     """
     flat = all_concepts(subject)
     # Sort by `order` but break ties by the original document position so
     # that two concepts at order=1 in different chapters keep the author's
     # intended sequence.
     return sorted(flat, key=lambda c: (c.order, c.id))
+
+
+def validate_unique_ids(subject: Subject) -> None:
+    """Raise ValueError if any unit, chapter or concept id appears twice.
+
+    Ids are unique per kind across the WHOLE subject, not just the parent:
+    lessons are stored as files keyed on concept id, so two chapters that both
+    defined `potential` would also overwrite each other's lessons on disk.
+    """
+    seen: dict[tuple[str, str], str] = {}
+    problems: list[str] = []
+
+    def _check(kind: str, node_id: str, where: str) -> None:
+        key = (kind, node_id)
+        if key in seen:
+            problems.append(
+                f"duplicate {kind} id {node_id!r}: in {seen[key]} and in {where}"
+            )
+        else:
+            seen[key] = where
+
+    for unit in subject.units:
+        _check("unit", unit.id, f"unit {unit.id!r}")
+        for chapter in unit.chapters:
+            _check("chapter", chapter.id, f"unit {unit.id!r}")
+            for concept in chapter.concepts:
+                _check("concept", concept.id, f"chapter {chapter.id!r}")
+
+    if problems:
+        raise ValueError("Curriculum has duplicate ids:\n  " + "\n  ".join(problems))
 
 
 def _by_id(subject: Subject) -> dict[str, Concept]:

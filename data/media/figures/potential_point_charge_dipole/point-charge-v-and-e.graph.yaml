@@ -1,0 +1,22 @@
+# A point charge q = 1.0 nC:  V = kq/r = 9.0/r volts,  E = kq/r^2 = 9.0/r^2 V/m  (k = 9.0e9).
+# Doubling r (1 m -> 2 m) halves V (9.0 -> 4.5 V) but quarters E (9.0 -> 2.25 V/m).
+title: "A 1.0 nC point charge: potential and field against distance"
+panels:
+  - title: "Potential $V = kq/r$"
+    x: {label: "Distance $r$ (m)", min: 0, max: 4.2}
+    y: {label: "$V$ (V)", min: 0, max: 20}
+    series:
+      - points: [[0.5, 18.0], [0.6, 15.0], [0.75, 12.0], [1.0, 9.0], [1.25, 7.2], [1.5, 6.0], [2.0, 4.5], [2.5, 3.6], [3.0, 3.0], [3.5, 2.571], [4.0, 2.25]]
+        color: orange
+    marks:
+      - {x: 1.0, y: 9.0, text: "9.0 V at 1 m", color: orange, offset: [8, 6]}
+      - {x: 2.0, y: 4.5, text: "4.5 V at 2 m (half)", color: orange, offset: [6, 8]}
+  - title: "Field $E = kq/r^2$"
+    x: {label: "Distance $r$ (m)", min: 0, max: 4.2}
+    y: {label: "$E$ (V/m)", min: 0, max: 20}
+    series:
+      - points: [[0.67, 20.05], [0.75, 16.0], [0.85, 12.46], [1.0, 9.0], [1.25, 5.76], [1.5, 4.0], [2.0, 2.25], [2.5, 1.44], [3.0, 1.0], [3.5, 0.735], [4.0, 0.5625]]
+        color: purple
+    marks:
+      - {x: 1.0, y: 9.0, text: "9.0 V/m at 1 m", color: purple, offset: [8, 6]}
+      - {x: 2.0, y: 2.25, text: "2.25 V/m at 2 m (a quarter)", color: purple, offset: [4, 10]}

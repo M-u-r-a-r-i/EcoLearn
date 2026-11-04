@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A ray of light travelling in air strikes a water surface. The normal is drawn at the point of incidence. The refracted ray inside the water bends towards the normal, so the angle of refraction is smaller than the angle of incidence. A weak partly reflected ray goes back into the air.</title>
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <rect x="40" y="60" width="560" height="140" fill="#f8fafc"/>
+  <rect x="40" y="200" width="560" height="160" fill="#dbeafe"/>
+  <line x1="40" y1="200" x2="600" y2="200" stroke="#1d4ed8" stroke-width="3"/>
+  <text x="56" y="88" font-size="15" fill="#334155" font-weight="700">air (n₁ = 1.00)</text>
+  <text x="56" y="348" font-size="15" fill="#1e40af" font-weight="700">water (n₂ = 1.33)</text>
+
+  <!-- normal -->
+  <line x1="320" y1="70" x2="320" y2="350" stroke="#6b7280" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="330" y="84" font-size="13.5" fill="#6b7280" font-weight="700">normal</text>
+
+  <!-- incident ray -->
+  <line x1="220" y1="100" x2="320" y2="200" stroke="#2563eb" stroke-width="3" marker-end="url(#a1)"/>
+  <text x="212" y="126" font-size="13.5" fill="#2563eb" font-weight="700" text-anchor="end">incident ray</text>
+  <!-- refracted ray -->
+  <line x1="320" y1="200" x2="394.4" y2="318.6" stroke="#2563eb" stroke-width="3" marker-end="url(#a1)"/>
+  <text x="404" y="326" font-size="13.5" fill="#2563eb" font-weight="700">refracted ray</text>
+  <!-- weak reflected ray -->
+  <line x1="320" y1="200" x2="410" y2="110" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a2)"/>
+  <text x="418" y="106" font-size="12.5" fill="#9ca3af" font-weight="700">a little is reflected</text>
+
+  <!-- angle arcs -->
+  <path d="M 320 140 A 60 60 0 0 0 277.6 157.6" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="284" y="136" font-size="16" fill="#dc2626" font-weight="700">i</text>
+  <path d="M 320 280 A 80 80 0 0 1 362.5 267.8" fill="none" stroke="#059669" stroke-width="2.5"/>
+  <text x="344" y="300" font-size="16" fill="#059669" font-weight="700">r</text>
+
+  <rect x="390" y="210" width="230" height="88" rx="8" fill="#ffffff" fill-opacity="0.92"/>
+  <text x="505" y="238" font-size="15.5" fill="#111827" text-anchor="middle" font-weight="700">n₁ sin i = n₂ sin r</text>
+  <text x="505" y="262" font-size="13" fill="#111827" text-anchor="middle">into a denser medium:</text>
+  <text x="505" y="282" font-size="13" fill="#111827" text-anchor="middle">bends towards the normal</text>
+
+  <text x="320" y="384" font-size="13" fill="#6b7280" text-anchor="middle">The incident ray, the refracted ray and the normal all lie in one plane.</text>
+</svg>

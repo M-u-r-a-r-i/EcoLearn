@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">The seven SI base units and the constant that now defines each</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-size="19" font-weight="700" fill="#111827">The seven SI base units</text>
+
+  <!-- header -->
+  <rect x="16" y="48" width="608" height="30" fill="#1e3a8a"/>
+  <g font-size="14" font-weight="700" fill="#ffffff">
+    <text x="26" y="68">Quantity</text>
+    <text x="236" y="68">Unit</text>
+    <text x="336" y="68">Symbol</text>
+    <text x="416" y="68">Defined by fixing</text>
+  </g>
+
+  <!-- stripes -->
+  <g fill="#eff6ff">
+    <rect x="16" y="78" width="608" height="38"/>
+    <rect x="16" y="154" width="608" height="38"/>
+    <rect x="16" y="230" width="608" height="38"/>
+    <rect x="16" y="306" width="608" height="38"/>
+  </g>
+
+  <g font-size="15" fill="#111827">
+    <text x="26" y="102">length</text>
+    <text x="26" y="140">mass</text>
+    <text x="26" y="178">time</text>
+    <text x="26" y="216">electric current</text>
+    <text x="26" y="254">temperature</text>
+    <text x="26" y="292">amount of substance</text>
+    <text x="26" y="330">luminous intensity</text>
+
+    <text x="236" y="102">metre</text>
+    <text x="236" y="140">kilogram</text>
+    <text x="236" y="178">second</text>
+    <text x="236" y="216">ampere</text>
+    <text x="236" y="254">kelvin</text>
+    <text x="236" y="292">mole</text>
+    <text x="236" y="330">candela</text>
+  </g>
+  <g font-size="15" font-weight="700" fill="#1d4ed8">
+    <text x="336" y="102">m</text>
+    <text x="336" y="140">kg</text>
+    <text x="336" y="178">s</text>
+    <text x="336" y="216">A</text>
+    <text x="336" y="254">K</text>
+    <text x="336" y="292">mol</text>
+    <text x="336" y="330">cd</text>
+  </g>
+  <g font-size="14" fill="#374151">
+    <text x="416" y="102">speed of light, c</text>
+    <text x="416" y="140">Planck constant, h</text>
+    <text x="416" y="178">caesium-133 frequency</text>
+    <text x="416" y="216">elementary charge, e</text>
+    <text x="416" y="254">Boltzmann constant, k</text>
+    <text x="416" y="292">Avogadro constant</text>
+    <text x="416" y="330">luminous efficacy</text>
+  </g>
+
+  <text x="24" y="376" font-size="13" fill="#374151">Since 20 May 2019, every base unit is defined by fixing the exact value of a constant.</text>
+</svg>

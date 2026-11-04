@@ -17,8 +17,10 @@ __pycache__/
 # Machine-local developer config
 #   .claude/  — agent launch configs + local permissions; contains absolute
 #               Windows paths, so it is meaningless on another machine.
+#   .claude/skills/ IS tracked: the shared design skill (ecolearn-style).
 # ---------------------------------------------------------------------------
-.claude/
+.claude/*
+!.claude/skills/
 .vscode/
 .idea/
 

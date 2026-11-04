@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A living room in the evening: a camera drone climbs straight up, a phone falls from a shelf towards a cushion, a small earbuds case is whirled on a lanyard in a vertical circle, and a robot vacuum rolls towards a sofa leg</title>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#wall)"/>
+
+  <!-- tiled floor -->
+  <rect x="0" y="380" width="800" height="70" fill="#a8a29e"/>
+  <g stroke="#78716c" stroke-width="2">
+    <line x1="0" y1="380" x2="800" y2="380"/>
+    <line x1="0" y1="414" x2="800" y2="414"/>
+    <line x1="80" y1="380" x2="60" y2="450"/><line x1="180" y1="380" x2="170" y2="450"/>
+    <line x1="280" y1="380" x2="280" y2="450"/><line x1="380" y1="380" x2="390" y2="450"/>
+    <line x1="480" y1="380" x2="500" y2="450"/><line x1="580" y1="380" x2="610" y2="450"/>
+    <line x1="680" y1="380" x2="720" y2="450"/>
+  </g>
+
+  <!-- LEFT: camera drone climbing -->
+  <g>
+    <rect x="60" y="150" width="110" height="18" rx="8" fill="#e2e8f0"/>
+    <line x1="70" y1="154" x2="46" y2="140" stroke="#cbd5e1" stroke-width="6"/>
+    <line x1="160" y1="154" x2="184" y2="140" stroke="#cbd5e1" stroke-width="6"/>
+    <ellipse cx="40" cy="136" rx="30" ry="5" fill="#94a3b8" opacity="0.85"/>
+    <ellipse cx="190" cy="136" rx="30" ry="5" fill="#94a3b8" opacity="0.85"/>
+    <rect x="104" y="168" width="22" height="13" rx="3" fill="#0f172a"/>
+    <circle cx="115" cy="175" r="4" fill="#38bdf8"/>
+  </g>
+  <!-- velocity up (blue) -->
+  <line x1="115" y1="128" x2="115" y2="78" stroke="#2563eb" stroke-width="5"/>
+  <polygon points="115,62 106,80 124,80" fill="#2563eb"/>
+  <text x="128" y="84" font-size="14" fill="#bfdbfe" font-weight="600">v</text>
+  <!-- height marker -->
+  <line x1="30" y1="178" x2="30" y2="376" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="6 5"/>
+  <polygon points="30,172 25,184 35,184" fill="#e2e8f0"/>
+  <polygon points="30,380 25,368 35,368" fill="#e2e8f0"/>
+  <text x="40" y="285" font-size="15" fill="#e2e8f0" font-style="italic" font-weight="600">h</text>
+
+  <!-- MIDDLE-LEFT: wall shelf and a phone falling towards a cushion -->
+  <rect x="220" y="170" width="120" height="10" rx="2" fill="#a16207"/>
+  <rect x="232" y="180" width="6" height="18" fill="#78350f"/>
+  <rect x="322" y="180" width="6" height="18" fill="#78350f"/>
+  <rect x="250" y="146" width="40" height="24" rx="3" fill="#64748b"/>
+  <!-- ghost positions of the phone -->
+  <rect x="344" y="186" width="14" height="28" rx="3" fill="#0f172a" opacity="0.3" transform="rotate(15 351 200)"/>
+  <rect x="350" y="236" width="14" height="28" rx="3" fill="#0f172a" opacity="0.55" transform="rotate(35 357 250)"/>
+  <rect x="354" y="300" width="16" height="30" rx="3" fill="#0f172a" stroke="#f472b6" stroke-width="3" transform="rotate(60 362 315)"/>
+  <!-- velocity down, longer lower down (blue) -->
+  <line x1="398" y1="230" x2="398" y2="306" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="398,322 390,304 406,304" fill="#2563eb"/>
+  <text x="408" y="280" font-size="14" fill="#bfdbfe" font-weight="600">v</text>
+  <!-- cushion -->
+  <ellipse cx="362" cy="370" rx="58" ry="14" fill="#f59e0b"/>
+  <ellipse cx="362" cy="366" rx="50" ry="8" fill="#fbbf24"/>
+
+  <!-- MIDDLE-RIGHT: earbuds case whirled on a lanyard in a vertical circle -->
+  <circle cx="540" cy="200" r="78" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="7 6" opacity="0.8"/>
+  <!-- hand (fist) at the centre -->
+  <circle cx="540" cy="200" r="13" fill="#d6a67a"/>
+  <rect x="533" y="210" width="14" height="60" rx="6" fill="#d6a67a"/>
+  <rect x="528" y="262" width="24" height="40" rx="6" fill="#0ea5e9"/>
+  <!-- lanyard to the case at the top -->
+  <line x1="540" y1="190" x2="540" y2="134" stroke="#f472b6" stroke-width="3"/>
+  <rect x="524" y="108" width="32" height="24" rx="11" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="530" y1="120" x2="550" y2="120" stroke="#cbd5e1" stroke-width="1.5"/>
+  <!-- velocity at the top: tangent, to the left (anticlockwise) -->
+  <line x1="516" y1="98" x2="476" y2="98" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="462,98 478,90 478,106" fill="#2563eb"/>
+  <text x="470" y="88" font-size="14" fill="#bfdbfe" font-weight="600">v</text>
+
+  <!-- RIGHT: sofa and a robot vacuum rolling towards its leg -->
+  <rect x="650" y="260" width="150" height="80" rx="10" fill="#7c3aed"/>
+  <rect x="650" y="230" width="150" height="40" rx="10" fill="#8b5cf6"/>
+  <rect x="664" y="340" width="12" height="40" fill="#44403c"/>
+  <!-- robot vacuum -->
+  <ellipse cx="580" cy="368" rx="46" ry="12" fill="#0f172a"/>
+  <rect x="534" y="352" width="92" height="16" rx="8" fill="#334155"/>
+  <ellipse cx="580" cy="352" rx="46" ry="10" fill="#475569"/>
+  <circle cx="580" cy="351" r="5" fill="#22c55e"/>
+  <!-- spring bumper on the front -->
+  <path d="M 626 350 L 632 346 L 638 354 L 644 346 L 650 354 L 656 350" fill="none" stroke="#fbbf24" stroke-width="2.5"/>
+  <!-- velocity towards the leg (blue) -->
+  <line x1="548" y1="330" x2="608" y2="330" stroke="#2563eb" stroke-width="4"/>
+  <polygon points="622,330 606,322 606,338" fill="#2563eb"/>
+  <text x="578" y="322" font-size="14" fill="#bfdbfe" font-weight="600">v</text>
+</svg>

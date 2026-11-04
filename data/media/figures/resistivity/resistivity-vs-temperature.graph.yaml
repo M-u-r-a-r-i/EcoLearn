@@ -1,0 +1,22 @@
+# Resistivity against temperature, plotted relative to the value at 300 K.
+# Illustrative shapes, not measured data for any particular sample:
+#   metal  - nearly linear rise, rho = rho_300 [1 + alpha (T - 300)] with alpha ~ 0.004 /K
+#   semiconductor - steep fall as more carriers are freed with temperature
+title: "Resistivity against temperature (relative to its value at 300 K)"
+panels:
+  - title: "Metal"
+    x: {label: 'Temperature $T$ (K)', min: 200, max: 500}
+    y: {label: 'Relative resistivity $\rho/\rho_{300}$', min: 0, max: 3.2}
+    series:
+      - label: 'metal: $\rho$ rises with $T$'
+        points: [[200, 0.6], [250, 0.8], [300, 1.0], [350, 1.2], [400, 1.4], [450, 1.6], [500, 1.8]]
+        color: red
+    legend: "upper left"
+  - title: "Semiconductor"
+    x: {label: 'Temperature $T$ (K)', min: 200, max: 500}
+    y: {label: 'Relative resistivity $\rho/\rho_{300}$', min: 0, max: 3.2}
+    series:
+      - label: 'semiconductor: $\rho$ falls with $T$'
+        points: [[200, 3.0], [250, 1.8], [300, 1.0], [350, 0.62], [400, 0.42], [450, 0.31], [500, 0.25]]
+        color: blue
+    legend: "upper right"

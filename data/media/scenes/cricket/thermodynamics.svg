@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A hot afternoon at a cricket ground: blazing sun, a bowler polishing the ball on his trousers, a diesel generator by the boundary giving off hot exhaust, and a drinks cooler with an ice box</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fef08a" stop-opacity="1"/>
+      <stop offset="0.45" stop-color="#facc15" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#facc15" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <circle cx="90" cy="80" r="80" fill="url(#sun)"/>
+  <circle cx="90" cy="80" r="30" fill="#fde047"/>
+
+  <!-- stands -->
+  <path d="M0,215 Q400,160 800,215 L800,262 L0,262 z" fill="#64748b"/>
+  <path d="M0,238 Q400,190 800,238 L800,262 L0,262 z" fill="#475569"/>
+
+  <!-- temperature board -->
+  <rect x="330" y="40" width="170" height="70" rx="8" fill="#0f172a" stroke="#475569" stroke-width="4"/>
+  <text x="350" y="68" font-size="14" fill="#94a3b8" font-weight="600">AIR TEMP</text>
+  <text x="350" y="100" font-size="28" fill="#f97316" font-weight="700" font-family="Consolas, monospace">38 °C</text>
+  <rect x="409" y="110" width="12" height="75" fill="#334155"/>
+
+  <!-- grass and pitch -->
+  <rect x="0" y="262" width="800" height="188" fill="#16a34a"/>
+  <polygon points="250,318 560,318 590,358 220,358" fill="#e7d3a1"/>
+  <g stroke="#f8fafc" stroke-width="5" stroke-linecap="round">
+    <line x1="268" y1="290" x2="268" y2="330"/><line x1="278" y1="290" x2="278" y2="330"/><line x1="288" y1="290" x2="288" y2="330"/>
+  </g>
+
+  <!-- bowler polishing the ball on his trousers -->
+  <g stroke-linecap="round">
+    <line x1="450" y1="330" x2="438" y2="392" stroke="#f1f5f9" stroke-width="15"/>
+    <line x1="454" y1="330" x2="470" y2="392" stroke="#f1f5f9" stroke-width="15"/>
+    <line x1="452" y1="332" x2="452" y2="272" stroke="#f8fafc" stroke-width="28"/>
+    <line x1="452" y1="285" x2="470" y2="330" stroke="#a16207" stroke-width="7"/>
+    <line x1="452" y1="285" x2="430" y2="315" stroke="#a16207" stroke-width="7"/>
+  </g>
+  <circle cx="471" cy="334" r="7" fill="#b91c1c"/>
+  <circle cx="452" cy="250" r="14" fill="#a16207"/>
+  <path d="M 437 246 Q 452 226 467 246 z" fill="#1e3a8a"/>
+  <text x="488" y="330" font-size="14" fill="#14532d" font-weight="700">rubbing the ball</text>
+  <text x="488" y="347" font-size="14" fill="#14532d" font-weight="700">warms it</text>
+
+  <!-- diesel generator with hot exhaust -->
+  <rect x="610" y="272" width="140" height="70" rx="6" fill="#facc15" stroke="#854d0e" stroke-width="3"/>
+  <rect x="628" y="288" width="60" height="36" rx="3" fill="#1f2937"/>
+  <g stroke="#475569" stroke-width="2"><line x1="632" y1="296" x2="684" y2="296"/><line x1="632" y1="306" x2="684" y2="306"/><line x1="632" y1="316" x2="684" y2="316"/></g>
+  <rect x="712" y="244" width="12" height="30" fill="#374151"/>
+  <g fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" opacity="0.8">
+    <path d="M 712 238 q -8 -10 0 -20 t 0 -20"/>
+    <path d="M 724 238 q 8 -10 0 -20 t 0 -20"/>
+  </g>
+  <text x="620" y="366" font-size="14" fill="#14532d" font-weight="700">generator: hot exhaust</text>
+
+  <!-- drinks cooler / ice box -->
+  <rect x="60" y="300" width="110" height="62" rx="6" fill="#e0f2fe" stroke="#0369a1" stroke-width="3"/>
+  <rect x="60" y="290" width="110" height="16" rx="4" fill="#0284c7"/>
+  <g fill="#bae6fd" stroke="#7dd3fc"><rect x="74" y="318" width="18" height="18" rx="3"/><rect x="98" y="324" width="18" height="18" rx="3"/><rect x="122" y="316" width="18" height="18" rx="3"/></g>
+  <rect x="180" y="304" width="16" height="44" rx="4" fill="#fb923c"/>
+  <rect x="200" y="304" width="16" height="44" rx="4" fill="#22c55e"/>
+  <text x="56" y="386" font-size="14" fill="#14532d" font-weight="700">ice box and drinks</text>
+</svg>

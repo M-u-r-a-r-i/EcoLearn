@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A ball with zero net force keeps equal spacing; a ball with friction acting slows down</title>
+  <defs>
+    <marker id="hb" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="hr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <!-- Row 1: net force zero -->
+  <text x="30" y="40" font-size="17" font-weight="600" fill="#111827">Net force = 0: equal distances in equal times</text>
+  <text x="30" y="62" font-size="13" fill="#4b5563">Snapshots every 1 s on a very smooth surface (friction and drag negligible)</text>
+  <line x1="30" y1="190" x2="540" y2="190" stroke="#6b7280" stroke-width="2"/>
+  <g fill="#b91c1c" stroke="#7f1d1d" stroke-width="1.5">
+    <circle cx="80" cy="176" r="14"/><circle cx="220" cy="176" r="14"/><circle cx="360" cy="176" r="14"/><circle cx="500" cy="176" r="14"/>
+  </g>
+  <g stroke="#2563eb" stroke-width="3" marker-end="url(#hb)">
+    <line x1="60" y1="140" x2="120" y2="140"/><line x1="200" y1="140" x2="260" y2="140"/><line x1="340" y1="140" x2="400" y2="140"/><line x1="480" y1="140" x2="540" y2="140"/>
+  </g>
+  <text x="62" y="130" font-size="13" fill="#2563eb">v</text>
+  <g font-size="12" fill="#374151" text-anchor="middle">
+    <text x="80" y="212">t = 0 s</text><text x="220" y="212">1 s</text><text x="360" y="212">2 s</text><text x="500" y="212">3 s</text>
+  </g>
+  <!-- FBD row 1 -->
+  <circle cx="595" cy="150" r="5" fill="#111827"/>
+  <line x1="595" y1="145" x2="595" y2="98" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <line x1="595" y1="155" x2="595" y2="202" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <text x="604" y="110" font-size="13" fill="#dc2626">N</text>
+  <text x="604" y="200" font-size="13" fill="#dc2626">W</text>
+  <text x="595" y="225" font-size="11" fill="#374151" text-anchor="middle">N and W cancel</text>
+
+  <!-- Row 2: friction acts -->
+  <text x="30" y="255" font-size="17" font-weight="600" fill="#111827">Friction acts: net force backwards, the gaps shrink</text>
+  <line x1="30" y1="350" x2="540" y2="350" stroke="#15803d" stroke-width="4"/>
+  <g fill="#b91c1c" stroke="#7f1d1d" stroke-width="1.5">
+    <circle cx="80" cy="336" r="14"/><circle cx="200" cy="336" r="14"/><circle cx="290" cy="336" r="14"/><circle cx="350" cy="336" r="14"/>
+  </g>
+  <g stroke="#2563eb" stroke-width="3" marker-end="url(#hb)">
+    <line x1="60" y1="300" x2="120" y2="300"/><line x1="180" y1="300" x2="225" y2="300"/><line x1="270" y1="300" x2="300" y2="300"/><line x1="335" y1="300" x2="352" y2="300"/>
+  </g>
+  <g font-size="12" fill="#374151" text-anchor="middle">
+    <text x="80" y="372">t = 0 s</text><text x="200" y="372">1 s</text><text x="290" y="372">2 s</text><text x="350" y="372">3 s</text>
+  </g>
+  <!-- FBD row 2 -->
+  <circle cx="595" cy="310" r="5" fill="#111827"/>
+  <line x1="595" y1="305" x2="595" y2="262" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <line x1="595" y1="315" x2="595" y2="358" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <line x1="590" y1="310" x2="556" y2="310" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <text x="604" y="274" font-size="13" fill="#dc2626">N</text>
+  <text x="604" y="356" font-size="13" fill="#dc2626">W</text>
+  <text x="556" y="300" font-size="13" fill="#dc2626">f</text>
+  <text x="595" y="385" font-size="11" fill="#374151" text-anchor="middle">f is unbalanced</text>
+</svg>

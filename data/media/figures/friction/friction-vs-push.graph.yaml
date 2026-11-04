@@ -1,0 +1,21 @@
+# A 40 kg trunk on a floor: mu_s = 0.50, mu_k = 0.40, N = mg = 392 N.
+# Static friction matches the push up to its limit mu_s N = 196 N.
+# Once sliding, kinetic friction is constant: mu_k N = 156.8 N.
+title: "Friction on a 40 kg trunk as the push increases"
+x: {label: "Horizontal push $F$ (N)", min: 0, max: 300}
+y: {label: "Friction force $f$ (N)", min: 0, max: 240}
+series:
+  - label: "Static friction ($f = F$, trunk at rest)"
+    points: [[0, 0], [196, 196]]
+    color: blue
+  - label: 'Kinetic friction ($f = \mu_k N$, trunk sliding)'
+    points: [[196, 156.8], [300, 156.8]]
+    color: red
+  - label: "Limit reached: the trunk starts to slide"
+    points: [[196, 196], [196, 156.8]]
+    color: gray
+    style: dotted
+marks:
+  - {x: 196, y: 196, text: '$\mu_s N$ = 196 N', color: blue, offset: [-40, 10]}
+  - {x: 260, y: 156.8, text: '$\mu_k N$ = 157 N', color: red, offset: [-30, -18]}
+legend: below

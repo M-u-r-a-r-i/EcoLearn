@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Work done by a constant force: positive when the force has a component along the displacement, zero when perpendicular, negative when opposite</title>
+  <defs>
+    <marker id="hr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    <marker id="hd" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#374151"/></marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <!-- (a) force at an angle -->
+  <text x="20" y="28" font-size="15" font-weight="600" fill="#111827">(a) Force at angle θ to the displacement</text>
+  <line x1="40" y1="140" x2="600" y2="140" stroke="#6b7280" stroke-width="2"/>
+  <rect x="120" y="100" width="80" height="40" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+  <line x1="200" y1="110" x2="316" y2="43" stroke="#dc2626" stroke-width="3.5" marker-end="url(#hr)"/>
+  <text x="300" y="38" font-size="16" fill="#dc2626" font-weight="700">F</text>
+  <line x1="200" y1="110" x2="321" y2="110" stroke="#dc2626" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="321" y1="45" x2="321" y2="110" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 4"/>
+  <text x="232" y="128" font-size="13" fill="#dc2626">F cos θ</text>
+  <path d="M 240 110 A 40 40 0 0 0 235 90" fill="none" stroke="#374151" stroke-width="1.8"/>
+  <text x="244" y="100" font-size="14" fill="#374151">θ</text>
+  <line x1="120" y1="162" x2="396" y2="162" stroke="#374151" stroke-width="3" marker-end="url(#hd)"/>
+  <text x="404" y="167" font-size="14" fill="#374151">displacement d</text>
+  <text x="400" y="72" font-size="16" fill="#111827" font-weight="600">W = F d cos θ</text>
+  <text x="400" y="96" font-size="14" fill="#16a34a" font-weight="600">θ &lt; 90°, so W &gt; 0</text>
+
+  <line x1="20" y1="190" x2="620" y2="190" stroke="#d1d5db" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="320" y1="200" x2="320" y2="390" stroke="#d1d5db" stroke-width="2" stroke-dasharray="6 5"/>
+
+  <!-- (b) perpendicular -->
+  <text x="20" y="218" font-size="15" font-weight="600" fill="#111827">(b) θ = 90°: W = 0</text>
+  <line x1="30" y1="330" x2="300" y2="330" stroke="#6b7280" stroke-width="2"/>
+  <rect x="80" y="290" width="70" height="40" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+  <line x1="115" y1="290" x2="115" y2="240" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <text x="124" y="252" font-size="14" fill="#dc2626" font-weight="600">N</text>
+  <line x1="115" y1="330" x2="115" y2="382" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <text x="124" y="376" font-size="14" fill="#dc2626" font-weight="600">mg</text>
+  <line x1="170" y1="305" x2="286" y2="305" stroke="#374151" stroke-width="3" marker-end="url(#hd)"/>
+  <text x="222" y="296" font-size="14" fill="#374151">d</text>
+  <text x="176" y="360" font-size="12" fill="#4b5563">N and mg are</text>
+  <text x="176" y="376" font-size="12" fill="#4b5563">perpendicular to d</text>
+
+  <!-- (c) opposite -->
+  <text x="340" y="218" font-size="15" font-weight="600" fill="#111827">(c) θ = 180°: W = −f d &lt; 0</text>
+  <line x1="340" y1="330" x2="620" y2="330" stroke="#6b7280" stroke-width="2"/>
+  <rect x="480" y="290" width="70" height="40" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+  <line x1="480" y1="324" x2="400" y2="324" stroke="#dc2626" stroke-width="3" marker-end="url(#hr)"/>
+  <text x="420" y="314" font-size="14" fill="#dc2626" font-weight="600">f</text>
+  <line x1="460" y1="262" x2="596" y2="262" stroke="#374151" stroke-width="3" marker-end="url(#hd)"/>
+  <text x="520" y="252" font-size="14" fill="#374151">d</text>
+  <text x="350" y="362" font-size="12" fill="#4b5563">Friction points against the motion,</text>
+  <text x="350" y="378" font-size="12" fill="#4b5563">so it takes energy away.</text>
+</svg>

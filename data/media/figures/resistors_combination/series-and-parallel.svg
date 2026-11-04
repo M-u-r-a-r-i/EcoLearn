@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Two resistors in series sharing the same current, and the same two in parallel sharing the same potential difference</title>
+  <defs>
+    <marker id="c-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect width="640" height="420" fill="#ffffff"/>
+
+  <!-- SERIES -->
+  <text x="160" y="30" font-size="17" text-anchor="middle" fill="#111827" font-weight="700">Series</text>
+  <g stroke="#111827" stroke-width="3" fill="none" stroke-linecap="round">
+    <line x1="40" y1="60" x2="40" y2="102"/>
+    <line x1="40" y1="118" x2="40" y2="180"/>
+    <line x1="40" y1="60" x2="80" y2="60"/>
+    <polyline points="80,60 88,48 100,72 112,48 124,72 136,48 148,72 156,60 164,60"/>
+    <line x1="164" y1="60" x2="196" y2="60"/>
+    <polyline points="196,60 204,48 216,72 228,48 240,72 252,48 264,72 272,60 280,60"/>
+    <line x1="280" y1="60" x2="280" y2="180"/>
+    <line x1="280" y1="180" x2="40" y2="180"/>
+  </g>
+  <line x1="22" y1="102" x2="58" y2="102" stroke="#111827" stroke-width="3"/>
+  <line x1="31" y1="118" x2="49" y2="118" stroke="#111827" stroke-width="6"/>
+  <text x="120" y="92" font-size="14" text-anchor="middle" fill="#111827" font-weight="600">R&#8321;</text>
+  <text x="236" y="92" font-size="14" text-anchor="middle" fill="#111827" font-weight="600">R&#8322;</text>
+  <line x1="120" y1="156" x2="180" y2="156" stroke="#2563eb" stroke-width="3" marker-end="url(#c-blue)"/>
+  <text x="150" y="142" font-size="14" text-anchor="middle" fill="#2563eb" font-weight="700">same I</text>
+  <text x="160" y="212" font-size="14" text-anchor="middle" fill="#374151">one path: the current has nowhere else to go</text>
+  <text x="160" y="234" font-size="14" text-anchor="middle" fill="#374151">the pd splits: V = V&#8321; + V&#8322;</text>
+  <rect x="55" y="248" width="210" height="34" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="160" y="271" font-size="17" text-anchor="middle" fill="#1e3a8a" font-weight="700">R&#8347; = R&#8321; + R&#8322;</text>
+  <text x="160" y="302" font-size="13" text-anchor="middle" fill="#6b7280">always bigger than either one</text>
+
+  <!-- PARALLEL -->
+  <text x="470" y="30" font-size="17" text-anchor="middle" fill="#111827" font-weight="700">Parallel</text>
+  <g stroke="#111827" stroke-width="3" fill="none" stroke-linecap="round">
+    <line x1="350" y1="60" x2="350" y2="102"/>
+    <line x1="350" y1="118" x2="350" y2="180"/>
+    <line x1="350" y1="60" x2="410" y2="60"/>
+    <line x1="410" y1="60" x2="410" y2="110"/>
+    <polyline points="410,60 418,48 430,72 442,48 454,72 466,48 478,72 486,60 494,60"/>
+    <polyline points="410,110 418,98 430,122 442,98 454,122 466,98 478,122 486,110 494,110"/>
+    <line x1="494" y1="60" x2="560" y2="60"/>
+    <line x1="494" y1="110" x2="560" y2="110"/>
+    <line x1="560" y1="60" x2="560" y2="180"/>
+    <line x1="560" y1="180" x2="350" y2="180"/>
+  </g>
+  <line x1="332" y1="102" x2="368" y2="102" stroke="#111827" stroke-width="3"/>
+  <line x1="341" y1="118" x2="359" y2="118" stroke="#111827" stroke-width="6"/>
+  <text x="452" y="44" font-size="14" text-anchor="middle" fill="#111827" font-weight="600">R&#8321;</text>
+  <text x="452" y="140" font-size="14" text-anchor="middle" fill="#111827" font-weight="600">R&#8322;</text>
+  <text x="596" y="90" font-size="14" text-anchor="middle" fill="#2563eb" font-weight="700">same V</text>
+  <text x="470" y="212" font-size="14" text-anchor="middle" fill="#374151">two paths across the same two points</text>
+  <text x="470" y="234" font-size="14" text-anchor="middle" fill="#374151">the current splits: I = I&#8321; + I&#8322;</text>
+  <rect x="360" y="248" width="220" height="34" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="470" y="271" font-size="17" text-anchor="middle" fill="#14532d" font-weight="700">1/R&#8346; = 1/R&#8321; + 1/R&#8322;</text>
+  <text x="470" y="302" font-size="13" text-anchor="middle" fill="#6b7280">always smaller than either one</text>
+
+  <text x="320" y="352" font-size="15" text-anchor="middle" fill="#111827" font-weight="700">Adding a resistor in series always raises the total;</text>
+  <text x="320" y="376" font-size="15" text-anchor="middle" fill="#111827" font-weight="700">adding one in parallel always lowers it.</text>
+  <text x="320" y="404" font-size="13" text-anchor="middle" fill="#6b7280">Check every parallel answer against that rule before you trust it.</text>
+</svg>

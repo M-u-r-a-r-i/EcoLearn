@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A long solenoid in cross-section: current out of the page along the top row of turns and into the page along the bottom row, a uniform field inside pointing to the right, almost no field outside, and a rectangular Amperian loop with one side inside and one side outside.</title>
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-size="15" font-weight="700" fill="#111827">A long solenoid, cut along its axis</text>
+
+  <!-- coil cross sections: top row current out, bottom row current in -->
+  <g>
+    <g stroke="#2563eb" stroke-width="3" fill="#ffffff">
+      <circle cx="80" cy="120" r="11"/><circle cx="130" cy="120" r="11"/><circle cx="180" cy="120" r="11"/><circle cx="230" cy="120" r="11"/><circle cx="280" cy="120" r="11"/><circle cx="330" cy="120" r="11"/><circle cx="380" cy="120" r="11"/><circle cx="430" cy="120" r="11"/><circle cx="480" cy="120" r="11"/><circle cx="530" cy="120" r="11"/>
+    </g>
+    <g fill="#2563eb">
+      <circle cx="80" cy="120" r="4"/><circle cx="130" cy="120" r="4"/><circle cx="180" cy="120" r="4"/><circle cx="230" cy="120" r="4"/><circle cx="280" cy="120" r="4"/><circle cx="330" cy="120" r="4"/><circle cx="380" cy="120" r="4"/><circle cx="430" cy="120" r="4"/><circle cx="480" cy="120" r="4"/><circle cx="530" cy="120" r="4"/>
+    </g>
+    <text x="54" y="94" font-size="13" fill="#2563eb" font-weight="700">current out of the page</text>
+
+    <g stroke="#2563eb" stroke-width="3" fill="#ffffff">
+      <circle cx="80" cy="280" r="11"/><circle cx="130" cy="280" r="11"/><circle cx="180" cy="280" r="11"/><circle cx="230" cy="280" r="11"/><circle cx="280" cy="280" r="11"/><circle cx="330" cy="280" r="11"/><circle cx="380" cy="280" r="11"/><circle cx="430" cy="280" r="11"/><circle cx="480" cy="280" r="11"/><circle cx="530" cy="280" r="11"/>
+    </g>
+    <g stroke="#2563eb" stroke-width="2.5">
+      <line x1="72" y1="272" x2="88" y2="288"/><line x1="88" y1="272" x2="72" y2="288"/>
+      <line x1="122" y1="272" x2="138" y2="288"/><line x1="138" y1="272" x2="122" y2="288"/>
+      <line x1="172" y1="272" x2="188" y2="288"/><line x1="188" y1="272" x2="172" y2="288"/>
+      <line x1="222" y1="272" x2="238" y2="288"/><line x1="238" y1="272" x2="222" y2="288"/>
+      <line x1="272" y1="272" x2="288" y2="288"/><line x1="288" y1="272" x2="272" y2="288"/>
+      <line x1="322" y1="272" x2="338" y2="288"/><line x1="338" y1="272" x2="322" y2="288"/>
+      <line x1="372" y1="272" x2="388" y2="288"/><line x1="388" y1="272" x2="372" y2="288"/>
+      <line x1="422" y1="272" x2="438" y2="288"/><line x1="438" y1="272" x2="422" y2="288"/>
+      <line x1="472" y1="272" x2="488" y2="288"/><line x1="488" y1="272" x2="472" y2="288"/>
+      <line x1="522" y1="272" x2="538" y2="288"/><line x1="538" y1="272" x2="522" y2="288"/>
+    </g>
+    <text x="60" y="312" font-size="13" fill="#2563eb" font-weight="700">current into the page</text>
+  </g>
+
+  <!-- uniform field inside, to the right -->
+  <g stroke="#7c3aed" stroke-width="3">
+    <line x1="70" y1="164" x2="540" y2="164"/>
+    <line x1="70" y1="200" x2="540" y2="200"/>
+    <line x1="70" y1="236" x2="540" y2="236"/>
+  </g>
+  <g fill="#7c3aed">
+    <path d="M 552 164 l -16 -7 l 0 14 z"/><path d="M 552 200 l -16 -7 l 0 14 z"/><path d="M 552 236 l -16 -7 l 0 14 z"/>
+  </g>
+  <text x="300" y="192" font-size="14.5" fill="#7c3aed" font-weight="700" text-anchor="middle">B uniform inside</text>
+
+  <!-- Amperian rectangle: side ab inside, cd outside (above the coil) -->
+  <rect x="200" y="60" width="200" height="150" fill="none" stroke="#0e7490" stroke-width="3" stroke-dasharray="9 5"/>
+  <text x="300" y="52" font-size="13" fill="#0e7490" font-weight="700" text-anchor="middle">Amperian rectangle (length L)</text>
+  <text x="410" y="80" font-size="12.5" fill="#0e7490" font-weight="700">outside: B ≈ 0</text>
+  <text x="410" y="228" font-size="12.5" fill="#0e7490" font-weight="700">inside: B along the side</text>
+
+  <text x="320" y="356" font-size="17" fill="#111827" font-weight="700" text-anchor="middle">B L = μ₀ (n L) I   →   B = μ₀ n I</text>
+  <text x="320" y="380" font-size="12.5" fill="#475569" text-anchor="middle">n = turns per unit length; exact only for an ideal, very long solenoid</text>
+</svg>

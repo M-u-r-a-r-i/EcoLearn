@@ -1,0 +1,28 @@
+# Work done by a gas from state A (1.0 L, 3.0e5 Pa) to state B (3.0 L, 1.0e5 Pa) along three paths.
+# Work = area under the path (down to p = 0).
+# Upper path: isobaric at 3.0e5 Pa, 1.0 -> 3.0 L, then isochoric down: W = 3.0e5 * 2.0e-3 = 600 J.
+# Straight line: trapezium, W = (3.0e5 + 1.0e5)/2 * 2.0e-3 = 400 J.
+# Lower path: isochoric down to 1.0e5 Pa, then isobaric: W = 1.0e5 * 2.0e-3 = 200 J.
+title: "Same start, same end, three different amounts of work"
+x: {label: "Volume $V$ (L)", min: 0, max: 4}
+y: {label: "Pressure $p$ ($10^5$ Pa)", min: 0, max: 3.6}
+legend: below
+series:
+  - label: "Upper path: expand at 3.0, then cool at fixed V  (W = 600 J)"
+    points: [[1.0, 3.0], [3.0, 3.0], [3.0, 1.0]]
+    color: red
+  - label: "Straight line: area of trapezium  (W = 400 J)"
+    points: [[1.0, 3.0], [3.0, 1.0]]
+    color: blue
+  - label: "Lower path: cool at fixed V, then expand at 1.0  (W = 200 J)"
+    points: [[1.0, 3.0], [1.0, 1.0], [3.0, 1.0]]
+    color: green
+  - points: [[3.0, 0], [3.0, 1.0]]
+    color: gray
+    style: dotted
+  - points: [[1.0, 0], [1.0, 1.0]]
+    color: gray
+    style: dotted
+marks:
+  - {x: 1.0, y: 3.0, text: "A", color: gray, offset: [-16, 4]}
+  - {x: 3.0, y: 1.0, text: "B", color: gray, offset: [8, -4]}

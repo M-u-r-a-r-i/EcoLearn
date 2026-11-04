@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Charging a metal sphere by induction in four steps: a neutral sphere; a negative rod brought near pushes electrons to the far side; the far side is earthed and electrons flow away to earth; earth and rod removed, the sphere is left positively charged.</title>
+  <defs>
+    <marker id="e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect width="960" height="380" fill="#ffffff"/>
+  <g stroke="#e5e7eb" stroke-width="2"><line x1="240" y1="20" x2="240" y2="300"/><line x1="480" y1="20" x2="480" y2="300"/><line x1="720" y1="20" x2="720" y2="300"/></g>
+
+  <!-- common: sphere + insulating stand, drawn in each panel -->
+  <g fill="#e5e7eb" stroke="#475569" stroke-width="2">
+    <circle cx="140" cy="140" r="50"/><circle cx="380" cy="140" r="50"/><circle cx="620" cy="140" r="50"/><circle cx="860" cy="140" r="50"/>
+  </g>
+  <g fill="#fcd34d" stroke="#92400e" stroke-width="1.5">
+    <rect x="134" y="190" width="12" height="60"/><rect x="374" y="190" width="12" height="60"/><rect x="614" y="190" width="12" height="60"/><rect x="854" y="190" width="12" height="60"/>
+  </g>
+  <g fill="#475569"><rect x="110" y="250" width="60" height="8"/><rect x="350" y="250" width="60" height="8"/><rect x="590" y="250" width="60" height="8"/><rect x="830" y="250" width="60" height="8"/></g>
+
+  <!-- rods (negative) in panels 2 and 3 -->
+  <g>
+    <rect x="258" y="128" width="60" height="24" rx="6" fill="#1f2937"/>
+    <rect x="498" y="128" width="60" height="24" rx="6" fill="#1f2937"/>
+  </g>
+  <g font-size="16" font-weight="700" fill="#93c5fd" text-anchor="middle">
+    <text x="272" y="146">−</text><text x="288" y="146">−</text><text x="304" y="146">−</text>
+    <text x="512" y="146">−</text><text x="528" y="146">−</text><text x="544" y="146">−</text>
+  </g>
+
+  <g font-size="19" font-weight="700" text-anchor="middle">
+    <!-- 1: neutral, mixed -->
+    <g fill="#dc2626"><text x="118" y="126">+</text><text x="158" y="126">+</text><text x="138" y="166">+</text></g>
+    <g fill="#2563eb"><text x="138" y="126">−</text><text x="118" y="166">−</text><text x="158" y="166">−</text></g>
+    <!-- 2: separated: + near rod (left), − far (right) -->
+    <g fill="#dc2626"><text x="345" y="120">+</text><text x="340" y="146">+</text><text x="345" y="172">+</text></g>
+    <g fill="#2563eb"><text x="415" y="120">−</text><text x="420" y="146">−</text><text x="415" y="172">−</text></g>
+    <!-- 3: + held on left; electrons gone from right -->
+    <g fill="#dc2626"><text x="585" y="120">+</text><text x="580" y="146">+</text><text x="585" y="172">+</text></g>
+    <!-- 4: + spread -->
+    <g fill="#dc2626"><text x="860" y="104">+</text><text x="827" y="164">+</text><text x="893" y="164">+</text></g>
+  </g>
+
+  <!-- earth connection in panel 3 -->
+  <polyline points="668,140 690,140 690,230" fill="none" stroke="#111827" stroke-width="2.5"/>
+  <g stroke="#111827" stroke-width="2.5"><line x1="674" y1="230" x2="706" y2="230"/><line x1="679" y1="237" x2="701" y2="237"/><line x1="684" y1="244" x2="696" y2="244"/></g>
+  <line x1="702" y1="160" x2="702" y2="208" stroke="#2563eb" stroke-width="2.5" marker-end="url(#e)"/>
+  <text x="640" y="278" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">electrons flow to earth</text>
+
+  <!-- captions -->
+  <g font-size="15" font-weight="700" fill="#111827" text-anchor="middle">
+    <text x="120" y="300">1. Neutral sphere</text><text x="360" y="300">2. Negative rod near</text>
+    <text x="600" y="300">3. Far side earthed</text><text x="840" y="300">4. Earth off, then rod off</text>
+  </g>
+  <g font-size="13" fill="#374151" text-anchor="middle">
+    <text x="120" y="322">equal + and −, mixed</text>
+    <text x="360" y="322">electrons pushed to the far side;</text><text x="360" y="340">sphere still neutral overall</text>
+    <text x="600" y="322">repelled electrons escape;</text><text x="600" y="340">rod's pull holds the + in place</text>
+    <text x="840" y="322">sphere left positive;</text><text x="840" y="340">charge spreads over the surface</text>
+  </g>
+  <text x="480" y="370" font-size="13" fill="#6b7280" text-anchor="middle">The rod never touches the sphere, and loses none of its own charge.</text>
+</svg>

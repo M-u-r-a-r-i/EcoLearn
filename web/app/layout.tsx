@@ -1,27 +1,23 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
-import { StudentProvider } from "@/components/student-provider";
+import { AuthProvider } from "@/components/auth-provider";
+import { THEME_BOOT_SCRIPT } from "@/components/theme-toggle";
+import { Toaster } from "@/components/toast";
 
-// next/font downloads & self-hosts the font at build time (fast, no layout shift)
-// and exposes it as a CSS variable. We name it --font-sans so Tailwind's
-// `font-sans` utility (applied to <html> in globals.css) uses Inter everywhere.
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
+// Body and display fonts are the house system stacks (--font-body / --font-display in
+// globals.css); only the monospace face is downloaded.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "EcoLearn — Learn through what you love",
+  title: "EcoLearn — Physics, through the thing you love",
   description:
-    "EcoLearn personalises every lesson to a student's passions, turning the things they love into the way they learn.",
+    "A personal tutor for Class 11 and 12 Physics (CBSE and ISC). It finds your mix-ups and teaches every idea through cricket, football, gaming, phones or cars.",
 };
 
 export default function RootLayout({
@@ -32,13 +28,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistMono.variable} h-full antialiased`}
+      // The theme script below may add class="dark" before React hydrates.
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <StudentProvider>
-          <SiteNav />
-          {children}
-        </StudentProvider>
+      <head>
+        {/* Applies the saved light/dark choice before the first paint (no flash). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
+      <body className="min-h-full flex flex-col pb-16 md:pb-0 print:pb-0">
+        <AuthProvider>
+          <Toaster>
+            <SiteNav />
+            {children}
+          </Toaster>
+        </AuthProvider>
       </body>
     </html>
   );

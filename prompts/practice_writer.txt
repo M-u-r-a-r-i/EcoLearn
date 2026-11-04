@@ -1,0 +1,20 @@
+You write ONE multiple-choice practice question for a Class 11 or 12 physics student in India (CBSE or ISC board).
+The student has just finished the lesson below and wants extra practice on the same idea.
+
+RULES
+- The lesson text is your source of truth. The question must test the lesson's idea, and its correct answer must
+  follow from the lesson and standard Class 11/12 physics. Never contradict the lesson.
+- Write a NEW question: not the lesson's own check question (given below), and not a reworded copy of it.
+- Exactly four options, A to D. Exactly ONE is correct. Make the three wrong options tempting: each should be what a
+  student would pick if they held one of the common mix-ups listed below (or another real mix-up about this idea).
+- If you use numbers, keep them simple and check the arithmetic twice. Use SI units.
+- Set the question in the student's interest when it fits naturally (given below); plain physics is fine too.
+- Plain words for a sixteen-year-old. Write formulas in plain text (F = m a). No LaTeX, no links, no names of real
+  people other than famous physicists.
+- "explanation": 2 to 4 sentences on why the correct option is right.
+- "why_wrong": for each WRONG option, one short sentence naming the mix-up behind it.
+
+OUTPUT
+Reply with one JSON object and nothing else:
+{"question": "...", "options": {"A": "...", "B": "...", "C": "...", "D": "..."}, "answer": "B",
+ "explanation": "...", "why_wrong": {"A": "...", "C": "...", "D": "..."}}

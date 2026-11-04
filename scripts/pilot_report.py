@@ -1,0 +1,233 @@
+"""The whole pilot in one report: run on the server, by whoever runs EcoLearn.
+
+Teachers see their own class in the web app (/teacher/class). This is the view
+across every class, for the people evaluating the pilot and for the finals
+pitch. It prints the headline numbers, the most common misconceptions, the
+hardest concepts, the survey (what students said, how it changed, how it lines up with what they did), and the same numbers per interest.
+It ends with the randomised comparisons (data/experiments.yaml): control vs treatment, with a 95% interval.
+
+With --csv it also writes the raw rows (lesson views, answers, ratings,
+students) for analysis in a spreadsheet or pandas. **No names or usernames are
+ever written:** students become S001, S002…, classes C01, C02…, in the order
+they were created. That's what makes the export safe to share with someone
+analysing the data, which matters because the pilot students are minors.
+
+Usage (from the project root):
+    venv\\Scripts\\python.exe scripts\\pilot_report.py
+    venv\\Scripts\\python.exe scripts\\pilot_report.py --csv pilot_export
+
+Reads the same database as the API (ECOLEARN_PROGRESS_DB, default
+data/progress.db). Read-only: it never changes anything.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_ROOT))
+
+from src import platform_api as api  # noqa: E402
+
+
+def pct(value: float | None) -> str:
+    return "—" if value is None else f"{value * 100:.0f}%"
+
+
+def print_report(report: dict, top: int) -> None:
+    insights = report["insights"]
+    s = insights["summary"]
+    print("EcoLearn pilot report")
+    print("=" * 60)
+    print(f"Students            {s['students']}  ({s['active_students']} active)")
+    print(f"Lessons opened      {s['lessons_opened']}  ({s['distinct_lessons']} distinct student × lesson)")
+    print(f"Active reading      {s['active_minutes']} min  "
+          f"(median {s['median_minutes_per_lesson'] or '—'} min per lesson)")
+    print(f"Checks answered     {s['answers']}  ({s['first_try_answers']} first tries)")
+    print(f"First-try accuracy  {pct(s['first_try_accuracy'])}")
+    c = s["by_confidence"]
+    print(f"How sure vs right   sure {pct(c['sure']['accuracy'])} ({c['sure']['answers']}) · "
+          f"think {pct(c['think']['accuracy'])} ({c['think']['answers']}) · "
+          f"guess {pct(c['guess']['accuracy'])} ({c['guess']['answers']}) · "
+          f"sure but wrong {s['sure_but_wrong']}")
+    print(f"Lesson ratings      👍 {s['thumbs_up']}  👎 {s['thumbs_down']}  "
+          f"(approval {pct(s['approval'])})")
+    stories = report["stories"]
+    ready = [st for st in stories if st["status"] == "ready"]
+    print(f"Personal stories    {len(ready)} written, "
+          f"{sum(1 for st in ready if st['reported_at'])} reported by students, "
+          f"{sum(1 for st in ready if st['hidden'] and st['hidden_by'] == 'teacher')} hidden by teachers, "
+          f"{sum(1 for st in stories if st['status'] in ('failed', 'no_fit'))} not written (checks/fit)")
+
+    u = report["ai_usage"]
+    t = u["total"]
+    print(f"\nAI usage  ({t['calls']} model calls, {t['failed']} failed, over {u['days']} days; "
+          f"models: {', '.join(u['models']) or '—'})")
+    for feature, f in u["by_feature"].items():
+        print(f"  {feature:<15}{f['calls']:>5} calls  {f['prompt_tokens']:>9} in  "
+              f"{f['completion_tokens']:>8} out  median {f['median_latency_ms'] or '—'} ms  "
+              f"₹{f['actual_inr']} actual, ₹{f['reference_inr']} on {u['reference_model']}")
+    if t["calls"]:
+        print(f"  Per student (÷{u['students']}): ₹{u['reference_inr_per_student']} so far, "
+              f"≈ ₹{u['reference_inr_per_student_month']} a month on {u['reference_model']}")
+        if t["calls_without_tokens"]:
+            print(f"  {t['calls_without_tokens']} calls report no tokens (the doubt chat's older "
+                  "pipeline), so they aren't in the ₹ figures.")
+        print("  Prices: data/llm_prices.yaml, Google's paid-tier list prices (checked 2026-10-13; re-check "
+              "before the finals). On a free tier nothing is billed, so these are what the same usage "
+              "WOULD cost.")
+
+    g = report["check_gains"]
+    print(f"\nStarting check → end check  ({g['students_finished']} of {g['students_started']} "
+          f"students took both; {g['paired_answers']} paired answers)")
+    if g["paired_answers"]:
+        b, a = g["before"], g["after"]
+        print(f"  Right answers     {pct(g['right_before'])} → {pct(g['right_after'])}")
+        print(f"  Mix-ups           {b['mix_up']} → {a['mix_up']}   (not sure {b['unsure']} → {a['unsure']})")
+        print(f"  Fixed {g['fixed']}  ·  learned from 'not sure' {g['learned']}  ·  slipped {g['slipped']}")
+        for label, part in (("studied", g["studied"]), ("not studied", g["not_studied"])):
+            print(f"  Concepts {label:<12} {pct(part['right_before'])} → {pct(part['right_after'])}"
+                  f"  ({part['pairs']} pairs)")
+        print("  (Not-studied concepts are a rough control: a gain there isn't the lessons'.)")
+
+    print_survey(report["survey"])
+
+    print(f"\nBy interest")
+    print(f"  {'interest':<13}{'students':>9}{'opens':>7}{'1st try':>9}{'👍':>5}{'👎':>5}{'approval':>10}")
+    for i in insights["interests"]:
+        print(f"  {i['interest']:<13}{i['students']:>9}{i['lessons_opened']:>7}"
+              f"{pct(i['first_try_accuracy']):>9}{i['thumbs_up']:>5}{i['thumbs_down']:>5}"
+              f"{pct(i['approval']):>10}")
+
+    print(f"\nMost common misconceptions (top {top})")
+    for m in insights["misconceptions"][:top]:
+        print(f"  {m['students']} of {m['students_answered']} students ({pct(m['share'])}) — "
+              f"{m['concept_name']} [{m['interest']}], chose {m['option']}")
+        if m["misconception"]:
+            print(f"      {m['misconception']}")
+
+    print(f"\nHardest concepts by first-try accuracy (top {top})")
+    for c in [c for c in insights["concepts"] if c["students_answered"]][:top]:
+        print(f"  {pct(c['first_try_accuracy']):>5}  {c['concept_name']}  "
+              f"({c['students_answered']} answered, chapter: {c['chapter_name'] or c['chapter_id']})")
+
+
+def print_survey(sv: dict) -> None:
+    print(f"\nGetting to know you  ({sv['taken']} of {sv['total']} students answered)")
+    if not sv["taken"]:
+        print("  Nobody has answered yet.")
+        return
+    labels = {"focus_span": "Focus span", "pace": "Pace", "physics_feel": "Feeling about physics",
+              "maths_comfort": "Maths comfort", "top_hobby_level": "Main hobby level",
+              "first_step": "Likes to start with", "trips": "Usually trips on", "goal": "Goal"}
+    for field, label in labels.items():
+        dist = sv["distributions"][field]
+        if dist:
+            print(f"  {label:<22}" + " · ".join(f"{k} {n}" for k, n in dist.items()))
+    print(f"  Updated their answers: {sv['updated_students']} students, {sv['revisions']} updates"
+          + (f"; fields changed most: " + ", ".join(f"{k} ({n})" for k, n in list(sv['changed_fields'].items())[:4])
+             if sv["changed_fields"] else ""))
+    print("  What they SAID vs what they DID  (an association over a few students; it is NOT evidence "
+          "that an adaptation works)")
+    print(f"    {'said':<26}{'students':>9}{'median min':>12}{'skimmed':>9}{'1st try':>9}")
+    for field in ("focus_span", "pace", "physics_feel"):
+        for g in sv["said_vs_shown"][field]:
+            print(f"    {field + ': ' + str(g['value']):<26}{g['students']:>9}"
+                  f"{(g['median_minutes'] if g['median_minutes'] is not None else '—'):>12}"
+                  f"{pct(g['mean_skim_share']):>9}{pct(g['first_try_accuracy']):>9}")
+
+
+_METRIC_LABEL = {"first_try_accuracy": "right first time", "sure_wrong_fixed_share": "mix-ups fixed"}
+
+
+def _difference(label: str, d: dict, share: bool) -> str:
+    if d["estimate"] is None:
+        return (f"  {label}: not enough students yet ({d['n_treatment']} treatment, {d['n_control']} control; "
+                "need 2+ each)")
+    lo, hi = d["ci95"]
+    if share:  # a share: show percentage points
+        est, rng = f"{d['estimate'] * 100:+.0f} points", f"{lo * 100:+.0f} to {hi * 100:+.0f} points"
+    else:
+        est, rng = f"{d['estimate']:+.2f}", f"{lo:+.2f} to {hi:+.2f}"
+    return (f"  {label}: treatment minus control {est}, 95% interval {rng} "
+            f"({d['n_treatment']} vs {d['n_control']} students)")
+
+
+def print_experiments(reports: list[dict]) -> None:
+    for e in reports:
+        state = "running" if e["enabled"] else "stopped"
+        name = _METRIC_LABEL.get(e["primary_metric"], e["primary_metric"])
+        print()
+        print(f"Experiment: {e['title']}  [{e['id']}, {state}]")
+        print(f"  Hypothesis: {e['hypothesis']}")
+        print(f"  Eligible:   {e['eligible_rule']}")
+        print(f"  Primary:    {e['primary_outcome']}")
+        print(f"  {'':<12}{'students':>9}{'eligible':>9}{'primary':>9}{'sure but wrong':>16}{'end gain':>10}{'said not me':>13}")
+        for arm in ("control", "treatment"):
+            a = e["arms"][arm]
+            print(f"  {arm:<12}{a['students']:>9}{a['eligible']:>9}{pct(a['primary_mean']):>9}"
+                  f"{pct(a['sure_wrong_rate_mean']):>16}"
+                  f"{(a['end_gain_mean'] if a['end_gain_mean'] is not None else '—'):>10}{a['dismissed']:>13}")
+        print(_difference(f"Primary ({name})", e["primary"], True))
+        print(_difference("Sure but wrong (share of sure answers)", e["sure_wrong_rate"], True))
+        print(_difference("End-check gain (answers)", e["end_gain"], False))
+        print("  Balance by class: " + ", ".join(f"{c} {v['control']}/{v['treatment']}" for c, v in sorted(e["balance"].items()))
+              + (f"; {e['unassigned']} student(s) unassigned" if e["unassigned"] else ""))
+        print(f"  Caution: {e['caution']}")
+
+
+def write_csv(path: Path, rows: list[dict]) -> None:
+    if not rows:
+        path.write_text("", encoding="utf-8")
+        return
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="EcoLearn pilot report (read-only).")
+    parser.add_argument("--csv", metavar="DIR", help="also write pseudonymised CSVs to DIR")
+    parser.add_argument("--top", type=int, default=10, help="rows per list (default 10)")
+    args = parser.parse_args()
+
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # the emoji, on a Windows console
+    report = api.pilot_report()
+    print_report(report, args.top)
+    print_experiments(report["experiments"])
+
+    if args.csv:
+        out = Path(args.csv)
+        out.mkdir(parents=True, exist_ok=True)
+        insights = report["insights"]
+        for name, rows in (
+            ("students", report["students"]),
+            ("lesson_views", report["views"]),
+            ("answers", report["answers"]),
+            ("ratings", report["ratings"]),
+            ("starting_check", report["diagnostic"]),
+            ("end_check", report["end_check"]),
+            ("llm_calls", report["llm_calls"]),
+            ("check_gains_per_concept", report["check_gains"]["concepts"]),
+            ("personal_stories", report["stories"]),
+            ("survey", report["survey"]["rows"]),
+            ("survey_history", report["survey"]["history"]),
+            ("survey_changes", report["survey"]["changes"]),
+            ("per_student", insights["students"]),
+            ("per_concept", insights["concepts"]),
+            ("per_interest", insights["interests"]),
+            ("misconceptions", insights["misconceptions"]),
+            ("experiment_arms", report["experiment_rows"]),
+        ):
+            write_csv(out / f"{name}.csv", rows)
+        print(f"\nCSV files written to {out.resolve()} (pseudonymised: no names or usernames).")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

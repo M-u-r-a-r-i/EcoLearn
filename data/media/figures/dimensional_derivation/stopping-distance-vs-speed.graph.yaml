@@ -1,0 +1,21 @@
+# Braking from speed v to rest at a constant deceleration a = 8.0 m/s^2 (illustrative, a road car on a dry road).
+# Red: the true result d = v^2 / (2a) = v^2 / 16. Gray dashed: v^2 / a = v^2 / 8, i.e. the
+# dimensional-analysis form with the unknown constant k set to 1.
+# Check: v = 20 m/s -> 400/16 = 25 m; v = 40 m/s -> 1600/16 = 100 m (exactly four times).
+title: "Braking distance at a constant deceleration"
+x: {label: "Speed when braking starts $v$ (m/s)", min: 0, max: 42}
+y: {label: "Braking distance $d$ (m)", min: 0, max: 210}
+legend: below
+series:
+  - label: 'constant deceleration: $d = v^2/2a$'
+    points: [[0, 0], [5, 1.5625], [10, 6.25], [15, 14.0625], [20, 25], [25, 39.0625],
+             [30, 56.25], [35, 76.5625], [40, 100]]
+    color: red
+  - label: 'dimensions alone, with $k = 1$: $d = v^2/a$'
+    points: [[0, 0], [5, 3.125], [10, 12.5], [15, 28.125], [20, 50], [25, 78.125],
+             [30, 112.5], [35, 153.125], [40, 200]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 20, y: 25, text: "20 m/s → 25 m", color: red, offset: [14, -12]}
+  - {x: 40, y: 100, text: "2× the speed → 4× d", color: red, offset: [-260, 50]}

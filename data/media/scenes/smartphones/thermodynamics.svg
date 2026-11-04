@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A sunny afternoon room: a phone sealed in a puffed-up waterproof pouch on a sunlit windowsill, a phone charging on a desk with a warm cable seen through a clip-on thermal camera, a can of compressed air with frost on it, and a wall air conditioner blowing cool air while a phone shows its app</title>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fef3c7"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+    <linearGradient id="thermal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="0.35" stop-color="#7c3aed"/>
+      <stop offset="0.65" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#fde047"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#wall)"/>
+
+  <!-- floor -->
+  <rect x="0" y="390" width="800" height="60" fill="#d6d3d1"/>
+  <line x1="0" y1="390" x2="800" y2="390" stroke="#a8a29e" stroke-width="2"/>
+
+  <!-- LEFT: window with sun, pouch on the sill -->
+  <rect x="30" y="40" width="200" height="190" rx="4" fill="#bae6fd" stroke="#92400e" stroke-width="6"/>
+  <line x1="130" y1="40" x2="130" y2="230" stroke="#92400e" stroke-width="4"/>
+  <circle cx="80" cy="95" r="26" fill="#facc15"/>
+  <g stroke="#f59e0b" stroke-width="3" stroke-linecap="round">
+    <line x1="80" y1="55" x2="80" y2="45"/><line x1="80" y1="135" x2="80" y2="145"/>
+    <line x1="40" y1="95" x2="30" y2="95"/><line x1="120" y1="95" x2="128" y2="95"/>
+    <line x1="52" y1="67" x2="45" y2="60"/><line x1="108" y1="123" x2="115" y2="130"/>
+    <line x1="108" y1="67" x2="115" y2="60"/><line x1="52" y1="123" x2="45" y2="130"/>
+  </g>
+  <!-- sill -->
+  <rect x="18" y="230" width="224" height="14" rx="2" fill="#b45309"/>
+  <!-- sun rays onto pouch -->
+  <g stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 5" opacity="0.8">
+    <line x1="96" y1="122" x2="150" y2="190"/><line x1="110" y1="110" x2="178" y2="186"/>
+  </g>
+  <!-- puffed waterproof pouch with phone -->
+  <ellipse cx="170" cy="210" rx="52" ry="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="3" opacity="0.9"/>
+  <rect x="150" y="203" width="40" height="14" rx="3" fill="#0f172a"/>
+  <rect x="116" y="204" width="8" height="12" rx="2" fill="#0284c7"/>
+  <text x="170" y="268" font-size="13" fill="#78350f" font-weight="600" text-anchor="middle">sealed pouch puffs up</text>
+
+  <!-- MIDDLE: desk with charging phone, warm cable, thermal camera view -->
+  <rect x="270" y="280" width="260" height="12" rx="2" fill="#92400e"/>
+  <rect x="282" y="292" width="10" height="98" fill="#78350f"/>
+  <rect x="508" y="292" width="10" height="98" fill="#78350f"/>
+  <!-- phone lying on desk -->
+  <rect x="300" y="268" width="70" height="12" rx="3" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+  <!-- cable to wall plug -->
+  <path d="M370 274 C 400 274, 410 250, 425 250 S 450 240, 450 222" fill="none" stroke="#f97316" stroke-width="4"/>
+  <rect x="439" y="202" width="22" height="20" rx="3" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <!-- wavy warmth over cable -->
+  <g fill="none" stroke="#ef4444" stroke-width="2" opacity="0.7">
+    <path d="M395 262 q4 -6 0 -12 q-4 -6 0 -12"/>
+    <path d="M415 244 q4 -6 0 -12 q-4 -6 0 -12"/>
+  </g>
+  <!-- second phone held up with thermal camera clip, screen shows false colour -->
+  <rect x="320" y="110" width="84" height="140" rx="10" fill="#0f172a"/>
+  <rect x="327" y="120" width="70" height="118" rx="4" fill="url(#thermal)"/>
+  <ellipse cx="362" cy="190" rx="22" ry="10" fill="#fde047" opacity="0.9"/>
+  <rect x="348" y="98" width="28" height="14" rx="3" fill="#475569"/>
+  <circle cx="362" cy="105" r="4" fill="#0f172a"/>
+  <text x="362" y="138" font-size="12" fill="#ffffff" font-weight="700" text-anchor="middle">thermal</text>
+  <text x="440" y="130" font-size="13" fill="#78350f" font-weight="600">clip-on</text>
+  <text x="440" y="146" font-size="13" fill="#78350f" font-weight="600">thermal camera</text>
+
+  <!-- compressed air can with frost on the desk -->
+  <rect x="485" y="252" width="26" height="28" rx="4" fill="#64748b"/>
+  <rect x="491" y="242" width="14" height="10" rx="2" fill="#334155"/>
+  <line x1="505" y1="246" x2="522" y2="244" stroke="#334155" stroke-width="3"/>
+  <g fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1">
+    <circle cx="491" cy="266" r="3"/><circle cx="501" cy="260" r="2.5"/><circle cx="505" cy="272" r="3"/><circle cx="494" cy="276" r="2"/>
+  </g>
+  <text x="498" y="236" font-size="12" fill="#78350f" font-weight="600" text-anchor="middle">icy can</text>
+
+  <!-- RIGHT: wall air conditioner and phone app -->
+  <rect x="570" y="60" width="200" height="60" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="3"/>
+  <rect x="585" y="100" width="170" height="8" rx="3" fill="#cbd5e1"/>
+  <circle cx="740" cy="78" r="4" fill="#22c55e"/>
+  <g stroke="#38bdf8" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.9">
+    <path d="M600 128 q10 20 0 40 q-10 20 0 40"/>
+    <path d="M640 128 q10 20 0 40 q-10 20 0 40"/>
+    <path d="M680 128 q10 20 0 40 q-10 20 0 40"/>
+    <path d="M720 128 q10 20 0 40 q-10 20 0 40"/>
+  </g>
+  <text x="670" y="232" font-size="13" fill="#0369a1" font-weight="600" text-anchor="middle">cool air</text>
+  <!-- phone with AC app, held in a hand -->
+  <rect x="640" y="262" width="62" height="110" rx="9" fill="#0f172a"/>
+  <rect x="646" y="272" width="50" height="88" rx="3" fill="#e0f2fe"/>
+  <text x="671" y="300" font-size="16" fill="#0369a1" font-weight="700" text-anchor="middle">24°</text>
+  <g stroke="#0284c7" stroke-width="2" stroke-linecap="round">
+    <line x1="671" y1="314" x2="671" y2="340"/><line x1="660" y1="321" x2="682" y2="333"/><line x1="660" y1="333" x2="682" y2="321"/>
+  </g>
+  <rect x="654" y="346" width="34" height="8" rx="3" fill="#0284c7"/>
+</svg>

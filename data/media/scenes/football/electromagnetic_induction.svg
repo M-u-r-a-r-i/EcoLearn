@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="ti">
+  <title id="ti">An evening football training ground: a contactless card reader on the entrance turnstile, a magnetic-brake training bike on the touchline, and a pitch-side transformer cabinet feeding a floodlight pylon</title>
+  <defs>
+    <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#2b3a52"/>
+    </linearGradient>
+    <linearGradient id="beam2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fef9c3" stop-opacity="0.40"/>
+      <stop offset="1" stop-color="#fef9c3" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#sky2)"/>
+
+  <!-- floodlight beam -->
+  <polygon points="742,92 770,290 470,290" fill="url(#beam2)"/>
+
+  <!-- second pylon, far left, for balance -->
+  <rect x="44" y="132" width="8" height="128" fill="#475569"/>
+  <rect x="34" y="258" width="28" height="7" rx="2" fill="#3b4759"/>
+  <rect x="24" y="106" width="48" height="22" rx="3" fill="#2a3444" stroke="#1e293b" stroke-width="2"/>
+  <g fill="#fde68a" opacity="0.75"><circle cx="36" cy="117" r="4.5"/><circle cx="48" cy="117" r="4.5"/><circle cx="60" cy="117" r="4.5"/></g>
+
+  <!-- floodlight pylon, right -->
+  <rect x="736" y="100" width="10" height="158" fill="#64748b"/>
+  <rect x="724" y="256" width="34" height="8" rx="2" fill="#475569"/>
+  <rect x="710" y="66" width="62" height="28" rx="3" fill="#334155" stroke="#1e293b" stroke-width="2"/>
+  <g fill="#fef08a"><circle cx="724" cy="80" r="6"/><circle cx="741" cy="80" r="6"/><circle cx="758" cy="80" r="6"/></g>
+
+  <!-- stand -->
+  <path d="M0,232 Q400,208 800,232 L800,272 L0,272 z" fill="#1e293b"/>
+  <path d="M0,246 Q400,222 800,246 L800,272 L0,272 z" fill="#334155"/>
+  <g fill="#e2e8f0" opacity="0.3">
+    <circle cx="90" cy="240" r="3"/><circle cx="160" cy="236" r="3"/><circle cx="230" cy="232" r="3"/>
+    <circle cx="470" cy="232" r="3"/><circle cx="540" cy="236" r="3"/><circle cx="610" cy="240" r="3"/>
+  </g>
+
+  <!-- pitch -->
+  <rect x="0" y="272" width="800" height="178" fill="#15803d"/>
+  <rect x="0" y="292" width="800" height="26" fill="#166534"/>
+  <rect x="0" y="352" width="800" height="30" fill="#166534"/>
+  <rect x="0" y="418" width="800" height="32" fill="#166534"/>
+  <line x1="0" y1="284" x2="800" y2="284" stroke="#e2e8f0" stroke-width="2" opacity="0.45"/>
+
+  <!-- goal in the distance, left of centre -->
+  <path d="M300,300 L300,268 L392,268 L392,300" fill="none" stroke="#f8fafc" stroke-width="5" stroke-linejoin="round"/>
+  <g stroke="#e2e8f0" stroke-width="1" opacity="0.55">
+    <line x1="308" y1="272" x2="308" y2="298"/><line x1="326" y1="272" x2="326" y2="298"/>
+    <line x1="346" y1="272" x2="346" y2="298"/><line x1="366" y1="272" x2="366" y2="298"/>
+    <line x1="384" y1="272" x2="384" y2="298"/>
+    <line x1="302" y1="280" x2="390" y2="280"/><line x1="302" y1="290" x2="390" y2="290"/>
+  </g>
+  <!-- ball -->
+  <circle cx="432" cy="306" r="9" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/>
+  <polygon points="432,302 436,305 434,310 429,310 428,305" fill="#0f172a"/>
+
+  <!-- paved entrance strip, bottom left -->
+  <path d="M0,356 L196,356 L214,450 L0,450 z" fill="#475569"/>
+  <path d="M0,356 L196,356 L214,450 L0,450 z" fill="none" stroke="#334155" stroke-width="2"/>
+
+  <!-- turnstile with contactless card reader -->
+  <rect x="62" y="330" width="14" height="86" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+  <rect x="150" y="330" width="14" height="86" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+  <g stroke="#cbd5e1" stroke-width="7" stroke-linecap="round">
+    <line x1="76" y1="358" x2="150" y2="358"/>
+    <line x1="76" y1="382" x2="150" y2="382"/>
+  </g>
+  <!-- reader head on the left post -->
+  <rect x="48" y="300" width="42" height="30" rx="4" fill="#111827" stroke="#64748b" stroke-width="2"/>
+  <circle cx="69" cy="315" r="5" fill="#22c55e"/>
+  <!-- the card, held flat against the reader -->
+  <rect x="94" y="300" width="34" height="22" rx="3" fill="#fbbf24" stroke="#78350f" stroke-width="2"/>
+  <rect x="99" y="305" width="24" height="12" rx="2" fill="none" stroke="#78350f" stroke-width="1.5"/>
+  <text x="70" y="346" font-size="12" fill="#e2e8f0" text-anchor="middle">card reader</text>
+  <text x="112" y="436" font-size="13" fill="#e2e8f0" text-anchor="middle">gate pass: a coil inside the card</text>
+
+  <!-- magnetic-brake training bike, centre -->
+  <g transform="translate(0,-18)">
+    <!-- flywheel with magnet arms -->
+    <circle cx="352" cy="386" r="34" fill="#cbd5e1" stroke="#475569" stroke-width="3"/>
+    <circle cx="352" cy="386" r="9" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+    <path d="M318,368 A34 34 0 0 1 340,354" fill="none" stroke="#dc2626" stroke-width="7" stroke-linecap="round"/>
+    <path d="M364,418 A34 34 0 0 1 386,404" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round"/>
+    <!-- frame -->
+    <g stroke="#1e293b" stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M352,386 L410,386"/>
+      <path d="M410,386 L410,330"/>
+      <path d="M368,342 L410,342"/>
+      <path d="M352,352 L372,340"/>
+    </g>
+    <rect x="356" y="326" width="42" height="12" rx="5" fill="#0f172a"/>
+    <circle cx="410" cy="420" r="16" fill="none" stroke="#1e293b" stroke-width="6"/>
+    <circle cx="410" cy="420" r="4" fill="#1e293b"/>
+    <line x1="410" y1="404" x2="410" y2="386" stroke="#1e293b" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <text x="360" y="436" font-size="13" fill="#e2e8f0" text-anchor="middle">magnetic brake: nothing touches the wheel</text>
+
+  <!-- cable from the cabinet to the pylon base -->
+  <path d="M632,352 C 676,352 700,320 740,262" fill="none" stroke="#0f172a" stroke-width="5" opacity="0.85"/>
+  <path d="M632,352 C 676,352 700,320 740,262" fill="none" stroke="#334155" stroke-width="2"/>
+
+  <!-- transformer cabinet, right -->
+  <rect x="520" y="320" width="112" height="82" rx="4" fill="#94a3b8" stroke="#475569" stroke-width="3"/>
+  <rect x="532" y="332" width="88" height="42" rx="3" fill="#1f2937" stroke="#64748b" stroke-width="2"/>
+  <!-- two coils on one core, drawn inside the window -->
+  <rect x="566" y="334" width="16" height="38" fill="#6b7280"/>
+  <g stroke="#f59e0b" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M548,340 h16"/><path d="M548,348 h16"/><path d="M548,356 h16"/><path d="M548,364 h16"/>
+  </g>
+  <g stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M584,340 h16"/><path d="M584,348 h16"/><path d="M584,356 h16"/><path d="M584,364 h16"/>
+  </g>
+  <circle cx="540" cy="388" r="6" fill="#16a34a"/>
+  <rect x="558" y="382" width="62" height="12" rx="2" fill="#475569"/>
+  <text x="620" y="418" font-size="13" fill="#e2e8f0" text-anchor="middle">floodlight transformer</text>
+  <text x="620" y="434" font-size="12" fill="#94a3b8" text-anchor="middle">two coils, no wire between them</text>
+</svg>

@@ -1,0 +1,24 @@
+# A 0.43 kg ball launched from ground level at 20 m/s, 45 degrees above the horizontal;
+# no air drag, g = 9.8 m/s^2.
+# Total E = 0.5*0.43*20^2 = 86 J. U = mgh = 4.214 h.
+# At the top the ball still moves horizontally at 20 cos 45 = 14.14 m/s, so K_top = 0.215*200 = 43 J,
+# U_top = 43 J, h_max = 43/4.214 = 10.20 m.
+# At h = 2.44 m: U = 10.28 J, K = 75.72 J (v = 18.8 m/s).
+title: "Launched at 20 m/s, 45° up: energy vs height"
+x: {label: "Height above the launch point $h$ (m)", min: 0, max: 13.5}
+y: {label: "Energy (J)", min: 0, max: 110}
+series:
+  - label: "Kinetic energy $K$"
+    points: [[0, 86], [10.20, 43]]
+    color: blue
+  - label: "Potential energy $U = mgh$"
+    points: [[0, 0], [10.20, 43]]
+    color: green
+  - label: "Total $K + U$ = 86 J"
+    points: [[0, 86], [10.20, 86]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 10.20, y: 43, text: "top: K = U = 43 J", color: purple, offset: [8, -4]}
+  - {x: 2.44, y: 75.72, text: "h = 2.44 m: K = 75.7 J", color: blue, offset: [-30, 34]}
+legend: below

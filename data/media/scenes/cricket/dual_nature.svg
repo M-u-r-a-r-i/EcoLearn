@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A floodlit cricket ground at night: a floodlight beam drawn half as a wave and half as a stream of light packets, an umpire holding a light meter, and a tracking camera on a tripod</title>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fef08a" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fef08a" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#fde047"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#night)"/>
+
+  <!-- floodlight tower, top left -->
+  <circle cx="96" cy="72" r="66" fill="url(#lamp)"/>
+  <rect x="90" y="86" width="12" height="190" fill="#334155"/>
+  <rect x="58" y="50" width="76" height="36" rx="4" fill="#1e293b"/>
+  <g fill="#fef9c3">
+    <circle cx="72" cy="62" r="6"/><circle cx="90" cy="62" r="6"/><circle cx="108" cy="62" r="6"/><circle cx="124" cy="62" r="5"/>
+    <circle cx="72" cy="76" r="6"/><circle cx="90" cy="76" r="6"/><circle cx="108" cy="76" r="6"/>
+  </g>
+
+  <!-- the beam: a single band, wave on the left half, packets on the right half -->
+  <path d="M132,58 L520,120 L520,178 L132,90 z" fill="#fde047" opacity="0.12"/>
+  <path d="M140,74 q 22,-16 44,0 t 44,0 t 44,0 t 44,0"
+        transform="translate(0,6) rotate(9 140 74)"
+        fill="none" stroke="#fde047" stroke-width="3" opacity="0.95"/>
+  <text x="150" y="128" font-size="14" fill="#fde047" font-weight="600">one smooth wave?</text>
+
+  <g fill="#fde047">
+    <circle cx="360" cy="126" r="5"/><circle cx="392" cy="133" r="5"/><circle cx="424" cy="140" r="5"/>
+    <circle cx="456" cy="147" r="5"/><circle cx="488" cy="154" r="5"/>
+    <circle cx="372" cy="152" r="4"/><circle cx="410" cy="160" r="4"/><circle cx="448" cy="168" r="4"/>
+  </g>
+  <text x="348" y="196" font-size="14" fill="#fde047" font-weight="600">or a stream of packets?</text>
+
+  <!-- grass and pitch -->
+  <rect x="0" y="282" width="800" height="168" fill="#14532d"/>
+  <polygon points="230,332 620,332 660,372 190,372" fill="#cbb488"/>
+
+  <!-- stumps -->
+  <g stroke="#fef3c7" stroke-width="5" stroke-linecap="round">
+    <line x1="252" y1="300" x2="252" y2="348"/>
+    <line x1="263" y1="300" x2="263" y2="348"/>
+    <line x1="274" y1="300" x2="274" y2="348"/>
+  </g>
+  <line x1="246" y1="296" x2="280" y2="296" stroke="#fde047" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- umpire with a light meter -->
+  <g>
+    <circle cx="600" cy="252" r="15" fill="#f5d0a9"/>
+    <rect x="583" y="268" width="34" height="58" rx="8" fill="#0f172a"/>
+    <rect x="586" y="326" width="12" height="42" fill="#1e293b"/>
+    <rect x="602" y="326" width="12" height="42" fill="#1e293b"/>
+    <!-- arm raised holding the meter -->
+    <line x1="617" y1="278" x2="650" y2="252" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>
+    <rect x="644" y="228" width="30" height="26" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="659" cy="236" r="6" fill="#1e293b"/>
+    <text x="659" y="250" font-size="8" text-anchor="middle" fill="#334155" font-weight="700">LUX</text>
+  </g>
+  <line x1="520" y1="180" x2="646" y2="228" stroke="#fde047" stroke-width="2" opacity="0.8" marker-end="url(#ar)"/>
+  <text x="604" y="396" font-size="13" text-anchor="middle" fill="#e2e8f0" font-weight="600">light meter:</text>
+  <text x="604" y="412" font-size="13" text-anchor="middle" fill="#e2e8f0" font-weight="600">light in, current out</text>
+
+  <!-- tracking camera on a tripod -->
+  <g>
+    <rect x="80" y="300" width="62" height="34" rx="5" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+    <circle cx="146" cy="317" r="11" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="146" cy="317" r="4" fill="#38bdf8"/>
+    <g stroke="#475569" stroke-width="5" stroke-linecap="round">
+      <line x1="111" y1="334" x2="90" y2="382"/>
+      <line x1="111" y1="334" x2="132" y2="382"/>
+      <line x1="111" y1="334" x2="111" y2="378"/>
+    </g>
+  </g>
+  <text x="111" y="404" font-size="13" text-anchor="middle" fill="#e2e8f0" font-weight="600">tracking camera:</text>
+  <text x="111" y="420" font-size="13" text-anchor="middle" fill="#e2e8f0" font-weight="600">a sensor counting light</text>
+
+  <text x="400" y="440" font-size="14" text-anchor="middle" fill="#fde047" font-weight="700">Everything at this ground that senses light asks the same question about what light is made of.</text>
+</svg>

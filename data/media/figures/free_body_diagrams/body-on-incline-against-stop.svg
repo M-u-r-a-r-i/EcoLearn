@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A body resting on a smooth slope at angle theta, held by a small stop at the lower end, and its free-body diagram: normal force perpendicular to the slope, weight straight down, and the stop's push up the slope, with the weight's two dashed components</title>
+  <defs>
+    <marker id="r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#dc2626"/>
+    </marker>
+    <marker id="g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <!-- LEFT: the set-up -->
+  <text x="140" y="32" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">The set-up</text>
+  <polygon points="60,330 209,330 209,117" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>
+  <line x1="30" y1="330" x2="250" y2="330" stroke="#475569" stroke-width="2"/>
+  <g transform="translate(60 330) rotate(-55)">
+    <rect x="44" y="-22" width="100" height="22" rx="4" fill="#334155"/>
+    <rect x="30" y="-30" width="12" height="30" fill="#f59e0b" stroke="#92400e" stroke-width="1.5"/>
+  </g>
+  <path d="M 100 330 A 40 40 0 0 0 83 297" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="106" y="316" font-size="15" font-style="italic" fill="#0f172a">θ</text>
+  <text x="40" y="362" font-size="13" fill="#334155">smooth slope</text>
+  <text x="14" y="258" font-size="13" fill="#92400e">stop</text>
+  <line x1="44" y1="262" x2="78" y2="284" stroke="#92400e" stroke-width="1.2"/>
+
+  <!-- RIGHT: free-body diagram -->
+  <text x="470" y="32" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Free-body diagram</text>
+  <!-- slope direction guide through the point -->
+  <line x1="398" y1="313" x2="542" y2="107" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <!-- weight components (dashed grey) -->
+  <line x1="470" y1="210" x2="524" y2="248" stroke="#9ca3af" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#g)"/>
+  <line x1="470" y1="210" x2="415" y2="289" stroke="#9ca3af" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#g)"/>
+  <text x="530" y="266" font-size="13" fill="#6b7280">mg cos θ</text>
+  <text x="352" y="306" font-size="13" fill="#6b7280">mg sin θ</text>
+  <!-- forces (red) -->
+  <line x1="470" y1="210" x2="470" y2="328" stroke="#dc2626" stroke-width="4" marker-end="url(#r)"/>
+  <line x1="470" y1="210" x2="415" y2="171" stroke="#dc2626" stroke-width="4" marker-end="url(#r)"/>
+  <line x1="470" y1="210" x2="525" y2="131" stroke="#dc2626" stroke-width="4" marker-end="url(#r)"/>
+  <circle cx="470" cy="210" r="6" fill="#0f172a"/>
+  <text x="478" y="350" font-size="15" font-weight="700" fill="#dc2626">W = mg</text>
+  <text x="386" y="162" font-size="15" font-weight="700" fill="#dc2626">N</text>
+  <text x="534" y="128" font-size="15" font-weight="700" fill="#dc2626">S</text>
+  <text x="548" y="146" font-size="12" fill="#475569">push of the stop,</text>
+  <text x="548" y="161" font-size="12" fill="#475569">up the slope</text>
+  <text x="300" y="196" font-size="12" fill="#475569">perpendicular</text>
+  <text x="300" y="211" font-size="12" fill="#475569">to the slope</text>
+  <text x="482" y="258" font-size="14" font-style="italic" fill="#0f172a">θ</text>
+
+  <text x="320" y="386" font-size="13" fill="#0f172a" text-anchor="middle">At rest: N = mg cos θ and S = mg sin θ, so the three forces add to zero.</text>
+</svg>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A resistor with current I through it and potential difference V across it, and the three equivalent expressions for the power it dissipates</title>
+  <defs>
+    <marker id="p-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <text x="320" y="32" font-size="17" text-anchor="middle" fill="#111827" font-weight="700">One rate of energy transfer, three ways to write it</text>
+
+  <!-- circuit: cell, resistor -->
+  <g stroke="#111827" stroke-width="3" fill="none" stroke-linecap="round">
+    <line x1="90" y1="100" x2="90" y2="152"/>
+    <line x1="90" y1="168" x2="90" y2="230"/>
+    <line x1="90" y1="100" x2="230" y2="100"/>
+    <polyline points="230,100 240,86 255,114 270,86 285,114 300,86 315,114 325,100 340,100"/>
+    <line x1="340" y1="100" x2="470" y2="100"/>
+    <line x1="470" y1="100" x2="470" y2="230"/>
+    <line x1="470" y1="230" x2="90" y2="230"/>
+  </g>
+  <line x1="68" y1="152" x2="112" y2="152" stroke="#111827" stroke-width="3"/>
+  <line x1="79" y1="168" x2="101" y2="168" stroke="#111827" stroke-width="6"/>
+  <text x="54" y="150" font-size="15" fill="#111827" font-weight="700">+</text>
+
+  <!-- V across the resistor -->
+  <line x1="230" y1="68" x2="340" y2="68" stroke="#b45309" stroke-width="2"/>
+  <line x1="230" y1="62" x2="230" y2="74" stroke="#b45309" stroke-width="2"/>
+  <line x1="340" y1="62" x2="340" y2="74" stroke="#b45309" stroke-width="2"/>
+  <text x="285" y="56" font-size="15" text-anchor="middle" fill="#b45309" font-weight="700">V across it</text>
+  <text x="285" y="140" font-size="15" text-anchor="middle" fill="#111827" font-weight="600">resistance R</text>
+
+  <!-- current arrows -->
+  <line x1="140" y1="100" x2="185" y2="100" stroke="#2563eb" stroke-width="3" marker-end="url(#p-blue)"/>
+  <line x1="380" y1="100" x2="425" y2="100" stroke="#2563eb" stroke-width="3" marker-end="url(#p-blue)"/>
+  <text x="163" y="88" font-size="15" text-anchor="middle" fill="#2563eb" font-weight="700">I</text>
+
+  <!-- heat out -->
+  <text x="285" y="190" font-size="14" text-anchor="middle" fill="#dc2626" font-weight="600">energy leaves as heat and light</text>
+
+  <!-- three boxes -->
+  <g>
+    <rect x="40" y="258" width="170" height="60" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="125" y="288" font-size="20" text-anchor="middle" fill="#1e3a8a" font-weight="700">P = V I</text>
+    <text x="125" y="308" font-size="12" text-anchor="middle" fill="#374151">always true</text>
+
+    <rect x="235" y="258" width="170" height="60" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+    <text x="320" y="288" font-size="20" text-anchor="middle" fill="#7f1d1d" font-weight="700">P = I&#178; R</text>
+    <text x="320" y="308" font-size="12" text-anchor="middle" fill="#374151">use when I is fixed</text>
+
+    <rect x="430" y="258" width="170" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+    <text x="515" y="288" font-size="20" text-anchor="middle" fill="#14532d" font-weight="700">P = V&#178; / R</text>
+    <text x="515" y="308" font-size="12" text-anchor="middle" fill="#374151">use when V is fixed</text>
+  </g>
+
+  <text x="320" y="352" font-size="13" text-anchor="middle" fill="#6b7280">the last two follow from the first using V = IR (so they need Ohm's law; P = VI does not)</text>
+  <text x="320" y="380" font-size="16" text-anchor="middle" fill="#111827" font-weight="700">energy used = P &#215; t &#160;&#160;(1 unit on the bill = 1 kW h = 3.6 &#215; 10&#8310; J)</text>
+</svg>

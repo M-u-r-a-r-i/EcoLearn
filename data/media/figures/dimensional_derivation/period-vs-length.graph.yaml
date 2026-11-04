@@ -1,0 +1,23 @@
+# Simple pendulum, small swings, g = 9.8 m/s^2.
+# Red: the true result T = 2*pi*sqrt(l/g). Gray dashed: sqrt(l/g), i.e. the
+# dimensional-analysis form with the unknown constant k set to 1.
+# Check: l = 0.5 m -> 2*pi*0.2259 = 1.419 s; l = 2.0 m -> 2*pi*0.4518 = 2.838 s (exactly double).
+title: "Period of a simple pendulum"
+x: {label: "Length $l$ (m)", min: 0, max: 2.1}
+y: {label: "Period $T$ (s)", min: 0, max: 3.3}
+legend: below
+series:
+  - label: 'measured behaviour: $T = 2\pi\sqrt{l/g}$'
+    points: [[0, 0], [0.01, 0.201], [0.02, 0.284], [0.05, 0.449], [0.1, 0.635], [0.2, 0.898],
+             [0.3, 1.099], [0.4, 1.269], [0.5, 1.419], [0.6, 1.555], [0.8, 1.795], [1.0, 2.007],
+             [1.2, 2.199], [1.4, 2.375], [1.6, 2.539], [1.8, 2.693], [2.0, 2.838]]
+    color: red
+  - label: 'dimensions alone, with $k = 1$: $T = \sqrt{l/g}$'
+    points: [[0, 0], [0.01, 0.032], [0.02, 0.045], [0.05, 0.071], [0.1, 0.101], [0.2, 0.143],
+             [0.3, 0.175], [0.4, 0.202], [0.5, 0.226], [0.6, 0.247], [0.8, 0.286], [1.0, 0.319],
+             [1.2, 0.350], [1.4, 0.378], [1.6, 0.404], [1.8, 0.429], [2.0, 0.452]]
+    color: gray
+    style: dashed
+marks:
+  - {x: 0.5, y: 1.419, text: "0.50 m → 1.42 s", color: red, offset: [10, -2]}
+  - {x: 2.0, y: 2.838, text: "4× the length → 2× T", color: red, offset: [-150, 8]}

@@ -2,13 +2,18 @@
 
 Covers the three layers added for real accounts:
 
-  1. MIGRATION  — an old-shape `students` table (no email/password_hash) is
-                  upgraded in place, idempotently, without disturbing its rows.
+  1. MIGRATION  — an old-shape `students` table (no username/password_hash) is
+                  upgraded in place, idempotently, without disturbing its rows —
+                  including a DB that already has the abandoned `email` column.
   2. PASSWORDS  — bcrypt hashing, the 72-BYTE limit, and the guarantee that
                   `verify_password` never raises.
   3. BOUNDARY   — register / authenticate / get_profile / update_profile /
-                  change_password, including every error branch and the
-                  promise that a password hash never crosses the boundary.
+                  change_password, including every error branch, the
+                  username rules, interest validation against the registry, and
+                  the promise that a password hash never crosses the boundary.
+
+Accounts use a username, not an email (user decision, 2026-09-21 — minimal
+personal data for a pilot on minors).
 
 It also pins the two backwards-compatibility contracts: the legacy slug id
 still works, and account ids are provably disjoint from slug ids.
@@ -107,11 +112,11 @@ def test_migration() -> None:
         check("legacy row still loads", profile is not None)
         check("legacy name preserved", profile["name"] == "Legacy Kid")
         check("legacy created_at preserved", profile["created_at"].startswith("2026-01-01"))
-        check("legacy email is NULL", profile["email"] is None)
+        check("legacy username is NULL", profile["username"] is None)
         check("password_hash never in a profile dict", "password_hash" not in profile)
 
         columns = {row[1] for row in sqlite3.connect(old_db).execute("PRAGMA table_info(students)")}
-        check("email column added", "email" in columns)
+        check("username column added", "username" in columns)
         check("password_hash column added", "password_hash" in columns)
 
         # Second connect must be a no-op, not an error.
@@ -122,7 +127,34 @@ def test_migration() -> None:
         # what every legacy, password-less student relies on.
         store.save_student("legacy-two", "Legacy Two", "gaming", "Class 11")
         store.save_student("legacy-three", "Legacy Three", "gaming", "Class 11")
-        check("multiple NULL emails coexist", len(store.get_student("legacy-two")) > 0)
+        check("multiple NULL usernames coexist", len(store.get_student("legacy-two")) > 0)
+    finally:
+        os.environ["ECOLEARN_PROGRESS_DB"] = original
+
+    # A dev DB migrated by the earlier email draft has an `email` column (and
+    # its unique index). It must still upgrade cleanly — migrations only add.
+    draft_db = _TMP_DIR / "email_draft.db"
+    conn = sqlite3.connect(draft_db)
+    conn.execute(
+        "CREATE TABLE students (student_id TEXT PRIMARY KEY, name TEXT NOT NULL, "
+        "interest TEXT NOT NULL, level TEXT NOT NULL, created_at TEXT NOT NULL, "
+        "email TEXT, password_hash TEXT)"
+    )
+    conn.execute("CREATE UNIQUE INDEX idx_students_email ON students(email)")
+    conn.execute(
+        "INSERT INTO students VALUES ('draft-kid', 'Draft Kid', 'gaming', 'Class 12', "
+        "'2026-09-20T00:00:00+00:00', NULL, NULL)"
+    )
+    conn.commit()
+    conn.close()
+    os.environ["ECOLEARN_PROGRESS_DB"] = str(draft_db)
+    try:
+        profile = store.get_student("draft-kid")
+        columns = {row[1] for row in sqlite3.connect(draft_db).execute("PRAGMA table_info(students)")}
+        check("email-draft DB gains a username column", "username" in columns)
+        check("email-draft DB keeps its old column (additive only)", "email" in columns)
+        check("email-draft row still loads", profile is not None and profile["name"] == "Draft Kid")
+        check("profile exposes no email field", "email" not in profile)
     finally:
         os.environ["ECOLEARN_PROGRESS_DB"] = original
 
@@ -157,7 +189,7 @@ def test_passwords() -> None:
     check("corrupt stored hash fails verification",
           not passwords.verify_password("anything", "not-a-bcrypt-hash"))
 
-    passwords.dummy_verify()  # must not raise; used on the unknown-email path
+    passwords.dummy_verify()  # must not raise; used on the unknown-username path
     check("dummy_verify runs (constant-time login path)", True)
 
 
@@ -171,27 +203,41 @@ def test_register() -> None:
 
     profile = api.register_student(
         name="Ada Lovelace",
-        email="  Ada@Example.COM ",
+        username="  Ada_K ",
         password="hunter2hunter2",
-        interest="football",
+        interest="Football",
         level="Class 11",
     )
     check("account id uses the stu_ scheme", profile["student_id"].startswith("stu_"))
     check("account id contains '_' (disjoint from any slug)", "_" in profile["student_id"])
-    check("email normalised to lowercase + trimmed", profile["email"] == "ada@example.com")
+    check("username normalised to lowercase + trimmed", profile["username"] == "ada_k")
+    check("interest normalised to its registry id", profile["interest"] == "football")
     check("password_hash absent from the returned profile", "password_hash" not in profile)
+    check("no email field in the profile", "email" not in profile)
     check("name trimmed", profile["name"] == "Ada Lovelace")
 
-    check_raises("duplicate email (case-insensitive) conflicts", ConflictError,
-                 api.register_student, "Impostor", "ADA@EXAMPLE.COM", "another12345", "gaming")
-    check_raises("malformed email rejected", EcoLearnError,
-                 api.register_student, "X", "not-an-email", "another12345", "gaming")
+    check_raises("duplicate username (case-insensitive) conflicts", ConflictError,
+                 api.register_student, "Impostor", "ADA_K", "another12345", "gaming")
+    check_raises("too-short username rejected", EcoLearnError,
+                 api.register_student, "X", "ab", "another12345", "gaming")
+    check_raises("too-long username rejected", EcoLearnError,
+                 api.register_student, "X", "a" * 21, "another12345", "gaming")
+    check_raises("username with a space rejected", EcoLearnError,
+                 api.register_student, "X", "ada k", "another12345", "gaming")
+    check_raises("username starting with '_' rejected", EcoLearnError,
+                 api.register_student, "X", "_ada", "another12345", "gaming")
+    check_raises("email-shaped username rejected", EcoLearnError,
+                 api.register_student, "X", "ada@example.com", "another12345", "gaming")
+    check("a registry interest that is still draft is accepted",
+          api.register_student("Rahul", "rahul.11", "another12345", "cricket")["interest"] == "cricket")
+    check_raises("unknown interest rejected", EcoLearnError,
+                 api.register_student, "X", "newuser", "another12345", "chess")
     check_raises("short password rejected", EcoLearnError,
-                 api.register_student, "X", "new@example.com", "short", "gaming")
+                 api.register_student, "X", "newuser", "short", "gaming")
     check_raises("blank name rejected", EcoLearnError,
-                 api.register_student, "   ", "new@example.com", "another12345", "gaming")
+                 api.register_student, "   ", "newuser", "another12345", "gaming")
     check_raises("blank interest rejected", EcoLearnError,
-                 api.register_student, "X", "new@example.com", "another12345", "  ")
+                 api.register_student, "X", "newuser", "another12345", "  ")
 
     return profile
 
@@ -200,20 +246,20 @@ def test_authenticate(registered: dict) -> None:
     """Login succeeds on the right password and is uniform on every failure."""
     print("\n[4] AUTHENTICATE")
 
-    signed_in = api.authenticate_student("  ADA@Example.com", "hunter2hunter2")
+    signed_in = api.authenticate_student("  ADA_k", "hunter2hunter2")
     check("login returns the same account", signed_in["student_id"] == registered["student_id"])
     check("login result carries no password_hash", "password_hash" not in signed_in)
 
     # All three failure branches must be indistinguishable to a caller: same
     # exception type, same message. Anything else is an enumeration oracle.
     messages = []
-    for label, email, password in (
-        ("wrong password", "ada@example.com", "wrongwrongwrong"),
-        ("unknown email", "nobody@example.com", "hunter2hunter2"),
-        ("malformed email", "junk", "hunter2hunter2"),
+    for label, username, password in (
+        ("wrong password", "ada_k", "wrongwrongwrong"),
+        ("unknown username", "nobody", "hunter2hunter2"),
+        ("malformed username", "a b", "hunter2hunter2"),
     ):
         try:
-            api.authenticate_student(email, password)
+            api.authenticate_student(username, password)
             raise AssertionError(f"{label} should not authenticate")
         except AuthError as err:
             messages.append(str(err))
@@ -221,7 +267,7 @@ def test_authenticate(registered: dict) -> None:
             global _CHECKS
             _CHECKS += 1
 
-    check("all login failures share one message (no email enumeration)",
+    check("all login failures share one message (no username enumeration)",
           len(set(messages)) == 1)
 
 
@@ -242,11 +288,13 @@ def test_profile(registered: dict) -> None:
 
     renamed = api.update_student_profile(student_id, name="Ada L.", level="Class 12")
     check("multi-field patch applied", renamed["name"] == "Ada L." and renamed["level"] == "Class 12")
-    check("patch did not disturb the email", renamed["email"] == "ada@example.com")
+    check("patch did not disturb the username", renamed["username"] == "ada_k")
 
     check_raises("empty patch rejected", EcoLearnError, api.update_student_profile, student_id)
     check_raises("blank interest rejected", EcoLearnError,
                  api.update_student_profile, student_id, interest="   ")
+    check_raises("unknown interest rejected on patch", EcoLearnError,
+                 api.update_student_profile, student_id, interest="chess")
     check_raises("patching an unknown id is NotFound", NotFoundError,
                  api.update_student_profile, "stu_does_not_exist", interest="gaming")
 
@@ -260,9 +308,9 @@ def test_change_password(registered: dict) -> None:
     check("change reported", result == {"student_id": student_id, "changed": True})
 
     check_raises("the old password no longer works", AuthError,
-                 api.authenticate_student, "ada@example.com", "hunter2hunter2")
+                 api.authenticate_student, "ada_k", "hunter2hunter2")
     check("the new password works",
-          api.authenticate_student("ada@example.com", "brandnewpassword")["student_id"] == student_id)
+          api.authenticate_student("ada_k", "brandnewpassword")["student_id"] == student_id)
 
     check_raises("wrong current password rejected", AuthError,
                  api.change_password, student_id, "notmypassword", "yetanotherpw1")
@@ -285,7 +333,7 @@ def test_legacy_contract() -> None:
     again = api.create_or_load_student("Journey Student", "gaming", "Class 12")
     check("create_or_load is still idempotent", again["student_id"] == legacy["student_id"])
     check("legacy interest still refreshes on load", again["interest"] == "gaming")
-    check("legacy student has no email", again.get("email") is None)
+    check("legacy student has no username", again.get("username") is None)
 
     # A legacy student cannot authenticate — there is no password to check —
     # and that must surface as an auth failure, never a crash.

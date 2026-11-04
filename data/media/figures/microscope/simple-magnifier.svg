@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Segoe UI, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">A convex lens used as a magnifying glass. The object is closer to the lens than its focal length, so the rays leaving the lens still diverge. Traced backwards as dashed lines, they meet on the same side as the object, forming an enlarged, upright, virtual image that the eye can focus on.</title>
+  <defs>
+    <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="mo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+    <marker id="mi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" fill="#ffffff"/>
+
+  <line x1="30" y1="230" x2="612" y2="230" stroke="#374151" stroke-width="1.6" stroke-dasharray="9 5"/>
+
+  <!-- lens -->
+  <path d="M 380 140 Q 402 230 380 320 Q 358 230 380 140 Z" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2.5"/>
+  <circle cx="290" cy="230" r="4.5" fill="#111827"/><text x="290" y="252" font-size="14" fill="#111827" text-anchor="middle" font-weight="700">F</text>
+  <circle cx="470" cy="230" r="4.5" fill="#111827"/><text x="470" y="252" font-size="14" fill="#111827" text-anchor="middle" font-weight="700">F′</text>
+
+  <!-- object, inside the focal length -->
+  <line x1="330" y1="230" x2="330" y2="190" stroke="#16a34a" stroke-width="3.5" marker-end="url(#mo)"/>
+  <text x="314" y="198" font-size="13.5" fill="#16a34a" text-anchor="end" font-weight="700">object</text>
+
+  <!-- virtual image -->
+  <line x1="267.5" y1="230" x2="267.5" y2="140" stroke="#dc2626" stroke-width="3.5" marker-end="url(#mi)"/>
+  <text x="258" y="136" font-size="13.5" fill="#dc2626" text-anchor="end" font-weight="700">virtual image</text>
+
+  <!-- ray 1: parallel, then through F' -->
+  <line x1="330" y1="190" x2="380" y2="190" stroke="#2563eb" stroke-width="2.6"/>
+  <line x1="380" y1="190" x2="600" y2="287.8" stroke="#2563eb" stroke-width="2.6" marker-end="url(#m1)"/>
+  <line x1="380" y1="190" x2="267.5" y2="140" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <!-- ray 2: through the optical centre -->
+  <line x1="330" y1="190" x2="560" y2="374" stroke="#2563eb" stroke-width="2.6" marker-end="url(#m1)"/>
+  <line x1="330" y1="190" x2="267.5" y2="140" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4"/>
+
+  <text x="616" y="66" font-size="13" fill="#2563eb" text-anchor="end" font-weight="700">the rays leaving still diverge —</text>
+  <text x="616" y="84" font-size="13" fill="#2563eb" text-anchor="end" font-weight="700">the eye traces them straight back</text>
+
+  <rect x="26" y="30" width="300" height="86" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#cbd5e1"/>
+  <text x="176" y="58" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">image at the near point: m = 1 + D/f</text>
+  <text x="176" y="84" font-size="15" fill="#111827" text-anchor="middle" font-weight="700">image at infinity: m = D/f</text>
+  <text x="176" y="106" font-size="12.5" fill="#334155" text-anchor="middle">D is the near point, 25 cm for a normal eye</text>
+
+  <text x="320" y="392" font-size="13" fill="#6b7280" text-anchor="middle">Bring the object inside the focal length and the lens magnifies instead of projecting.</text>
+</svg>

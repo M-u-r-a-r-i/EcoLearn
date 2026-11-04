@@ -1,0 +1,18 @@
+# Interest-neutral: kinetic energy as a multiple of its value at a reference speed.
+# K/K0 = (v/v0)^2, so the curve is a parabola through (1, 1).
+# v/v0 = 0.5 -> 0.25;  1 -> 1;  1.5 -> 2.25;  2 -> 4;  2.5 -> 6.25;  3 -> 9.
+# Deliberately carries no mass and no story numbers, so every interest can reuse it.
+title: "Kinetic energy against speed: $K \\propto v^2$"
+x: {label: "Speed, as a multiple of a reference speed $v_0$", min: 0, max: 3.2}
+y: {label: "Kinetic energy, as a multiple of $K_0$", min: 0, max: 10}
+series:
+  - label: "$K/K_0 = (v/v_0)^2$"
+    points: [[0, 0], [0.25, 0.0625], [0.5, 0.25], [0.75, 0.5625], [1.0, 1.0], [1.25, 1.5625],
+             [1.5, 2.25], [1.75, 3.0625], [2.0, 4.0], [2.25, 5.0625], [2.5, 6.25],
+             [2.75, 7.5625], [3.0, 9.0]]
+    color: blue
+marks:
+  - {x: 1.0, y: 1.0, text: "reference", color: blue, offset: [10, -10]}
+  - {x: 2.0, y: 4.0, text: "2x speed, 4x energy", color: red, offset: [16, -20]}
+  - {x: 3.0, y: 9.0, text: "3x speed, 9x energy", color: red, offset: [-185, -18]}
+legend: lower right

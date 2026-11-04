@@ -1,0 +1,73 @@
+# The starting check a student takes right after signing up (2026-10-02).
+#
+# WHAT IT IS FOR: five minutes that tell EcoLearn where a student stands, so the
+# app can (1) skip what they already understand, (2) point them at the concepts
+# where they hold a misconception, and (3) suggest where to start. No AI is
+# involved: every question is an existing lesson's check, and every wrong option
+# in those checks was written to reveal one named misconception.
+#
+# HOW QUESTIONS ARE CHOSEN
+# * Concepts are picked for *understanding*, not arithmetic: checks whose wrong
+#   options reveal beliefs ("thinks the force of a kick is used up") rather
+#   than slips ("divides instead of multiplies").
+# * The question is taken from the lesson of a DIFFERENT interest than the
+#   student's own (first available in `source_interests`), so they don't meet
+#   the same question again in their own lesson. That keeps the lesson check's
+#   "right first time" number honest for the pilot.
+# * A Class 12 student also gets one Class 11 foundation, because Class 12
+#   mix-ups often start there.
+#
+# Edit this file to change the check: it's content, not code. Concept ids must
+# exist in data/curriculum/physics.yaml (tests/test_learner_plan.py checks).
+
+source_interests: [football, gaming, cricket, smartphones, motorsport]
+
+questions:
+  "Class 11":
+    - dimensional_consistency
+    - displacement
+    - acceleration
+    - projectile_motion
+    - inertia_first_law
+    - second_law
+    - third_law
+    - first_law_thermodynamics
+  "Class 12":
+    - second_law
+    - electric_field_lines
+    - capacitance
+    - resistors_combination
+    - magnetic_force_on_charge
+    - lenzs_law
+    - total_internal_reflection
+    - photoelectric_observations
+
+# Hobbies a student can tick (several), plus up to two of their own. Used by the
+# personal stories (layer 3, src/learner/personal_story.py): `fits` lists the
+# physics domains (as in physics.yaml) where the hobby gives a natural, honest
+# analogy. A hobby is only used where it fits — no forced analogies (the same
+# weak-fit rule as content/AUTHORING_GUIDE.md). A student's own hobbies have no
+# list; the writing agent decides, and may decline. `interest` marks a hobby that
+# IS one of the lesson interests: it adds nothing for a student who already has it.
+# Kept to short labels on purpose: no free-form text about a child goes anywhere.
+hobbies:
+  - { id: cricket, label: Cricket, emoji: "🏏", fits: [mechanics], interest: cricket }
+  - { id: football, label: Football, emoji: "⚽", fits: [mechanics], interest: football }
+  - { id: badminton, label: Badminton, emoji: "🏸", fits: [mechanics] }
+  - { id: basketball, label: Basketball, emoji: "🏀", fits: [mechanics] }
+  - { id: kabaddi, label: Kabaddi, emoji: "🤼", fits: [mechanics] }
+  - { id: athletics, label: Running & athletics, emoji: "🏃", fits: [mechanics, thermal] }
+  - { id: swimming, label: Swimming, emoji: "🏊", fits: [mechanics, thermal] }
+  - { id: cycling, label: Cycling, emoji: "🚴", fits: [mechanics, thermal] }
+  - { id: gaming, label: Video games, emoji: "🎮", fits: [mechanics, electricity, optics], interest: gaming }
+  - { id: phones, label: Phones & gadgets, emoji: "📱", fits: [electricity, magnetism, optics, modern], interest: smartphones }
+  - { id: cars, label: Cars & racing, emoji: "🏎️", fits: [mechanics, thermal, electricity, magnetism], interest: motorsport }
+  - { id: music, label: Music, emoji: "🎵", fits: [waves, electricity, magnetism] }
+  - { id: dance, label: Dance, emoji: "💃", fits: [mechanics] }
+  - { id: art, label: Drawing & art, emoji: "🎨", fits: [optics] }
+  - { id: cooking, label: Cooking, emoji: "🍳", fits: [thermal, electricity, magnetism] }
+  - { id: photography, label: Photography, emoji: "📷", fits: [optics, modern] }
+  - { id: coding, label: Coding, emoji: "💻", fits: [electricity] }
+  - { id: space, label: Space & stars, emoji: "🔭", fits: [mechanics, optics, modern] }
+  - { id: movies, label: Movies & anime, emoji: "🎬", fits: [optics] }
+  - { id: reading, label: Reading, emoji: "📚", fits: [] }

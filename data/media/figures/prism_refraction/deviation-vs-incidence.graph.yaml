@@ -1,0 +1,38 @@
+title: How the deviation changes as you turn the prism
+x:
+  label: "Angle of incidence $i$ (degrees)"
+  min: 28
+  max: 92
+y:
+  label: "Angle of deviation $\\delta$ (degrees)"
+  min: 33
+  max: 60
+series:
+  - label: "equilateral prism, $A = 60^\\circ$, $n = 1.5$"
+    color: blue
+    style: solid
+    points:
+      - [30, 47.10]
+      - [33, 42.73]
+      - [36, 40.32]
+      - [39, 38.83]
+      - [42, 37.90]
+      - [45, 37.38]
+      - [48, 37.19]
+      - [51, 37.26]
+      - [54, 37.58]
+      - [57, 38.12]
+      - [60, 38.88]
+      - [63, 39.84]
+      - [66, 41.00]
+      - [69, 42.37]
+      - [72, 43.94]
+      - [75, 45.72]
+      - [78, 47.72]
+      - [81, 49.94]
+      - [84, 52.37]
+      - [87, 55.03]
+      - [90, 57.92]
+marks:
+  - {x: 48.6, y: 37.18, text: "minimum deviation", color: red, offset: [12, 30]}
+legend: below

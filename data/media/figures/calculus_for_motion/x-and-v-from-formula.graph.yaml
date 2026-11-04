@@ -1,0 +1,32 @@
+# x = 1.2 t^2 - 0.05 t^3 (m, s), so v = dx/dt = 2.4 t - 0.15 t^2 and a = 2.4 - 0.3 t.
+# At t = 5 s: x = 23.75 m, v = 8.25 m/s, a = 0.9 m/s^2. Area under v from 0 to 5 s = 23.75 m.
+# Tangent at 5 s: x = 23.75 + 8.25 (t - 5).
+title: "Differentiate to go right, integrate to come back"
+panels:
+  - title: "$x = 1.2t^2 - 0.05t^3$"
+    x: {label: "Time $t$ (s)", min: 0, max: 5.3}
+    y: {label: "Position $x$ (m)", min: 0, max: 28}
+    series:
+      - label: "$x(t)$"
+        points: [[0, 0], [0.5, 0.294], [1, 1.15], [1.5, 2.531], [2, 4.4], [2.5, 6.719],
+                 [3, 9.45], [3.5, 12.556], [4, 16.0], [4.5, 19.744], [5, 23.75]]
+        color: purple
+      - label: "tangent at 5 s: slope 8.25 m/s"
+        points: [[3.5, 11.375], [5.3, 26.225]]
+        color: blue
+        style: dashed
+    marks:
+      - {x: 5, y: 23.75, text: "23.75 m", color: purple, offset: [-66, 4]}
+    legend: upper left
+  - title: "$v = dx/dt = 2.4t - 0.15t^2$"
+    x: {label: "Time $t$ (s)", min: 0, max: 5.3}
+    y: {label: "Velocity $v$ (m/s)", min: 0, max: 10}
+    series:
+      - label: "$v(t)$"
+        points: [[0, 0], [0.5, 1.163], [1, 2.25], [1.5, 3.263], [2, 4.2], [2.5, 5.063],
+                 [3, 5.85], [3.5, 6.563], [4, 7.2], [4.5, 7.763], [5, 8.25]]
+        color: blue
+    marks:
+      - {x: 5, y: 8.25, text: "8.25 m/s", color: blue, offset: [-70, 6]}
+      - {x: 2.2, y: 1.5, text: "area 0–5 s = 23.75 m", color: purple, offset: [8, -4]}
+    legend: upper left
